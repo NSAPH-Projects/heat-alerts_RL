@@ -4,9 +4,7 @@ setwd("/n/dominici_nsaph_l3/projects/heat-alerts_mortality_RL")
 
 ## Read in the data:
 
-data<- readRDS("data/Merged_with_lags.rds")
-
-## Create some additional variables:
+data<- readRDS("data/Data_for_HARL.rds")
 
 # Explore alerts and quantiles:
 states<- unique(data$state)
@@ -45,7 +43,7 @@ data$failed_alert<- as.numeric(data$alert & data$HImaxF_PopW < 90) # adjust thre
 
 A<- data[,"alert"]
 
-R<- -1*(data$N*100000/data$CENSUS2010POP + data$failed_alert) 
+R<- -1*(data$N*100000/data$Population + data$failed_alert) 
 
 # Include in state: heat alerts within last 10 days, forecasted quantile of HI, 
   # actual quantile of heat HI on previous day, 
