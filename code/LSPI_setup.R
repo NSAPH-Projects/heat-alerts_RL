@@ -1,3 +1,5 @@
+library(lubridate)
+
 
 ## Setup:
 setwd("/n/dominici_nsaph_l3/projects/heat-alerts_mortality_RL")
@@ -5,19 +7,11 @@ setwd("/n/dominici_nsaph_l3/projects/heat-alerts_mortality_RL")
 ## Read in the data:
 
 data<- readRDS("data/Data_for_HARL.rds")
-
-# Explore alerts and quantiles:
-states<- unique(data$state)
-alert_stats<- matrix(0, ncol = 4, nrow = length(states))
-
-for(s in states){
-  i<- which(states == s)
-  df<- data[which(data$state == s),]
-  alert_stats[i,1]<- min(df[which(df$alert == 1), "HImaxF_PopW"])
-  alert_stats[i,2]<- max(df[which(df$alert == 0), "HImaxF_PopW"])
-}
-
-# aggregate(HImaxF_PopW ~ state, data, function(x) quantile(x, probs = c(0.9, 0.97, 1)))
+data$Date<- as.Date(data$Date)
+data$month<- month(data$Date)
+summer<- data[which(data$month %in% 5:9),] # excluding April and October
+summer$Holiday<- as.numeric((summer$holiday == 1) |
+                              (summer$dow %in% c("Saturday", "Sunday")))
 
 my_quant<- function(df, region_var, split_var #, probs)
   ){
@@ -35,77 +29,90 @@ my_quant<- function(df, region_var, split_var #, probs)
   return(q)
 }
 
-data$quant_HI<- my_quant(data, "state", "HImaxF_PopW")
+summer$quant_HI<- my_quant(summer, "state", "HImaxF_PopW")
+summer$quant_HI_yest<- my_quant(summer, "state", "HI_lag1")
 
-data$failed_alert<- as.numeric(data$alert & data$HImaxF_PopW < 90) # adjust threshold?
+summer$failed_alert_abs<- as.numeric(summer$alert & summer$HImaxF_PopW < 90) # absolute 
+summer$failed_alert_rel<- as.numeric(summer$alert & summer$quant_HI < 0.8) # relative
 
 ## Define states, actions, rewards
 
-A<- data[,"alert"]
+S<- summer[, c("Med.HH.Income", "Pop_density",
+                             "Holiday", "HI_lag1" # or "quant_HI_yest"
+                             # "alerts_2wks", "HI_3days"
+                             )]
+S.1<- summer[, c("Med.HH.Income", "Pop_density",
+                            "Holiday", "HI_lag1" # or "quant_HI_yest"
+                            # "alerts_2wks", "HI_3days"
+                            )]
+S<- S[-seq(153, nrow(summer), 153),] # there are 153 days each summer
+S.1<- S.1[-seq(1, nrow(summer), 153),]
 
-R<- -1*(data$N*100000/data$Population + data$failed_alert) 
+A<- summer[-seq(1, nrow(summer), 153),"alert"]
 
-# Include in state: heat alerts within last 10 days, forecasted quantile of HI, 
-  # actual quantile of heat HI on previous day, 
-  # % of HHs in that county with income below the poverty line,
-  # % of county land area classified as urban (or avg pop density?)
-# Possibly include: holiday / weekend?
+R<- (-1*(summer$N*100000/summer$Population + 
+           summer$failed_alert_abs))[-seq(1, nrow(summer), 153)]# weight differently?
 
-S<- data[1:(dim(data)[1]-1),c("quant_HI", "time")] # adjust variables and indexing later
-S.1<- data[2:dim(data)[1],c("quant_HI", "time")] # adjust variables and indexing later
+## Normalize state variables:
+norm_S<- scale(S)
+norm_S.1<- scale(S.1)
 
 # For now, let's say the discount is:
 discount<- 0.999
 
-## Define basis functions:
-phi<- list(function(x){x}, function(x){x^2})
-# Example:
-# unlist(lapply(phi, function(f) sapply(1:3, f)))
-
 ## LSTDQ:
 
-lstdq<- function(S, A, R, S.1, phi_func, discount, Phi, b, policy){
-  # Phi is a matrix of phi_func applied to the samples (s,a)
+lstdq<- function(S.1, discount, Phi, b, policy){
+  # Phi is the matrix of covariates / basis functions
   # b is Phi^T %*% R 
   # policy is a vector of length |S|
   
-  P.Pi.Phi<- t(sapply(1:1000, function(i){ # fix number of rows!
-    s<- as.vector(unlist(lapply(phi, function(f) sapply(S.1[i,],f))))
-    if(policy[i] == 1){
-      c(s, rep(0,2*dim(S)[2]))
-    }else{
-      c(rep(0,2*dim(S)[2]), s)
-    }
-  }))
+  P.Pi.Phi<- matrix(0, ncol = ncol(Phi), nrow = nrow(Phi))
+  colnames(P.Pi.Phi)<- colnames(Phi)
+  P.Pi.Phi[which(policy == 0),1:ncol(S.1)]<- S.1[which(policy == 0),]
+  P.Pi.Phi[which(policy == 1),(ncol(S.1) + 1):(2*ncol(S.1))]<- S.1[which(policy == 1),]
   
-  A<- t(Phi)%*%(Phi - discount*P.Pi.Phi)
+  A_mat<- t(Phi)%*%(Phi - discount*P.Pi.Phi)
   
-  # Then: 
-  # Invert A
-  # w = (A.inv)%*%b
-  
+  # Invert A_mat if it's non-singular:
+  test_svd<- svd(A_mat)
+  if(sum(test_svd$d < 1)){
+    break
+  }else{
+    return(solve(A_mat)%*%b) # w
+  }
 }
 
-lspi<- function(S, A, R, S.1, phi_func, discount){
+lspi<- function(S, A, R, S.1, discount, tol){
   # A and R are vectors with the actions and rewards respectively 
   # S and S.1 are matrices with one "state" in each row
-  # phi_func is a list of the basis functions
   # discount is a scalar between 0 and 1
+  # tol is convergence tolerance
   
-  Phi<- t(sapply(1:1000, function(i){ # fix number of rows!
-    s<- as.vector(unlist(lapply(phi, function(f) sapply(S[i,],f))))
-    if(A[i] == 1){
-      c(s, rep(0,2*dim(S)[2]))
-    }else{
-      c(rep(0,2*dim(S)[2]), s)
-    }
-  })) # Might actually just want to run this once per model and save it?
-      # Maybe could use for bootstrapping if I keep track of row indices?
+  Phi<- matrix(0, ncol = 2*ncol(S), nrow = nrow(S))
+  colnames(Phi)<- rep(colnames(S),2)
+  Phi[which(A == 0),1:ncol(S)]<- S[which(A == 0),]
+  Phi[which(A == 1),(ncol(S) + 1):(2*ncol(S))]<- S[which(A == 1),]
   
-  b<- t(Phi) %*% R[1:1000]
+  b<- t(Phi) %*% R
   
-  # Then apply lstdq and update the policy...
+  # Initialize policy:
+  policy<- rep(c(0,1), nrow(Phi)/2)
+  
+  # Apply LSTDQ:
+  w<- lstdq(S.1, discount, Phi, b, policy)
+  
+  ## Implement while loop with tol...
+  
+  # Update the policy:
+  Q0<- S%*%w[1:ncol(S)]
+  Q1<- S%*%w[(ncol(S) + 1):(2*ncol(S))]
+  Q<- cbind(Q0, Q1)
+  policy<- max.col(Q) - 1
+  
+  return(list(w, policy))
 }
 
 
+lspi(S, A, R, S.1, Phi, discount, tol)
 
