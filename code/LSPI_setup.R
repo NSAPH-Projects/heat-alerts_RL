@@ -174,6 +174,19 @@ lspi<- function(S, A, R, S.1, discount, tol,
     # policy[order(Q[,3], decreasing = TRUE)[1:(0.1*nrow(Phi))]]<- 1
     # policy<- max.col(Q[,1:2]) - 1
     
+    while(sum(policy) == 0){ # will lead to singular matrix in LSTDQ
+      w_new<- w_new + rnorm(length(w_new), mean(w_new), sd(w_new))
+      
+      Q0<- S.1%*%w_new[1:ncol(S.1)]
+      Q1<- S.1%*%w_new[(ncol(S) + 1):(2*ncol(S))]
+      q_scale<- sd(c(Q0, Q1))
+      Q<- cbind(Q0, Q1, Q1-Q0)/q_scale
+      policy<- rep(0, nrow(Phi))
+      policy[which(Q[,3] > 0 & Q[,3]/abs(Q[,1]) > 0.01)]<- 1
+      # policy[order(Q[,3], decreasing = TRUE)[1:(0.1*nrow(Phi))]]<- 1
+      # policy<- max.col(Q[,1:2]) - 1
+    }
+    
     print(sum(policy))
     
     # Re-run LSTDQ:
