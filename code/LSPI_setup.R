@@ -50,20 +50,20 @@ States<- summer[, c( # "HI_lag1", "HI_3days",
                     "quant_HI_yest_county", 
                     "quant_HI_3d_county",
                "Pop_density", # "Holiday,
-               "Med.HH.Income", "alerts_2wks")]
+               "Med.HH.Income", "alert_sum")]
 States.1<- summer[, c( # "HI_lag1", "HI_3days", 
                       "quant_HI_yest_county", 
                       "quant_HI_3d_county",
                  "Pop_density", # "Holiday,
-                 "Med.HH.Income", "alerts_2wks")]
+                 "Med.HH.Income", "alert_sum")]
 States<- States[-seq(153, nrow(summer), 153),] # there are 153 days each summer
 States.1<- States.1[-seq(1, nrow(summer), 153),]
 
 Actions<- summer[-seq(1, nrow(summer), 153),"alert"]
 
-Rewards<- (-1*(summer$N*100000/summer$Population + 
-           1*summer$failed_alert_rel + # weight differently?
-             exp(summer$alert_sum/5)))[-seq(1, nrow(summer), 153)]
+# Rewards<- (-1*(summer$N*100000/summer$Population + 
+#            1*summer$failed_alert_rel + # weight differently?
+#              exp(summer$alert_sum/5)))[-seq(1, nrow(summer), 153)]
 
 ## Normalize state variables:
 S<- scale(States)
@@ -84,6 +84,10 @@ test<- which(summer$GEOID[-seq(1, nrow(summer), 153)] %in% test_fips)
 train<- which(!summer$GEOID[-seq(1, nrow(summer), 153)] %in% test_fips)
 # For later use:
 train_fips<- unique(summer$GEOID[-seq(1, nrow(summer), 153)][train])
+
+## Thinking ahead:
+Not_Hot<- summer$quant_HI_county[-seq(1, nrow(summer), 153)] < 0.8
+# not_hot<- Not_Hot[train]
 
 save.image("data/HARL_prelim_image.RData")
 
@@ -121,15 +125,8 @@ lspi<- function(S, A, R, S.1, discount, tol,
   # discount is a scalar between 0 and 1
   # tol is convergence tolerance
   
-  Phi<- matrix(0, ncol = 2*ncol(S), nrow = nrow(S))
-  colnames(Phi)<- rep(colnames(S),2)
-  Phi[which(A == 0),1:ncol(S)]<- S[which(A == 0),]
-  Phi[which(A == 1),(ncol(S) + 1):(2*ncol(S))]<- S[which(A == 1),]
-  
-  # b<- t(Phi) %*% R
-  
   # Initialize policy:
-  policy<- rep(0, nrow(Phi))
+  policy<- rep(0, nrow(S))
   policy[sample(1:length(policy), size = round(0.1*length(policy)), replace = FALSE)]<- 1 
   
   failed_alerts<- policy == 1 & not_hot == 1
@@ -142,6 +139,18 @@ lspi<- function(S, A, R, S.1, discount, tol,
   
   pol_pos<- which(policy == 1)
   full_R[pol_pos]<- full_R[pol_pos] - exp(past_alerts[pol_pos]/3)
+  
+  # Update S and Phi:
+  S.1[,"alert_sum"]<- past_alerts
+  S[,"alert_sum"]<- c(0, past_alerts[-1])
+  S[seq(1, nrow(S), 152),"alert_sum"]<- 0
+  S.1[,"alert_sum"]<- scale(S.1[,"alert_sum"])
+  S[,"alert_sum"]<- scale(S[,"alert_sum"])
+  
+  Phi<- matrix(0, ncol = 2*ncol(S), nrow = nrow(S))
+  colnames(Phi)<- rep(colnames(S),2)
+  Phi[which(A == 0),1:ncol(S)]<- S[which(A == 0),]
+  Phi[which(A == 1),(ncol(S) + 1):(2*ncol(S))]<- S[which(A == 1),]
   
   b<- t(Phi) %*% full_R
   
@@ -161,9 +170,9 @@ lspi<- function(S, A, R, S.1, discount, tol,
     q_scale<- sd(c(Q0, Q1))
     Q<- cbind(Q0, Q1, Q1-Q0)/q_scale
     policy<- rep(0, nrow(Phi))
-    policy[which(Q[,3] > 0 & Q[,3]/abs(Q[,1]) > 0.1)]<- 1
+    policy[which(Q[,3] > 0 & Q[,3]/abs(Q[,1]) > 0.01)]<- 1
     # policy[order(Q[,3], decreasing = TRUE)[1:(0.1*nrow(Phi))]]<- 1
-    # policy<- max.col(Q) - 1
+    # policy<- max.col(Q[,1:2]) - 1
     
     print(sum(policy))
     
@@ -179,6 +188,18 @@ lspi<- function(S, A, R, S.1, discount, tol,
     pol_pos<- which(policy == 1)
     full_R[pol_pos]<- full_R[pol_pos] - exp(past_alerts[pol_pos]/3)
     
+    # Update S and Phi:
+    S.1[,"alert_sum"]<- past_alerts
+    S[,"alert_sum"]<- c(0, past_alerts[-1])
+    S[seq(1, nrow(S), 152),"alert_sum"]<- 0
+    S.1[,"alert_sum"]<- scale(S.1[,"alert_sum"])
+    S[,"alert_sum"]<- scale(S[,"alert_sum"])
+    
+    Phi<- matrix(0, ncol = 2*ncol(S), nrow = nrow(S))
+    colnames(Phi)<- rep(colnames(S),2)
+    Phi[which(A == 0),1:ncol(S)]<- S[which(A == 0),]
+    Phi[which(A == 1),(ncol(S) + 1):(2*ncol(S))]<- S[which(A == 1),]
+    
     b<- t(Phi) %*% full_R
     
     w_old<- w_new
@@ -190,8 +211,6 @@ lspi<- function(S, A, R, S.1, discount, tol,
 }
 
 ##### Getting preliminary results:
-Not_Hot<- summer$quant_HI_county[-seq(1, nrow(summer), 153)] < 0.8
-# not_hot<- Not_Hot[train]
 
 # s.1.general_train<- summer[-seq(1, nrow(summer), 153), 
 #                            c("GEOID", "year", "Date")][train,]
@@ -213,7 +232,7 @@ for(i in c(1, 10, 100, 1000, 10000)){
   #                  exp(summer$alert_sum/2)))[-seq(1, nrow(summer), 153)]
   Rewards<- (-1*(summer$N*100000/summer$Population))[-seq(1, nrow(summer), 153)]
   
-  sink("Testing_4-16.txt")
+  sink("Testing_4-18_i-100.txt")
   results<- lspi(S[train,], Actions[train], Rewards[train], S.1[train,], 
                  discount, tol = 0.01, fail_weight = i, 
                  not_hot = Not_Hot[train], counties_past_indices)
