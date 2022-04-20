@@ -3,33 +3,78 @@ setwd("/n/dominici_nsaph_l3/projects/heat-alerts_mortality_RL")
 
 load("data/HARL_prelim_image.RData")
 
-#### Off-Policy Evaluation:
+## Getting the weights from per-decision importance sampling:
 
-## Importance sampling:
+pi_b<- function(S_test, A_test){
+  
+  S_test<- data.frame(round(S_test,1), M = rep(1:(N/n), each = n))
+  df<- aggregate(P_one ~ ., data.frame(S_test, P_one = A_test), mean)
+  DF<- inner_join(data.frame(S_test, A_test), df)
+  
+  probs<- rep(0, N)
+  probs[which(A_test == 0)]<- 1 - DF$P_one[which(A_test == 0)]
+  probs[which(A_test == 1)]<- DF$P_one[which(A_test == 1)]
+  return(probs)
+}
 
+pi_g<- function(S_test, A_test, w, q_tol){
+  
+  ## Get the actions under the policy:
+  s<- ncol(S_test)
+  Q0<- S_test%*%w[1:s]
+  Q1<- S_test%*%w[(s + 1):(2*s)]
+  q_scale<- sd(c(Q0, Q1))
+  Q<- cbind(Q0, Q1, Q1-Q0)/q_scale
+  policy<- rep(0, N)
+  policy[which(Q[,3] > 0 & Q[,3]/abs(Q[,1]) > q_tol)]<- 1
+  
+  ## Get the probabilities:
+  
+  S_test<- data.frame(round(S_test,1), M = rep(1:(N/n), each = n))
+  df<- aggregate(P_one ~ ., data.frame(S_test, P_one = policy), mean)
+  DF<- inner_join(data.frame(S_test, A_test), df)
+  
+  probs<- rep(0, N)
+  probs[which(A_test == 0)]<- 1 - DF$P_one[which(A_test == 0)]
+  probs[which(A_test == 1)]<- DF$P_one[which(A_test == 1)]
+  return(probs)
+}
 
+## Performing off-policy evaluation:
 
-## Doubly-robust estimator:
+OPE<- function(S_test, A_test, w, y, q_tol){
+  R_test<- Rewards[test] - y*failed_alerts
+  
+  pi_ratio<- pi_g(S_test, A_test, w, q_tol) / Pi_b
+  
+  weights<- as.vector(sapply(seq(1, N/n), function(i){cumprod(pi_ratio[i:(i+n-1)])}))
+  
+  return((1/M)*sum(weights*discount_vec*R_test))
+}
 
+## Set up test set:
+y<- 100
+S_test<- S[test,]
+A_test<- Actions[test]
+failed_alerts<- (A_test == 1) & (Not_Hot[test] == 1)
+Rewards<- (-1*(summer$N*100000/summer$Population))[-seq(153, nrow(summer), 153)]
+
+Pi_b<- pi_b(S_test, A_test)
+
+N<- length(test)
+n<- 152 # number of days in each summer (episode)
+M<- N/n # number of episodes
+
+discount_vec<- rep(cumprod(rep(discount, n))/discount, M)
 
 
 #### Test: 
 
-## Results from LSPI with i = 100, Q = 0.0025:
+OPE(S_test, A_test, w = c(4.9002988, 0.9561502, 122.8304463, -467.6929355, 
+                          -626.8763427, 5.3314790, 0.5666687, 125.3147654, 
+                          -467.0453364, -616.1291645),
+    y = 100, q_tol = 0.0025) # -91.86163
 
-w<- c(1.8691083, -0.3793147, 248.2657825, -235.3186229, -783.4913561,
-      1.14443322, 0.06340306, 248.08788236, -234.84976634, -772.86677101)
 
-Q0<- S[test,]%*%w[1:ncol(S)]
-Q1<- S[test,]%*%w[(ncol(S) + 1):(2*ncol(S))]
-q_scale<- sd(c(Q0, Q1))
-Q<- cbind(Q0, Q1, Q1-Q0)/q_scale
-policy<- rep(0, length(test))
-policy[which(Q[,3] > 0 & Q[,3]/abs(Q[,1]) > 0.0025)]<- 1
-
-failed_alerts<- policy == 1 & Not_Hot[test] == 1
-
-R<- (-1*(summer$N*100000/summer$Population))[-seq(153, nrow(summer), 153)][test] - 
-  100*failed_alerts
 
 

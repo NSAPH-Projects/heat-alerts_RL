@@ -164,7 +164,7 @@ lspi<- function(S, A, R, S.1, discount, tol,
     q_scale<- sd(c(Q0, Q1))
     Q<- cbind(Q0, Q1, Q1-Q0)/q_scale
     policy<- rep(0, nrow(Phi))
-    policy[which(Q[,3] > 0 & Q[,3]/abs(Q[,1]) > 0.0025)]<- 1
+    policy[which(Q[,3] > 0 & Q[,3]/abs(Q[,1]) > 0.001)]<- 1
     # policy[order(Q[,3], decreasing = TRUE)[1:(0.1*nrow(Phi))]]<- 1
     # policy<- max.col(Q[,1:2]) - 1
     
@@ -176,7 +176,7 @@ lspi<- function(S, A, R, S.1, discount, tol,
       q_scale<- sd(c(Q0, Q1))
       Q<- cbind(Q0, Q1, Q1-Q0)/q_scale
       policy<- rep(0, nrow(Phi))
-      policy[which(Q[,3] > 0 & Q[,3]/abs(Q[,1]) > 0.0025)]<- 1
+      policy[which(Q[,3] > 0 & Q[,3]/abs(Q[,1]) > 0.001)]<- 1
       # policy[order(Q[,3], decreasing = TRUE)[1:(0.1*nrow(Phi))]]<- 1
       # policy<- max.col(Q[,1:2]) - 1
     }
@@ -240,7 +240,7 @@ for(i in c(1, 10, 100, 1000, 10000)){
   #                  exp(summer$alert_sum/2)))[-seq(1, nrow(summer), 153)]
   Rewards<- (-1*(summer$N*100000/summer$Population))[-seq(153, nrow(summer), 153)]
   
-  sink("Updated-seq_Testing_4-18_i-100_Q-point-0025_no-exp.txt")
+  sink("Updated-seq_Testing_4-20_i-100_Q-point-001_no-exp.txt")
   results<- lspi(S[train,], Actions[train], Rewards[train], S.1[train,], 
                  discount, tol = 0.01, fail_weight = i, 
                  not_hot = Not_Hot[train], counties_past_indices)
