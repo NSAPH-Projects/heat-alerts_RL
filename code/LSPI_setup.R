@@ -113,7 +113,7 @@ lstdq<- function(S.1, discount, Phi, b, policy){
 }
 
 lspi<- function(S, A, R, S.1, discount, tol, 
-                fail_weight, not_hot, past_inds){
+                fail_weight, not_hot, past_inds, q_tol){
   # A and R are vectors with the actions and rewards respectively 
   # S and S.1 are matrices with one "state" in each row
   # discount is a scalar between 0 and 1
@@ -164,7 +164,7 @@ lspi<- function(S, A, R, S.1, discount, tol,
     q_scale<- sd(c(Q0, Q1))
     Q<- cbind(Q0, Q1, Q1-Q0)/q_scale
     policy<- rep(0, nrow(Phi))
-    policy[which(Q[,3] > 0 & Q[,3]/abs(Q[,1]) > 0.001)]<- 1
+    policy[which(Q[,3] > 0 & Q[,3]/abs(Q[,1]) > q_tol)]<- 1
     # policy[order(Q[,3], decreasing = TRUE)[1:(0.1*nrow(Phi))]]<- 1
     # policy<- max.col(Q[,1:2]) - 1
     
@@ -173,10 +173,10 @@ lspi<- function(S, A, R, S.1, discount, tol,
       
       Q0<- S.1%*%w_new[1:ncol(S.1)]
       Q1<- S.1%*%w_new[(ncol(S) + 1):(2*ncol(S))]
-      q_scale<- sd(c(Q0, Q1))
+      q_scale<- sd(c(Q0, Q1)) # this is a single value
       Q<- cbind(Q0, Q1, Q1-Q0)/q_scale
       policy<- rep(0, nrow(Phi))
-      policy[which(Q[,3] > 0 & Q[,3]/abs(Q[,1]) > 0.001)]<- 1
+      policy[which(Q[,3] > 0 & Q[,3]/abs(Q[,1]) > q_tol)]<- 1
       # policy[order(Q[,3], decreasing = TRUE)[1:(0.1*nrow(Phi))]]<- 1
       # policy<- max.col(Q[,1:2]) - 1
     }
@@ -215,7 +215,7 @@ lspi<- function(S, A, R, S.1, discount, tol,
     print(i)
   }
   
-  return(list(w_new, policy, i))
+  return(list(w_new, policy, i, q_scale))
 }
 
 ##### Getting preliminary results:
@@ -234,32 +234,43 @@ lspi<- function(S, A, R, S.1, discount, tol,
 # saveRDS(counties_past_indices, "data/Training_data_counties_past_indices.rds")
 counties_past_indices<- readRDS("data/Training_data_counties_past_indices.rds")
 
-for(i in c(1, 10, 100, 1000, 10000)){
+Rewards<- (-1*(summer$N*100000/summer$Population))[-seq(153, nrow(summer), 153)]
+
+set.seed(321)
+for(q in c( #0.0025, 0.002, 0.00175, 0.0015, 
+           0.001, 0.0005)){
   # Rewards<- (-1*(summer$N*100000/summer$Population + 
-  #                  i*summer$failed_alert_rel_county + # weight differently?
+  #                  y*summer$failed_alert_rel_county + # weight differently?
   #                  exp(summer$alert_sum/2)))[-seq(1, nrow(summer), 153)]
-  Rewards<- (-1*(summer$N*100000/summer$Population))[-seq(153, nrow(summer), 153)]
   
-  sink("Updated-seq_Testing_4-20_i-100_Q-point-001_no-exp.txt")
+  sink(paste0("new_results/Testing_4-22_y-100_Q-point-", q, ".txt"))
   results<- lspi(S[train,], Actions[train], Rewards[train], S.1[train,], 
-                 discount, tol = 0.01, fail_weight = i, 
-                 not_hot = Not_Hot[train], counties_past_indices)
+                 discount, tol = 0.01, fail_weight = 100, 
+                 not_hot = Not_Hot[train], counties_past_indices,
+                 q_tol = q)
   sink()
   
   w<- results[[1]]
   policy<- results[[2]]
   iter<- results[[3]]
-  # iter
+  
+  saveRDS(list(results[[4]], results[[2]]), 
+          paste0("new_results/Q-scale_policy_q-tol_", q, ".rds"))
   
   ## Inspect:
   # sum(policy)
   # Results<- data.frame(Policy = policy, States[train,])
   
-  W<- data.frame(No_alert=w[1:ncol(S)], Alert = w[(ncol(S) + 1):(2*ncol(S))])
-  row.names(W)<- row.names(w)[1:ncol(S)]
-  
-  print(i)
-  print(W)
-  print(sum(policy))
+  # W<- data.frame(No_alert=w[1:ncol(S)], Alert = w[(ncol(S) + 1):(2*ncol(S))])
+  # row.names(W)<- row.names(w)[1:ncol(S)]
+  # 
+  # print(i)
+  # print(W)
+  # print(sum(policy))
 }
+
+
+
+
+
 

@@ -5,10 +5,21 @@ setwd("/n/dominici_nsaph_l3/projects/heat-alerts_mortality_RL")
 
 load("data/HARL_prelim_image.RData")
 
+## Go back and get the mean, sd from the training Q-values:
+
+q_tols<- c(0.0025, 0.002, 0.00175, 0.0015, 0.001, 0.0005)
+Q_scales<- c()
+
+for(q in q_tols){
+  results<- readRDS(paste0("new_results/Q-scale_policy_q-tol_", q, ".rds"))
+  Q_scales<- append(Q_scales, results[[1]])
+}
+
 ## Getting the weights from per-decision importance sampling:
 
 pi_b<- function(S_test, A_test){
   
+  # S_test<- data.frame(round(S_test), M = rep(1:(N/n), each = n))
   S_test<- data.frame(round(S_test,1), M = rep(1:(N/n), each = n))
   df<- aggregate(P_one ~ ., data.frame(S_test, P_one = A_test), mean)
   DF<- inner_join(data.frame(S_test, A_test), df)
@@ -26,12 +37,13 @@ pi_g<- function(S_test, A_test, w, q_tol){
   Q0<- S_test%*%w[1:s]
   Q1<- S_test%*%w[(s + 1):(2*s)]
   q_scale<- sd(c(Q0, Q1))
-  Q<- cbind(Q0, Q1, Q1-Q0)/q_scale
+  Q<- cbind(Q0, Q1, Q1-Q0)/Q_scales[which(q_tols == q_tol)]
   policy<- rep(0, N)
   policy[which(Q[,3] > 0 & Q[,3]/abs(Q[,1]) > q_tol)]<- 1
   
   ## Get the probabilities:
   
+  # S_test<- data.frame(round(S_test), M = rep(1:(N/n), each = n))
   S_test<- data.frame(round(S_test,1), M = rep(1:(N/n), each = n))
   df<- aggregate(P_one ~ ., data.frame(S_test, P_one = policy), mean)
   DF<- inner_join(data.frame(S_test, A_test), df)
@@ -67,43 +79,74 @@ Rewards<- (-1*(summer$N*100000/summer$Population))[-seq(153, nrow(summer), 153)]
 
 Pi_b<- pi_b(S_test, A_test)
 
+#### Test for y = 100:
 
-#### Test for y = 10: 
+OPE(S_test, A_test, w = c(4.9592316, 0.9695083, 127.1199305, 
+                          -467.6479547, -644.3341325, 5.4035366, 
+                          0.5878685, 129.6059521, -466.9971469,
+                          -633.4854926),
+    y = 100, q_tol = 0.0025) # -91.28094
 
 OPE(S_test, A_test, w = c(),
-    y = 10, q_tol = 0.00175)
+    y = 100, q_tol = 0.002) #
 
 OPE(S_test, A_test, w = c(),
-    y = 10, q_tol = 0.001)
+    y = 100, q_tol = 0.00175) #
 
-#### Test for y = 100: 
+OPE(S_test, A_test, w = c(),
+    y = 100, q_tol = 0.0015) #
+
+OPE(S_test, A_test, w = c(),
+    y = 100, q_tol = 0.001) #
+
+OPE(S_test, A_test, w = c(),
+    y = 100, q_tol = 0.0005) #
+
+1     4.069279     3.776929
+2    -6.060571    -1.927672
+3   586.094591   585.587001
+4 -2538.162927 -2535.023654
+5     4.527331    28.002250
+
+
+############################### First round:
+
+#### Test for y = 100: rounding with 1 decimal, then with 0, then with 2
 
 OPE(S_test, A_test, w = c(4.9002988, 0.9561502, 122.8304463, -467.6929355, 
                           -626.8763427, 5.3314790, 0.5666687, 125.3147654, 
                           -467.0453364, -616.1291645),
-    y = 100, q_tol = 0.0025) # -91.86163
+    y = 100, q_tol = 0.0025) # -91.86163, -117.8713, -90.16397
 
 OPE(S_test, A_test, w = c(3.227026, -1.057144, 157.743203, -397.232099,
                           -915.638060, 2.3019162, -0.1524963, 158.0077266,
                           -396.6269728, -903.3962598),
-    y = 100, q_tol = 0.002) # -87.37957
+    y = 100, q_tol = 0.002) # -87.37957, -89.28409, -85.68192
 
 OPE(S_test, A_test, w = c(2.0424366, -2.5993480, 241.4489724, -630.5807619,
                           -1430.6157089, 0.6076141, -0.6964970, 241.2610769,
                           -629.8293962, -1415.5634076),
-    y = 100, q_tol = 0.00175) # -87.43654
+    y = 100, q_tol = 0.00175) # -87.43654, -89.12207, -85.7404
 
 OPE(S_test, A_test, w = c(1.0884783, -4.2786934, 342.4826609, -827.0148787,
                           -1696.9958081, -0.7456498, -1.4345054, 342.1957501,
                           -826.1844939, -1679.2944142),
-    y = 100, q_tol = 0.0015) # -86.28342
+    y = 100, q_tol = 0.0015) # -86.28342, -84.8756, -84.58577
 
 OPE(S_test, A_test, w = c(0.5592941, -5.3593660, 477.8782490, -1710.4075695,
                           -635.3351123, -1.0490838, -1.7841658, 477.4670577,
                           -1708.6196682,  -615.0188748),
-    y = 100, q_tol = 0.001) # -89.0691
+    y = 100, q_tol = 0.001) # -89.0691, -89.86042, -87.37144
 
 OPE(S_test, A_test, w = c(4.357196, -5.755611, 603.492995, -2671.301377, 251.558483,
                           4.136001, -1.775227, 602.964898, -2667.975966, 274.604229),
-    y = 100, q_tol = 0.0005) # -90.25862
+    y = 100, q_tol = 0.0005) # -90.25862, -90.33333, -88.56096
+
+
+#### Test for y = 50? 
+
+OPE(S_test, A_test, w = c(),
+    y = 50, q_tol = 0.002)
+
+
 
