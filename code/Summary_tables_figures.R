@@ -29,7 +29,15 @@ quantile(last_day$alert_sum, seq(0,0.5,0.05))
 
 #### Detailed summaries of deaths:
 
+death_sums<- aggregate(N ~ GEOID + year + Population, data = summer, sum)
 
+hist(log(death_sums$N))
+quantile(death_sums$N, seq(0,1,0.1))
+
+death_rates<- 1000*death_sums$N/death_sums$Population
+hist(death_rates, breaks = 20, 
+     main = "County-Summer Death Rate per 1,000")
+round(quantile(death_rates, seq(0,1,0.1)),2)
 
 #### For STAT 234 report:
 
