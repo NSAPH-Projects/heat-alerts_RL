@@ -9,40 +9,6 @@ setwd("/n/dominici_nsaph_l3/projects/heat-alerts_mortality_RL")
 ## Read in the data:
 
 data<- readRDS("data/Final_data_for_HARL.rds")
-data$Date<- as.Date(data$Date)
-data$month<- month(data$Date)
-summer<- data[which(data$month %in% 5:9),] # excluding April and October
-summer$Holiday<- as.numeric((summer$holiday == 1) |
-                              (summer$dow %in% c("Saturday", "Sunday")))
-
-my_quant<- function(df, region_var, split_var #, probs)
-  ){
-  regions<- unique(df[, region_var]) # state or county?
-  
-  q<- rep(0,dim(df)[1])
-  
-  for(r in regions){
-    pos<- which(df[, region_var] == r)
-    # r_quants<- quantile(df[pos, split_var], probs)
-    # q[pos]<- as.numeric(cut(df[pos, split_var], r_quants))
-    percentile<- ecdf(df[pos, split_var])
-    q[pos]<- percentile(df[pos, split_var])
-  }
-  return(q)
-}
-
-summer$quant_HI<- my_quant(summer, "state", "HImaxF_PopW")
-summer$quant_HI_yest<- my_quant(summer, "state", "HI_lag1")
-summer$quant_HI_3d<- my_quant(summer, "state", "HI_3days")
-
-summer$quant_HI_county<- my_quant(summer, "GEOID", "HImaxF_PopW")
-summer$quant_HI_yest_county<- my_quant(summer, "GEOID", "HI_lag1")
-summer$quant_HI_3d_county<- my_quant(summer, "GEOID", "HI_3days")
-
-summer$failed_alert_abs<- as.numeric(summer$alert & summer$HImaxF_PopW < 90) # absolute 
-summer$failed_alert_rel<- as.numeric(summer$alert & summer$quant_HI < 0.8) # relative
-summer$failed_alert_rel_county<- as.numeric(summer$alert & summer$quant_HI_county < 0.8) # relative
-
 
 ## Define states, actions, rewards
 
