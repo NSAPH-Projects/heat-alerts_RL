@@ -73,8 +73,8 @@ choose_a<- function(Q_mat){
   # 
   # over_budget<- which(cumsum_q > Budget)
 
-  argmax[over_budget]<- 0
-  max.Q[over_budget]<- Q_mat[over_budget, 1]
+  argmax[over_pos]<- 0
+  max.Q[over_pos]<- Q_mat[over_pos, 1]
   
   return(cbind(argmax, max.Q))
 }
@@ -99,17 +99,17 @@ Target<- R
 
 ## Decide what to include in the states...
 
-States.1<- summer[, c("HImaxF_PopW", "HI_lag1",
-                      "HI_3days", "HI_fwd_avg",
-                      "BA_zone", "Pop_density", "Med.HH.Income",
-                      "year", "dos", "holiday", # "Holiday", "dow",
-                      "alert_sum")]
-
-States.1<- summer[, c("quant_HI_county", "quant_HI_yest_county",
-                      "quant_HI_3d_county", "quant_HI_fwd_avg_county",
-                      "BA_zone", "Pop_density", "Med.HH.Income",
-                      "year", "dos", "holiday", # "Holiday", "dow",
-                      "alert_sum")]
+# States.1<- summer[, c("HImaxF_PopW", "HI_lag1",
+#                       "HI_3days", "HI_fwd_avg",
+#                       "BA_zone", "Pop_density", "Med.HH.Income",
+#                       "year", "dos", "holiday", # "Holiday", "dow",
+#                       "alert_sum")]
+# 
+# States.1<- summer[, c("quant_HI_county", "quant_HI_yest_county",
+#                       "quant_HI_3d_county", "quant_HI_fwd_avg_county",
+#                       "BA_zone", "Pop_density", "Med.HH.Income",
+#                       "year", "dos", "holiday", # "Holiday", "dow",
+#                       "alert_sum")]
 
 States.1<- summer[, c("HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
                       "quant_HI_3d_county", "quant_HI_fwd_avg_county",
@@ -140,7 +140,7 @@ ID<- rep(1:(n_counties*n_years), each = (n_days-1))#[positive]
 # saveRDS(over_budget, "data/Over_budget.rds")
 
 over_budget<- readRDS("data/Over_budget.rds")
-
+over_pos<- which(over_budget==1)
 
 #### Q-Learning loop:
 iter<- 1
@@ -149,7 +149,7 @@ Q_model<- lm(Target ~ A*., data = data.frame(Target, S, A))
 # Q_model<- lm(Target ~ A*., data = data.frame(Target, S[positive,], A))
 old_coefs<- rnorm(length(coef(Q_model)))
 
-while(sum((coef(Q_model)-old_coefs)^2) > 0.1 & iter < 6){
+while(sum((coef(Q_model)-old_coefs)^2) > 0.1 & iter < 20){
   
   Q_mat<- eval_Q(S.1, Q_model)
   # Q_mat<- eval_Q(S.1[positive,], Q_model)
@@ -163,24 +163,28 @@ while(sum((coef(Q_model)-old_coefs)^2) > 0.1 & iter < 6){
   # Q_model<- lm(Target ~ A*., data = data.frame(Target, S[positive,], A))
   
   print(iter)
+  print(sum((coef(Q_model)-old_coefs)^2))
   print(Q_model$coefficients)
   iter<- iter+1
 }
 
+saveRDS(Q_model, "Lm_7-26.rds")
+saveRDS(Target, "Targets_7-26.rds")
+
 ## See restricted results:
 Q_mat.S<- eval_Q(S[positive,], Q_model)
-policy<- choose_a(Q_mat.S, Budget)[,1]
+policy<- choose_a(Q_mat.S)[,1]
 
 ## See on non-restricted results:
 A<- Actions
 Budget<- rep(last_day$alert_sum, each = (n_days - 1))
 ID<- rep(1:(n_counties*n_years), each = (n_days-1))
-Q_mat.S<- eval_Q(S, Q_model)
-policy<- choose_a(Q_mat.S, Budget)[,1]
+Q_mat<- eval_Q(S.1, Q_model)
+policy<- choose_a(Q_mat)[,1]
 
 #### Inspect:
 
-hist(S[positive,2][which(policy==1)])
+# hist(S[positive,2][which(policy==1)])
 
 hist(S[which(policy==1),2])
 
@@ -192,6 +196,14 @@ hist(S[which(policy==0 & A==1),"quant_HI_yest_county"])
 
 hist(S[which(policy==1 & A==0),"quant_HI_3d_county"])
 hist(S[which(policy==0 & A==1),"quant_HI_3d_county"])
+
+hist(S[which(policy==1 & A==0),"quant_HI_fwd_avg_county"])
+hist(S[which(policy==0 & A==1),"quant_HI_fwd_avg_county"])
+
+hist(S[which(policy==1 & A==0),"dos"])
+hist(S[which(policy==0 & A==1),"dos"])
+
+S[which(policy==1 & A==0),]
 
 
 
