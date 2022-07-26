@@ -108,6 +108,13 @@ summer$quant_HI_3d_county<- my_quant(summer, "GEOID", "HI_3days")
 # summer$failed_alert_rel<- as.numeric(summer$alert & summer$quant_HI < 0.8) # relative
 # summer$failed_alert_rel_county<- as.numeric(summer$alert & summer$quant_HI_county < 0.8) # relative
 
+summer$HI_fwd_avg<- rowMeans(summer[,c("HImaxF_PopW", "HI_fwd1", "HI_fwd2")])
+summer$quant_HI_tmw<- my_quant(summer, "state", "HI_fwd1")
+summer$quant_HI_fwd_avg<- my_quant(summer, "state", "HI_fwd_avg")
+
+summer$quant_HI_tmw_county<- my_quant(summer, "GEOID", "HI_fwd1")
+summer$quant_HI_fwd_avg_county<- my_quant(summer, "GEOID", "HI_fwd_avg")
+
 ### Add in population 65+ and DoE climate zones:
 
 pop_65<- read.csv("data/Pop_Medicare-age.csv")
@@ -121,7 +128,6 @@ new_data<- inner_join(pop_65, zones, "GEOID")
 new_data$GEOID<- str_pad(new_data$GEOID, 5, pad = "0")
 
 Summer<- inner_join(new_data, summer, by = "GEOID")
-
 
 saveRDS(Summer, "data/Final_data_for_HARL.rds")
 
