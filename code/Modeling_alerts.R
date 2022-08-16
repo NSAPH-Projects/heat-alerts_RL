@@ -126,4 +126,4 @@ last_day<- summer[which(summer$month == 9 & summer$day == 30),]
 plot(log(last_day$Population), last_day$alert_sum)
 plot(log(last_day$Pop_density), last_day$alert_sum)
 
-total_lm<- lm(alert_sum)
+total_lm<- lm(alert_sum) # ~ ...

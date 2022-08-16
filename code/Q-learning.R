@@ -63,8 +63,8 @@ eval_Q<- function(S, Q_model){
 
 choose_a<- function(Q_mat){
    
-  max.Q<- rowMaxs(Q_mat)
-  argmax<- max.col(Q_mat, ties.method = "first") - 1
+  max.Q<- rowMins(Q_mat)
+  argmax<- max.col(-Q_mat, ties.method = "first") - 1
 
   argmax[over_pos]<- 0
   max.Q[over_pos]<- Q_mat[over_pos, 1]
@@ -82,7 +82,9 @@ choose_a<- function(Q_mat){
 
 gamma<- 0.999
 A<- Train[-seq(n_days, nrow(Train), n_days),"alert"]#[positive]
-R<- (-1*(Train$N*100000/Train$Pop.65))[-seq(n_days, nrow(Train), n_days)]#[positive]
+# R<- (-1*(Train$N*100000/Train$Pop.65))[-seq(n_days, nrow(Train), n_days)]#[positive]
+# R<- (Train$N*100000/Train$Pop.65)[-seq(n_days, nrow(Train), n_days)]
+R<- Train$N[-seq(n_days, nrow(Train), n_days)]
 ep_end<- rep(c(rep(0,n_days-2),1),length(R)/(n_days-1))#[positive] # end-of-episode indicator
 
 ## Decide what to include in the states...
@@ -136,6 +138,8 @@ over_pos<- which(Over_budget$over_budget==1)
 
 
 #### Q-Learning loop:
+set.seed(321)
+
 Target<- R
 
 # batch_size<- round(0.1*length(Target))
@@ -144,8 +148,9 @@ batch_size<- 300000
 iter<- 1
 
 s<- Sys.time()
-Q_model<- glm(Target ~ A*., data = data.frame(Target, S, A),
-              family = gaussian, 
+Q_model<- glm(Target ~ A*., 
+              data = data.frame(Target, S, A, Pop.65=Train$Pop.65[-seq(n_days, nrow(Train), n_days)]),
+              family = poisson, offset = Pop.65,
               subset = sample(1:length(Target), batch_size, replace = FALSE),
               control = list(maxit = 1), warning = FALSE)
 # e<- Sys.time()
@@ -166,8 +171,9 @@ while(sum((coef(Q_model)-old_coefs)^2, na.rm = TRUE) > 0.1 & iter < 1000){
   
   old_coefs<- coef(Q_model)
   # s<- Sys.time()
-  Q_model<- glm(Target ~ A*., data = data.frame(Target, S, A),
-                family = gaussian, 
+  Q_model<- glm(Target ~ A*.,  
+                data = data.frame(Target, S, A, Pop.65=Train$Pop.65[-seq(n_days, nrow(Train), n_days)]),
+                family = poisson, offset = Pop.65, 
                 subset = sample(1:length(Target), batch_size, replace = FALSE),
                 control = list(maxit = 1), start = old_coefs, warning = FALSE)
   # e<- Sys.time()
@@ -186,19 +192,52 @@ e-s
 
 sink()
 
-saveRDS(Q_model, "Lm_8-2.rds")
-saveRDS(Target, "Targets_8-2.rds")
+saveRDS(Q_model, "Aug_results/Lm_8-16.rds")
+saveRDS(Target, "Aug_results/Targets_8-16.rds")
 
-## See restricted results:
-Q_mat.S<- eval_Q(S[positive,], Q_model)
-policy<- choose_a(Q_mat.S)[,1]
+Q_model<- readRDS("Aug_results/Lm_8-16.rds")
+Target<- readRDS("Aug_results/Targets_8-16.rds")
 
-## See on non-restricted results:
-A<- Actions
-Budget<- rep(last_day$alert_sum, each = (n_days - 1))
-ID<- rep(1:(n_counties*n_years), each = (n_days-1))
+### Then a couple of times with full data...
+
 Q_mat<- eval_Q(S.1, Q_model)
-policy<- choose_a(Q_mat)[,1]
+# Q_mat<- eval_Q(S.1[positive,], Q_model)
+
+AMQ<- choose_a(Q_mat)
+
+Target<- R + gamma*(1-ep_end)*AMQ[,2] 
+
+old_coefs<- coef(Q_model)
+# s<- Sys.time()
+Q_model<- glm(Target ~ A*.,  
+              data = data.frame(Target, S, A, Pop.65=Train$Pop.65[-seq(n_days, nrow(Train), n_days)]),
+              family = poisson, offset = Pop.65,
+              control = list(maxit = 1), start = old_coefs, warning = FALSE)
+coef(Q_model)
+
+
+# ## See restricted results:
+# Q_mat.S<- eval_Q(S[positive,], Q_model)
+# policy<- choose_a(Q_mat.S)[,1]
+# 
+# ## See on non-restricted results:
+# A<- Actions
+# Budget<- rep(last_day$alert_sum, each = (n_days - 1))
+# ID<- rep(1:(n_counties*n_years), each = (n_days-1))
+
+## Get budget and which ones are over for the training set:
+budget<- Train[which(Train$dos == 153), "alert_sum"]
+Budget<- rep(budget, each = (n_days - 1))
+
+Q_mat<- eval_Q(S.1, Q_model)
+max.Q<- rowMaxs(Q_mat)
+argmax<- max.col(Q_mat, ties.method = "first") - 1
+cumsum_q<- as.vector(t(aggregate(argmax ~ ID,
+                                 data.frame(ID, argmax), cumsum)[[2]]))
+over_budget<- which(cumsum_q > Budget)
+argmax[over_budget]<- 0
+max.Q[over_budget]<- Q_mat[over_budget, 1]
+policy<- argmax
 
 #### Inspect:
 
@@ -220,8 +259,7 @@ hist(S[which(policy==0 & A==1),"quant_HI_fwd_avg_county"])
 
 hist(S[which(policy==1 & A==0),"dos"])
 hist(S[which(policy==0 & A==1),"dos"])
-
-S[which(policy==1 & A==0),]
+hist(S[which(policy==1 & A==1),"dos"])
 
 
 
