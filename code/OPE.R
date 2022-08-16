@@ -1,9 +1,125 @@
 
 library(dplyr)
 
-setwd("/n/dominici_nsaph_l3/projects/heat-alerts_mortality_RL")
+# setwd("/n/dominici_nsaph_l3/projects/heat-alerts_mortality_RL")
 
-load("data/HARL_prelim_image.RData")
+### Get "propensity scores":
+
+pi_b1<- function(a_model, data){
+  Data<- data.frame(scale(data[,vars<- c("HImaxF_PopW", "quant_HI_county", 
+                                            "quant_HI_yest_county",
+                                            "quant_HI_3d_county", 
+                                            "quant_HI_fwd_avg_county",
+                                            "Pop_density", "Med.HH.Income",
+                                            "year", "dos",
+                                            "alert_sum")]), 
+                    alert = factor(data$alert),
+                    dow = factor(data$dow), 
+                    holiday = factor(data$holiday),
+                    Zone = factor(data$BA_zone))
+  
+  pb<- predict(a_model, Data)
+  return(exp(pb)/(1+exp(pb)))
+}
+
+m<- 2.504325 # From training set
+s<- 5.194564
+
+new_policy<- function(Q_model, data, Budget){
+  
+  df0<- model.matrix(Q_model)
+  df0[,"A"]<- 0
+  df0[,20:36]<- 0
+  
+  df1<- model.matrix(Q_model)
+  df1[,"A"]<- 1
+  df1[,20:36]<- df1[,3:19]
+  
+  new_alerts<- rep(0, nrow(data))
+  policy<- rep(0, nrow(data))
+  
+  ID<- rep(1:(nrow(data)/(n_days-1)), each = (n_days-1))#[positive]
+    
+  for(i in 1:max(ID)){
+    pos<- which(ID == i)
+    
+    d<- 1
+    while(new_alerts[pos[d]] < Budget[pos[d]]){
+      new_scaled<- (new_alerts[pos[d]] - m)/s
+      v0<- df0[pos[d],]
+      v0["alert_sum"]<- new_scaled
+      q0<- coef(Q_model) %*% v0
+      v1<- df1[pos[d],]
+      v1["alert_sum"]<- new_scaled
+      v1["A:alert_sum"]<- new_scaled
+      q1<- coef(Q_model) %*% v1
+      if(q1 > q0){
+        policy[pos[d]]<- 1
+        new_alerts[pos[d:(n_days-1)]]<- new_alerts[pos[d:(n_days-1)]] + 1
+      }
+      d<- d+1
+    }
+  }
+  
+  return(policy)
+}
+
+### Perform off-policy evaluation:
+
+OPE<- function(a_model, Q_model, Data, R, discount, Budget){
+  
+  A<- Data$A
+  
+  pb1<- pi_b1(a_model, Data)
+  pb<- pb1
+  pb[which(A == 0)]<- 1 - pb1
+  
+  pol<- new_policy(Q_model, Data, Budget)
+  pg<- rep(0,length(pb))
+  pg[which(A == pol)]<- 1
+  
+  ## Following notation from Levine et al. 2020:
+  n<- nrow(Data)/(n_days-1)
+  H<- n_days-1
+  w<- rep(0, n*H)
+  for(i in 1:n){
+    for(t in 1:H){
+      ep_start<- (i-1)*H
+      if(0 %in% pg[(ep_start+1):(ep_start+t)]){
+        w[ep_start+t]<- 0
+      }else{
+        w[ep_start+t]<- 1/prod(pb[ep_start:(ep_start+t)])
+      }
+    }
+  }
+  
+  discount_vec<- rep(cumprod(rep(discount, H))/discount, n)
+  
+  return((1/n)*sum(w*discount_vec*R))
+}
+
+### Run this ^^^
+
+load("data/Train-Valid-Test.RData")
+
+n_counties<- length(unique(Train$GEOID))
+n_years<- 11
+n_days<- 153
+
+a_model<- readRDS("Aug_results/a_glm_8-16.rds")
+Q_model<- readRDS("Aug_results/Lm_8-2_full.rds")
+
+data<- Train
+budget<- data[which(data$dos == 153), "alert_sum"]
+Budget<- rep(budget, each = (n_days - 1))
+
+Data<- data[-seq(n_days, nrow(data), n_days),]
+R<- -1*(Train$N*100000/Train$Pop.65)[-seq(n_days, nrow(data), n_days)]
+
+OPE(a_model, Q_model, Data, R, 0.999, Budget)
+
+
+#######################################################################3
 
 ## Go back and get the mean, sd from the training Q-values:
 

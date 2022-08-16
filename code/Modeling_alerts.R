@@ -1,81 +1,89 @@
-library(lubridate)
 library(ggplot2)
 library(dplyr)
 library(caret)
 library(mgcv)
 library(lme4)
 
-load("data/HARL_prelim_image.RData")
-rm(list=setdiff(ls(), "summer"))
+load("data/Train-Valid-Test.RData")
 
-n_counties<- length(unique(summer$GEOID))
+n_counties<- length(unique(Train$GEOID))
 n_years<- 11
 n_days<- 153
-
-summer$dos<- rep(1:n_days, n_counties*n_years) # same idea as "time" variable
 
 #### Model issuance of a heat alert:
 
 set.seed(321)
+summer<- rbind(Train, Validation)
 eda_set<- summer[sample(1:nrow(summer), 0.05*nrow(summer), replace = FALSE),]
-Eda_set<- data.frame(scale(eda_set[,vars<- c("year", "dos", 
-                                             "Med.HH.Income", "Pop_density",
-                                             "HImaxF_PopW", "quant_HI_county",
-                                             "HI_lag1", "quant_HI_yest_county",
-                                             "HI_lag2",
-                                             "quant_HI_3d_county")]), 
+Eda_set<- data.frame(scale(eda_set[,vars<- c("HImaxF_PopW", "quant_HI_county", 
+                                             "quant_HI_yest_county",
+                                             "quant_HI_3d_county", 
+                                             "quant_HI_fwd_avg_county",
+                                             "Pop_density", "Med.HH.Income",
+                                             "year", "dos",
+                                             "alert_sum")]), 
                      alert = factor(eda_set$alert),
                      dow = factor(eda_set$dow), 
-                     holiday = factor(eda_set$Holiday))
+                     holiday = factor(eda_set$holiday),
+                     Zone = factor(eda_set$BA_zone))
 
 day_0<- glm(alert ~ year + dos + dow + holiday,
             family = binomial(), data = Eda_set)
 
-day_1<- glm(alert ~ year + dos + dow + holiday + Med.HH.Income + Pop_density,
+day_1<- glm(alert ~ year + dos + dow + holiday 
+            + Med.HH.Income + Pop_density + Zone,
             family = binomial(), data = Eda_set)
 
 day_HI.abs<- glm(alert ~ HImaxF_PopW
                  + year + dos + dow + holiday 
-                 + Med.HH.Income + Pop_density,
-                 family = binomial(), data = Eda_set)
-
-day_HI.abs_yest<- glm(alert ~ HI_lag1
-                 + year + dos + dow + holiday 
-                 + Med.HH.Income + Pop_density,
+                 + Med.HH.Income + Pop_density + Zone,
                  family = binomial(), data = Eda_set)
 
 day_HI.qnt<- glm(alert ~ quant_HI_county
               + year + dos + dow + holiday 
-              + Med.HH.Income + Pop_density,
+              + Med.HH.Income + Pop_density + Zone,
               family = binomial(), data = Eda_set)
 
-day_HI.qnt_yest<- glm(alert ~ quant_HI_yest_county
-                 + year + dos + dow + holiday 
-                 + Med.HH.Income + Pop_density,
-                 family = binomial(), data = Eda_set)
-
 day_HI.both<- glm(alert ~ HImaxF_PopW + quant_HI_county
-                  + HI_lag1 + quant_HI_yest_county
-                  + HI_lag2 
-                  # + HI_3days 
-                  + quant_HI_3d_county
-                  + year + dos + dow + factor(holiday) 
-                  + Med.HH.Income + Pop_density,
+                  + year + dos + dow + holiday 
+                  + Med.HH.Income + Pop_density + Zone,
                   family = binomial(), 
                   data = Eda_set)
+
+day_HI.all<- glm(alert ~ HImaxF_PopW + quant_HI_county
+                 + quant_HI_yest_county 
+                 + quant_HI_3d_county 
+                 + quant_HI_fwd_avg_county
+                  + year + dos + dow + holiday 
+                  + Med.HH.Income + Pop_density + Zone,
+                  family = binomial(), 
+                  data = Eda_set)
+
+AIC(day_0)
+AIC(day_1)
+AIC(day_HI.abs)
+AIC(day_HI.qnt)
+AIC(day_HI.both)
+AIC(day_HI.all) # Best out of these models, whether we use AIC or BIC
+
+table(Eda_set$alert, round(day_HI.all$fitted.values))
+
+saveRDS(day_HI.all, "Aug_results/a_glm_8-16.rds") # first set eda_set<- summer
+
+######################################################
 
 
 ## Include random effects by state / county / region:
 
 day_HI.re0<- glmer(alert ~ HImaxF_PopW + quant_HI_county
                    + HI_lag1 + quant_HI_yest_county
-                   + HI_lag2 
-                   # + HI_3days 
+                   + HI_lag2
+                   # + HI_3days
                    + quant_HI_3d_county
-                   + year + dos + dow + factor(holiday) 
-                   + Med.HH.Income + Pop_density 
+                   + year + dos + dow + factor(holiday)
+                   + Med.HH.Income + Pop_density
                    + (1 | geoid),
-                   family = binomial(), 
+                   family = binomial(),
                    data = data.frame(Eda_set, geoid = factor(eda_set$GEOID)))
 
 

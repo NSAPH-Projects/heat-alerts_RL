@@ -239,6 +239,8 @@ Q_model<- glm(Target ~ A*.,
               # control = list(maxit = 1), 
               start = coef(Q_model))
 
+saveRDS(Q_model, "Aug_results/Lm_8-2_full.rds")
+
 ## Get budget and which ones are over for the training set:
 budget<- Train[which(Train$dos == 153), "alert_sum"]
 Budget<- rep(budget, each = (n_days - 1))
