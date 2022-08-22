@@ -1,3 +1,4 @@
+
 library(rlang, lib.loc= "/n/home_fasse/econsidine/R/x86_64-pc-linux-gnu-library/")
 library(torch)
 torch::cuda_is_available() # TRUE if GPU is available
@@ -28,13 +29,15 @@ eval_Q<- function(S, Q_model){
   return(cbind(Q0, Q1))
 }
 
-choose_a<- function(Q_mat){
+choose_a<- function(Q_mat, iter){
   
   max.Q<- rowMins(Q_mat)
   argmax<- max.col(-Q_mat, ties.method = "first") - 1
   
   argmax[over_pos]<- 0
   max.Q[over_pos]<- Q_mat[over_pos, 1]
+  
+  print(iter)
   
   return(cbind(argmax, max.Q))
 }
@@ -124,7 +127,7 @@ make_DS<- dataset(
 
 S_ds<- make_DS(cbind(Target, matrix(as.numeric(S_full),ncol=ncol(S_full))))
 
-b_size<- 3000
+b_size<- 30000
 S_dl<- dataloader(S_ds, batch_size=b_size)
 
 ## Train the model:
@@ -132,6 +135,8 @@ s<- Sys.time()
 coro::loop(for(b in S_dl){
   
   output<- model(b[[1]]$to(device = "cuda"))
+  # break
+  # s<- Sys.time()
   loss<- nnf_mse_loss(output, b[[2]]$to(device = "cuda"))
   loss$backward()
   optimizer$step()
@@ -139,16 +144,22 @@ coro::loop(for(b in S_dl){
   
   Q_mat<- eval_Q(S.1, model)
   
-  AMQ<- choose_a(Q_mat)
+  AMQ<- choose_a(Q_mat, iter)
   
-  Target<- R + gamma*(1-ep_end)*AMQ[,2] 
+  Target<- R + gamma*(1-ep_end)*AMQ[,2]
+  # break
+  # e<- Sys.time()
   
-  # print(iter)
-  # iter<- iter + 1
+  iter<- iter + 1
   
 })
 e<- Sys.time()
 e-s
 
+png("new_results/torch_lm_8-22.png")
+plot(1:length(l), l)
+dev.off()
 
-
+saveRDS(model, "Aug_results/torch_lm_8-22.rds")
+saveRDS(Target, "Aug_results/Target_8-22.rds")
+saveRDS(l, "Aug_results/Loss_8-22.rds")
