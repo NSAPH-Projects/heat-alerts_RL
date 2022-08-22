@@ -132,27 +132,29 @@ S_dl<- dataloader(S_ds, batch_size=b_size)
 
 ## Train the model:
 s<- Sys.time()
-coro::loop(for(b in S_dl){
-  
-  output<- model(b[[1]]$to(device = "cuda"))
-  # break
-  # s<- Sys.time()
-  loss<- nnf_mse_loss(output, b[[2]]$to(device = "cuda"))
-  loss$backward()
-  optimizer$step()
-  l<- c(l, loss$item())
-  
-  Q_mat<- eval_Q(S.1, model)
-  
-  AMQ<- choose_a(Q_mat, iter)
-  
-  Target<- R + gamma*(1-ep_end)*AMQ[,2]
-  # break
-  # e<- Sys.time()
-  
-  iter<- iter + 1
-  
-})
+for(k in 1:10){
+  coro::loop(for(b in S_dl){
+    optimizer$zero_grad()
+    output<- model(b[[1]]$to(device = "cuda"))
+    # break
+    # s<- Sys.time()
+    loss<- nnf_mse_loss(output, b[[2]]$to(device = "cuda"))
+    loss$backward()
+    optimizer$step()
+    l<- c(l, loss$item())
+    
+    Q_mat<- eval_Q(S.1, model)
+    
+    AMQ<- choose_a(Q_mat, iter)
+    
+    Target<- R + gamma*(1-ep_end)*AMQ[,2]
+    # break
+    # e<- Sys.time()
+    
+    iter<- iter + 1
+    
+  })
+}
 e<- Sys.time()
 e-s
 
