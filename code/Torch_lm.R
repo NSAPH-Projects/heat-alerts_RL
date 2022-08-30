@@ -11,31 +11,32 @@ setwd("/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL")
 
 ## Functions for Q-learning:
 
-predict_nn<- function(model, newdata){ # if using gpus
-  w<- as_array(model$parameters$lm1.weight$cpu())
-  b<- as_array(model$parameters$lm1.bias$cpu())
-  
-  return(newdata %*% t(w) + b)
-}
+# predict_nn<- function(model, newdata){ # if using gpus
+#   
+#   w<- as_array(model$parameters$lm1.weight$cpu())
+#   b<- as_array(model$parameters$lm1.bias$cpu())
+# 
+#   return(newdata %*% t(w) + b)
+# }
 
-eval_Q<- function(S, Q_model){
+eval_Q<- function(Q_model, S_0, S_1){ # update this!
   
-  data<- model.matrix(~ A*., data.frame(A=0,S))
-  Q0<- predict_nn(Q_model, data)
+  Q0<- as_array(Q_model(S_0$to(device = "cuda"))$cpu())
+  Q1<- as_array(Q_model(S_1$to(device = "cuda"))$cpu())
   
-  data<- model.matrix(~ A*., data.frame(A=1,S))
-  Q1<- predict_nn(Q_model, data)
+  # Q0<- predict_nn(Q_model, S_0)
+  # Q1<- predict_nn(Q_model, S_1)
   
   return(cbind(Q0, Q1))
 }
 
-choose_a<- function(Q_mat, iter){
+choose_a<- function(Q_mat, over, iter){
   
   max.Q<- rowMins(Q_mat)
   argmax<- max.col(-Q_mat, ties.method = "first") - 1
   
-  argmax[over_pos]<- 0
-  max.Q[over_pos]<- Q_mat[over_pos, 1]
+  argmax[over]<- 0
+  max.Q[over]<- Q_mat[over, 1]
   
   print(iter)
   
@@ -70,6 +71,8 @@ S<- States %>% mutate_if(is.numeric, scale)
 S.1<- States.1 %>% mutate_if(is.numeric, scale)
 
 S_full<- model.matrix(~ A*., data.frame(A,S))
+S.1_full_0<- model.matrix(~ A*., data.frame(A=0,S))
+S.1_full_1<- model.matrix(~ A*., data.frame(A=1,S))
 
 over_budget<- readRDS("data/Over_budget.rds")
 original_rows<- 1:(n_days*n_years*2837)
@@ -99,69 +102,124 @@ LM<- nn_module(
   ## have to do a lot of this manually for RL (instead of just training one NN)
   ## see Training section on https://blogs.rstudio.com/ai/posts/2020-09-29-introducing-torch-for-r/
 
-# Just at the beginning:
+## Set up dataloader:
+make_DS<- dataset(
+  initialize = function(df){ # df is list(Index, S_full, S.1_full_0, S.1_full_1, 
+                                                                      # R, ep_end)
+    self$index<- torch_tensor(df[[1]])
+    self$s<- torch_tensor(df[[2]])
+    self$s.1_0<- torch_tensor(df[[3]])
+    self$s.1_1<- torch_tensor(df[[4]])
+    self$r<- torch_tensor(df[[5]])
+    self$ee<- torch_tensor(df[[6]])
+    
+  },
+  
+  .getitem = function(i) {
+    list(index = self$index[i], s = self$s[i,], s.1_0 = self$s.1_0[i,],
+         s.1_1 = self$s.1_1[i,], r = self$r[i], ee = self$ee[i])
+  },
+  
+  .length = function() {
+    self$r$size()[[1]]
+  }
+)
+
+Index<- 1:length(Target)
+S_ds<- make_DS(list(Index, matrix(as.numeric(S_full),ncol=ncol(S_full)),
+                     matrix(as.numeric(S.1_full_0),ncol=ncol(S_full)), 
+                     matrix(as.numeric(S.1_full_1),ncol=ncol(S_full)),
+                     R, ep_end))
+
+b_size<- 256
+S_dl<- dataloader(S_ds, batch_size=b_size)
+
+## Train the model:
+
 model<- LM()
 model$to(device = "cuda")
 
 optimizer<- optim_adam(model$parameters)
-optimizer$zero_grad()
 l<- c()
 iter<- 1
 n<- length(R)
 
-## Set up dataloader:
-make_DS<- dataset(
-  initialize = function(df){ # df is dataframe(Target, S)
-    self$x<- torch_tensor(df[,-1])
-    self$y<- torch_tensor(df[,1])
-  },
-  
-  .getitem = function(i) {
-    list(x = self$x[i, ], y = self$y[i])
-  },
-  
-  .length = function() {
-    self$y$size()[[1]]
-  }
-)
+new_coefs<- as_array(model$parameters$lm1.weight$cpu())
+old_coefs<- rep(0, length(new_coefs))
 
-S_ds<- make_DS(cbind(Target, matrix(as.numeric(S_full),ncol=ncol(S_full))))
+Coefs<- new_coefs
+L<- c()
+K<- 1
 
-b_size<- 30000
-S_dl<- dataloader(S_ds, batch_size=b_size)
-
-## Train the model:
 s<- Sys.time()
-for(k in 1:10){
+while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.1 | iter== 1){
   coro::loop(for(b in S_dl){
     optimizer$zero_grad()
-    output<- model(b[[1]]$to(device = "cuda"))
+    output<- model(b$s$to(device = "cuda"))
     # break
     # s<- Sys.time()
-    loss<- nnf_mse_loss(output, b[[2]]$to(device = "cuda"))
+    
+    inds<- as_array(b$index)
+    
+    target<- torch_tensor(Target[inds])
+    
+    loss<- nnf_mse_loss(output, target$to(device = "cuda"))
     loss$backward()
     optimizer$step()
     l<- c(l, loss$item())
     
-    Q_mat<- eval_Q(S.1, model)
+    with_no_grad({
+      Q_mat<- eval_Q(model, b$s.1_0, b$s.1_1)
+      
+      o<- which(inds %in% over_pos)
+      
+      AMQ<- choose_a(Q_mat, o, iter)
+      
+      Target[inds]<- as_array(b$r$cpu()) + gamma*(1-as_array(b$ee$cpu()))*AMQ[,2]
+      # break
+    })
     
-    AMQ<- choose_a(Q_mat, iter)
-    
-    Target<- R + gamma*(1-ep_end)*AMQ[,2]
-    # break
     # e<- Sys.time()
     
     iter<- iter + 1
     
   })
+  
+  # optimizer$zero_grad()
+  # output<- model(torch_tensor(matrix(as.numeric(S_full),ncol=ncol(S_full)))$to(device = "cuda") )
+  # 
+  # loss<- nnf_mse_loss(output, torch_tensor(Target)$to(device = "cuda"))
+  # loss$backward()
+  # optimizer$step()
+  # L<- c(L, loss$item())
+  
+  with_no_grad({
+    Q_mat<- eval_Q(model, torch_tensor(matrix(as.numeric(S.1_full_0),ncol=ncol(S_full))),
+                   torch_tensor(matrix(as.numeric(S.1_full_1),ncol=ncol(S_full))))
+    
+    AMQ<- choose_a(Q_mat, over_pos, iter)
+    
+    Target<- R + gamma*(1-ep_end)*AMQ[,2]
+  })
+  
+  old_coefs<- new_coefs
+  new_coefs<- as_array(model$parameters$lm1.weight$cpu())
+  
+  Coefs<- rbind(Coefs, new_coefs)
+  
+  print(paste("Finished Epoch:", K))
+  K<- K+1
+  break
 }
 e<- Sys.time()
 e-s
 
-png("new_results/torch_lm_8-22.png")
+png("new_results/torch_lm_8-30.png")
 plot(1:length(l), l)
 dev.off()
 
-saveRDS(model, "Aug_results/torch_lm_8-22.rds")
-saveRDS(Target, "Aug_results/Target_8-22.rds")
-saveRDS(l, "Aug_results/Loss_8-22.rds")
+saveRDS(model, "Aug_results/torch_lm_8-30.rds")
+saveRDS(Target, "Aug_results/Target_8-30.rds")
+saveRDS(l, "Aug_results/Loss_8-30.rds")
+saveRDS(Coefs, "Aug_results/Q-coefficients_8-30.rds")
+
