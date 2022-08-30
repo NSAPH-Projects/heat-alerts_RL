@@ -21,8 +21,8 @@ setwd("/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL")
 
 eval_Q<- function(Q_model, S_0, S_1){ # update this!
   
-  Q0<- Q_model(S_0$to(device = "cuda"))
-  Q1<- Q_model(S_1$to(device = "cuda"))
+  Q0<- as_array(Q_model(S_0$to(device = "cuda"))$cpu())
+  Q1<- as_array(Q_model(S_1$to(device = "cuda"))$cpu())
   
   # Q0<- predict_nn(Q_model, S_0)
   # Q1<- predict_nn(Q_model, S_1)
@@ -30,13 +30,13 @@ eval_Q<- function(Q_model, S_0, S_1){ # update this!
   return(cbind(Q0, Q1))
 }
 
-choose_a<- function(Q_mat, iter){
+choose_a<- function(Q_mat, over, iter){
   
   max.Q<- rowMins(Q_mat)
   argmax<- max.col(-Q_mat, ties.method = "first") - 1
   
-  argmax[over_pos]<- 0
-  max.Q[over_pos]<- Q_mat[over_pos, 1]
+  argmax[over]<- 0
+  max.Q[over]<- Q_mat[over, 1]
   
   print(iter)
   
@@ -152,7 +152,7 @@ L<- c()
 K<- 1
 
 s<- Sys.time()
-while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.1){
+while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.0001){
   coro::loop(for(b in S_dl){
     optimizer$zero_grad()
     output<- model(b$s$to(device = "cuda"))
@@ -171,9 +171,11 @@ while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.1){
     with_no_grad({
       Q_mat<- eval_Q(model, b$s.1_0, b$s.1_1)
       
-      AMQ<- choose_a(Q_mat, iter)
+      o<- which(inds %in% over_pos)
       
-      Target[inds]<- b$r + gamma*(1-b$ee)*AMQ[,2]
+      AMQ<- choose_a(Q_mat, o, iter)
+      
+      Target[inds]<- as_array(b$r$cpu()) + gamma*(1-as_array(b$ee$cpu()))*AMQ[,2]
       # break
     })
     
@@ -195,7 +197,7 @@ while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.1){
     Q_mat<- eval_Q(model, torch_tensor(matrix(as.numeric(S.1_full_0),ncol=ncol(S_full))),
                    torch_tensor(matrix(as.numeric(S.1_full_1),ncol=ncol(S_full))))
     
-    AMQ<- choose_a(Q_mat, iter)
+    AMQ<- choose_a(Q_mat, over_pos, iter)
     
     Target<- R + gamma*(1-ep_end)*AMQ[,2]
   })
