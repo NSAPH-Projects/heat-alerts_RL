@@ -152,7 +152,7 @@ L<- c()
 K<- 1
 
 s<- Sys.time()
-while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.0001){
+while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.1 | iter== 1){
   coro::loop(for(b in S_dl){
     optimizer$zero_grad()
     output<- model(b$s$to(device = "cuda"))
@@ -185,13 +185,13 @@ while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.0001){
     
   })
   
-  optimizer$zero_grad()
-  output<- model(torch_tensor(matrix(as.numeric(S_full),ncol=ncol(S_full)))$to(device = "cuda") )
-  
-  loss<- nnf_mse_loss(output, torch_tensor(Target)$to(device = "cuda"))
-  loss$backward()
-  optimizer$step()
-  L<- c(L, loss$item())
+  # optimizer$zero_grad()
+  # output<- model(torch_tensor(matrix(as.numeric(S_full),ncol=ncol(S_full)))$to(device = "cuda") )
+  # 
+  # loss<- nnf_mse_loss(output, torch_tensor(Target)$to(device = "cuda"))
+  # loss$backward()
+  # optimizer$step()
+  # L<- c(L, loss$item())
   
   with_no_grad({
     Q_mat<- eval_Q(model, torch_tensor(matrix(as.numeric(S.1_full_0),ncol=ncol(S_full))),
