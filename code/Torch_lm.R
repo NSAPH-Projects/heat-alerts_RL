@@ -159,7 +159,9 @@ while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.1){
     # break
     # s<- Sys.time()
     
-    target<- torch_tensor(Target[b$index])
+    inds<- as_array(b$index)
+    
+    target<- torch_tensor(Target[inds])
     
     loss<- nnf_mse_loss(output, target$to(device = "cuda"))
     loss$backward()
@@ -171,7 +173,7 @@ while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.1){
       
       AMQ<- choose_a(Q_mat, iter)
       
-      Target[b$index]<- b$r + gamma*(1-b$ee)*AMQ[,2]
+      Target[inds]<- b$r + gamma*(1-b$ee)*AMQ[,2]
       # break
     })
     
