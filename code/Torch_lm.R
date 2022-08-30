@@ -1,5 +1,4 @@
 
-
 library(rlang, lib.loc= "/n/home_fasse/econsidine/R/x86_64-pc-linux-gnu-library/")
 library(torch)
 torch::cuda_is_available() # TRUE if GPU is available
@@ -103,15 +102,6 @@ LM<- nn_module(
   ## have to do a lot of this manually for RL (instead of just training one NN)
   ## see Training section on https://blogs.rstudio.com/ai/posts/2020-09-29-introducing-torch-for-r/
 
-# Just at the beginning:
-model<- LM()
-model$to(device = "cuda")
-
-optimizer<- optim_adam(model$parameters)
-l<- c()
-iter<- 1
-n<- length(R)
-
 ## Set up dataloader:
 make_DS<- dataset(
   initialize = function(df){ # df is list(Index, S_full, S.1_full_0, S.1_full_1, 
@@ -145,8 +135,24 @@ b_size<- 256
 S_dl<- dataloader(S_ds, batch_size=b_size)
 
 ## Train the model:
+
+model<- LM()
+model$to(device = "cuda")
+
+optimizer<- optim_adam(model$parameters)
+l<- c()
+iter<- 1
+n<- length(R)
+
+new_coefs<- as_array(model$parameters$lm1.weight$cpu())
+old_coefs<- rep(0, length(new_coefs))
+
+Coefs<- new_coefs
+L<- c()
+K<- 1
+
 s<- Sys.time()
-for(k in 1:10){
+while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.1){
   coro::loop(for(b in S_dl){
     optimizer$zero_grad()
     output<- model(b$s$to(device = "cuda"))
@@ -160,39 +166,56 @@ for(k in 1:10){
     optimizer$step()
     l<- c(l, loss$item())
     
-    Q_mat<- eval_Q(model, b$s.1_0, b$s.1_1)
+    with_no_grad({
+      Q_mat<- eval_Q(model, b$s.1_0, b$s.1_1)
+      
+      AMQ<- choose_a(Q_mat, iter)
+      
+      Target[b$index]<- b$r + gamma*(1-b$ee)*AMQ[,2]
+      # break
+    })
     
-    AMQ<- choose_a(Q_mat, iter)
-    
-    Target[b$index]<- b$r + gamma*(1-b$ee)*AMQ[,2]
-    break
     # e<- Sys.time()
     
     iter<- iter + 1
     
   })
   
+  optimizer$zero_grad()
   output<- model(torch_tensor(matrix(as.numeric(S_full),ncol=ncol(S_full)))$to(device = "cuda") )
   
   loss<- nnf_mse_loss(output, torch_tensor(Target)$to(device = "cuda"))
   loss$backward()
   optimizer$step()
-  l<- c(l, loss$item())
+  L<- c(L, loss$item())
   
-  Q_mat<- eval_Q(model, torch_tensor(matrix(as.numeric(S.1_full_0),ncol=ncol(S_full))),
-                 torch_tensor(matrix(as.numeric(S.1_full_1),ncol=ncol(S_full))))
+  with_no_grad({
+    Q_mat<- eval_Q(model, torch_tensor(matrix(as.numeric(S.1_full_0),ncol=ncol(S_full))),
+                   torch_tensor(matrix(as.numeric(S.1_full_1),ncol=ncol(S_full))))
+    
+    AMQ<- choose_a(Q_mat, iter)
+    
+    Target<- R + gamma*(1-ep_end)*AMQ[,2]
+  })
   
-  AMQ<- choose_a(Q_mat, iter)
+  old_coefs<- new_coefs
+  new_coefs<- as_array(model$parameters$lm1.weight$cpu())
   
-  Target<- R + gamma*(1-ep_end)*AMQ[,2]
+  Coefs<- rbind(Coefs, new_coefs)
+  
+  print(paste("Finished Epoch:", K))
+  K<- K+1
+  break
 }
 e<- Sys.time()
 e-s
 
-png("new_results/torch_lm_8-22.png")
+png("new_results/torch_lm_8-30.png")
 plot(1:length(l), l)
 dev.off()
 
-saveRDS(model, "Aug_results/torch_lm_8-22.rds")
-saveRDS(Target, "Aug_results/Target_8-22.rds")
-saveRDS(l, "Aug_results/Loss_8-22.rds")
+saveRDS(model, "Aug_results/torch_lm_8-30.rds")
+saveRDS(Target, "Aug_results/Target_8-30.rds")
+saveRDS(l, "Aug_results/Loss_8-30.rds")
+saveRDS(Coefs, "Aug_results/Q-coefficients_8-30.rds")
+
