@@ -1,5 +1,6 @@
 
 library(dplyr)
+library(pracma)
 
 # setwd("/n/dominici_nsaph_l3/projects/heat-alerts_mortality_RL")
 
@@ -19,7 +20,7 @@ pi_b1<- function(a_model, data){
                     Zone = factor(data$BA_zone))
   
   pb<- predict(a_model, Data)
-  return(exp(pb)/(1+exp(pb)))
+  return(sigmoid(pb))
 }
 
 m<- 2.504325 # From training set
@@ -64,16 +65,35 @@ new_policy<- function(Q_model, data, Budget){
   return(policy)
 }
 
+set.seed(321)
+
+random_policy<- function(data, budget){ 
+  
+  policy<- rep(0, nrow(data))
+  ID<- rep(1:(nrow(data)/(n_days-1)), each = (n_days-1))
+  
+  for(i in 1:max(ID)){
+    pos<- which(ID == i)
+    
+    if(budget[i] > 0){
+      policy[sample(pos, budget[i], replace=FALSE)]<- 1
+    }
+  }
+  
+  return(policy)
+}
+
 ### Perform off-policy evaluation:
 
 OPE<- function(a_model, Q_model, Data, R, discount, Budget){
   
-  A<- Data$A
+  A<- Data$alert
   
   pb1<- pi_b1(a_model, Data)
   pb<- pb1
-  pb[which(A == 0)]<- 1 - pb1
+  pb[which(A == 0)]<- 1 - pb1[which(A == 0)]
   
+  # pol<- random_policy(Data, budget[which(budget > 0)])
   pol<- new_policy(Q_model, Data, Budget)
   pg<- rep(0,length(pb))
   pg[which(A == pol)]<- 1
@@ -88,7 +108,8 @@ OPE<- function(a_model, Q_model, Data, R, discount, Budget){
       if(0 %in% pg[(ep_start+1):(ep_start+t)]){
         w[ep_start+t]<- 0
       }else{
-        w[ep_start+t]<- 1/prod(pb[ep_start:(ep_start+t)])
+        w[ep_start+t]<- exp(-sum(log(pb[ep_start:(ep_start+t)])))
+        # w[ep_start+t]<- 1/prod(pb[ep_start:(ep_start+t)])
       }
     }
   }
@@ -106,17 +127,21 @@ n_counties<- length(unique(Train$GEOID))
 n_years<- 11
 n_days<- 153
 
-a_model<- readRDS("Aug_results/a_glm_8-16.rds")
+a_model<- readRDS("Aug_results/a_glm_8-30.rds")
 Q_model<- readRDS("Aug_results/Lm_8-2_full.rds")
 
 data<- Train
 budget<- data[which(data$dos == 153), "alert_sum"]
 Budget<- rep(budget, each = (n_days - 1))
+nonzero<- which(Budget > 0)
+
+## Only look at counties with at least one heat alert:
 
 Data<- data[-seq(n_days, nrow(data), n_days),]
 R<- -1*(Train$N*100000/Train$Pop.65)[-seq(n_days, nrow(data), n_days)]
+discount<- 0.999
 
-OPE(a_model, Q_model, Data, R, 0.999, Budget)
+OPE(a_model, Q_model, Data[nonzero,], R[nonzero], discount, Budget[nonzero])
 
 
 #######################################################################3
