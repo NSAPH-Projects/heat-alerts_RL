@@ -1,4 +1,5 @@
 
+
 library(rlang, lib.loc= "/n/home_fasse/econsidine/R/x86_64-pc-linux-gnu-library/")
 library(torch)
 torch::cuda_is_available() # TRUE if GPU is available
@@ -11,20 +12,21 @@ setwd("/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL")
 
 ## Functions for Q-learning:
 
-predict_nn<- function(model, newdata){ # if using gpus
-  w<- as_array(model$parameters$lm1.weight$cpu())
-  b<- as_array(model$parameters$lm1.bias$cpu())
-  
-  return(newdata %*% t(w) + b)
-}
+# predict_nn<- function(model, newdata){ # if using gpus
+#   
+#   w<- as_array(model$parameters$lm1.weight$cpu())
+#   b<- as_array(model$parameters$lm1.bias$cpu())
+# 
+#   return(newdata %*% t(w) + b)
+# }
 
-eval_Q<- function(S, Q_model){
+eval_Q<- function(Q_model, S_0, S_1){ # update this!
   
-  data<- model.matrix(~ A*., data.frame(A=0,S))
-  Q0<- predict_nn(Q_model, data)
+  Q0<- Q_model(S_0$to(device = "cuda"))
+  Q1<- Q_model(S_1$to(device = "cuda"))
   
-  data<- model.matrix(~ A*., data.frame(A=1,S))
-  Q1<- predict_nn(Q_model, data)
+  # Q0<- predict_nn(Q_model, S_0)
+  # Q1<- predict_nn(Q_model, S_1)
   
   return(cbind(Q0, Q1))
 }
@@ -70,6 +72,8 @@ S<- States %>% mutate_if(is.numeric, scale)
 S.1<- States.1 %>% mutate_if(is.numeric, scale)
 
 S_full<- model.matrix(~ A*., data.frame(A,S))
+S.1_full_0<- model.matrix(~ A*., data.frame(A=0,S))
+S.1_full_1<- model.matrix(~ A*., data.frame(A=1,S))
 
 over_budget<- readRDS("data/Over_budget.rds")
 original_rows<- 1:(n_days*n_years*2837)
@@ -104,30 +108,40 @@ model<- LM()
 model$to(device = "cuda")
 
 optimizer<- optim_adam(model$parameters)
-optimizer$zero_grad()
 l<- c()
 iter<- 1
 n<- length(R)
 
 ## Set up dataloader:
 make_DS<- dataset(
-  initialize = function(df){ # df is dataframe(Target, S)
-    self$x<- torch_tensor(df[,-1])
-    self$y<- torch_tensor(df[,1])
+  initialize = function(df){ # df is list(Index, S_full, S.1_full_0, S.1_full_1, 
+                                                                      # R, ep_end)
+    self$index<- torch_tensor(df[[1]])
+    self$s<- torch_tensor(df[[2]])
+    self$s.1_0<- torch_tensor(df[[3]])
+    self$s.1_1<- torch_tensor(df[[4]])
+    self$r<- torch_tensor(df[[5]])
+    self$ee<- torch_tensor(df[[6]])
+    
   },
   
   .getitem = function(i) {
-    list(x = self$x[i, ], y = self$y[i])
+    list(index = self$index[i], s = self$s[i,], s.1_0 = self$s.1_0[i,],
+         s.1_1 = self$s.1_1[i,], r = self$r[i], ee = self$ee[i])
   },
   
   .length = function() {
-    self$y$size()[[1]]
+    self$r$size()[[1]]
   }
 )
 
-S_ds<- make_DS(cbind(Target, matrix(as.numeric(S_full),ncol=ncol(S_full))))
+Index<- 1:length(Target)
+S_ds<- make_DS(list(Index, matrix(as.numeric(S_full),ncol=ncol(S_full)),
+                     matrix(as.numeric(S.1_full_0),ncol=ncol(S_full)), 
+                     matrix(as.numeric(S.1_full_1),ncol=ncol(S_full)),
+                     R, ep_end))
 
-b_size<- 30000
+b_size<- 256
 S_dl<- dataloader(S_ds, batch_size=b_size)
 
 ## Train the model:
@@ -135,25 +149,42 @@ s<- Sys.time()
 for(k in 1:10){
   coro::loop(for(b in S_dl){
     optimizer$zero_grad()
-    output<- model(b[[1]]$to(device = "cuda"))
+    output<- model(b$s$to(device = "cuda"))
     # break
     # s<- Sys.time()
-    loss<- nnf_mse_loss(output, b[[2]]$to(device = "cuda"))
+    
+    target<- torch_tensor(Target[b$index])
+    
+    loss<- nnf_mse_loss(output, target$to(device = "cuda"))
     loss$backward()
     optimizer$step()
     l<- c(l, loss$item())
     
-    Q_mat<- eval_Q(S.1, model)
+    Q_mat<- eval_Q(model, b$s.1_0, b$s.1_1)
     
     AMQ<- choose_a(Q_mat, iter)
     
-    Target<- R + gamma*(1-ep_end)*AMQ[,2]
-    # break
+    Target[b$index]<- b$r + gamma*(1-b$ee)*AMQ[,2]
+    break
     # e<- Sys.time()
     
     iter<- iter + 1
     
   })
+  
+  output<- model(torch_tensor(matrix(as.numeric(S_full),ncol=ncol(S_full)))$to(device = "cuda") )
+  
+  loss<- nnf_mse_loss(output, torch_tensor(Target)$to(device = "cuda"))
+  loss$backward()
+  optimizer$step()
+  l<- c(l, loss$item())
+  
+  Q_mat<- eval_Q(model, torch_tensor(matrix(as.numeric(S.1_full_0),ncol=ncol(S_full))),
+                 torch_tensor(matrix(as.numeric(S.1_full_1),ncol=ncol(S_full))))
+  
+  AMQ<- choose_a(Q_mat, iter)
+  
+  Target<- R + gamma*(1-ep_end)*AMQ[,2]
 }
 e<- Sys.time()
 e-s
