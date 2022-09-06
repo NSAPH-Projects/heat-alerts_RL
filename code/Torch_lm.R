@@ -52,8 +52,8 @@ S<- States %>% mutate_if(is.numeric, scale)
 S.1<- States.1 %>% mutate_if(is.numeric, scale)
 
 S_full<- model.matrix(~ A*., data.frame(A,S))
-S.1_full_0<- model.matrix(~ A*., data.frame(A=0,S))
-S.1_full_1<- model.matrix(~ A*., data.frame(A=1,S))
+S.1_full_0<- model.matrix(~ A*., data.frame(A=0,S.1))
+S.1_full_1<- model.matrix(~ A*., data.frame(A=1,S.1))
 
 over_budget<- readRDS("data/Over_budget.rds")
 original_rows<- 1:(n_days*n_years*2837)
