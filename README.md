@@ -1,9 +1,13 @@
 # heat-alerts_mortality_RL
 
-
 This is code for investigating applicability of RL to environmental health, specifically issuance of heat alerts.
 
-### Instructions for installing torch for R on FASRC/FASSE:
+### Data Processing:
+1. Merging mortality data and heat alerts data: Explore_merged_data.R
+2. Processing county-level covariates: Extract_land_area.R, Get_county_Census_data.R, Prep_DoE_zones.R
+3. Merge together: Merge-finalize_county_data.R
+
+### Installing torch for R on FASRC/FASSE:
 
 The Harvard cluster's Linux version is too old to support this package. Thus, we need to use a container where we can install everything we need. [Here is helpful documentation on using Singularity Containers on the cluster](https://docs.rc.fas.harvard.edu/wp-content/uploads/2022/08/Containers_on_Cannon_08_22.pdf).
 
@@ -26,3 +30,4 @@ All subsequent times:
 
 *Note on using singularity containers: beyond what's included in the FASRC docs, there is a lot of helpful documentation online, e.g. describing how "singularity cache list" shows all existing container images, and how "singularity cache clean" removes everything in the cache.*
 
+### Analysis:
