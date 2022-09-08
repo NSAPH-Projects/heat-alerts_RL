@@ -36,13 +36,14 @@ n_days<- 153
 A<- Train[-seq(n_days, nrow(Train), n_days),"alert"]
 R<- (-1*(Train$N*100000/Train$Pop.65))[-seq(n_days, nrow(Train), n_days)]
 ep_end<- rep(c(rep(0,n_days-2),1),length(R)/(n_days-1))
-gamma<- 0.999
+# gamma<- 0.999
+gamma<- 1
 
 States.1<- Train[, c("HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
                      "quant_HI_3d_county", "quant_HI_fwd_avg_county",
                      "BA_zone", "Pop_density", "Med.HH.Income",
-                     "year", "dos", "holiday", # "Holiday", "dow",
-                     "alert_sum")]
+                     "year", "dos", "holiday", # "Holiday", 
+                    "dow", "alert_sum")] # same variables as in model for alerts
 
 States<- States.1[-seq(n_days, nrow(Train), n_days),]
 States.1<- States.1[-seq(1, nrow(Train), n_days),]
@@ -52,8 +53,8 @@ S<- States %>% mutate_if(is.numeric, scale)
 S.1<- States.1 %>% mutate_if(is.numeric, scale)
 
 S_full<- model.matrix(~ A*., data.frame(A,S))
-S.1_full_0<- model.matrix(~ A*., data.frame(A=0,S))
-S.1_full_1<- model.matrix(~ A*., data.frame(A=1,S))
+S.1_full_0<- model.matrix(~ A*., data.frame(A=0,S.1))
+S.1_full_1<- model.matrix(~ A*., data.frame(A=1,S.1))
 
 over_budget<- readRDS("data/Over_budget.rds")
 original_rows<- 1:(n_days*n_years*2837)
@@ -111,8 +112,8 @@ S_ds<- make_DS(list(over_pos, matrix(as.numeric(S_full),ncol=ncol(S_full)),
                      matrix(as.numeric(S.1_full_1),ncol=ncol(S_full)),
                      R, ep_end))
 
-b_size<- 1000
-S_dl<- dataloader(S_ds, batch_size=b_size)
+b_size<- 512
+S_dl<- dataloader(S_ds, batch_size = b_size, pin_memory = TRUE, shuffle = TRUE)
 
 ## Train the model:
 
@@ -131,32 +132,51 @@ Coefs<- new_coefs
 L<- c()
 K<- 1
 
+# my_prof<- matrix(0, nrow=30, ncol=7)
+# my_prof<- as.data.frame(my_prof)
+# colnames(my_prof)<- c("eval_Q", "target", "zero_grad", "model", 
+#                       "loss", "backprop", "step")
+
 s<- Sys.time()
-while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.1 | iter== 1){
+while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.1 | iter == 1){
+  iter<- 1 # restart for each epoch
   coro::loop(for(b in S_dl){
     
-    with_no_grad({
-      target<- b$r$to(device = "cuda") + 
-        gamma*(1-b$ee$to(device = "cuda"))*eval_Q(model, b$s.1_0$to(device = "cuda"), 
-                                                  b$s.1_1$to(device = "cuda"), 
-                                                  b$over$to(device = "cuda"), iter)
-    })
-    
-    optimizer$zero_grad()
-    output<- model(b$s$to(device = "cuda"))
+    # o<- Sys.time()
+      with_no_grad({
+        # target<- b$r + gamma*(1-b$ee)*eval_Q(model, b$s.1_0, b$s.1_1, b$over, iter)
+        ev<- eval_Q(model, b$s.1_0$to(device = "cuda"),
+                      b$s.1_1$to(device = "cuda"),
+                      b$over$to(device = "cuda"), iter)
+        # my_prof[iter,1]<- Sys.time() - o
+        
+        target<- b$r$to(device = "cuda") +
+          gamma*(1-b$ee$to(device = "cuda"))*ev
+        
+        # my_prof[iter,2]<- Sys.time() - o
+      })
+      
+      optimizer$zero_grad()
+      # my_prof[iter,3]<- Sys.time() - o
+      output<- model(b$s$to(device = "cuda"))
+      # my_prof[iter,4]<- Sys.time() - o
+      # break
+      # s<- Sys.time()
+      
+      loss<- nnf_mse_loss(output, target)
+      # my_prof[iter,5]<- Sys.time() - o
+      loss$backward()
+      # my_prof[iter,6]<- Sys.time() - o
+      optimizer$step()
+      # my_prof[iter,7]<- Sys.time() - o
+      l<- c(l, loss$item())
     # break
-    # s<- Sys.time()
-    
-    loss<- nnf_mse_loss(output, target)
-    loss$backward()
-    optimizer$step()
-    l<- c(l, loss$item())
     
     # e<- Sys.time()
     
     iter<- iter + 1
     
-    # if(iter == 31){break}
+    if(iter == 101){next}
     
   })
   
@@ -164,8 +184,8 @@ while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.1 | iter== 1){
   with_no_grad({
     
     Target<- R + gamma*(1-ep_end)*eval_Q(model, 
-                                         torch_tensor(matrix(as.numeric(S.1_full_0),ncol=ncol(S_full))), 
-                                         torch_tensor(matrix(as.numeric(S.1_full_1),ncol=ncol(S_full))), 
+                                         torch_tensor(matrix(as.numeric(S.1_full_0),ncol=ncol(S_full)))$to("cuda"), 
+                                         torch_tensor(matrix(as.numeric(S.1_full_1),ncol=ncol(S_full)))$to("cuda"), 
                                                 over_pos, iter)
   })
   
@@ -176,17 +196,21 @@ while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.1 | iter== 1){
   
   print(paste("Finished Epoch:", K))
   K<- K+1
-  break
+  # break
 }
 e<- Sys.time()
 e-s
 
-png("new_results/torch_lm_9-3.png")
+# ## Check timing:
+# apply(my_prof, MARGIN=2, mean)
+
+
+png("Aug_results/torch_lm_9-6.png")
 plot(1:length(l), l)
 dev.off()
 
-saveRDS(model, "Aug_results/torch_lm_9-3.rds")
-saveRDS(Target, "Aug_results/Target_9-3.rds")
-saveRDS(l, "Aug_results/Loss_9-3.rds")
-saveRDS(Coefs, "Aug_results/Q-coefficients_9-3.rds")
+saveRDS(model, "Aug_results/torch_lm_9-6.rds")
+saveRDS(Target, "Aug_results/Target_9-6.rds")
+saveRDS(l, "Aug_results/Loss_9-6.rds")
+saveRDS(Coefs, "Aug_results/Q-coefficients_9-6.rds")
 
