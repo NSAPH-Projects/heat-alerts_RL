@@ -1,4 +1,30 @@
 
+
+#### Torch lm:
+
+Coefs<- readRDS("Aug_results/Q-coefficients_9-7.rds")
+
+## Looking at coefs all together:
+
+c0<- Coefs[1:(nrow(Coefs)-1),]
+c1<- Coefs[2:nrow(Coefs),]
+
+res<- apply(cbind(c0, c1), MARGIN = 1, function(x) sqrt(mean((x[49:96] - x[1:48])^2)))
+
+plot(1:length(res), res)
+
+## Now looking at the individual coefs:
+
+cols<- readRDS("data/Model_colnames_9-8.rds")
+colnames(Coefs)<- cols
+
+par(mfrow=c(3,4))
+for(j in 1:ncol(Coefs)){
+  plot(1:nrow(Coefs), Coefs[,j], main = cols[j])
+}
+
+##########################################################
+
 ## Read in text file:
 res<- read.table("Aug_results/First_SGD.txt", fill=TRUE)
 

@@ -6,7 +6,7 @@ library(pracma)
 
 ### Get "propensity scores":
 
-pi_b1<- function(a_model, data){
+pi_b1<- function(a_model, data, ML = TRUE){
   Data<- data.frame(scale(data[,vars<- c("HImaxF_PopW", "quant_HI_county", 
                                             "quant_HI_yest_county",
                                             "quant_HI_3d_county", 
@@ -18,9 +18,13 @@ pi_b1<- function(a_model, data){
                     dow = factor(data$dow), 
                     holiday = factor(data$holiday),
                     Zone = factor(data$BA_zone))
-  
-  pb<- predict(a_model, Data)
-  return(sigmoid(pb))
+  if(ML == FALSE){
+    pb<- predict(a_model, Data)
+    return(sigmoid(pb))
+  }else{
+    pb<- predict(a_model, Data, type = "prob")[,2] # grabs probs for a=1
+    return(pb)
+  }
 }
 
 m<- 2.504325 # From training set
@@ -28,32 +32,37 @@ s<- 5.194564
 
 new_policy<- function(Q_model, data, Budget){
   
-  df0<- model.matrix(Q_model)
-  df0[,"A"]<- 0
-  df0[,20:36]<- 0
+  # df0<- model.matrix(Q_model)
+  # df0[,"A"]<- 0
+  # df0[,20:36]<- 0
+  # 
+  # df1<- model.matrix(Q_model)
+  # df1[,"A"]<- 1
+  # df1[,20:36]<- df1[,3:19]
   
-  df1<- model.matrix(Q_model)
-  df1[,"A"]<- 1
-  df1[,20:36]<- df1[,3:19]
+  df0<- S_full_0
+  df1<- S_full_1
   
-  new_alerts<- rep(0, nrow(data))
-  policy<- rep(0, nrow(data))
+  new_alerts<- rep(0, nrow(df0))
+  policy<- rep(0, nrow(df0))
   
-  ID<- rep(1:(nrow(data)/(n_days-1)), each = (n_days-1))#[positive]
+  ID<- rep(1:(nrow(df0)/(n_days-1)), each = (n_days-1))#[positive]
     
   for(i in 1:max(ID)){
     pos<- which(ID == i)
     
     d<- 1
-    while(new_alerts[pos[d]] < Budget[pos[d]]){
+    while(d < 153 & new_alerts[pos[d]] < Budget[pos[d]]){
       new_scaled<- (new_alerts[pos[d]] - m)/s
       v0<- df0[pos[d],]
       v0["alert_sum"]<- new_scaled
-      q0<- coef(Q_model) %*% v0
+      # q0<- coef(Q_model) %*% v0
+      q0<- Q_c %*% v0
       v1<- df1[pos[d],]
       v1["alert_sum"]<- new_scaled
       v1["A:alert_sum"]<- new_scaled
-      q1<- coef(Q_model) %*% v1
+      # q1<- coef(Q_model) %*% v1
+      q1<- Q_c %*% v1
       if(q1 > q0){
         policy[pos[d]]<- 1
         new_alerts[pos[d:(n_days-1)]]<- new_alerts[pos[d:(n_days-1)]] + 1
@@ -75,9 +84,11 @@ random_policy<- function(data, budget){
   for(i in 1:max(ID)){
     pos<- which(ID == i)
     
-    if(budget[i] > 0){
-      policy[sample(pos, budget[i], replace=FALSE)]<- 1
-    }
+    policy[pos]<- budget[i]/(n_days-1)
+    
+    # if(budget[i] > 0){
+    #   policy[sample(pos, budget[i], replace=FALSE)]<- 1
+    # }
   }
   
   return(policy)
@@ -93,7 +104,13 @@ OPE<- function(a_model, Q_model, Data, R, discount, Budget){
   pb<- pb1
   pb[which(A == 0)]<- 1 - pb1[which(A == 0)]
   
-  # pol<- random_policy(Data, budget[which(budget > 0)])
+  # Regularize:
+  pb[which(pb > 0.99)]<- 0.99 
+  pb[which(pb < 0.01)]<- 0.01
+  
+  # pg1<- random_policy(Data, budget[which(budget > 0)])
+  # pg<- pg1
+  # pg[which(A == 0)]<- 1 - pg1[which(A == 0)]
   pol<- new_policy(Q_model, Data, Budget)
   pg<- rep(0,length(pb))
   pg[which(A == pol)]<- 1
@@ -102,19 +119,24 @@ OPE<- function(a_model, Q_model, Data, R, discount, Budget){
   n<- nrow(Data)/(n_days-1)
   H<- n_days-1
   w<- rep(0, n*H)
+  eps<- 0.01
   for(i in 1:n){
     for(t in 1:H){
       ep_start<- (i-1)*H
       if(0 %in% pg[(ep_start+1):(ep_start+t)]){
         w[ep_start+t]<- 0
       }else{
-        w[ep_start+t]<- exp(-sum(log(pb[ep_start:(ep_start+t)])))
+        w[ep_start+t]<- exp(sum(log(pg[ep_start:(ep_start+t)]))) / 
+          (eps + exp(sum(log(pb[ep_start:(ep_start+t)]))))
+        # w[ep_start+t]<- exp( sum(log(pg[ep_start:(ep_start+t)]))
+        #   - sum(log(pb[ep_start:(ep_start+t)])) )
         # w[ep_start+t]<- 1/prod(pb[ep_start:(ep_start+t)])
       }
     }
   }
   
-  discount_vec<- rep(cumprod(rep(discount, H))/discount, n)
+  # discount_vec<- rep(cumprod(rep(discount, H))/discount, n)
+  discount_vec<- 1
   
   return((1/n)*sum(w*discount_vec*R))
 }
@@ -127,19 +149,42 @@ n_counties<- length(unique(Train$GEOID))
 n_years<- 11
 n_days<- 153
 
+a_model<- readRDS("Aug_results/a_RF_9-5_50pct.rds")
+# OR:
 a_model<- readRDS("Aug_results/a_glm_8-30.rds")
+
 Q_model<- readRDS("Aug_results/Lm_8-2_full.rds")
+# OR: 
+Coefs<- readRDS("Aug_results/Q-coefficients_9-7.rds")
+Q_c<- Coefs[nrow(Coefs),]
 
 data<- Train
+
+Data<- data[-seq(n_days, nrow(data), n_days),]
+R<- -1*(Train$N*100000/Train$Pop.65)[-seq(n_days, nrow(data), n_days)]
+# discount<- 0.999
+discount<- 1
+
 budget<- data[which(data$dos == 153), "alert_sum"]
 Budget<- rep(budget, each = (n_days - 1))
 nonzero<- which(Budget > 0)
 
-## Only look at counties with at least one heat alert:
+## Make states the same as in Q-learning:
 
-Data<- data[-seq(n_days, nrow(data), n_days),]
-R<- -1*(Train$N*100000/Train$Pop.65)[-seq(n_days, nrow(data), n_days)]
-discount<- 0.999
+States<- Train[, c("HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
+                     "quant_HI_3d_county", "quant_HI_fwd_avg_county",
+                     "BA_zone", "Pop_density", "Med.HH.Income",
+                     "year", "dos", "holiday", # "Holiday", 
+                     "dow", "alert_sum")] # same variables as in model for alerts
+
+States<- States[-seq(n_days, nrow(Train), n_days),]
+
+## Scale and one-hot encode:
+S<- States %>% mutate_if(is.numeric, scale)
+S_full_0<- model.matrix(~ A*., data.frame(A=0,S))
+S_full_1<- model.matrix(~ A*., data.frame(A=1,S))
+
+## Only look at counties with at least one heat alert?
 
 OPE(a_model, Q_model, Data[nonzero,], R[nonzero], discount, Budget[nonzero])
 
