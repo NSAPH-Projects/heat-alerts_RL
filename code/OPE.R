@@ -100,7 +100,7 @@ OPE<- function(a_model, Q_model, Data, R, discount, Budget){
   
   A<- Data$alert
   
-  pb1<- pi_b1(a_model, Data)
+  pb1<- pi_b1(a_model, Data) #ML = FALSE for glm
   pb<- pb1
   pb[which(A == 0)]<- 1 - pb1[which(A == 0)]
   
@@ -138,24 +138,27 @@ OPE<- function(a_model, Q_model, Data, R, discount, Budget){
   # discount_vec<- rep(cumprod(rep(discount, H))/discount, n)
   discount_vec<- 1
   
-  return((1/n)*sum(w*discount_vec*R))
+  J<- mean(w*discount_vec*R)
+  
+  return(list(J, w*R))
 }
 
 ### Run this ^^^
 
-load("data/Train-Valid-Test.RData")
+load("data/Train-Test.RData")
 
 n_counties<- length(unique(Train$GEOID))
 n_years<- 11
 n_days<- 153
 
-a_model<- readRDS("Aug_results/a_RF_9-5_50pct.rds")
+# a_model<- readRDS("Aug_results/a_RF_9-5_50pct.rds")
+preds <- readRDS("Aug_results/RF_all-preds_9-5_50pct.rds")
 # OR:
 a_model<- readRDS("Aug_results/a_glm_8-30.rds")
 
 Q_model<- readRDS("Aug_results/Lm_8-2_full.rds")
 # OR: 
-Coefs<- readRDS("Aug_results/Q-coefficients_9-7.rds")
+Coefs<- readRDS("Aug_results/Q-coefficients_9-8.rds")
 Q_c<- Coefs[nrow(Coefs),]
 
 data<- Train
@@ -186,8 +189,10 @@ S_full_1<- model.matrix(~ A*., data.frame(A=1,S))
 
 ## Only look at counties with at least one heat alert?
 
-OPE(a_model, Q_model, Data[nonzero,], R[nonzero], discount, Budget[nonzero])
+result<- OPE(a_model, Q_model, Data[nonzero,], R[nonzero], discount, Budget[nonzero])
 
+J<- result[[1]]
+w<- results[[2]]
 
 #######################################################################3
 
