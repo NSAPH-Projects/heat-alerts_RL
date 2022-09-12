@@ -100,7 +100,7 @@ OPE<- function(a_model, Q_model, Data, R, discount, Budget){
   
   A<- Data$alert
   
-  pb1<- pi_b1(a_model, Data) #ML = FALSE for glm
+  pb1<- pi_b1(a_model, Data, ML = FALSE) #ML = TRUE for RF
   pb<- pb1
   pb[which(A == 0)]<- 1 - pb1[which(A == 0)]
   
@@ -108,7 +108,7 @@ OPE<- function(a_model, Q_model, Data, R, discount, Budget){
   pb[which(pb > 0.99)]<- 0.99 
   pb[which(pb < 0.01)]<- 0.01
   
-  # pg1<- random_policy(Data, budget[which(budget > 0)])
+  # pg1<- random_policy(Data, budget) # [which(budget > 0)]
   # pg<- pg1
   # pg[which(A == 0)]<- 1 - pg1[which(A == 0)]
   pol<- new_policy(Q_model, Data, Budget)
@@ -138,7 +138,7 @@ OPE<- function(a_model, Q_model, Data, R, discount, Budget){
   # discount_vec<- rep(cumprod(rep(discount, H))/discount, n)
   discount_vec<- 1
   
-  J<- mean(w*discount_vec*R)
+  J<- (1/n)*sum(w*discount_vec*R)
   
   return(list(J, w*R))
 }
@@ -189,7 +189,7 @@ S_full_1<- model.matrix(~ A*., data.frame(A=1,S))
 
 ## Only look at counties with at least one heat alert?
 
-result<- OPE(a_model, Q_model, Data[nonzero,], R[nonzero], discount, Budget[nonzero])
+result<- OPE(a_model, Q_model, Data, R, discount, Budget)
 
 J<- result[[1]]
 w<- results[[2]]

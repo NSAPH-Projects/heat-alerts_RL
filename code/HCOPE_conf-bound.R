@@ -1,7 +1,10 @@
 
 
-## Get J and X=w*R from OPE function...
+## Get J and x=w*R from OPE function...
 
+ID<- rep(1:(length(x)/(n_days-1)), each = (n_days-1)) 
+
+X<- aggregate(x ~ ID, data = data.frame(ID, X), sum)[,2]
 
 #### Calculate lower bound given confidence level d:
 
@@ -19,7 +22,7 @@ c_fun<- function(c, d){
   Y<- X[pre]
   Y[which(Y > c)]<- c
   
-  s<- mean(Y) - 7*c*log(2/d)/(3*(N - n_pre - 1)) - sqrt((log(2/d)/n_post)*var(Y))
+  s<- mean(Y) - 7*c*log(2/d)/(3*(N - n_pre - 1)) - sqrt((log(2/d)/n_post)*4*var(Y))
   
   return(-s) # so optim can minimize 
 }
@@ -32,9 +35,11 @@ c<- optim(1, c_fun, lower = 0, method = "L-BFGS-B", d = d)$par
 Y<- X[post]
 Y[which(Y > c)]<- c
 
-(n_post/c)*( sum(Y)/c - 7*n_post*log(2/d)/(3*(n_post-1)) 
-             - sqrt((2*log(2/d)/(n_post-1))*(n*sum((Y/c)^2) - sum(Y/c)^2)) )
-# change the second term inside the sqrt to be the other form of sample variance?
+(n_post/c)*( sum(Y)/c - 7*n_post*log(2/d)/(3*(n_post-1))
+             - sqrt(2*log(2/d)*2*n_post*var(Y/c)) )
+
+# (n_post/c)*( sum(Y)/c - 7*n_post*log(2/d)/(3*(n_post-1)) 
+#              - sqrt((2*log(2/d)/(n_post-1))*(n*sum((Y/c)^2) - sum(Y/c)^2)) )
 
 
 #### Find minimum d:
@@ -48,17 +53,15 @@ d_fun<- function(d, Jb){
   
   k1<- 7*n_post/(3*(n_post-1)) 
   k3<- Jb*n_post/c - sum(Y)/c
-  if(n*sum((Y/c)^2) > sum(Y/c)^2){
-    k2<- sqrt( (2/(n_post-1))*(n*sum((Y/c)^2) - sum(Y/c)^2) )
-    z<- (-k2 + sqrt(k2^2 - 4*k1*k3))/(2*k1)
-    # Calculate 1-d:
-    if(!is.na(z) & z > 0){
-      omd<- 1 - min(1, 2*exp(-z^2))
-    }else{
-      omd<- 0 
-    }
+  
+  k2<- sqrt( 4*n_post*var(Y/c) )
+  z<- (-k2 + sqrt(k2^2 - 4*k1*k3))/(2*k1)
+  
+  # Calculate 1-d:
+  if(!is.na(z) & z > 0){
+    omd<- 1 - min(1, 2*exp(-z^2))
   }else{
-    omd<- 0
+    omd<- 0 
   }
 
   return(1 - omd) # returning d
