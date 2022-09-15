@@ -36,9 +36,9 @@ n_days<- 153
 
 A<- Train[-seq(n_days, nrow(Train), n_days),"alert"]
 R<- (-1*(Train$N*100000/Train$Pop.65))[-seq(n_days, nrow(Train), n_days)]
-ep_end<- rep(c(rep(0,n_days-2),1),length(R)/(n_days-1))
+ep_end<- Train[,"dos"] == 152
 # gamma<- 0.999
-gamma<- 1
+gamma<- 0.99
 
 States.1<- Train[, c("HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
                      "quant_HI_3d_county", "quant_HI_fwd_avg_county",
