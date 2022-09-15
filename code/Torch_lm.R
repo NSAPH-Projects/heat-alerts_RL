@@ -1,4 +1,5 @@
 
+
 library(rlang, lib.loc= "/n/home_fasse/econsidine/R/x86_64-pc-linux-gnu-library/")
 library(torch)
 torch::cuda_is_available() # TRUE if GPU is available
@@ -27,7 +28,7 @@ eval_Q<- function(Q_model, S_0, S_1, over, iter){
 
 ## Set up the data:
 
-load("data/Train-Valid-Test.RData")
+load("data/Train-Test.RData") # update on 9/6 to include yearly Pop.65
 
 n_counties<- length(unique(Train$GEOID))
 n_years<- 11
@@ -71,7 +72,7 @@ torch_manual_seed(321)
 LM<- nn_module(
   
   initialize = function(){
-    self$lm1 <- nn_linear(in_features = ncol(S_full), out_features = 1)
+    self$lm1 <- nn_linear(in_features = ncol(S_full), out_features = 1, bias = FALSE)
   },
   
   forward = function(x){
@@ -88,12 +89,12 @@ LM<- nn_module(
 make_DS<- dataset(
   initialize = function(df){ # df is list(over_pos, S_full, S.1_full_0, S.1_full_1, 
                                                                       # R, ep_end)
-    self$over<- torch_tensor(df[[1]])
-    self$s<- torch_tensor(df[[2]])
-    self$s.1_0<- torch_tensor(df[[3]])
-    self$s.1_1<- torch_tensor(df[[4]])
-    self$r<- torch_tensor(df[[5]])
-    self$ee<- torch_tensor(df[[6]])
+    self$over<- torch_tensor(df[[1]])$to(device = "cuda")
+    self$s<- torch_tensor(df[[2]])$to(device = "cuda")
+    self$s.1_0<- torch_tensor(df[[3]])$to(device = "cuda")
+    self$s.1_1<- torch_tensor(df[[4]])$to(device = "cuda")
+    self$r<- torch_tensor(df[[5]])$to(device = "cuda")
+    self$ee<- torch_tensor(df[[6]])$to(device = "cuda")
     
   },
   
@@ -138,20 +139,22 @@ K<- 1
 #                       "loss", "backprop", "step")
 
 s<- Sys.time()
-while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.1 | iter == 1){
+while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.001 | K < 75){
+  print(paste("RMSE in coefs =", round(sqrt(mean((new_coefs - old_coefs)^2)),5)))
   iter<- 1 # restart for each epoch
   coro::loop(for(b in S_dl){
     
     # o<- Sys.time()
       with_no_grad({
-        # target<- b$r + gamma*(1-b$ee)*eval_Q(model, b$s.1_0, b$s.1_1, b$over, iter)
-        ev<- eval_Q(model, b$s.1_0$to(device = "cuda"),
-                      b$s.1_1$to(device = "cuda"),
-                      b$over$to(device = "cuda"), iter)
+        target<- b$r + gamma*(1-b$ee)*eval_Q(model, b$s.1_0, b$s.1_1, b$over, iter)
+        # ev<- eval_Q(model, b$s.1_0$to(device = "cuda"),
+        #               b$s.1_1$to(device = "cuda"),
+        #               b$over$to(device = "cuda"), iter)
+        # 
         # my_prof[iter,1]<- Sys.time() - o
-        
-        target<- b$r$to(device = "cuda") +
-          gamma*(1-b$ee$to(device = "cuda"))*ev
+        # 
+        # target<- b$r$to(device = "cuda") +
+        #   gamma*(1-b$ee$to(device = "cuda"))*ev
         
         # my_prof[iter,2]<- Sys.time() - o
       })
@@ -176,7 +179,7 @@ while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.1 | iter == 1){
     
     iter<- iter + 1
     
-    if(iter == 101){next}
+    if(iter == 101){break}
     
   })
   
@@ -184,8 +187,8 @@ while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.1 | iter == 1){
   with_no_grad({
     
     Target<- R + gamma*(1-ep_end)*eval_Q(model, 
-                                         torch_tensor(matrix(as.numeric(S.1_full_0),ncol=ncol(S_full)))$to("cuda"), 
-                                         torch_tensor(matrix(as.numeric(S.1_full_1),ncol=ncol(S_full)))$to("cuda"), 
+                                         torch_tensor(matrix(as.numeric(S.1_full_0),ncol=ncol(S_full)))$to(device = "cuda"), 
+                                         torch_tensor(matrix(as.numeric(S.1_full_1),ncol=ncol(S_full)))$to(device = "cuda"), 
                                                 over_pos, iter)
   })
   
@@ -196,7 +199,8 @@ while(sqrt(mean((new_coefs - old_coefs)^2)) > 0.1 | iter == 1){
   
   print(paste("Finished Epoch:", K))
   K<- K+1
-  # break
+  
+  # if(K==3){break}
 }
 e<- Sys.time()
 e-s
@@ -205,12 +209,12 @@ e-s
 # apply(my_prof, MARGIN=2, mean)
 
 
-png("Aug_results/torch_lm_9-6.png")
+png("Aug_results/torch_lm_9-8.png")
 plot(1:length(l), l)
 dev.off()
 
-saveRDS(model, "Aug_results/torch_lm_9-6.rds")
-saveRDS(Target, "Aug_results/Target_9-6.rds")
-saveRDS(l, "Aug_results/Loss_9-6.rds")
-saveRDS(Coefs, "Aug_results/Q-coefficients_9-6.rds")
-
+## Have to save torch objects using special function: https://cran.r-project.org/web/packages/torch/vignettes/serialization.html
+torch_save(model, "Aug_results/torch_lm_9-8.pt")
+torch_save(Target, "Aug_results/Target_9-8.pt")
+saveRDS(l, "Aug_results/Loss_9-8.rds")
+saveRDS(Coefs, "Aug_results/Q-coefficients_9-8.rds")
