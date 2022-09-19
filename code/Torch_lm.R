@@ -36,7 +36,7 @@ n_days<- 153
 
 A<- Train[-seq(n_days, nrow(Train), n_days),"alert"]
 R<- (-1*(Train$N*100000/Train$Pop.65))[-seq(n_days, nrow(Train), n_days)]
-ep_end<- Train[,"dos"] == 152
+ep_end<- Train[-seq(n_days, nrow(Train), n_days),"dos"] == 152
 # gamma<- 0.999
 gamma<- 0.99
 
