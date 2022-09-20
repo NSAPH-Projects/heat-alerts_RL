@@ -54,8 +54,9 @@ day_HI.all<- glm(alert ~ HImaxF_PopW + quant_HI_county
                  + quant_HI_yest_county 
                  + quant_HI_3d_county 
                  + quant_HI_fwd_avg_county
-                  + year + dos + dow + holiday 
-                  + Med.HH.Income + Pop_density + Zone,
+                  + year + dos + holiday # + dow
+                  + Med.HH.Income + Pop_density + Zone
+                 + alert_sum,
                   family = binomial(), 
                   data = Eda_set)
 
@@ -66,9 +67,14 @@ AIC(day_HI.qnt)
 AIC(day_HI.both)
 AIC(day_HI.all) # Best out of these models, whether we use AIC or BIC
 
-table(Eda_set$alert, round(day_HI.all$fitted.values))
 
-saveRDS(day_HI.all, "Aug_results/a_glm_8-16.rds") # first set eda_set<- summer
+saveRDS(day_HI.all, "Aug_results/a_glm_8-30.rds") # first set eda_set<- summer
+
+tab<- table(Eda_set$alert, round(day_HI.all$fitted.values))
+sensitivity(tab)
+specificity(tab)
+posPredValue(tab)
+negPredValue(tab)
 
 ######################################################
 

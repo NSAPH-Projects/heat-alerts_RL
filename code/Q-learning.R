@@ -40,7 +40,7 @@ library(dplyr)
 # 
 # save(Train, Validation, Test, file="data/Train-Valid-Test.RData")
 
-load("data/Train-Valid-Test.RData")
+load("data/Train-Test.RData")
 
 n_counties<- length(unique(Train$GEOID))
 n_years<- 11

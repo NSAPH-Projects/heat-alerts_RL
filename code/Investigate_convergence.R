@@ -1,8 +1,10 @@
-
+library(dplyr)
 
 #### Torch lm:
 
-Coefs<- readRDS("Aug_results/Q-coefficients_9-7.rds")
+Coefs1<- readRDS("Aug_results/Q-coefficients_9-7.rds")
+Coefs2<- readRDS("Aug_results/Q-coefficients_9-8.rds")
+Coefs<- rbind(Coefs1, Coefs2)
 
 ## Looking at coefs all together:
 
@@ -22,6 +24,54 @@ par(mfrow=c(3,4))
 for(j in 1:ncol(Coefs)){
   plot(1:nrow(Coefs), Coefs[,j], main = cols[j])
 }
+
+## Looking RMSE of Q-values over time:
+
+load("data/Train-Test.RData")
+
+n_counties<- length(unique(Train$GEOID))
+n_years<- 11
+n_days<- 153
+
+States<- Train[, c("HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
+                   "quant_HI_3d_county", "quant_HI_fwd_avg_county",
+                   "BA_zone", "Pop_density", "Med.HH.Income",
+                   "year", "dos", "holiday", # "Holiday", 
+                   "dow", "alert_sum")] # same variables as in model for alerts
+
+States<- States[-seq(n_days, nrow(Train), n_days),]
+S<- States %>% mutate_if(is.numeric, scale)
+
+S_full_0<- model.matrix(~ A*., data.frame(A=0,S))
+S_full_1<- model.matrix(~ A*., data.frame(A=1,S))
+
+rm("Train")
+rm("Test")
+rm("Coefs1")
+rm("Coefs2")
+rm("States")
+gc()
+
+df0<- S_full_0 %*% Coefs[nrow(Coefs),]
+df1<- S_full_1 %*% Coefs[nrow(Coefs),]
+
+## Just look at a subsequence:
+ss<- seq(1, nrow(Coefs), 20)
+
+DF0<- S_full_0 %*% t(Coefs[ss,])
+DF1<- S_full_1 %*% t(Coefs[ss,])
+
+q_diff_0<- rep(0,length(ss))
+q_diff_1<- rep(0,length(ss))
+
+for(j in 2:length(ss)){
+  q_diff_0[j]<- sqrt(mean((DF0[,j] - DF0[,j-1])^2))
+  q_diff_1[j]<- sqrt(mean((DF1[,j] - DF1[,j-1])^2))
+}
+
+plot(1:length(ss), q_diff_0)
+plot(1:length(ss), q_diff_1) # does actually look like we've converged?
+
 
 ##########################################################
 

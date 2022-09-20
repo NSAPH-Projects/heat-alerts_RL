@@ -1,10 +1,9 @@
-library(ggplot2)
 library(dplyr)
 library(caret)
-library(parallel)
-library(doParallel)
+# library(parallel)
+# library(doParallel)
 
-load("data/Train-Valid-Test.RData")
+load("data/Train-Test.RData")
 
 n_counties<- length(unique(Train$GEOID))
 n_years<- 11
@@ -22,20 +21,10 @@ Eda_set<- data.frame(scale(eda_set[,vars<- c("HImaxF_PopW", "quant_HI_county",
                                              "year", "dos",
                                              "alert_sum")]), 
                      alert = factor(eda_set$alert),
-                     dow = factor(eda_set$dow), data.frame(scale(eda_set[,vars<- c("HImaxF_PopW", "quant_HI_county", 
-                                             "quant_HI_yest_county",
-                                             "quant_HI_3d_county", 
-                                             "quant_HI_fwd_avg_county",
-                                             "Pop_density", "Med.HH.Income",
-                                             "year", "dos",
-                                             "alert_sum")]), 
-                     alert = factor(eda_set$alert),
                      dow = factor(eda_set$dow), 
                      holiday = factor(eda_set$holiday),
                      Zone = factor(eda_set$BA_zone))
-levels(Eda_set$alert)<- c("none", "alert")
-                     holiday = factor(eda_set$holiday),
-                     Zone = factor(eda_set$BA_zone))
+                     
 levels(Eda_set$alert)<- c("none", "alert") # so caret can predict probabilities
 
 IND<- createFolds(Eda_set$alert, n_cv, returnTrain = TRUE)
@@ -57,8 +46,9 @@ tgrid<- expand.grid( .mtry = 15, .splitrule = "extratrees", .min.node.size = 1)
 
 s<- Sys.time()
 
-ranger_model <- train(alert ~ ., data = Eda_set, method = "ranger",
-                      trControl = myControl, tuneGrid = tgrid)
+ranger_model<- train(alert ~ ., data = Eda_set, method = "ranger",
+                      trControl = myControl, importance = "permutation",
+                     tuneGrid = tgrid) 
 
 e<- Sys.time()
 e-s
@@ -73,11 +63,15 @@ ranger_model<- readRDS("Aug_results/a_RF_9-5_50pct.rds")
 
 ## Training:
 
-tab<- table(ranger_model$pred$pred, ranger_model$pred$obs)
-sensitivity(tab)
-specificity(tab)
-posPredValue(tab)
-negPredValue(tab)
+tab<- table(data.frame(Obs=ranger_model$pred$obs, Pred=ranger_model$pred$pred))
+# sensitivity:
+tab[2,2]/sum(tab[2,])
+# specificity:
+tab[1,1]/sum(tab[1,])
+# PPV:
+tab[2,2]/sum(tab[,2])
+# NPV:
+tab[1,1]/sum(tab[,1])
 
 ## Validation: (on the rest of the training data)
 
@@ -97,9 +91,40 @@ levels(Valid$alert)<- c("none", "alert")
 
 preds<- predict(ranger_model, Valid) # to get probabilities (for OPE), use type = "prob"
 
+tab<- table(data.frame(Obs=Valid$alert, Pred=preds))
+# sensitivity:
+tab[2,2]/sum(tab[2,])
+# specificity:
+tab[1,1]/sum(tab[1,])
+# PPV:
+tab[2,2]/sum(tab[,2])
+# NPV:
+tab[1,1]/sum(tab[,1])
 
+## Testing: (on the test data set)
 
+Testing<- data.frame(scale(Test[,vars<- c("HImaxF_PopW", "quant_HI_county", 
+                                         "quant_HI_yest_county",
+                                         "quant_HI_3d_county", 
+                                         "quant_HI_fwd_avg_county",
+                                         "Pop_density", "Med.HH.Income",
+                                         "year", "dos",
+                                         "alert_sum")]), 
+                   alert = factor(Test$alert),
+                   dow = factor(Test$dow), 
+                   holiday = factor(Test$holiday),
+                   Zone = factor(Test$BA_zone))
+levels(Testing$alert)<- c("none", "alert")
 
+preds<- predict(ranger_model, Testing) # to get probabilities (for OPE), use type = "prob"
 
-
+tab<- table(data.frame(Obs=Testing$alert, Pred=preds))
+# sensitivity:
+tab[2,2]/sum(tab[2,])
+# specificity:
+tab[1,1]/sum(tab[1,])
+# PPV:
+tab[2,2]/sum(tab[,2])
+# NPV:
+tab[1,1]/sum(tab[,1])
 

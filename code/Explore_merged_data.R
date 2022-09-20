@@ -82,7 +82,7 @@
 
 ## My EDA for the outcomes:
 
-setwd("~/shared_space/ci3_analysis/ellen_heat-warnings_RL")
+# setwd("~/shared_space/ci3_analysis/ellen_heat-warnings_RL")
 data<- readRDS("data/Merged_with_lags.rds")
 
 Recent<- data[which(data$year >= 2012), ]

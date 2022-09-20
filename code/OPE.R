@@ -64,8 +64,17 @@ new_policy<- function(Q_model, data, Budget){
       # q1<- coef(Q_model) %*% v1
       q1<- Q_c %*% v1
       if(q1 > q0){
-        policy[pos[d]]<- 1
-        new_alerts[pos[d:(n_days-1)]]<- new_alerts[pos[d:(n_days-1)]] + 1
+        pc<- (q1-q0)/abs(q0)
+        if(pc > 1){
+          policy[pos[d]]<- 1
+        }else{
+          policy[pos[d]]<- pc
+        }
+        
+        new_alerts[pos[d:(n_days-1)]]<- new_alerts[pos[d:(n_days-1)]] + pc
+        
+        # policy[pos[d]]<- 1
+        # new_alerts[pos[d:(n_days-1)]]<- new_alerts[pos[d:(n_days-1)]] + 1
       }
       d<- d+1
     }
@@ -109,11 +118,11 @@ OPE<- function(a_model, Q_model, Data, R, discount, Budget){
   pb[which(pb < 0.01)]<- 0.01
   
   # pg1<- random_policy(Data, budget) # [which(budget > 0)]
-  # pg<- pg1
-  # pg[which(A == 0)]<- 1 - pg1[which(A == 0)]
   pol<- new_policy(Q_model, Data, Budget)
-  pg<- rep(0,length(pb))
-  pg[which(A == pol)]<- 1
+  pg1<- pol
+  pg<- pg1
+  pg[which(A == 0)]<- 1 - pg1[which(A == 0)]
+  
   
   ## Following notation from Levine et al. 2020:
   n<- nrow(Data)/(n_days-1)
