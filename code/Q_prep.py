@@ -2,6 +2,7 @@
 
 # ! module load python/3.8.5-fasrc01
 # ! module load cuda/11.1.0-fasrc01
+# ! source activate pt1.8_cuda111
 
 import os
 import numpy as np
