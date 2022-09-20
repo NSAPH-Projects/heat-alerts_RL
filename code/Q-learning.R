@@ -42,6 +42,8 @@ library(dplyr)
 
 load("data/Train-Test.RData")
 
+## Other setup:
+
 n_counties<- length(unique(Train$GEOID))
 n_years<- 11
 n_days<- 153
