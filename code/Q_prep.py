@@ -1,12 +1,10 @@
 ## Prepare for Q-learning / DQN using pytorch
 
-# ! module load python/3.8.5-fasrc01
-# ! module load cuda/11.1.0-fasrc01
-
 import os
+import time
 import numpy as np
 import pandas as pd
-import pyreadr
+# import pyreadr
 from sklearn import preprocessing as skprep
 import matplotlib.pyplot as plt
 from scipy.special import expit, softmax
@@ -21,8 +19,11 @@ from copy import deepcopy
 
 os.chdir("/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL")
 
+
 ## Read in the data
 Train = pd.read_csv("data/Train_smaller-for-Python.csv") # had to use write_csv from readr package to ensure this was all in utf-8
+
+
 
 ## Subset out the indices for today (vs tomorrow)
 n_counties = Train["GEOID"].nunique()
