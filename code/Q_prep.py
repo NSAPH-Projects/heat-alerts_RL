@@ -1,5 +1,10 @@
 ## Prepare for Q-learning / DQN using pytorch
 
+<<<<<<< HEAD
+=======
+# ! module load python/3.8.5-fasrc01 cuda/11.1.0-fasrc01  && source activate pt1.8_cuda111
+
+>>>>>>> b086746ad1b123b9beec14cf6e4e76d66ba367ee
 import os
 import time
 import numpy as np
