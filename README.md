@@ -11,7 +11,7 @@ This is code for investigating applicability of RL to environmental health, spec
 1. Follow [these instructions](https://github.com/fasrc/User_Codes/tree/master/AI/PyTorch)
 2. Additionally, run this from terminal:
 ```bash
-conda install scikit-learn, scipy, tqdm
+conda install scikit-learn scipy tqdm
 ```
 
 ### Installing torch for R on FASRC/FASSE:
