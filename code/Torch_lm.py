@@ -46,18 +46,18 @@ model = model.to(dev)
 # optimizer = optim.Adam(model.parameters(), lr = 0.0001, betas=(0.25, 0.99))
 optimizer = optim.SGD(model.parameters(), lr = 0.01, momentum=0.25)
 
-update_tgt_every = 50
-print_every = 10
+update_tgt_every = 20
+print_every = 5
 tgt_model = deepcopy(model)
 
 ## Train
 
-epochs = 10000
+epochs = 20000
 
 epoch_loss_means = []
 epoch_loss_full = []
 start = time.time()
-for k in range(1, epochs):
+for k in range(15000, epochs):
     l = []
     iter = 1
     for s, a, r, s1, e, o in tqdm(DL, disable=True):
@@ -99,9 +99,11 @@ for k in range(1, epochs):
 print("--- %s seconds ---" % (time.time() - start))
 
 
-
-
 torch.save(model, "Fall_results/LM_9-23.pt")
+## Convert these to pd dataframes and then .to_csv
+EL = pd.DataFrame(epoch_loss_means, columns = ["Means"])
+EL["Full"] = epoch_loss_full
+EL.to_csv("Fall_results/LM_9-23_epoch-losses.csv")
 
 # ## Visualize:
 # plt.scatter(range(len(epoch_loss_means)), epoch_loss_means)
