@@ -1,4 +1,4 @@
-! python /n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/code/Q_prep.py
+# ! python /n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/code/Q_prep.py
 
 ## Set up the model
 
@@ -44,7 +44,7 @@ model = LM(state_dim)
 model = model.to(dev)
 
 # optimizer = optim.Adam(model.parameters(), lr = 0.0001, betas=(0.25, 0.99))
-optimizer = optim.SGD(model.parameters(), lr = 0.001, momentum=0.25)
+optimizer = optim.SGD(model.parameters(), lr = 0.01, momentum=0.25)
 
 update_tgt_every = 50
 print_every = 10
@@ -52,9 +52,10 @@ tgt_model = deepcopy(model)
 
 ## Train
 
-epochs = 1000
+epochs = 10000
 
 epoch_loss_means = []
+epoch_loss_full = []
 start = time.time()
 for k in range(1, epochs):
     l = []
@@ -74,18 +75,33 @@ for k in range(1, epochs):
         optimizer.step()
         l.append(loss.item())
         iter+=1
+        # print(iter)
         if iter == 100:
             break
     # break
     epoch_loss = np.mean(l)
     epoch_loss_means.append(epoch_loss)
+    with torch.no_grad(): # Note: tensors order is S, A, R, S1, EE, O
+        Target = tensors[2] + gamma*(1-tensors[4].float())*eval_Q(tgt_model, tensors[3].float(), tensors[5])
+        Output = model(tensors[0].float()) # n x 2
+        q0 = Output[:,0]
+        q1 = Output[:,1]
+        Q = (1-tensors[1])*q0 + (tensors[1])*q1
+        full_loss = F.smooth_l1_loss(Q, Target).item()
+        epoch_loss_full.append(full_loss)
     if k % print_every == 0:
-        print(f"Epoch: {k}, average loss: {epoch_loss:.4f}")
+        # full_loss = 0
+        print(f"Epoch: {k}, average loss: {epoch_loss:.4f}, full loss: {full_loss:.4f}")
     if k % update_tgt_every == 0:
         tgt_model = deepcopy(model)
     #     break
 
 print("--- %s seconds ---" % (time.time() - start))
+
+
+
+
+torch.save(model, "Fall_results/LM_9-23.pt")
 
 # ## Visualize:
 # plt.scatter(range(len(epoch_loss_means)), epoch_loss_means)

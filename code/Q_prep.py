@@ -1,14 +1,10 @@
 ## Prepare for Q-learning / DQN using pytorch
 
-<<<<<<< HEAD
-=======
-# ! module load python/3.8.5-fasrc01 cuda/11.1.0-fasrc01  && source activate pt1.8_cuda111
-
->>>>>>> b086746ad1b123b9beec14cf6e4e76d66ba367ee
 import os
 import time
 import numpy as np
 import pandas as pd
+import itertools
 # import pyreadr
 from sklearn import preprocessing as skprep
 import matplotlib.pyplot as plt
@@ -38,15 +34,20 @@ n_days = 153
 n_seq_s = range(n_days-1, Train.shape[0], n_days)
 
 A = Train["alert"].drop(n_seq_s)
-R = -1*(Train["N"]*100000/Train["Pop.65"]).drop(n_seq_s)
+R = -1*(Train["N"]*10000/Train["Pop.65"]).drop(n_seq_s)
 ep_end = Train["dos"].drop(n_seq_s) == 152
 gamma = 0.99
+
+## Adding new column for overall budget:
+budget = Train[Train["dos"] == n_days]["alert_sum"]
+Budget = list(itertools.chain(*[itertools.repeat(b, n_days) for b in budget]))
+Train["More_alerts"] = Budget - Train["alert_sum"]
 
 ## Subset out state variables
 States_1 = Train[["HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
                      "quant_HI_3d_county", "quant_HI_fwd_avg_county",
                      "BA_zone", "Pop_density", "Med.HH.Income",
-                     "year", "dos", "holiday", "dow", "alert_sum"]]
+                     "year", "dos", "holiday", "dow", "alert_sum", "More_alerts"]]
 States = States_1.drop(n_seq_s)
 States_1 = States_1.drop(range(0, Train.shape[0], n_days))
 
@@ -67,7 +68,7 @@ S1_OHE = pd.DataFrame(S1_ohe, columns=S1_names)
 num_vars = ["HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
                      "quant_HI_3d_county", "quant_HI_fwd_avg_county",
                      "Pop_density", "Med.HH.Income",
-                     "year", "dos", "alert_sum"]
+                     "year", "dos", "alert_sum", "More_alerts"]
 
 s_means = States[num_vars].mean(0)
 s_stds = States[num_vars].std(0)
