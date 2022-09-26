@@ -1,4 +1,18 @@
 library(dplyr)
+library(ggplot2)
+
+#### Pytorch convergence in terms of loss:
+
+LM<- read.csv("Fall_results/LM_9-23_epoch-losses.csv")
+DQN<- read.csv("Fall_results/DQN_9-23_epoch-losses.csv")
+
+ggplot(LM, aes(x=X, y=Means)) + geom_line() + 
+  geom_line(aes(y=Full), col = "red") + 
+  xlab("Epochs") + ylab("Huber Loss") + ggtitle("Linear Model")
+
+ggplot(DQN, aes(x=X, y=Means)) + geom_line() + 
+  geom_line(aes(y=Full), col = "red") + 
+  xlab("Epochs") + ylab("Huber Loss") + ggtitle("DQN Model with two layers")
 
 #### Torch lm:
 

@@ -7,11 +7,11 @@ class DQN(nn.Module):
     def __init__(self, n_col) -> None:
         super().__init__()
         self.net = nn.Sequential(
-            nn.Linear(n_col, n_col^2),
+            nn.Linear(n_col, n_col**2),
             nn.SiLU(),
-            # nn.Linear(n_col^2, n_col^2),
+            # nn.Linear(n_col**2, n_col**2),
             # nn.SiLU(),
-            nn.Linear(n_col^2, 2)
+            nn.Linear(n_col**2, 2)
         )
     def forward(self, x):
         return self.net(x)
@@ -110,3 +110,36 @@ torch.save(model, "Fall_results/DQN_9-23.pt")
 EL = pd.DataFrame(epoch_loss_means, columns = ["Means"])
 EL["Full"] = epoch_loss_full
 EL.to_csv("Fall_results/DQN_9-23_epoch-losses.csv")
+
+
+### Look at results from model:
+model = torch.load("Fall_results/DQN_9-23.pt")
+S = S.drop("index", axis = 1)
+
+Constraint = pd.DataFrame(Budget).drop(n_seq_s)
+new_alerts = np.zeros(len(ID))
+policy = np.zeros(len(ID))
+for i in range(0, max(ID)):
+    pos = np.where(np.array(ID) == i)
+    d = 0
+    while (d < 152) & (new_alerts[pos[0][d]] < Constraint.iloc[pos[0][d]]):
+        alerts_scaled = (new_alerts[pos[0][d]] - s_means["alert_sum"])/s_stds["alert_sum"]
+        more_scaled = (Constraint.iloc[pos[0][d]] - new_alerts[pos[0][d]] - s_means["More_alerts"])/s_stds["More_alerts"]
+        new_s = S.iloc[pos[0][d]]
+        new_s["alert_sum"] = alerts_scaled
+        new_s["More_alerts"] = more_scaled
+        v = torch.tensor(new_s)
+        output = model(v.float()).detach().numpy()
+        if output[1] > output[0]:
+            policy[pos[0][d]] = 1
+            new_alerts[pos[0][d:(n_days-1)]] += 1
+        d+=1
+
+# Q = model(tensors[0].float()) # n x 2
+# best_action = Q.argmax(axis=1).view(-1, 1)
+# final_action = best_action.numpy()
+# ID = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,n_years*n_counties)]))
+# DF = pd.concat([pd.DataFrame(ID,columns=["ID"]), pd.DataFrame(final_action,columns=["A"])], axis=1)
+# sum_alerts = DF.groupby("ID")["A"].agg("cumsum")
+# here_over = sum_alerts > S["alert_sum"] + S["More_alerts"]
+# final_action[here_over] = 0
