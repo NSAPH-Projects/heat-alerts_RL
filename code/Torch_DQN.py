@@ -58,7 +58,7 @@ n_years = 11
 n_days = 153
 n_counties = S.shape[0]/(n_years*(n_days-1))
 
-dev = "cpu"
+dev = "cuda"
 # dev = "cuda"
 tensors = [torch.from_numpy(v.to_numpy()).to(dev) for v in data]
 
@@ -82,19 +82,20 @@ model = model.to(dev)
 
 # optimizer = optim.Adam(model.parameters(), lr = 0.0001, betas=(0.25, 0.99))
 optimizer = optim.SGD(model.parameters(), lr = 0.01, momentum=0.25)
+optimizer = optim.SGD(model.parameters(), lr = 0.005, momentum=0.25)
 
-update_tgt_every = 20
+update_tgt_every = 50
 print_every = 5
 tgt_model = deepcopy(model)
 
 ## Train
 
-epochs = 20000
+epochs = 50000
 
 epoch_loss_means = []
 epoch_loss_full = []
 start = time.time()
-for k in range(13975, epochs):
+for k in range(len(epoch_loss_means), epochs):
     # if k == 100:
     #     break
     l = []
@@ -130,20 +131,22 @@ for k in range(13975, epochs):
     if k % update_tgt_every == 0:
         tgt_model = deepcopy(model)
     #     break
+    # if k == 200:
+    #     break
 
 print("--- %s seconds ---" % (time.time() - start))
 
 
-torch.save(model, "Fall_results/DQN_9-27.pt")
+torch.save(model, "Fall_results/DQN_10-6.pt")
 ## Convert these to pd dataframes and then .to_csv
 EL = pd.DataFrame(epoch_loss_means, columns = ["Means"])
 EL["Full"] = epoch_loss_full
-EL.to_csv("Fall_results/DQN_9-27_epoch-losses.csv")
+EL.to_csv("Fall_results/DQN_10-6_epoch-losses.csv")
 
 
-# ### Look at results from model:
-# model = torch.load("Fall_results/DQN_9-23.pt")
-# S = S.drop("index", axis = 1)
+### Look at results from model:
+model = torch.load("Fall_results/DQN_9-23.pt")
+S = S.drop("index", axis = 1)
 
 # Constraint = pd.DataFrame(Budget).drop(n_seq_s)
 # new_alerts = np.zeros(len(ID))
