@@ -37,7 +37,7 @@ DF<- data.frame(DF, dummy_vars)
 ## Set up train and "test" sets:
 
 set.seed(321)
-train_inds<- sample(1:nrow(data), 0.1*nrow(data), replace = FALSE)
+train_inds<- sample(1:nrow(data), 0.75*nrow(data), replace = FALSE)
 
 alert_pos<- which(names(DF) == "alert")
 x.train<- DF[train_inds, -alert_pos]
@@ -51,51 +51,141 @@ y.test<- DF[test_inds, "alert"]
 
 ## Set up BART:
 
-M<- 1000 # number of posterior samples (1000 is the default, after 100 burn-in)
-B<- 40 # number of cores (on the cluster)
+M<- 5000 # number of posterior samples (1000 is the default, after 100 burn-in)
+B<- 10 # number of cores (on the cluster)
 
 start<- Sys.time()
-post<- pbart(x.train, y.train, x.test, printevery = 10)
-# post<- mc.pbart(x.train, y.train, x.test, ndpost = M, nskip = 6000,
-#                 mc.cores = B, seed = 321, 
+# post<- pbart(x.train, y.train, x.test, 
+             # ndpost = 100, nskip = 10, printevery = 10)
+post<- pbart(x.train, y.train, printevery = 10, ndpost = M, nskip=5000)
+# post<- mc.pbart(x.train, y.train, x.test, ndpost = M,
+#                 mc.cores = B, seed = 321,
 #                 printevery = 10)
-# saveRDS(post, "Fall_results/BART-post_10-6.rds")
+p<- list(treedraws = post$treedraws, binaryOffset = post$binaryOffset)
+class(p)<- "pbart"
+saveRDS(p, "Fall_results/BART-model_10-11.rds")
 end<- Sys.time()
 end - start
 ## If we use the argument "sparse=TRUE", then can look at post$varprob...
 
 ## Look at the posterior samples: post$yhat.train and post$yhat.test
-  ## If using pbart, need to transform the posterior samples with pnorm() to get probs
+  ## If using pbart, look at prob.train or prob.test to get probabilities (pnorm of yhats)
 
-preds.train<- pnorm(post$yhat.train)
-preds.test<- pnorm(post$yhat.test)
+preds.train<- post$prob.train
 
+## If looking later:
+p<- readRDS("Fall_results/BART-model_10-11.rds")
+
+# preds.train<- predict(p, x.train)
+# preds.test<- predict(p, x.test)
+
+a1_train<- sample(which(y.train == 1),1000)
+a1_test<- sample(which(y.test == 1),1000)
+
+preds.a1_train<- predict(p, x.train[a1_train,])$prob.test
+preds.a1_test<- predict(p, x.test[a1_test,])$prob.test
+
+a0_train<- sample(which(y.train == 0),1000)
+a0_test<- sample(which(y.test == 0),1000)
+
+preds.a0_train<- predict(p, x.train[a0_train,])$prob.test
+preds.a0_test<- predict(p, x.test[a0_test,])$prob.test
 
 #### Check convergence:
 
-plot(1:nrow(preds.train), preds.train[,8])
+check_conv<- function(preds, obs=NULL, a1=FALSE, a0=FALSE){
+  
+  set.seed(321)
+  
+  ## Trace plots:
+  if(a1==TRUE){
+    i<- sample(1:ncol(preds),10)
+  }else if(a0==TRUE){
+    i<- sample(1:ncol(preds),50)
+  }else{
+    i<- c(sample(which(obs == 0),3), sample(which(obs == 1),7))
+  }
+  y<- max(preds[,i])
+  for(j in 1:length(i)) {
+    if(j==1){
+      plot(preds[ , i[j]],
+           type='l', ylim=c(0, y),
+           # sub=paste0('N:', n, ', k:', k),
+           ylab=expression(Phi(f(x))), xlab='m',
+           main = "Trace", col=j)
+    }else{
+      lines(preds[ , i[j]],
+            type='l', col=j)
+    }
+  }
+    
+    ## Checking autocorrelation:
+    
+    auto.corr<- acf(preds[ , i], plot=FALSE)
+    max.lag<- max(auto.corr$lag[ , 1, 1])
+    
+    j <- seq(-0.5, 0.4, length.out=10)
+    for(h in 1:length(i)) {
+      if(h==1)
+        plot(1:max.lag+j[h], auto.corr$acf[1+(1:max.lag), h, h],
+             type='h', xlim=c(0, max.lag+1), ylim=c(-1, 1),
+             ylab='acf', xlab='lag', main = "Autocorrelation",col=h)
+      else
+        lines(1:max.lag+j[h], auto.corr$acf[1+(1:max.lag), h, h],
+              type='h', col=h)
+    }
+    
+    ## Geweke statistic:
+    
+    if(a1==TRUE | a0==TRUE){
+      k<- sample(1:ncol(preds), 1000)
+    }else{
+      k<- c(sample(which(obs == 0),500), sample(which(obs == 1),500))
+    }
+    
+    geweke<- gewekediag(preds[,k])
+    n<- length(geweke$z)
+    
+    plot(geweke$z, pch='.', cex=2, ylab='z', xlab='i',
+         sub=paste0('N:', n, ', k:', 1),
+         xlim=c(0, n), ylim=c(-5, 5))
+    lines(1:n, rep(-1.96, n), type='l', col=6)
+    lines(1:n, rep(+1.96, n), type='l', col=6)
+    lines(1:n, rep(-2.576, n), type='l', col=5)
+    lines(1:n, rep(+2.576, n), type='l', col=5)
+    lines(1:n, rep(-3.291, n), type='l', col=4)
+    lines(1:n, rep(+3.291, n), type='l', col=4)
+    lines(1:n, rep(-3.891, n), type='l', col=3)
+    lines(1:n, rep(+3.891, n), type='l', col=3)
+    lines(1:n, rep(-4.417, n), type='l', col=2)
+    lines(1:n, rep(+4.417, n), type='l', col=2)
+    text(c(1, 1), c(-1.96, 1.96), pos=2, cex=0.6, labels='0.95')
+    text(c(1, 1), c(-2.576, 2.576), pos=2, cex=0.6, labels='0.99')
+    text(c(1, 1), c(-3.291, 3.291), pos=2, cex=0.6, labels='0.999')
+    text(c(1, 1), c(-3.891, 3.891), pos=2, cex=0.6, labels='0.9999')
+    text(c(1, 1), c(-4.417, 4.417), pos=2, cex=0.6, labels='0.99999')
+  
+}
 
-geweke<- gewekediag(post$yhat.train)
+## Inspect:
 
-n<- length(geweke$train)
+# check_conv(preds.train, y.train)
 
-plot(geweke$z[1:100], pch='.', cex=2, ylab='z', xlab='i',
-     sub=paste0('N:', n, ', k:', 1),
-     xlim=c(0, n), ylim=c(-5, 5))
-lines(1:n, rep(-1.96, n), type='l', col=6)
-lines(1:n, rep(+1.96, n), type='l', col=6)
-lines(1:n, rep(-2.576, n), type='l', col=5)
-lines(1:n, rep(+2.576, n), type='l', col=5)
-lines(1:n, rep(-3.291, n), type='l', col=4)
-lines(1:n, rep(+3.291, n), type='l', col=4)
-lines(1:n, rep(-3.891, n), type='l', col=3)
-lines(1:n, rep(+3.891, n), type='l', col=3)
-lines(1:n, rep(-4.417, n), type='l', col=2)
-lines(1:n, rep(+4.417, n), type='l', col=2)
-text(c(1, 1), c(-1.96, 1.96), pos=2, cex=0.6, labels='0.95')
-text(c(1, 1), c(-2.576, 2.576), pos=2, cex=0.6, labels='0.99')
-text(c(1, 1), c(-3.291, 3.291), pos=2, cex=0.6, labels='0.999')
-text(c(1, 1), c(-3.891, 3.891), pos=2, cex=0.6, labels='0.9999')
-text(c(1, 1), c(-4.417, 4.417), pos=2, cex=0.6, labels='0.99999')
+par(mfrow=c(3,1))
 
+check_conv(preds.a1_train, a1=TRUE)
+check_conv(preds.a1_test, a1=TRUE)
+
+check_conv(preds.a0_train, a0=TRUE)
+check_conv(preds.a0_test, a0=TRUE)
+
+## Try thinning:
+
+# check_conv(preds.train[seq(1, nrow(preds.train), by=100),], y.train)
+keep_every<- 5
+check_conv(preds.a1_train[seq(1, 1000, by = keep_every),], a1=TRUE)
+check_conv(preds.a1_test[seq(1, 1000, by = keep_every),], a1=TRUE)
+
+check_conv(preds.a0_train[seq(1, 1000, by = keep_every),], a0=TRUE)
+check_conv(preds.a0_test[seq(1, 1000, by = keep_every),], a0=TRUE)
 
