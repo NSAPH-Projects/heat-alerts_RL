@@ -17,7 +17,9 @@ from torch import nn # creating modules
 from torch.nn import functional as F # losses, etc.
 from torch.utils.data import TensorDataset, DataLoader
 from torch import optim
-import pytorch_lightning as pl
+import pytorch_lightning as pl 
+from pytorch_lightning import Trainer
+from pytorch_lightning.loggers import CSVLogger
 from tqdm import tqdm
 from copy import deepcopy
 
@@ -29,17 +31,18 @@ D = make_data()
 S,A,R,S_1,ep_end,over = [D[k] for k in ("S","A","R","S_1","ep_end","over")]
 data = [S.drop("index", axis = 1), A, R, S_1.drop("index", axis = 1), ep_end, over]
 state_dim = S.drop("index", axis = 1).shape[1]
+tensors = [torch.from_numpy(v.to_numpy()) for v in data]
 
 ## Set up model:
 class DQN(nn.Module):
     def __init__(self, n_col) -> None:
         super().__init__()
         self.net = nn.Sequential(
-            nn.Linear(n_col, n_col^2),
+            nn.Linear(n_col, n_col**2),
             nn.SiLU(),
             # nn.Linear(n_col**2, n_col**2),
             # nn.SiLU(),
-            nn.Linear(n_col^2, 2)
+            nn.Linear(n_col**2, 2)
         )
     def forward(self, x):
         return self.net(x)
@@ -79,25 +82,43 @@ class DQN_Lightning(pl.LightningModule):
         optimizer = optim.SGD(self.net.parameters(), lr = self.lr, momentum=0.25)
         return [optimizer]
     def train_dataloader(self):
-        tensors = [torch.from_numpy(v.to_numpy()) for v in data]
         DS = TensorDataset(*tensors)
-        DL = DataLoader(DS, batch_size = self.b_size, shuffle = True)
+        DL = DataLoader(
+            DS, batch_size = self.b_size, shuffle = True, 
+            num_workers=32, persistent_workers=True
+        )
         return DL
     def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor], b_idx): # latter is batch index
         loss = self.dqn_huber_loss(batch)
+        self.log(
+            "loss", loss, sync_dist = True,
+            on_step=False, on_epoch=True, prog_bar=False, logger=True
+        )
+        return OrderedDict({'loss': loss})
+    def training_step_end(self, step_output):
         self.iter += 1
         if self.iter % self.sync_rate*self.k_size == 0:
             self.target_net = deepcopy(self.net)
-        return OrderedDict({'loss': loss})
+        return super().training_step_end(step_output)
+    def training_epoch_end(self, outputs):
+        loss = self.dqn_huber_loss([t.to(self.device) for t in tensors])
+        self.log("full_loss", loss, sync_dist=True)
+        print(time.time())
+        return super().training_epoch_end(outputs)
 
 def main(params):
     params = [256, 0.01, 0.99, 50, 100, 10, 0, 20] # remove when calling script from command line
     model = DQN_Lightning(state_dim, params)
+    logger = CSVLogger("lightning_logs", name="test_logs")
     trainer = pl.Trainer(
-        gpus=params[6], # n_gpu
-        distributed_backend="dp", # not sure what to do with this?
+        # gpus=params[6], # n_gpu
+        # distributed_backend="dp",
         limit_train_batches=params[4], # k_size
-        max_epochs = params[7] # n_epochs
+        max_epochs = params[7], # n_epochs
+        logger = logger,
+        accelerator="auto",
+        devices="auto",
+        # precision=16, amp_backend="native"
     )
     trainer.fit(model)
     # Eventually, save the model and the losses for later
