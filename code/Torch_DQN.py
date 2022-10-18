@@ -59,14 +59,19 @@ n_days = 153
 n_counties = S.shape[0]/(n_years*(n_days-1))
 
 dev = "cuda"
-# dev = "cuda"
+# dev = "cpu"
 tensors = [torch.from_numpy(v.to_numpy()).to(dev) for v in data]
 
 DS = TensorDataset(*tensors)
 
 torch.manual_seed(321)
 
-DL = DataLoader(DS, batch_size = 256, shuffle = True)
+DL = DataLoader(
+    DS, batch_size = 256, shuffle = True
+    # , pin_memory=True
+    # , num_workers=32
+    # , persistent_workers=True
+)
 # DL = DataLoader(DS, batch_size = 1024, shuffle = True, pin_memory = True) # if using cpu; actually doesn't matter
 
 ## Initialize the model
@@ -83,9 +88,11 @@ model = model.to(dev)
 # optimizer = optim.Adam(model.parameters(), lr = 0.0001, betas=(0.25, 0.99))
 optimizer = optim.SGD(model.parameters(), lr = 0.01, momentum=0.25)
 optimizer = optim.SGD(model.parameters(), lr = 0.005, momentum=0.25)
+# optimizer = optim.SGD(model.parameters(), lr = 0.001, momentum=0.25)
+# optimizer = optim.SGD(model.parameters(), lr = 0.0005, momentum=0.25)
 
-update_tgt_every = 50
-print_every = 5
+update_tgt_every = 100
+print_every = 10
 tgt_model = deepcopy(model)
 
 ## Train
@@ -131,49 +138,16 @@ for k in range(len(epoch_loss_means), epochs):
     if k % update_tgt_every == 0:
         tgt_model = deepcopy(model)
     #     break
-    # if k == 200:
+    # if k == 20:
     #     break
 
 print("--- %s seconds ---" % (time.time() - start))
 
 
-torch.save(model, "Fall_results/DQN_10-6.pt")
+torch.save(model, "Fall_results/DQN_10-15d.pt")
 ## Convert these to pd dataframes and then .to_csv
 EL = pd.DataFrame(epoch_loss_means, columns = ["Means"])
 EL["Full"] = epoch_loss_full
-EL.to_csv("Fall_results/DQN_10-6_epoch-losses.csv")
+EL.to_csv("Fall_results/DQN_10-15d_epoch-losses.csv")
 
 
-### Look at results from model:
-model = torch.load("Fall_results/DQN_9-23.pt")
-S = S.drop("index", axis = 1)
-
-# Constraint = pd.DataFrame(Budget).drop(n_seq_s)
-# new_alerts = np.zeros(len(ID))
-# policy = np.zeros(len(ID))
-# for i in range(0, max(ID)):
-#     pos = np.where(np.array(ID) == i)
-#     d = 0
-#     while (d < 152) & (new_alerts[pos[0][d]] < Constraint.iloc[pos[0][d]]):
-#         alerts_scaled = (new_alerts[pos[0][d]] - s_means["alert_sum"])/s_stds["alert_sum"]
-#         more_scaled = (Constraint.iloc[pos[0][d]] - new_alerts[pos[0][d]] - s_means["More_alerts"])/s_stds["More_alerts"]
-#         new_s = S.iloc[pos[0][d]]
-#         new_s["alert_sum"] = alerts_scaled
-#         new_s["More_alerts"] = more_scaled
-#         v = torch.tensor(new_s)
-#         output = model(v.float()).detach().numpy()
-#         if output[1] > output[0]:
-#             policy[pos[0][d]] = 1
-#             new_alerts[pos[0][d:(n_days-1)]] += 1
-#         d+=1
-
-#############
-
-# Q = model(tensors[0].float()) # n x 2
-# best_action = Q.argmax(axis=1).view(-1, 1)
-# final_action = best_action.numpy()
-# ID = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,n_years*n_counties)]))
-# DF = pd.concat([pd.DataFrame(ID,columns=["ID"]), pd.DataFrame(final_action,columns=["A"])], axis=1)
-# sum_alerts = DF.groupby("ID")["A"].agg("cumsum")
-# here_over = sum_alerts > S["alert_sum"] + S["More_alerts"]
-# final_action[here_over] = 0
