@@ -36,21 +36,22 @@ class DQN(nn.Module):
 
 ## Methods to evaluate the model
 
-def eval_Q_double(Q_model, Qtgt_model, S, over = None): 
+def eval_Q_double(Q_model, Qtgt_model, S, not_allowed = None): 
     Q = Q_model(S) # n x 2
     Qtgt = Qtgt_model(S) # n x 2
     best_action = Q.argmax(axis=1).view(-1, 1)
     best_Q = torch.gather(Qtgt, 1, best_action).view(-1) # n 
-    if over is not None:
-        final_Q = torch.where(over, Qtgt[:,0], best_Q) # n
+    if not_allowed is not None:
+        final_Q = torch.where(not_allowed, Qtgt[:,0], best_Q) # n
         return final_Q
     return best_Q
 
 
 ## Set up dataloader
 D = make_data()
-S,A,R,S_1,ep_end,over = [D[k] for k in ("S","A","R","S_1","ep_end","over")]
-data = [S.drop("index", axis = 1), A, R, S_1.drop("index", axis = 1), ep_end, over]
+S,A,R,S_1,ep_end,over,near_zero = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero")]
+not_allowed = over | [n for n in near_zero["x"]]
+data = [S.drop("index", axis = 1), A, R, S_1.drop("index", axis = 1), ep_end, not_allowed]
 
 gamma = 0.99
 
@@ -107,10 +108,10 @@ for k in range(len(epoch_loss_means), epochs):
     #     break
     l = []
     iter = 1
-    for s, a, r, s1, e, o in tqdm(DL, disable=True):
+    for s, a, r, s1, e, nope in tqdm(DL, disable=True):
         # break
         with torch.no_grad():
-            target = r + gamma*(1-e.float())*eval_Q_double(model, tgt_model, s1.float(), o)
+            target = r + gamma*(1-e.float())*eval_Q_double(model, tgt_model, s1.float(), nope)
         optimizer.zero_grad()
         output = model(s.float()) # n x 2
         Q = torch.gather(output, 1, a.view(-1, 1)).view(-1)
@@ -127,7 +128,8 @@ for k in range(len(epoch_loss_means), epochs):
     epoch_loss = np.mean(l)
     epoch_loss_means.append(epoch_loss)
     with torch.no_grad(): # Note: tensors order is S, A, R, S1, EE, O
-        Target = tensors[2] + gamma*(1-tensors[4].float())*eval_Q_double(model, tgt_model, tensors[3].float(), tensors[5])
+        Target = tensors[2] + gamma*(1-tensors[4].float())*eval_Q_double(model, tgt_model, 
+            tensors[3].float(), tensors[5])
         Output = model(tensors[0].float()) # n x 2
         Q = torch.gather(Output, 1, tensors[1].view(-1, 1)).view(-1)
         full_loss = F.smooth_l1_loss(Q, Target).item()
@@ -144,10 +146,10 @@ for k in range(len(epoch_loss_means), epochs):
 print("--- %s seconds ---" % (time.time() - start))
 
 
-torch.save(model, "Fall_results/DQN_10-15d.pt")
+torch.save(model, "Fall_results/DQN_10-18.pt")
 ## Convert these to pd dataframes and then .to_csv
 EL = pd.DataFrame(epoch_loss_means, columns = ["Means"])
 EL["Full"] = epoch_loss_full
-EL.to_csv("Fall_results/DQN_10-15d_epoch-losses.csv")
+EL.to_csv("Fall_results/DQN_10-18_epoch-losses.csv")
 
 
