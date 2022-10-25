@@ -1,0 +1,5 @@
+# python train_with_reward.py --loss huber --lr 0.0003 --optimizer adam --experiment_name adam_0003_huber_reward --silent --n_workers 8
+python train.py --loss mse --lr 0.001 --optimizer sgd --experiment_name sgd_001_huber_v3_momentum --momentum 0.5 --silent --n_workers 4
+python train.py --loss huber --lr 0.003 --optimizer sgd --experiment_name sgd_003_huber_v3 --silent --n_workers 4
+python train.py --loss huber --lr 0.001 --optimizer sgd --experiment_name sgd_001_huber_v3 --silent --n_workers 4
+python train.py --loss huber --lr 0.0003 --optimizer sgd --experiment_name sgd_0003_huber_v3 --silent --n_workers 4

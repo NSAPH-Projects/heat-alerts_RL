@@ -4,7 +4,7 @@ import itertools
 import torch 
 from torch import nn
 
-from code.Q_prep_function import make_data
+from heat_alerts.Q_prep_function import make_data
 
 class DQN(nn.Module):
     def __init__(self, n_col) -> None:

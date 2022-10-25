@@ -17,7 +17,7 @@ from torch import optim
 from tqdm import tqdm
 from copy import deepcopy
 
-from code.Q_prep_function import make_data
+from heat_alerts.Q_prep_function import make_data
 
 ## Set up the model
 
