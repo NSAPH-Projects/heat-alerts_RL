@@ -1,0 +1,2 @@
+python heat_alerts/Torch_Lightning_DQN.py --loss huber --lr 0.003 --optimizer sgd --xpt_name deaths_sgd_003_huber --silent --n_workers 4 --model_name DQN_11-4_deaths
+python heat_alerts/Torch_Lightning_DQN.py --loss huber --lr 0.003 --optimizer sgd --xpt_name hosps_sgd_003_huber --silent --n_workers 4 --outcome "hosps" --model_name DQN_11-4_hosps
