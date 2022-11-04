@@ -21,7 +21,7 @@ def make_data(
     Train = pd.read_csv(filename)
 
     ## Subset out the indices for today (vs tomorrow)
-    n_counties = Train["GEOID"].nunique()
+    n_counties = Train["fips"].nunique()
     n_years = 11
     n_days = 153
 
