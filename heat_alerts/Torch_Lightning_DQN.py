@@ -25,7 +25,7 @@ from tqdm import tqdm
 from copy import deepcopy
 import multiprocessing as mp
 
-from heat_alerts.Q_prep_function import make_data
+from Q_prep_function import make_data
 
 def set_seed(seed):
     np.random.seed(seed)
@@ -113,11 +113,15 @@ class DQN_Lightning(pl.LightningModule):
         self.training_epochs += 1
 
 def main(params):
-    if isinstance(params, ArgumentParser):
-        params = vars(params)  # convert args to dictionary 
+    params = vars(params)
+    # if isinstance(params, ArgumentParser):
+    #     params = vars(params)  # convert args to dictionary 
 
     ## Set up data:
-    D = make_data()
+    if params["outcome"] == "hosps":
+        D = make_data(outcome="hosps")
+    else:
+        D = make_data()
     S,A,R,S_1,ep_end,over = [D[k] for k in ("S","A","R","S_1","ep_end","over")]
     R = 0.5 * (R - R.mean()) / np.max(np.abs(R))  # centered rewards in (-0.5, 0.5) stabilizes the Q function
 
@@ -140,7 +144,7 @@ def main(params):
     )
 
     model = DQN_Lightning(state_dim, **params)
-    logger_name = params["experiment_name"]
+    logger_name = params["xpt_name"]
     logger = CSVLogger("lightning_logs", name=logger_name)
     
     trainer = pl.Trainer(
@@ -154,12 +158,14 @@ def main(params):
         # precision=16, amp_backend="native"
     )
     trainer.fit(model, train_dataloaders=DL)
-    # Eventually, save the model and the losses for later
+    
+    torch.save(model, "Fall_results/" + params['model_name'] + ".pt")
 
 if __name__ == "__main__":
     set_seed(321)
     parser = ArgumentParser()
-    parser.add_argument("--b_size", type=int, default=256, help="size of the batches")
+    parser.add_argument("--outcome", type=str, default="deaths", help = "deaths or hosps")
+    parser.add_argument("--b_size", type=int, default=2048, help="size of the batches")
     parser.add_argument("--n_hidden", type=int, default=256, help="number of params in DQN hidden layers")
     parser.add_argument("--lr", type=float, default=0.003, help="learning rate")
     parser.add_argument("--mtm", type=float, default=0.0, help="momentum")
@@ -168,14 +174,16 @@ if __name__ == "__main__":
     # parser.add_argument("--k_size", type=int, default=100, help="how many batches per epoch")
     # parser.add_argument("--print", type=int, default=10, help="progress updates on epochs")
     parser.add_argument("--n_gpus", type=int, default=1, help="number of gpus")
-    parser.add_argument("--n_epochs", type=int, default=100, help="number of epochs to run")
+    parser.add_argument("--n_epochs", type=int, default=5000, help="number of epochs to run")
     parser.add_argument("--xpt_name", type=str, default="test", help="name for the experiment log")
+    parser.add_argument("--model_name", type=str, default="test", help="name to save model under")
     parser.add_argument("--loss", type=str, default="mse", choices=("huber", "mse"))
     parser.add_argument("--silent", default=False, action="store_true")
     parser.add_argument("--optimizer", type=str, default="adam", choices=("sgd", "adam"))
     parser.add_argument("--n_workers", type=int, default=0, help="number of workers in the data loader")
 
     args = parser.parse_args()
+    # print(args)
     main(args)
 
 # %%

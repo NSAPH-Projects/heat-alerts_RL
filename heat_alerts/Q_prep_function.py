@@ -12,9 +12,10 @@ from scipy.special import expit, softmax
 
 def make_data(
     filename="data/Train_smaller-for-Python.csv", 
-    budget_file="data/Over_budget_S_t3.csv",
+    # budget_file="data/Over_budget_S_t3.csv",
     prob_constraint="Fall_results/BART_preds_near-zero.csv",
-    data_only=True
+    data_only=True,
+    outcome="deaths"
 ):
     ## Read in data
     Train = pd.read_csv(filename)
@@ -27,7 +28,10 @@ def make_data(
     n_seq_s = range(n_days-1, Train.shape[0], n_days)
 
     A = Train["alert"].drop(n_seq_s)
-    R = -1*(Train["N"]*10000/Train["Pop.65"]).drop(n_seq_s)
+    if outcome == "hosps":
+        R = -1*(Train["all_hosps"]/Train["total_count"]).drop(n_seq_s)
+    else:
+        R = -1*(Train["N"]*10000/Train["Pop.65"]).drop(n_seq_s)
     ep_end = Train["dos"].drop(n_seq_s) == 152
 
     ## Adding new column for overall budget:
@@ -73,8 +77,9 @@ def make_data(
     S_1 = pd.concat([S_1.reset_index(), S1_OHE.reset_index()], axis = 1)
 
     ## Get budget
-    over_budget = pd.read_csv(budget_file)
-    over = over_budget["over_budget"] == 1
+    # over_budget = pd.read_csv(budget_file)
+    # over = over_budget["over_budget"] == 1
+    over = S["More_alerts"] == 0
 
     ## Get behavior policy probability constraint:
     near_zero = pd.read_csv(prob_constraint).drop(n_seq_s)
