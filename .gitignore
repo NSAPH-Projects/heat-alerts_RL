@@ -1,5 +1,6 @@
 # Data subfolder:
 data/*
+Run_jobs/slurm/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
