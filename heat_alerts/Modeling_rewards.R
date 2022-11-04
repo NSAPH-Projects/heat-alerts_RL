@@ -19,7 +19,7 @@ Eda_set<- data.frame(scale(eda_set[,vars<- c("HImaxF_PopW", "quant_HI_county",
                                              "quant_HI_yest_county",
                                              "quant_HI_3d_county", 
                                              "quant_HI_fwd_avg_county",
-                                             "Pop_density", "Med.HH.Income",
+                                             "l.Pop_density", "l.Med.HH.Income",
                                              "year", "dos",
                                              "alert_sum")]), 
                      alert = factor(eda_set$alert),
@@ -29,7 +29,8 @@ Eda_set<- data.frame(scale(eda_set[,vars<- c("HImaxF_PopW", "quant_HI_county",
 
 levels(Eda_set$alert)<- c("none", "alert") # so caret can predict probabilities
 
-Eda_set$R<- sqrt((eda_set$N / eda_set$Pop.65)*10000)
+# Eda_set$R<- sqrt((eda_set$N / eda_set$Pop.65)*10000)
+Eda_set$R<- sqrt(eda_set$all_hosps / eda_set$total_count)
 
 IND<- createFolds(Eda_set$R, n_cv, returnTrain = TRUE)
 

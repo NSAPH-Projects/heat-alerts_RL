@@ -11,7 +11,7 @@ S<- Train[S_t3_inds, c("HImaxF_PopW", "quant_HI_county",
                        "quant_HI_yest_county",
                        "quant_HI_3d_county", 
                        "quant_HI_fwd_avg_county",
-                       "Pop_density", "Med.HH.Income",
+                       "l.Pop_density", "l.Med.HH.Income",
                        "year", "dos", "dow",
                        "holiday", "BA_zone",
                        "alert_sum", "More_alerts")]

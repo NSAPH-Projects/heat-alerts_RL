@@ -22,7 +22,7 @@ DF<- data.frame(scale(data[,vars<- c("HImaxF_PopW", "quant_HI_county",
                                           "quant_HI_yest_county",
                                           "quant_HI_3d_county", 
                                           "quant_HI_fwd_avg_county",
-                                          "Pop_density", "Med.HH.Income",
+                                          "l.Pop_density", "l.Med.HH.Income",
                                           "year", "dos",
                                           "alert_sum", "More_alerts")]), 
                   alert = data$alert,
@@ -64,7 +64,7 @@ post<- mc.pbart(x.train, y.train, printevery = 10, ndpost = 100,
 #                 printevery = 10)
 p<- list(treedraws = post$treedraws, binaryOffset = post$binaryOffset)
 class(p)<- "pbart"
-saveRDS(p, "Fall_results/BART-model_10-21.rds")
+saveRDS(p, "Fall_results/BART-model_11-3.rds")
 end<- Sys.time()
 end - start
 ## If we use the argument "sparse=TRUE", then can look at post$varprob...
@@ -77,7 +77,7 @@ preds.a1_train<- preds.train[,which(y.train == 1)]
 preds.a0_train<- preds.train[,which(y.train == 0)]
 
 ## If looking later:
-p<- readRDS("Fall_results/BART-model_10-21.rds")
+p<- readRDS("Fall_results/BART-model_11-3.rds")
 
 ### Looking at a=0 and a=1 separately:
 
@@ -190,11 +190,11 @@ check_conv(preds.a0_test, a0=TRUE)
 
 ## All_preds:
 
-all_probs<- cbind(preds.train, preds.a1_test, preds.a0_test)
+all_probs<- cbind(preds.a1_train, preds.a0_train, preds.a1_test, preds.a0_test)
 
 probs_a0<- cbind(preds.a0_train, preds.a0_test)
-mean(probs_a0 >= 0.01) # 0.0598
+mean(probs_a0 >= 0.01) # 0.0593
 
 means_a0<- colMeans(probs_a0)
-mean(means_a0 >= 0.01) # 0.0657
+mean(means_a0 >= 0.01) # 0.0655
 
