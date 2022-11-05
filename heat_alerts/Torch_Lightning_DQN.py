@@ -121,7 +121,6 @@ def main(params):
     if params["outcome"] == "hosps":
         D = make_data(outcome="hosps")
         S,A,R,S_1,ep_end,over,near_zero = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero")]
-        over = over or 
     else:
         D = make_data()
         S,A,R,S_1,ep_end,over,near_zero = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero")]
@@ -171,7 +170,7 @@ if __name__ == "__main__":
     set_seed(321)
     parser = ArgumentParser()
     parser.add_argument("--outcome", type=str, default="deaths", help = "deaths or hosps")
-    parser.add_argument("--prob_constraint", default=True, action="constrained by behavior model probablities?")
+    parser.add_argument("--prob_constraint", type=bool, default=True, help="constrained by behavior model probablities?")
     parser.add_argument("--b_size", type=int, default=2048, help="size of the batches")
     parser.add_argument("--n_hidden", type=int, default=256, help="number of params in DQN hidden layers")
     parser.add_argument("--lr", type=float, default=0.003, help="learning rate")

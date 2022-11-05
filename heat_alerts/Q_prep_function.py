@@ -13,7 +13,7 @@ from scipy.special import expit, softmax
 def make_data(
     filename="data/Train_smaller-for-Python.csv", 
     # budget_file="data/Over_budget_S_t3.csv",
-    prob_constraint="Fall_results/BART_preds_near-zero.csv",
+    prob_constraint="Fall_results/BART_preds_near-zero_NEW.csv",
     data_only=True,
     outcome="deaths"
 ):
