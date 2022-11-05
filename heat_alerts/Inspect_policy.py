@@ -82,8 +82,12 @@ class DQN_Lightning(pl.LightningModule):
 D = make_data(data_only=False)
 S = D["S"]
 S = S.drop("index", axis = 1)
-# near_zero = D["near_zero"]["x"]
-near_zero = [False for a in D["A"]]
+
+prob_constraint = False # change this as needed
+
+if prob_constraint:
+    near_zero = D["near_zero"]["x"]
+
 
 n_years = 11
 n_days = 153
@@ -102,18 +106,30 @@ for i in range(0, max(ID)):
     pos = np.where(np.array(ID) == i)
     d = 0
     while (d < n_days - 2) & (new_alerts[pos[0][d]] < Constraint.iloc[pos[0][d]]).all():
-        if not near_zero.iloc[pos[0][d]]:
+        if prob_constraint == False:
             alerts_scaled = (new_alerts[pos[0][d]] - s_means["alert_sum"])/s_stds["alert_sum"]
             more_scaled = (Constraint.iloc[pos[0][d]] - new_alerts[pos[0][d]] - s_means["More_alerts"])/s_stds["More_alerts"]
             new_s = S.iloc[pos[0][d]]
             new_s["alert_sum"] = alerts_scaled
             new_s["More_alerts"] = more_scaled
             v = torch.tensor(new_s)
-            output = pred_model(v.float()).detach().numpy()
+            output = pred_model.net(v.float()).detach().numpy()
+            if output[1] > output[0]:
+                policy[pos[0][d]] = 1
+                new_alerts[pos[0][d:(n_days-1)]] += 1
+        elif prob_constraint == True & near_zero.iloc[pos[0][d]] == False:
+            alerts_scaled = (new_alerts[pos[0][d]] - s_means["alert_sum"])/s_stds["alert_sum"]
+            more_scaled = (Constraint.iloc[pos[0][d]] - new_alerts[pos[0][d]] - s_means["More_alerts"])/s_stds["More_alerts"]
+            new_s = S.iloc[pos[0][d]]
+            new_s["alert_sum"] = alerts_scaled
+            new_s["More_alerts"] = more_scaled
+            v = torch.tensor(new_s)
+            output = pred_model.net(v.float()).detach().numpy()
             if output[1] > output[0]:
                 policy[pos[0][d]] = 1
                 new_alerts[pos[0][d:(n_days-1)]] += 1
         d+=1
+    print(i)
 
 pol = pd.DataFrame(policy, columns = ["policy"])
 pol.to_csv("Fall_results/DQN_11-4_deaths_policy.csv")
