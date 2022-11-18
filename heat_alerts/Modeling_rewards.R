@@ -1,75 +1,34 @@
-library(dplyr)
-library(ggplot2)
+
 library(caret)
-# library(parallel)
-# library(doParallel)
 
-load("data/Train-Test.RData")
+load("data/Small_S-A-R_prepped.RData")
 
-n_counties<- length(unique(Train$GEOID))
-n_years<- 11
-n_days<- 153
+DF$alert<- A
 
-n_cv<- 2
+DF$R<- R_hosps[,1]
 
-set.seed(321)
-# eda_set<- Train[sample(1:nrow(Train), 0.75*nrow(Train), replace = FALSE),]
-eda_set<- Train
-Eda_set<- data.frame(scale(eda_set[,vars<- c("HImaxF_PopW", "quant_HI_county", 
-                                             "quant_HI_yest_county",
-                                             "quant_HI_3d_county", 
-                                             "quant_HI_fwd_avg_county",
-                                             "l.Pop_density", "l.Med.HH.Income",
-                                             "year", "dos",
-                                             "alert_sum")]), 
-                     alert = factor(eda_set$alert),
-                     dow = factor(eda_set$dow), 
-                     holiday = factor(eda_set$holiday),
-                     Zone = factor(eda_set$BA_zone))
-
-levels(Eda_set$alert)<- c("none", "alert") # so caret can predict probabilities
-
-# Eda_set$R<- sqrt((eda_set$N / eda_set$Pop.65)*10000)
-Eda_set$R<- sqrt(eda_set$all_hosps / eda_set$total_count)
-
-IND<- createFolds(Eda_set$R, n_cv, returnTrain = TRUE)
-
-myControl<- trainControl(#method = "cv", number = n_cv, 
-  index = IND,
-  savePredictions = "final",
-  verboseIter = TRUE, allowParallel = FALSE) #TRUE
+myControl<- trainControl(method = "none", savePredictions = "final",
+                         verboseIter = TRUE, allowParallel = FALSE)
 
 tgrid<- expand.grid( .mtry = 15, .splitrule = "extratrees", .min.node.size = 1)
 
-## Set up parallelization:
-
-# cluster<- makeCluster(10)
-# registerDoParallel(cluster)
 
 ## Run model:
 
 s<- Sys.time()
 
-ranger_model<- train(R ~ ., data = Eda_set, method = "ranger",
+ranger_model<- train(R ~ ., data = DF, method = "ranger",
                      trControl = myControl, tuneGrid = tgrid,
                      importance = "permutation")
 
 e<- Sys.time()
 e-s
-# stopCluster(cluster)
 
-# len<- 1000
-# pred_list<- vector(mode = "list", length = len)
-# my_seq<- round(seq(1, nrow(Eda_set), length.out = len+1))
-# for(i in 2:len){
-#   pred_list[[i]]<- predict(ranger_model, Eda_set[my_seq[i-1]:my_seq[i],])
-#   print(i)
-# }
+saveRDS(ranger_model, "Fall_results/Rewards_VarImp.rds")
 
-# preds<- predict(ranger_model, Eda_set)
-preds<- ranger_model$pred$pred
-saveRDS(preds, "Fall_results/Rewards_preds-RF.rds")
-obs<- ranger_model$pred$obs
+# preds<- ranger_model$pred$pred
+# saveRDS(preds, "Fall_results/Rewards_preds-RF.rds")
+# obs<- ranger_model$pred$obs
 
 sink("Fall_results/Rewards_RF.txt")
 
