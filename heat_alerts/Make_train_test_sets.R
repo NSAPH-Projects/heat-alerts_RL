@@ -2,7 +2,7 @@
 library(lubridate)
 
 
-summer<- readRDS("data/Final_data_for_HARL_w-hosps.rds")
+summer<- readRDS("data/Final_data_for_HARL_w-hosps_confounders.rds")
 
 n_counties<- length(unique(summer$fips))
 n_years<- 11
