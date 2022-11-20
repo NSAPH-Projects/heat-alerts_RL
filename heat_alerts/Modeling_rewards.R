@@ -5,26 +5,83 @@ load("data/Small_S-A-R_prepped.RData")
 
 DF$alert<- A
 
-DF$R<- R_hosps[,1]
+# DF$R<- R_deaths[,1]
+# DF$R<- R_all_hosps[,1]
+# DF$R<- R_heat_hosps[,1]
+# DF$R<- R_other_hosps[,1]
 
 myControl<- trainControl(method = "none", savePredictions = "final",
                          verboseIter = TRUE, allowParallel = FALSE)
 
-tgrid<- expand.grid( .mtry = 15, .splitrule = "extratrees", .min.node.size = 1)
+tgrid<- expand.grid( .mtry = 15, .splitrule = "extratrees", 
+                     .min.node.size = 1) # change this to 5?
 
 
 ## Run model:
 
-s<- Sys.time()
+outcomes<- c("deaths", "all_hosps", "heat_hosps", "other_hosps")
 
-ranger_model<- train(R ~ ., data = DF, method = "ranger",
-                     trControl = myControl, tuneGrid = tgrid,
-                     importance = "permutation")
+i<- 1
 
-e<- Sys.time()
-e-s
+for(o in list(R_deaths, R_all_hosps, R_heat_hosps, R_other_hosps)){
+  DF$R<- o[,1]
+  
+  s<- Sys.time()
+  
+  ranger_model<- train(R ~ ., data = DF, method = "ranger",
+                       trControl = myControl, tuneGrid = tgrid,
+                       # importance = "permutation"
+  )
+  
+  e<- Sys.time()
+  e-s
+  
+  saveRDS(ranger_model, paste0("Fall_results/Rewards_", outcomes[i], ".rds"))
+  
+  i<- i+1
+  
+}
 
-saveRDS(ranger_model, "Fall_results/Rewards_VarImp.rds")
+
+
+## Make marginal plots
+
+ranger_model<- readRDS("Fall_results/Rewards_VarImp_deaths.rds")
+
+n_pts<- 10
+
+marg_template<- matrix(rep(colMeans(DF[,1:11]), each=n_pts*2), nrow = n_pts*2)
+marg_template<- data.frame(marg_template, holiday = 0,
+                           dowFriday = 0, dowMonday = 0, dowSaturday = 0,
+                           dowSunday = 0, dowThursday = 1, dowTuesday = 0, 
+                           dowWednesday = 0, ZoneCold = 0, ZoneHot.Dry = 0, 
+                           ZoneHot.Humid = 0, ZoneMarine = 0, ZoneMixed.Dry = 0,
+                           ZoneMixed.Humid = 0, ZoneVery.Cold = 0, 
+                           alert = c(rep(0,n_pts), rep(1,n_pts)))
+names(marg_template)<- names(DF)[-ncol(DF)]
+
+zones<- names(DF)[20:26]
+
+for(z in zones){ # climate zones
+  print(z)
+  this_marg<- marg_template
+  this_marg[,z]<- 1
+  this_marg$HImaxF_PopW = rep(seq(0.5, 5.2, length.out = n_pts), 2) # 90 to 145 F
+  this_marg$R<- predict(ranger_model, this_marg)
+  
+  this_marg$alert<- as.factor(this_marg$alert)
+  this_marg$HImaxF_PopW<- this_marg$HImaxF_PopW*11.71149 + 83.97772 # from S, Train_smaller-for-Python.csv
+  ggplot(this_marg, aes(x = HImaxF_PopW, y = R, color = alert)) + 
+    geom_line() + ggtitle(z)
+}
+
+
+
+
+##############################
+
+preds<- ranger_model$finalModel$predictions
+obs<- DF$R
 
 # preds<- ranger_model$pred$pred
 # saveRDS(preds, "Fall_results/Rewards_preds-RF.rds")

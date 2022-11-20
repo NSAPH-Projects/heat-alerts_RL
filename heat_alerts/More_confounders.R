@@ -8,11 +8,11 @@ Data<- readRDS("data/Final_data_for_HARL_w-hosps.rds")
 
 num_county<- length(table(Data$fips))
 
-fips<- unique(Data$fips)
+Fips<- unique(Data$fips)
 
 DF_list<- lapply(1:num_county, function(i){
 
-  dat_fips_1<- subset(Data, fips == fips[i])
+  dat_fips_1<- subset(Data, fips == Fips[i])
   
   dat_fips_1 <- dat_fips_1 %>%
     group_by(id, year) %>%

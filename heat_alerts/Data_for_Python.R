@@ -10,13 +10,13 @@ S_t3_inds<- as.numeric(row.names(Top3rd[-seq(n_days, nrow(Top3rd), n_days),]))
 
 # write_csv(data.frame(S_inds), "data/S_training_indices.csv")
 # write_csv(data.frame(S_t3_inds), "data/S_t3_training_indices.csv")
-
+# 
 # write_csv(Top3rd, "data/Train_smaller-for-Python.csv")
 
 
 ################ Also create set for R modeling:
 
-data<- Top3rd
+data<- data.frame(Top3rd)
 
 budget<- data[which(data$dos == 153), "alert_sum"]
 Budget<- rep(budget, each = n_days)
@@ -31,7 +31,8 @@ DF<- data.frame(scale(Data[,vars<- c("HImaxF_PopW", "quant_HI_county",
                                      "l.Pop_density", "l.Med.HH.Income",
                                      "year", "dos",
                                      "alert_sum", "More_alerts",
-                                     "death_mean_rate", "all_hosp_mean_rate")]),
+                                     "death_mean_rate", "all_hosp_mean_rate",
+                                     "heat_hosp_mean_rate")]),
                 # alert = Data$alert,
                 alert_lag1 = Data$alert_lag1,
                 alert_lag2 = Data$alert_lag2,
@@ -45,11 +46,14 @@ DF<- data.frame(DF, dummy_vars)
 
 A<- Data$alert
 
-R_hosps<- -1000*(Data["all_hosps"]/Data["total_count"])
 R_deaths<- -1000*(Data["N"]/Data["Pop.65"])
+R_all_hosps<- -1000*(Data["all_hosps"]/Data["total_count"])
+R_heat_hosps<- -1000*(Data["heat_hosps"]/Data["total_count"])
+R_other_hosps<- -1000*(Data["other_hosps"]/Data["total_count"])
 
-rm(list= ls()[!(ls() %in% c('DF','n_days', 'A',
-                            'R_hosps', 'R_deaths', 'budget'))])
+rm(list= ls()[!(ls() %in% c('DF','n_days', 'A', 'budget',
+                            'R_deaths', 'R_all_hosps', 
+                            'R_heat_hosps', 'R_other_hosps'))])
 save.image("data/Small_S-A-R_prepped.RData")
 
 
