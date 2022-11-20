@@ -6,7 +6,9 @@ This is code for investigating applicability of RL to environmental health, spec
 1. Merging mortality data and heat alerts data: Explore_merged_data.R
 2. Processing county-level covariates: Extract_land_area.R, Get_county_Census_data.R, Prep_DoE_zones.R
 3. Merge together: Merge-finalize_county_data.R
-4. Separate and finish cleaning the train and test sets: Make_train_test_sets.R
+4. Include hospitalizations: Get_hosp_data.R
+5. Add more covariates to address confounding: More_confounders.R
+6. Separate and finish cleaning the train and test sets: Make_train_test_sets.R
 
 ### Installing Pytorch on FASRC/FASSE:
 1. Follow [these instructions](https://github.com/fasrc/User_Codes/tree/master/AI/PyTorch)
