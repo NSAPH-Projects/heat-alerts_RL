@@ -9,41 +9,21 @@ detectCores()
 
 n_days<- 153
 
-data<- read.csv("data/Train_smaller-for-Python.csv")
-# load("data/Train-Test.RData")
-# data<- Train
-# rm("Test")
+load("data/Small_S-A-R_prepped.RData")
 
-budget<- data[which(data$dos == 153), "alert_sum"]
-Budget<- rep(budget, each = n_days)
-data$More_alerts<- Budget - data$alert_sum
+DF$alert<- A
 
-DF<- data.frame(scale(data[,vars<- c("HImaxF_PopW", "quant_HI_county", 
-                                          "quant_HI_yest_county",
-                                          "quant_HI_3d_county", 
-                                          "quant_HI_fwd_avg_county",
-                                          "l.Pop_density", "l.Med.HH.Income",
-                                          "year", "dos",
-                                          "alert_sum", "More_alerts")]), 
-                  alert = data$alert,
-                  dow = data$dow, 
-                  holiday = data$holiday,
-                  Zone = data$BA_zone)
-
-dummy_vars<- with(DF, data.frame(model.matrix(~dow+0), model.matrix(~Zone+0)))
-DF<- DF[,-which(names(DF) %in% c("dow", "Zone"))]
-DF<- data.frame(DF, dummy_vars)
 
 ## Set up train and "test" sets:
 
 set.seed(321)
-train_inds<- sample(1:nrow(data), 0.75*nrow(data), replace = FALSE)
+train_inds<- sample(1:nrow(DF), 0.75*nrow(DF), replace = FALSE)
 
 alert_pos<- which(names(DF) == "alert")
 x.train<- DF[train_inds, -alert_pos]
 y.train<- DF[train_inds, "alert"]
 
-test_inds<- setdiff(1:nrow(data), train_inds)
+test_inds<- setdiff(1:nrow(DF), train_inds)
 
 x.test<- DF[test_inds, -alert_pos]
 y.test<- DF[test_inds, "alert"]
@@ -64,7 +44,7 @@ post<- mc.pbart(x.train, y.train, printevery = 10, ndpost = 100,
 #                 printevery = 10)
 p<- list(treedraws = post$treedraws, binaryOffset = post$binaryOffset)
 class(p)<- "pbart"
-saveRDS(p, "Fall_results/BART-model_11-3.rds")
+saveRDS(p, "Fall_results/BART-model_11-20.rds")
 end<- Sys.time()
 end - start
 ## If we use the argument "sparse=TRUE", then can look at post$varprob...
