@@ -57,7 +57,17 @@ preds.a1_train<- preds.train[,which(y.train == 1)]
 preds.a0_train<- preds.train[,which(y.train == 0)]
 
 ## If looking later:
-p<- readRDS("Fall_results/BART-model_11-3.rds")
+p<- readRDS("Fall_results/BART-model_11-20.rds")
+
+x.train$holiday1<- 1
+x.train$holiday1[x.train$holiday == 1]<- 0
+x.train$holiday2<- 0
+x.train$holiday2[x.train$holiday == 1]<- 1
+
+x.test$holiday1<- 1
+x.test$holiday1[x.test$holiday == 1]<- 0
+x.test$holiday2<- 0
+x.test$holiday2[x.test$holiday == 1]<- 1
 
 ### Looking at a=0 and a=1 separately:
 
@@ -66,9 +76,9 @@ p<- readRDS("Fall_results/BART-model_11-3.rds")
 a1_train<- which(y.train == 1)
 a1_test<- which(y.test == 1)
 
-preds.a1_train<- predict(p, x.train[a1_train,])$prob.test
+preds.a1_train<- predict(p, x.train[a1_train,names(p$treedraws$cutpoints)])$prob.test
 # s<- Sys.time()
-preds.a1_test<- predict(p, x.test[a1_test,])$prob.test
+preds.a1_test<- predict(p, x.test[a1_test,names(p$treedraws$cutpoints)])$prob.test
 # e<- Sys.time()
 
 # a0_train<- sample(which(y.train == 0),1000)
@@ -76,9 +86,9 @@ preds.a1_test<- predict(p, x.test[a1_test,])$prob.test
 a0_train<- which(y.train == 0)
 a0_test<- which(y.test == 0)
 
-preds.a0_train<- predict(p, x.train[a0_train,])$prob.test
+preds.a0_train<- predict(p, x.train[a0_train,names(p$treedraws$cutpoints)])$prob.test
 # s<- Sys.time()
-preds.a0_test<- predict(p, x.test[a0_test,])$prob.test
+preds.a0_test<- predict(p, x.test[a0_test,names(p$treedraws$cutpoints)])$prob.test
 # e<- Sys.time()
 
 #### Check convergence:
@@ -173,8 +183,8 @@ check_conv(preds.a0_test, a0=TRUE)
 all_probs<- cbind(preds.a1_train, preds.a0_train, preds.a1_test, preds.a0_test)
 
 probs_a0<- cbind(preds.a0_train, preds.a0_test)
-mean(probs_a0 >= 0.01) # 0.0593
+mean(probs_a0 >= 0.01) # 0.0553
 
 means_a0<- colMeans(probs_a0)
-mean(means_a0 >= 0.01) # 0.0655
+mean(means_a0 >= 0.01) # 0.0601
 
