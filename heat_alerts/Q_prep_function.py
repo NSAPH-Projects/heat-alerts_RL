@@ -41,30 +41,33 @@ def make_data(
 
     ## Subset out state variables
     States_1 = Train[["HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
-                        "quant_HI_3d_county", "quant_HI_fwd_avg_county",
-                        "BA_zone", "Pop_density", "Med.HH.Income",
-                        "year", "dos", "holiday", "dow", "alert_sum", "More_alerts"]]
+                        "quant_HI_3d_county", "quant_HI_fwd_avg_county", "HI_mean",
+                        "BA_zone", "l.Pop_density", "l.Med.HH.Income",
+                        "year", "dos", "holiday", "dow", 
+                        "alert_lag1", "alert_lag2", "alert_sum", "More_alerts", 
+                        "death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate"]]
     States = States_1.drop(n_seq_s)
     States_1 = States_1.drop(range(0, Train.shape[0], n_days))
 
     ## One-hot encode non-numeric variables
     S_enc = skprep.OneHotEncoder(drop = "first")
-    S_enc.fit(States[["BA_zone", "holiday", "dow"]])
-    S_ohe = S_enc.transform(States[["BA_zone", "holiday", "dow"]]).toarray()
-    S_names = S_enc.get_feature_names_out(["BA_zone", "holiday", "dow"])
+    S_enc.fit(States[["BA_zone", "holiday", "dow", "alert_lag1", "alert_lag2"]])
+    S_ohe = S_enc.transform(States[["BA_zone", "holiday", "dow", "alert_lag1", "alert_lag2"]]).toarray()
+    S_names = S_enc.get_feature_names_out(["BA_zone", "holiday", "dow", "alert_lag1", "alert_lag2"])
     S_OHE = pd.DataFrame(S_ohe, columns=S_names)
 
     S1_enc = skprep.OneHotEncoder(drop = "first")
-    S1_enc.fit(States_1[["BA_zone", "holiday", "dow"]])
-    S1_ohe = S1_enc.transform(States_1[["BA_zone", "holiday", "dow"]]).toarray()
-    S1_names = S1_enc.get_feature_names_out(["BA_zone", "holiday", "dow"])
+    S1_enc.fit(States_1[["BA_zone", "holiday", "dow", "alert_lag1", "alert_lag2"]])
+    S1_ohe = S1_enc.transform(States_1[["BA_zone", "holiday", "dow", "alert_lag1", "alert_lag2"]]).toarray()
+    S1_names = S1_enc.get_feature_names_out(["BA_zone", "holiday", "dow", "alert_lag1", "alert_lag2"])
     S1_OHE = pd.DataFrame(S1_ohe, columns=S1_names)
 
     ## Standardize numeric variables
     num_vars = ["HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
-                        "quant_HI_3d_county", "quant_HI_fwd_avg_county",
-                        "Pop_density", "Med.HH.Income",
-                        "year", "dos", "alert_sum", "More_alerts"]
+                        "quant_HI_3d_county", "quant_HI_fwd_avg_county", "HI_mean",
+                        "l.Pop_density", "l.Med.HH.Income",
+                        "year", "dos", "alert_sum", "More_alerts",
+                         "death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate"]
 
     s_means = States[num_vars].mean(0)
     s_stds = States[num_vars].std(0)
