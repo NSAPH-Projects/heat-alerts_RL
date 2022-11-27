@@ -61,8 +61,9 @@ class DQN_Lightning(pl.LightningModule):
     def make_pred_and_targets(self, batch):
         s, a, r, s1, ee, o = batch
         # preds = self.net(s).gather(1, a.view(-1, 1)).view(-1)
-        preds = self.net(s).where(a == 1, preds[:,0] + torch.exp(preds[:,1]), preds[:,0])
-        return preds, r
+        preds = self.net(s)
+        Preds = torch.where(a == 1, preds[:,0] + torch.exp(preds[:,1]), preds[:,0])
+        return Preds, r
     def configure_optimizers(self):
         if self.optimizer_fn == "adam":
             optimizer = optim.Adam(self.net.parameters(), lr = self.lr, betas=(self.momentum, 0.9), eps=1e-4, weight_decay=1e-4)
