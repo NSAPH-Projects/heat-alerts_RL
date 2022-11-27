@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import math
 from typing import Tuple
 import itertools
 import torch 
@@ -54,10 +55,12 @@ class DQN_Lightning(pl.LightningModule):
     def eval_Q_double(self, S1, over = None): 
         Q = self.net(S1)
         Qtgt = self.target_net(S1)
-        best_action = Q.argmax(axis=1)
+        # best_action = Q.argmax(axis=1)
+        best_action = torch.gt(torch.exp(Q[:,1]), 0)
         if over is not None:
-            best_action = best_action * (1 - over)
-        best_Q = torch.gather(Qtgt, 1, best_action.view(-1, 1)).view(-1) 
+            best_action = torch.tensor(best_action * (1 - over))
+        # best_Q = torch.gather(Qtgt, 1, best_action.view(-1, 1)).view(-1) 
+        best_Q = torch.where(best_action == 1, Qtgt[:,0] + torch.exp(Qtgt[:,1]), Qtgt[:,0])
         return best_Q
     def configure_optimizers(self):
         if self.optimizer_fn == "adam":
@@ -83,7 +86,7 @@ D = make_data(data_only=False)
 S = D["S"]
 S = S.drop("index", axis = 1)
 
-prob_constraint = False # change this as needed
+prob_constraint = True # change this as needed
 
 if prob_constraint:
     near_zero = D["near_zero"]["x"]
@@ -97,8 +100,8 @@ Budget,n_seq_s,s_means,s_stds = [D[k] for k in ("Budget","n_seq_s","s_means","s_
 Constraint = pd.DataFrame(Budget).drop(n_seq_s)
 
 ### Look at results from model:
-pred_model = torch.load("Fall_results/DQN_11-4_deaths.pt", map_location=torch.device('cpu'))
-# pred_model = torch.load("Fall_results/DQN_11-4_hosps.pt", map_location=torch.device('cpu'))
+# pred_model = torch.load("Fall_results/DQN_11-5_deaths_constrained.pt", map_location=torch.device('cpu'))
+pred_model = torch.load("Fall_results/DQN_11-5_hosps_constrained.pt", map_location=torch.device('cpu'))
 
 new_alerts = np.zeros(len(ID))
 policy = np.zeros(len(ID))
@@ -114,10 +117,11 @@ for i in range(0, max(ID)):
             new_s["More_alerts"] = more_scaled
             v = torch.tensor(new_s)
             output = pred_model.net(v.float()).detach().numpy()
-            if output[1] > output[0]:
+            # if output[1] > output[0]:
+            if math.exp(output[1]) > 0:
                 policy[pos[0][d]] = 1
                 new_alerts[pos[0][d:(n_days-1)]] += 1
-        elif prob_constraint == True & near_zero.iloc[pos[0][d]] == False:
+        elif (prob_constraint == True) & (near_zero.iloc[pos[0][d]] == False):
             alerts_scaled = (new_alerts[pos[0][d]] - s_means["alert_sum"])/s_stds["alert_sum"]
             more_scaled = (Constraint.iloc[pos[0][d]] - new_alerts[pos[0][d]] - s_means["More_alerts"])/s_stds["More_alerts"]
             new_s = S.iloc[pos[0][d]]
@@ -125,15 +129,16 @@ for i in range(0, max(ID)):
             new_s["More_alerts"] = more_scaled
             v = torch.tensor(new_s)
             output = pred_model.net(v.float()).detach().numpy()
-            if output[1] > output[0]:
+            # if output[1] > output[0]:
+            if math.exp(output[1]) > 0:
                 policy[pos[0][d]] = 1
                 new_alerts[pos[0][d:(n_days-1)]] += 1
         d+=1
     print(i)
 
 pol = pd.DataFrame(policy, columns = ["policy"])
-pol.to_csv("Fall_results/DQN_11-4_deaths_policy.csv")
-# pol.to_csv("Fall_results/DQN_11-4_hosps_policy.csv")
+pol.to_csv("Fall_results/DQN_11-5_hosps_constrained_policy.csv")
+# pol.to_csv("Fall_results/DQN_11-5_deaths_constrained_policy.csv")
 
 ############
 
