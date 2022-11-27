@@ -13,7 +13,7 @@ from scipy.special import expit, softmax
 def make_data(
     filename="data/Train_smaller-for-Python.csv", 
     # budget_file="data/Over_budget_S_t3.csv",
-    prob_constraint="Fall_results/BART_preds_near-zero_NEW.csv",
+    prob_constraint="Fall_results/BART_preds_near-zero_11-20.csv",
     data_only=True,
     outcome="deaths"
 ):
@@ -82,7 +82,8 @@ def make_data(
     over = S["More_alerts"] == 0
 
     ## Get behavior policy probability constraint:
-    near_zero = pd.read_csv(prob_constraint).drop(n_seq_s)
+    # near_zero = pd.read_csv(prob_constraint).drop(n_seq_s)
+    near_zero = pd.read_csv(prob_constraint)
 
     if data_only == True:
         output = dict(

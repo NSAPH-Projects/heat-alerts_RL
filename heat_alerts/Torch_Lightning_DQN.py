@@ -50,15 +50,15 @@ class DQN(nn.Module):
     def forward(self, x):
         return self.net(x)
 
-def eval_Q_double(Q_model, Qtgt_model, S, over = None): 
-    Q = Q_model(S) # n x 2
-    Qtgt = Qtgt_model(S) # n x 2
-    best_action = Q.argmax(axis=1).view(-1, 1)
-    best_Q = torch.gather(Qtgt, 1, best_action).view(-1) # n 
-    if over is not None:
-        final_Q = torch.where(over, Qtgt[:,0], best_Q) # n
-        return final_Q
-    return best_Q
+# def eval_Q_double(Q_model, Qtgt_model, S, over = None): 
+#     Q = Q_model(S) # n x 2
+#     Qtgt = Qtgt_model(S) # n x 2
+#     best_action = Q.argmax(axis=1).view(-1, 1)
+#     best_Q = torch.gather(Qtgt, 1, best_action).view(-1) # n 
+#     if over is not None:
+#         final_Q = torch.where(over, Qtgt[:,0], best_Q) # n
+#         return final_Q
+#     return best_Q
 
 
 class DQN_Lightning(pl.LightningModule):
@@ -89,10 +89,12 @@ class DQN_Lightning(pl.LightningModule):
     def eval_Q_double(self, S1, over = None): 
         Q = self.net(S1)
         Qtgt = self.target_net(S1)
-        best_action = Q.argmax(axis=1)
+        # best_action = Q.argmax(axis=1)
+        best_action = torch.gt(torch.exp(Q[:,1]), 0)
         if over is not None:
-            best_action = best_action * (1 - over)
-        best_Q = torch.gather(Qtgt, 1, best_action.view(-1, 1)).view(-1) 
+            best_action = torch.tensor(best_action * (1 - over))
+        # best_Q = torch.gather(Qtgt, 1, best_action.view(-1, 1)).view(-1) 
+        best_Q = torch.where(best_action == 1, Qtgt[:,0] + torch.exp(Qtgt[:,1]), Qtgt[:,0])
         return best_Q
     def configure_optimizers(self):
         if self.optimizer_fn == "adam":
@@ -192,4 +194,3 @@ if __name__ == "__main__":
     # print(args)
     main(args)
 
-# %%
