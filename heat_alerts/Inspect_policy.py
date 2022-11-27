@@ -118,7 +118,7 @@ for i in range(0, max(ID)):
             v = torch.tensor(new_s)
             output = pred_model.net(v.float()).detach().numpy()
             # if output[1] > output[0]:
-            if math.exp(output[1]) > 0:
+            if math.exp(output[1]) > 0.00001:
                 policy[pos[0][d]] = 1
                 new_alerts[pos[0][d:(n_days-1)]] += 1
         elif (prob_constraint == True) & (near_zero.iloc[pos[0][d]] == False):
@@ -130,7 +130,7 @@ for i in range(0, max(ID)):
             v = torch.tensor(new_s)
             output = pred_model.net(v.float()).detach().numpy()
             # if output[1] > output[0]:
-            if math.exp(output[1]) > 0:
+            if math.exp(output[1]) > 0.00001:
                 policy[pos[0][d]] = 1
                 new_alerts[pos[0][d:(n_days-1)]] += 1
         d+=1
