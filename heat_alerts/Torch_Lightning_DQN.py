@@ -90,7 +90,7 @@ class DQN_Lightning(pl.LightningModule):
         Q = self.net(S1)
         Qtgt = self.target_net(S1)
         # best_action = Q.argmax(axis=1)
-        best_action = torch.gt(torch.exp(Q[:,1]), 0.00001)
+        best_action = torch.gt(torch.exp(Q[:,1]), 0)
         if over is not None:
             best_action = torch.tensor(best_action * (1 - over))
         # best_Q = torch.gather(Qtgt, 1, best_action.view(-1, 1)).view(-1) 
