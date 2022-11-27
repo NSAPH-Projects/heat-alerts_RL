@@ -1,0 +1,2 @@
+python heat_alerts/Deep_rewards.py --loss huber --lr 0.003 --optimizer sgd --xpt_name R_deaths_sgd_003_huber --silent --n_workers 4 --model_name R_11-27_deaths
+python heat_alerts/Deep_rewards.py --loss huber --lr 0.003 --optimizer sgd --xpt_name R_hosps_sgd_003_huber --silent --n_workers 4 --outcome other_hosps --model_name R_11-27_other-hosps
