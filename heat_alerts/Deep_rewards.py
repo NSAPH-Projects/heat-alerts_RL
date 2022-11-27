@@ -45,7 +45,7 @@ class my_NN(nn.Module):
         return self.net(x)
 
 class DQN_Lightning(pl.LightningModule):
-    def __init__(self, n_col, n_hidden, b_size, lr, gamma, sync_rate, loss="huber",  optimizer="adam", momentum=0.0, **kwargs) -> None:
+    def __init__(self, n_col, n_hidden, b_size, lr, loss="huber",  optimizer="adam", momentum=0.0, **kwargs) -> None:
         super().__init__()
         assert loss in ("huber", "mse")
         assert optimizer in ("adam", "sgd")
@@ -85,12 +85,14 @@ def main(params):
     #     params = vars(params)  # convert args to dictionary 
 
     ## Set up data:
-    if params["outcome"] == "hosps":
-        D = make_data(outcome="hosps")
-        S,A,R,S_1,ep_end,over,near_zero = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero")]
+    if params["outcome"] == "all_hosps":
+        D = make_data(outcome="all_hosps")
+    elif params["outcome"] == "other_hosps":
+        D = make_data(outcome="other_hosps")
     else:
         D = make_data()
-        S,A,R,S_1,ep_end,over,near_zero = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero")]
+    
+    S,A,R,S_1,ep_end,over,near_zero = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero")]
     
     R = 0.5 * (R - R.mean()) / np.max(np.abs(R))  # centered rewards in (-0.5, 0.5) stabilizes the Q function
     
