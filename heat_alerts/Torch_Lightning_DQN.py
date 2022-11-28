@@ -82,10 +82,12 @@ class DQN_Lightning(pl.LightningModule):
         self.training_epochs = 0
     def make_pred_and_targets(self, batch):
         s, a, r, s1, ee, o = batch
-        preds = self.net(s).gather(1, a.view(-1, 1)).view(-1)
+        # preds = self.net(s).gather(1, a.view(-1, 1)).view(-1)
+        preds = self.net(s)
+        Preds = torch.where(a == 1, preds[:,0] + torch.exp(preds[:,1]), preds[:,0])
         with torch.no_grad():
             target = r + self.gamma * (1-ee) * self.eval_Q_double(s1, o)
-        return preds, target
+        return Preds, target
     def eval_Q_double(self, S1, over = None): 
         Q = self.net(S1)
         Qtgt = self.target_net(S1)
