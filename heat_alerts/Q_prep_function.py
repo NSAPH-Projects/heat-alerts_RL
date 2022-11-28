@@ -28,8 +28,10 @@ def make_data(
     n_seq_s = range(n_days-1, Train.shape[0], n_days)
 
     A = Train["alert"].drop(n_seq_s)
-    if outcome == "hosps":
+    if outcome == "all_hosps":
         R = -1*(Train["all_hosps"]/Train["total_count"]).drop(n_seq_s)
+    elif outcome == "other_hosps":
+        R = -1*(Train["other_hosps"]/Train["total_count"]).drop(n_seq_s)
     else:
         R = -1*(Train["N"]*10000/Train["Pop.65"]).drop(n_seq_s)
     ep_end = Train["dos"].drop(n_seq_s) == 152

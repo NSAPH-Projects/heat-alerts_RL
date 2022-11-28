@@ -9,7 +9,7 @@ import random
 import pandas as pd
 # import itertools
 # import matplotlib.pyplot as plt
-from scipy.special import expit, softmax
+from scipy import stats
 
 #%%
 
@@ -93,7 +93,15 @@ class DQN_Lightning(pl.LightningModule):
         best_action = torch.gt(torch.exp(Q[:,1]), 0)
         if over is not None:
             best_action = torch.tensor(best_action * (1 - over))
-        # best_Q = torch.gather(Qtgt, 1, best_action.view(-1, 1)).view(-1) 
+        # best_Q = torch.gather(Qtgt, 1, best_action.view(-1, 1)).view(-1)
+        summary_0 = stats.describe(Qtgt[:,0].cpu().numpy())[1:3]
+        summary_1 = stats.describe(Qtgt[:,1].cpu().numpy())[1:3]
+        self.log("Q0 min", summary_0[0][0], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("Q0 max", summary_0[0][1], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("Q0 mean", summary_0[1], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("Q1 min", summary_1[0][0], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("Q1 max", summary_1[0][1], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("Q1 mean", summary_1[1], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         best_Q = torch.where(best_action == 1, Qtgt[:,0] + torch.exp(Qtgt[:,1]), Qtgt[:,0])
         return best_Q
     def configure_optimizers(self):
@@ -122,11 +130,10 @@ def main(params):
     ## Set up data:
     if params["outcome"] == "hosps":
         D = make_data(outcome="hosps")
-        S,A,R,S_1,ep_end,over,near_zero = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero")]
     else:
         D = make_data()
-        S,A,R,S_1,ep_end,over,near_zero = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero")]
-    
+        
+    S,A,R,S_1,ep_end,over,near_zero = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero")]
     R = 0.5 * (R - R.mean()) / np.max(np.abs(R))  # centered rewards in (-0.5, 0.5) stabilizes the Q function
     
     if params["prob_constraint"] == True:
