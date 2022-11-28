@@ -132,6 +132,8 @@ def main(params):
     ## Set up data:
     if params["outcome"] == "hosps":
         D = make_data(outcome="hosps")
+    elif params["outcome"] == "other_hosps":
+        D = make_data(outcome="other_hosps")
     else:
         D = make_data()
         
