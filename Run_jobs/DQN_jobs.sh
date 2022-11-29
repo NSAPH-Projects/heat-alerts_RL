@@ -1,11 +1,11 @@
 #!/bin/bash
 #SBATCH -J my_DQN
 #SBATCH -N 1
-#SBATCH -n 4
-#SBATCH -p fasse_gpu
-#SBATCH -t 0-3:00
+#SBATCH -n 16 # 4
+#SBATCH -p fasse # fasse_gpu
+#SBATCH -t 0-4:00
 #SBATCH --mem 32G
-#SBATCH --gres gpu:1
+#SBATCH #--gres gpu:1
 #SBATCH --array 0-1
 #SBATCH -o ./Run_jobs/slurm/dqn.%a.out
 #SBATCH --mail-user=ellen_considine@g.harvard.edu
