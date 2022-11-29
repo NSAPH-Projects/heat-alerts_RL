@@ -33,7 +33,7 @@ def make_data(
     elif outcome == "other_hosps":
         R = -1*(Train["other_hosps"]/Train["total_count"]).drop(n_seq_s)
     else:
-        R = -1*(Train["N"]*10000/Train["Pop.65"]).drop(n_seq_s)
+        R = -1*(Train["N"]/Train["Pop.65"]).drop(n_seq_s)
     ep_end = Train["dos"].drop(n_seq_s) == 152
 
     ## Adding new column for overall budget:

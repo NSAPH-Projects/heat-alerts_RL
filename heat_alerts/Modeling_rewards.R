@@ -19,48 +19,57 @@ tgrid<- expand.grid( .mtry = 15, .splitrule = "extratrees",
 
 ## Run model:
 
-outcomes<- c("deaths", "all_hosps", "heat_hosps", "other_hosps")
+# outcomes<- c("deaths", "all_hosps", "heat_hosps", "other_hosps")
+outcomes<- c("deaths", "other_hosps")
 
-i<- 1
+i<- 2
 
-for(o in list(R_deaths, R_all_hosps, R_heat_hosps, R_other_hosps)){
+sink("Fall_results/Rewards_VarImp.txt")
+
+# for(o in list(R_deaths, R_all_hosps, R_heat_hosps, R_other_hosps)){
+for(o in list(R_deaths, R_other_hosps)){
+  
   DF$R<- o[,1]
   
   s<- Sys.time()
   
   ranger_model<- train(R ~ ., data = DF, method = "ranger",
                        trControl = myControl, tuneGrid = tgrid,
-                       # importance = "permutation"
+                       importance = "permutation"
   )
   
   e<- Sys.time()
   e-s
   
-  saveRDS(ranger_model, paste0("Fall_results/Rewards_", outcomes[i], ".rds"))
+  # saveRDS(ranger_model, paste0("Fall_results/Rewards_", outcomes[i], ".rds"))
+  print(outcomes[i])
+  print(varImp(ranger_model))
   
   i<- i+1
   
 }
 
-
+sink()
 
 ## Make marginal plots
 
-ranger_model<- readRDS("Fall_results/Rewards_VarImp_deaths.rds")
+ranger_model<- readRDS("Fall_results/Rewards_deaths.rds")
 
 n_pts<- 10
 
-marg_template<- matrix(rep(colMeans(DF[,1:11]), each=n_pts*2), nrow = n_pts*2)
-marg_template<- data.frame(marg_template, holiday = 0,
+marg_template<- matrix(rep(colMeans(DF[,1:15]), each=n_pts*2), nrow = n_pts*2)
+marg_template<- data.frame(marg_template, 
+                           alert_lag1 = 0, alert_lag2 = 0, holiday = 0,
                            dowFriday = 0, dowMonday = 0, dowSaturday = 0,
                            dowSunday = 0, dowThursday = 1, dowTuesday = 0, 
                            dowWednesday = 0, ZoneCold = 0, ZoneHot.Dry = 0, 
                            ZoneHot.Humid = 0, ZoneMarine = 0, ZoneMixed.Dry = 0,
                            ZoneMixed.Humid = 0, ZoneVery.Cold = 0, 
                            alert = c(rep(0,n_pts), rep(1,n_pts)))
-names(marg_template)<- names(DF)[-ncol(DF)]
+marg_template$holiday<- as.factor(marg_template$holiday)
+names(marg_template)<- names(DF)
 
-zones<- names(DF)[20:26]
+zones<- names(DF)[26:32]
 
 for(z in zones){ # climate zones
   print(z)

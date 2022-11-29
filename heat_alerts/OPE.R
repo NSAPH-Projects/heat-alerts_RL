@@ -144,8 +144,8 @@ OPE<- function(a_model, Q_model, Data, R, discount, Budget){
     }
   }
   
-  # discount_vec<- rep(cumprod(rep(discount, H))/discount, n)
-  discount_vec<- 1
+  discount_vec<- rep(cumprod(rep(discount, H))/discount, n)
+  # discount_vec<- 1
   
   J<- (1/n)*sum(w*discount_vec*R)
   

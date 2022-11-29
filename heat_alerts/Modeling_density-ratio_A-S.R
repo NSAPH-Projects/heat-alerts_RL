@@ -2,8 +2,8 @@ library(caret)
 
 load("data/Small_S-A-R_prepped.RData")
 
-new_pol<- read.csv("Fall_results/DQN_11-5_hosps_constrained_policy.csv")$policy
-# new_pol<- read.csv("Fall_results/DQN_11-5_deaths_constrained_policy.csv")$policy
+new_pol<- read.csv("Fall_results/DQN_11-27_hosps_constrained_policy.csv")$policy
+# new_pol<- read.csv("Fall_results/DQN_11-27_deaths_constrained_policy.csv")$policy
 
 new_alert_sum<- rep(0,nrow(DF))
 for(i in which(DF$dos == min(DF$dos))){
@@ -56,23 +56,30 @@ tgrid<- expand.grid( .mtry = 15, .splitrule = "extratrees", .min.node.size = 1)
 s<- Sys.time()
 
 ranger_model<- train(Policy ~ ., data = Train, 
-                     method = "ranger", max.depth = 5,
+                     method = "ranger", max.depth = 3,
                      trControl = myControl, # importance = "permutation",
                      tuneGrid = tgrid) 
 
 e<- Sys.time()
 e-s
 
-saveRDS(ranger_model, "Fall_results/DensRat_11-18_hosps_constrained_75pct.rds")
+saveRDS(ranger_model, "Fall_results/DensRat_11-27_hosps_constrained_75pct.rds")
+# saveRDS(ranger_model, "Fall_results/DensRat_11-27_deaths_constrained_75pct.rds")
 
 
 #### Assess predictions:
 
-# ranger_model<- readRDS("Fall_results/DensRat_11-18_hosps_constrained_75pct.rds")
+ranger_model<- readRDS("Fall_results/DensRat_11-27_hosps_constrained_75pct.rds")
+# ranger_model<- readRDS("Fall_results/DensRat_11-27_deaths_constrained_75pct.rds")
 
 ## Training:
 
-tab<- table(data.frame(Obs=ranger_model$pred$obs, Pred=ranger_model$pred$pred))
+# tab<- table(data.frame(Obs=ranger_model$pred$obs, Pred=ranger_model$pred$pred))
+Pred<- max.col(ranger_model$finalModel$predictions)-1
+Obs<- rep(0, nrow(Train))
+Obs[which(Train$Policy == "New")]<- 1
+tab<- table(data.frame(Obs, Pred))
+
 # sensitivity:
 tab[2,2]/sum(tab[2,])
 # specificity:

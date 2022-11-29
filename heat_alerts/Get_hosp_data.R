@@ -28,6 +28,8 @@ names(data)[1]<- "fips"
 
 Data<- inner_join(data, daily_fips_hosp, by=c("fips", "Date"))
 Data$all_hosps<- rowSums(Data[,c("ccs_55", "ccs_157", "ccs_159", "ccs_2", "ccs_244", "ccs_114", "ccs_50")])
+Data$heat_hosps<- rowSums(Data[,c("ccs_244", "ccs_55")])
+Data$other_hosps<- rowSums(Data[,c("ccs_157", "ccs_159", "ccs_2", "ccs_114", "ccs_50")])
 
 saveRDS(Data, "data/Final_data_for_HARL_w-hosps.rds")
 

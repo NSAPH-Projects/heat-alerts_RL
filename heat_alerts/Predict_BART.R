@@ -5,52 +5,32 @@ library(BART)
 
 n_days<- 153
 
-data<- read.csv("data/Train_smaller-for-Python.csv")
-# load("data/Train-Test.RData")
-# data<- Train
-# rm("Test")
-
-budget<- data[which(data$dos == 153), "alert_sum"]
-Budget<- rep(budget, each = n_days)
-data$More_alerts<- Budget - data$alert_sum
-
-DF<- data.frame(scale(data[,vars<- c("HImaxF_PopW", "quant_HI_county", 
-                                     "quant_HI_yest_county",
-                                     "quant_HI_3d_county", 
-                                     "quant_HI_fwd_avg_county",
-                                     "Pop_density", "Med.HH.Income",
-                                     "year", "dos",
-                                     "alert_sum", "More_alerts")]), 
-                alert = data$alert,
-                dow = data$dow, 
-                holiday = data$holiday,
-                Zone = data$BA_zone)
-
-dummy_vars<- with(DF, data.frame(model.matrix(~dow+0), model.matrix(~Zone+0)))
-DF<- DF[,-which(names(DF) %in% c("dow", "Zone"))]
-DF<- data.frame(DF, dummy_vars)
-
-alert_pos<- which(names(DF) == "alert")
-
-X<- DF[,-alert_pos]
+load("data/Small_S-A-R_prepped.RData")
 
 ## Predict using BART model:
-p<- readRDS("Fall_results/BART-model_10-21.rds")
+p<- readRDS("Fall_results/BART-model_11-20.rds")
 
-preds<- predict(p, X)
+X<- DF
+
+X$holiday1<- 1
+X$holiday1[X$holiday == 1]<- 0
+X$holiday2<- 0
+X$holiday2[X$holiday == 1]<- 1
+
+preds<- predict(p, X[,names(p$treedraws$cutpoints)])
 
 ## Only want every other:
 # i<- seq(1, 200,2)
 # all_probs<- preds$prob.test[i,]
 all_probs<- preds$prob.test
 means<- colMeans(all_probs)
-saveRDS(means, "Fall_results/BART_preds_mean.rds")
+saveRDS(means, "Fall_results/BART_preds_mean_11-20.rds")
 
 near_zero<- means < 0.01
-write.csv(near_zero, "Fall_results/BART_preds_near-zero.csv", 
+write.csv(near_zero, "Fall_results/BART_preds_near-zero_11-20.csv", 
           row.names=FALSE)
 
-saveRDS(all_probs, "Fall_results/BART_preds_all.rds")
+saveRDS(all_probs, "Fall_results/BART_preds_all_11-20.rds")
 
 
 

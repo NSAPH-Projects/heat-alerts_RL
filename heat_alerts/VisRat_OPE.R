@@ -14,12 +14,12 @@ constrained<- args[3]
 ## Visitation ratios:
 
 if(constrained == TRUE){
-  ranger_model<- readRDS(paste0("Fall_results/VisRat_", date, "_", # 11-8
+  ranger_model<- readRDS(paste0("Fall_results/DensRat_", date, "_", # 11-8
                                 outcome, "_constrained_75pct.rds"))
   new_pol<- read.csv(paste0("Fall_results/DQN_", date, "_", # 11-5
                             outcome, "_constrained_policy.csv"))$policy
 }else{
-  ranger_model<- readRDS(paste0("Fall_results/VisRat_", date, "_", 
+  ranger_model<- readRDS(paste0("Fall_results/DensRat_", date, "_", 
                                 outcome, "_75pct.rds"))
   new_pol<- read.csv(paste0("Fall_results/DQN_", date, "_", 
                             outcome, "_policy.csv"))$policy
@@ -28,10 +28,26 @@ if(constrained == TRUE){
 VR_probs<- predict(ranger_model, DF, type = "prob")
 VR_preds<- VR_probs$New/VR_probs$Behavior
 
+VR_normed<- VR_preds/sum(VR_preds)
+
+
+new_alert_sum<- rep(0,nrow(DF))
+for(i in which(DF$dos == min(DF$dos))){
+  new_alert_sum[i:(i+n_days-2)]<- cumsum(new_pol[i:(i+n_days-2)])
+}
+
+S_Budget<- rep(budget, each = n_days-1)
+new_More_alerts<- S_Budget - new_alert_sum
+
+new_DF<- DF
+new_DF["alert_sum"]<- new_alert_sum
+new_DF["More_alerts"]<- new_More_alerts
+new_DF[,c("alert_sum", "More_alerts")]<- scale(new_DF[,c("alert_sum", "More_alerts")])
+new_DF$alert<- new_pol
 
 ## Policies:
 
-behav<- readRDS("Fall_results/BART_preds_mean_NEW.rds")
+behav<- readRDS("Fall_results/BART_preds_mean_11-20.rds")
 behav<- behav[-seq(n_days, length(behav), n_days)]
 
 pb<- behav
@@ -40,7 +56,19 @@ pb[which(A == 0)]<- 1-behav[which(A == 0)]
 
 pg<- as.numeric(new_pol == A)
 
-R<- R_hosps[,1]
+if(outcome == "hosps"){
+  R<- R_other_hosps[,1]
+  # R<- R_hosps[,1]
+  modeled_R<- read.csv("Fall_results/R_11-27_other-hosps.csv")*1000
+  R_b<- modeled_R$X0
+  R_b[A == 1]<- modeled_R$X1[A == 1]
+  # R_model<- readRDS("Fall_results/Rewards_VarImp.rds")
+}else{
+  R<- R_deaths[,1]
+}
+
+# new_R<- predict(R_model, new_DF)
+
 
 H<- n_days-1
 
@@ -53,11 +81,18 @@ if(constrained == TRUE){
 }
 
 
-summary(pg * VR_preds * R / pb)
-hist(log(-pg * VR_preds * R / pb))
+summary(VR_normed * R)
+hist(log(-VR_normed*R))
 
 H*mean(R)
-H*mean(pg * VR_preds * R / pb)
+H*sum(VR_normed*R)
+
+H*mean(R_b)
+H*sum(VR_normed*R_b)
+
+# p.a<- pg/pb
+# p.a_normed<- p.a/sum(p.a)
+# H*length(p.a)*sum(p.a_normed * VR_normed * R)
 
 # eps<- 0.00001
 # 
