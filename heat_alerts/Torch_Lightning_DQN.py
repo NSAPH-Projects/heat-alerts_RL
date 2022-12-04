@@ -128,6 +128,8 @@ def main(params):
     params = vars(params)
     # if isinstance(params, ArgumentParser):
     #     params = vars(params)  # convert args to dictionary 
+    
+    print(params["outcome"])
 
     ## Set up data:
     if params["outcome"] == "hosps":
