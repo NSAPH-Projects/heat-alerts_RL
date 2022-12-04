@@ -50,29 +50,29 @@ class DQN_Lightning(pl.LightningModule):
         self.training_epochs = 0
     def make_pred_and_targets(self, batch):
         s, a, r, s1, ee, o = batch
-        # preds = self.net(s).gather(1, a.view(-1, 1)).view(-1)
-        preds = self.net(s)
-        Preds = torch.where(a == 1, preds[:,0] + torch.exp(preds[:,1]), preds[:,0])
+        preds = self.net(s).gather(1, a.view(-1, 1)).view(-1)
+        # preds = self.net(s)
+        # Preds = torch.where(a == 1, preds[:,0] + torch.exp(preds[:,1]), preds[:,0])
         with torch.no_grad():
             target = r + self.gamma * (1-ee) * self.eval_Q_double(s1, o)
-        return Preds, target
+        return preds, target
     def eval_Q_double(self, S1, over = None): 
         Q = self.net(S1)
         Qtgt = self.target_net(S1)
-        # best_action = Q.argmax(axis=1)
-        best_action = torch.gt(torch.exp(Q[:,1]), 0)
+        best_action = Q.argmax(axis=1)
+        # best_action = torch.gt(torch.exp(Q[:,1]), 0)
         if over is not None:
             best_action = torch.tensor(best_action * (1 - over))
-        # best_Q = torch.gather(Qtgt, 1, best_action.view(-1, 1)).view(-1)
-        summary_0 = stats.describe(Qtgt[:,0].cpu().numpy())[1:3]
-        summary_1 = stats.describe(Qtgt[:,1].cpu().numpy())[1:3]
-        self.log("Q0 min", summary_0[0][0], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log("Q0 max", summary_0[0][1], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log("Q0 mean", summary_0[1], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log("Q1 min", summary_1[0][0], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log("Q1 max", summary_1[0][1], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        self.log("Q1 mean", summary_1[1], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        best_Q = torch.where(best_action == 1, Qtgt[:,0] + torch.exp(Qtgt[:,1]), Qtgt[:,0])
+        best_Q = torch.gather(Qtgt, 1, best_action.view(-1, 1)).view(-1)
+        # summary_0 = stats.describe(Qtgt[:,0].cpu().numpy())[1:3]
+        # summary_1 = stats.describe(Qtgt[:,1].cpu().numpy())[1:3]
+        # self.log("Q0 min", summary_0[0][0], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        # self.log("Q0 max", summary_0[0][1], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        # self.log("Q0 mean", summary_0[1], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        # self.log("Q1 min", summary_1[0][0], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        # self.log("Q1 max", summary_1[0][1], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        # self.log("Q1 mean", summary_1[1], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        # best_Q = torch.where(best_action == 1, Qtgt[:,0] + torch.exp(Qtgt[:,1]), Qtgt[:,0])
         return best_Q
     def configure_optimizers(self):
         if self.optimizer_fn == "adam":
@@ -91,6 +91,7 @@ class DQN_Lightning(pl.LightningModule):
         if self.training_epochs % self.sync_rate == 0:  # copy params over target network
             self.target_net.load_state_dict(self.net.state_dict())
         self.training_epochs += 1
+
 
 
 ### Prep data:
@@ -112,8 +113,8 @@ Budget,n_seq_s,s_means,s_stds = [D[k] for k in ("Budget","n_seq_s","s_means","s_
 Constraint = pd.DataFrame(Budget).drop(n_seq_s)
 
 ### Look at results from model:
-pred_model = torch.load("Fall_results/DQN_11-27_deaths_constrained.pt", map_location=torch.device('cpu'))
-# pred_model = torch.load("Fall_results/DQN_11-27_hosps_constrained.pt", map_location=torch.device('cpu'))
+# pred_model = torch.load("Fall_results/DQN_11-29_deaths_constrained.pt", map_location=torch.device('cpu'))
+pred_model = torch.load("Fall_results/DQN_11-29_hosps_constrained.pt", map_location=torch.device('cpu'))
 
 new_alerts = np.zeros(len(ID))
 policy = np.zeros(len(ID))
@@ -129,8 +130,8 @@ for i in range(0, max(ID)):
             new_s["More_alerts"] = more_scaled
             v = torch.tensor(new_s)
             output = pred_model.net(v.float()).detach().numpy()
-            # if output[1] > output[0]:
-            if math.exp(output[1]) > 0:
+            if output[1] > output[0]:
+            # if math.exp(output[1]) > 0.01:
                 policy[pos[0][d]] = 1
                 new_alerts[pos[0][d:(n_days-1)]] += 1
         elif (prob_constraint == True) & (near_zero.iloc[pos[0][d]] == False):
@@ -141,16 +142,16 @@ for i in range(0, max(ID)):
             new_s["More_alerts"] = more_scaled
             v = torch.tensor(new_s)
             output = pred_model.net(v.float()).detach().numpy()
-            # if output[1] > output[0]:
-            if math.exp(output[1]) > 0:
+            if output[1] > output[0]:
+            # if math.exp(output[1]) > 0.01:
                 policy[pos[0][d]] = 1
                 new_alerts[pos[0][d:(n_days-1)]] += 1
         d+=1
     print(i)
 
 pol = pd.DataFrame(policy, columns = ["policy"])
-# pol.to_csv("Fall_results/DQN_11-27_hosps_constrained_policy.csv")
-pol.to_csv("Fall_results/DQN_11-27_deaths_constrained_policy.csv")
+pol.to_csv("Fall_results/DQN_11-29_hosps_constrained_policy.csv")
+# pol.to_csv("Fall_results/DQN_11-29_deaths_constrained_policy.csv")
 
 ############
 

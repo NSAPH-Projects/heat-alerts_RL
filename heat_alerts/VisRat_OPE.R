@@ -67,7 +67,7 @@ if(outcome == "hosps"){
   R<- R_deaths[,1]
 }
 
-# new_R<- predict(R_model, new_DF)
+new_R<- predict(R_model, new_DF)
 
 
 H<- n_days-1
@@ -80,15 +80,17 @@ if(constrained == TRUE){
   sink(paste0("new_results/VisRat-OPE_", date, "_", outcome, ".txt"))
 }
 
-
-summary(VR_normed * R)
-hist(log(-VR_normed*R))
-
 H*mean(R)
-H*sum(VR_normed*R)
+H*mean(new_R)
 
-H*mean(R_b)
-H*sum(VR_normed*R_b)
+# summary(VR_normed * R)
+# hist(log(-VR_normed*R))
+# 
+# H*mean(R)
+# H*sum(VR_normed*R)
+# 
+# H*mean(R_b)
+# H*sum(VR_normed*R_b)
 
 # p.a<- pg/pb
 # p.a_normed<- p.a/sum(p.a)

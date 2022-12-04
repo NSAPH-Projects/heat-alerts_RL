@@ -90,7 +90,8 @@ for(z in zones){ # climate zones
 ##############################
 
 preds<- ranger_model$finalModel$predictions
-obs<- DF$R
+# obs<- DF$R
+obs<- R_heat_hosps[,1]
 
 # preds<- ranger_model$pred$pred
 # saveRDS(preds, "Fall_results/Rewards_preds-RF.rds")
