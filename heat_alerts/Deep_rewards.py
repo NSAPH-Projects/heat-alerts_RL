@@ -7,6 +7,7 @@ import numpy as np
 import random
 import pandas as pd
 from scipy.special import expit, softmax
+from random import sample
 
 import torch 
 from torch import nn # creating modules
@@ -79,6 +80,12 @@ class DQN_Lightning(pl.LightningModule):
         return loss
     def on_train_epoch_start(self) -> None:
         self.training_epochs += 1
+    def validation_step(self, batch: Tuple[torch.Tensor, torch.Tensor], b_idx) -> None: # latter is batch index
+        preds, targets = self.make_pred_and_targets(batch)
+        loss = self.loss_fn(preds, targets)
+        self.log("val_loss", loss, sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        bias = (preds - targets).mean()
+        self.log("val_bias", bias, sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
 def main(params):
     params = vars(params)
@@ -107,9 +114,24 @@ def main(params):
     tensors = [v.to_numpy()[perm] for v in data]
     for j in [0, 2, 3]: tensors[j] = torch.FloatTensor(tensors[j])
     for j in [1, 4, 5]: tensors[j] = torch.LongTensor(tensors[j])
-    DS = TensorDataset(*tensors)
-    DL = DataLoader(
-        DS,
+    
+    train = sample(list(range(0,N)), round(0.8*N))
+    val = list(set(list(range(0,N))) - set(train))
+
+    train_tensors = [t[train] for t in tensors]
+    train_DS = TensorDataset(*train_tensors)
+    val_tensors = [t[val] for t in tensors]
+    val_DS = TensorDataset(*val_tensors)
+
+    train_DL = DataLoader(
+        train_DS,
+        batch_size = params['b_size'],
+        num_workers=params['n_workers'],
+        persistent_workers=(params['n_workers'] > 0)
+    )
+
+    val_DL = DataLoader(
+        val_DS,
         batch_size = params['b_size'],
         num_workers=params['n_workers'],
         persistent_workers=(params['n_workers'] > 0)
@@ -129,7 +151,7 @@ def main(params):
         enable_progress_bar=(not params['silent'])
         # precision=16, amp_backend="native"
     )
-    trainer.fit(model, train_dataloaders=DL)
+    trainer.fit(model, train_DL, val_DL)
     
     torch.save(model, "Fall_results/" + params['model_name'] + ".pt")
 
