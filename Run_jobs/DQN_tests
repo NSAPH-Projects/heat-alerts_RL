@@ -1,2 +1,2 @@
-python heat_alerts/Torch_Lightning_DQN.py --loss huber --lr 0.00005 --optimizer sgd --xpt_name constr_deaths_sgd_001_huber --silent --n_workers 4 --model_name DQN_12-4_deaths_constrained
-python heat_alerts/Torch_Lightning_DQN.py --loss huber --lr 0.00005 --optimizer sgd --xpt_name constr_hosps_sgd_001_huber --silent --n_workers 4 --outcome other_hosps --sync_rate 20 --model_name DQN_12-4_hosps_constrained 
+# python heat_alerts/Torch_Lightning_DQN.py --loss huber --lr 0.00005 --optimizer sgd --xpt_name constr_deaths_sgd_001_huber --silent --n_workers 4 --model_name DQN_12-4_deaths_constrained
+python heat_alerts/Torch_Lightning_DQN.py --loss huber --lr 0.00005 --optimizer sgd --xpt_name constr_hosps_sgd_001_huber --silent --n_workers 4 --outcome other_hosps --sync_rate 50 --model_name DQN_12-4_hosps_constrained 
