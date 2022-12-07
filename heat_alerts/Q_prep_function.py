@@ -90,14 +90,17 @@ def make_data(
     # near_zero = pd.read_csv(prob_constraint).drop(n_seq_s)
     near_zero = pd.read_csv(prob_constraint)
 
+    ## Get county-year IDs:
+    ID = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,int(S.shape[0]/(n_days-1)))]))
+
     if data_only == True:
         output = dict(
             S = S, A = A, R = R, S_1 = S_1, 
-            ep_end = ep_end, over = over, near_zero = near_zero)
+            ep_end = ep_end, over = over, near_zero = near_zero, ID = ID)
     else:
         output = dict(
             S = S, A = A, R = R, S_1 = S_1, 
-            ep_end = ep_end, over = over, near_zero = near_zero,
+            ep_end = ep_end, over = over, near_zero = near_zero, ID = ID,
             Budget = Budget, n_seq_s = n_seq_s,
             s_means = s_means, s_stds = s_stds)
 

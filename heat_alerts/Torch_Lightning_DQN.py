@@ -81,7 +81,7 @@ class DQN_Lightning(pl.LightningModule):
         self.sync_rate = sync_rate
         self.training_epochs = 0
     def make_pred_and_targets(self, batch):
-        s, a, r, s1, ee, o = batch
+        s, a, r, s1, ee, o, id = batch
         preds = self.net(s).gather(1, a.view(-1, 1)).view(-1)
         # preds = self.net(s)
         # Preds = torch.where(a == 1, preds[:,0] + torch.exp(preds[:,1]), preds[:,0])
@@ -139,7 +139,7 @@ def main(params):
     else:
         D = make_data()
         
-    S,A,R,S_1,ep_end,over,near_zero = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero")]
+    S,A,R,S_1,ep_end,over,near_zero,ID = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero","ID")]
     R = 0.5 * (R - R.mean()) / np.max(np.abs(R))  # centered rewards in (-0.5, 0.5) stabilizes the Q function
     
     if params["prob_constraint"] == True:
@@ -149,12 +149,12 @@ def main(params):
 
     N = len(D['R'])
     perm = np.random.permutation(N)  # for preshuffling
-    data = [S.drop("index", axis = 1), A, R, S_1.drop("index", axis = 1), ep_end, over]
+    data = [S.drop("index", axis = 1), A, R, S_1.drop("index", axis = 1), ep_end, over, ID]
 
     # Make data loader
     tensors = [v.to_numpy()[perm] for v in data]
     for j in [0, 2, 3]: tensors[j] = torch.FloatTensor(tensors[j])
-    for j in [1, 4, 5]: tensors[j] = torch.LongTensor(tensors[j])
+    for j in [1, 4, 5, 6]: tensors[j] = torch.LongTensor(tensors[j])
     DS = TensorDataset(*tensors)
     DL = DataLoader(
         DS,

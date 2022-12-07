@@ -12,6 +12,7 @@ import pytorch_lightning as pl
 
 from heat_alerts.Q_prep_function import make_data
 
+
 ## Set up model:
 class DQN(nn.Module):
     def __init__(self, n_col: int, n_hidden: int) -> None:
@@ -107,14 +108,16 @@ if prob_constraint:
 
 n_years = 11
 n_days = 153
-ID = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,int(S.shape[0]/(n_days-1)))]))
+# ID = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,int(S.shape[0]/(n_days-1)))]))
+ID = D["ID"]
 
 Budget,n_seq_s,s_means,s_stds = [D[k] for k in ("Budget","n_seq_s","s_means","s_stds")]
 Constraint = pd.DataFrame(Budget).drop(n_seq_s)
 
 ### Look at results from model:
-# pred_model = torch.load("Fall_results/DQN_11-29_deaths_constrained.pt", map_location=torch.device('cpu'))
-pred_model = torch.load("Fall_results/DQN_11-29_hosps_constrained.pt", map_location=torch.device('cpu'))
+name = "12-5_deaths"
+
+pred_model = torch.load("Fall_results/DQN_" + name + "_constrained.pt", map_location=torch.device('cpu'))
 
 new_alerts = np.zeros(len(ID))
 policy = np.zeros(len(ID))
@@ -150,8 +153,7 @@ for i in range(0, max(ID)):
     print(i)
 
 pol = pd.DataFrame(policy, columns = ["policy"])
-pol.to_csv("Fall_results/DQN_11-29_hosps_constrained_policy.csv")
-# pol.to_csv("Fall_results/DQN_11-29_deaths_constrained_policy.csv")
+pol.to_csv("Fall_results/DQN_" + name + "_constrained_policy.csv")
 
 ############
 
