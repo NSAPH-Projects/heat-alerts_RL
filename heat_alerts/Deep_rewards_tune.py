@@ -1,6 +1,7 @@
 
 #### Based tuning off of https://towardsdatascience.com/how-to-tune-pytorch-lightning-hyperparameters-80089a281646
 
+import os
 from typing import Tuple
 from collections import OrderedDict
 import numpy as np
@@ -20,6 +21,9 @@ from pytorch_lightning.loggers import CSVLogger
 from tqdm import tqdm
 import multiprocessing as mp
 
+os.chdir("/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL")
+
+# from heat_alerts.Q_prep_function import make_data
 from Q_prep_function import make_data
 
 from ray.tune.integration.pytorch_lightning import TuneReportCallback
@@ -47,13 +51,16 @@ class my_NN(nn.Module):
             nn.ELU(),
             nn.Linear(n_hidden, 2)
         )
-        self.randeff = nn.Parameter(torch.zeros(n_randeff))
-        self.lsigma = nn.Parameter(torch.tensor(0.0))
-        self.rePrior = torch.distributions.Normal(0, F.softplus(self.lsigma))
-        self.sigmaPrior = torch.distributions.HalfCauchy(1.0)
+        self.randeff = nn.Parameter(torch.zeros(n_randeff).to("cuda"))
+        self.lsigma = nn.Parameter(torch.tensor(0.0).to("cuda"))
+        # self.rePrior = torch.distributions.Normal(0, F.softplus(self.lsigma))
+        # self.sigmaPrior = torch.distributions.HalfCauchy(1.0)
     def forward(self, x, id):
         step1 = self.net(x)
-        return step1 + self.randeff[id].unsqueeze(1) 
+        # print(step1)
+        # print(self.randeff[id])
+        # print(step1 + self.randeff[id])
+        return step1 + self.randeff[id]#.unsqueeze(1) 
 
 class DQN_Lightning(pl.LightningModule):
     def __init__(self, n_col, config, n_randeff, N, b_size, lr, loss="huber",  optimizer="adam", momentum=0.0, **kwargs) -> None:
@@ -86,8 +93,9 @@ class DQN_Lightning(pl.LightningModule):
     def prior(self):
         re = self.net.randeff
         lsig = self.net.lsigma
-        loss1 = -self.rePrior.log_prob(re)
-        loss2 = -self.sigmaPrior.log_prob(F.softplus(lsig))
+        loss1 = -torch.distributions.Normal(0, F.softplus(lsig)).log_prob(re)
+        loss2 = -torch.distributions.HalfCauchy(1.0).log_prob(F.softplus(lsig))
+        print(loss1.sum() + loss2)
         return loss1.sum() + loss2
     def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor], b_idx): # latter is batch index
         preds, targets = self.make_pred_and_targets(batch)
@@ -133,7 +141,7 @@ params = {
     "lr": 0.003,
     "mtm": 0.0,
     "n_gpus": 1,
-    "n_epochs": 300,
+    "n_epochs": 1, #300,
     "xpt_name": "tuning-hypers_other-hosps",
     "model_name": "R_hosps_sgd_003_huber",
     "loss": "huber",
@@ -162,7 +170,9 @@ data = [S.drop("index", axis = 1), A, R, S_1.drop("index", axis = 1), ep_end, ov
 # Make data loader
 tensors = [v.to_numpy()[perm] for v in data]
 for j in [0, 2, 3]: tensors[j] = torch.FloatTensor(tensors[j])
+
 for j in [1, 4, 5, 6]: tensors[j] = torch.LongTensor(tensors[j])
+
 
 train = sample(list(range(0,N)), round(0.8*N))
 val = list(set(list(range(0,N))) - set(train))
@@ -210,7 +220,8 @@ analysis = tune.run(
     metric = "loss",
     mode = "min",
     config = config,
-    name = params["xpt_name"]
+    name = params["xpt_name"],
+    num_samples = 2
 )
 
 print(analysis.best_config)
