@@ -70,17 +70,18 @@ class DQN_Lightning(pl.LightningModule):
         self.b_size = b_size
         self.lr = lr
         self.training_epochs = 0
+        self.w_decay = config["w_decay"]
     def make_pred_and_targets(self, batch):
         s, a, r, s1, ee, o, id = batch
         # preds = self.net(s).gather(1, a.view(-1, 1)).view(-1)
-        preds = self.net(s)
+        preds = self.net(s, id)
         Preds = torch.where(a == 1, preds[:,0] + F.softplus(preds[:,1]), preds[:,0])
         return Preds, r
-    def configure_optimizers(self, config):
+    def configure_optimizers(self):
         if self.optimizer_fn == "adam":
-            optimizer = optim.Adam(self.net.parameters(), lr = self.lr, betas=(self.momentum, 0.9), eps=1e-4, weight_decay=config["w_decay"])
+            optimizer = optim.Adam(self.net.parameters(), lr = self.lr, betas=(self.momentum, 0.9), eps=1e-4, weight_decay=self.w_decay)
         elif self.optimizer_fn == "sgd":
-            optimizer = optim.SGD(self.net.parameters(), lr = self.lr, momentum=self.momentum, weight_decay=config["w_decay"])
+            optimizer = optim.SGD(self.net.parameters(), lr = self.lr, momentum=self.momentum, weight_decay=self.w_decay)
         return optimizer
     def prior(self):
         re = self.net.randeff
@@ -99,7 +100,7 @@ class DQN_Lightning(pl.LightningModule):
         self.training_epochs += 1
     def validation_step(self, batch: Tuple[torch.Tensor, torch.Tensor], b_idx) -> None: # latter is batch index
         preds, targets = self.make_pred_and_targets(batch)
-        loss = self.loss_fn(preds, targets)
+        loss = self.loss_fn(preds, targets) + (1/self.N)*self.prior()
         self.log("val_loss", loss, sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         bias = (preds - targets).mean()
         self.log("val_bias", bias, sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
@@ -156,12 +157,12 @@ state_dim = S.drop("index", axis = 1).shape[1]
 
 N = len(D['R'])
 perm = np.random.permutation(N)  # for preshuffling
-data = [S.drop("index", axis = 1), A, R, S_1.drop("index", axis = 1), ep_end, over, ID]
+data = [S.drop("index", axis = 1), A, R, S_1.drop("index", axis = 1), ep_end, over, pd.DataFrame(ID)]
 
 # Make data loader
 tensors = [v.to_numpy()[perm] for v in data]
 for j in [0, 2, 3]: tensors[j] = torch.FloatTensor(tensors[j])
-for j in [1, 4, 5]: tensors[j] = torch.LongTensor(tensors[j])
+for j in [1, 4, 5, 6]: tensors[j] = torch.LongTensor(tensors[j])
 
 train = sample(list(range(0,N)), round(0.8*N))
 val = list(set(list(range(0,N))) - set(train))
@@ -195,9 +196,9 @@ config = {
 
 trainable = tune.with_parameters(
     train_model, 
-    config, params,
-    state_dim, ID, N,
-    train_DL, val_DL
+    params=params,
+    state_dim=state_dim, ID=ID, N=N,
+    train_DL=train_DL, val_DL=val_DL
 )
 
 analysis = tune.run(
