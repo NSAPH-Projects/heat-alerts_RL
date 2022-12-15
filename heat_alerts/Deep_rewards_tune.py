@@ -60,7 +60,7 @@ class my_NN(nn.Module):
         # print(step1)
         # print(self.randeff[id])
         # print(step1 + self.randeff[id])
-        return step1 + self.randeff[id]#.unsqueeze(1) 
+        return step1 + F.softplus(self.lsigma)*self.randeff[id]#.unsqueeze(1) 
 
 class DQN_Lightning(pl.LightningModule):
     def __init__(self, n_col, config, n_randeff, N, b_size, lr, loss="huber",  optimizer="adam", momentum=0.0, **kwargs) -> None:
@@ -93,8 +93,9 @@ class DQN_Lightning(pl.LightningModule):
     def prior(self):
         re = self.net.randeff
         lsig = self.net.lsigma
-        loss1 = -torch.distributions.Normal(0, F.softplus(lsig)).log_prob(re)
+        loss1 = -torch.distributions.Normal(0, 1).log_prob(re)
         loss2 = -torch.distributions.HalfCauchy(1.0).log_prob(F.softplus(lsig))
+        # print(F.softplus(lsig))
         print(loss1.sum() + loss2)
         return loss1.sum() + loss2
     def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor], b_idx): # latter is batch index
@@ -141,7 +142,7 @@ params = {
     "lr": 0.003,
     "mtm": 0.0,
     "n_gpus": 1,
-    "n_epochs": 1, #300,
+    "n_epochs": 200,
     "xpt_name": "tuning-hypers_other-hosps",
     "model_name": "R_hosps_sgd_003_huber",
     "loss": "huber",
@@ -200,7 +201,8 @@ val_DL = DataLoader(
 
 config = {
     "dropout_prob": tune.choice([0.0, 0.1, 0.25, 0.5]),
-    "n_hidden": tune.choice([32, 64, 128, 256]),
+    # "n_hidden": tune.choice([32, 64, 128, 256]),
+    "n_hidden": 256,
     "w_decay": tune.choice([1e-3, 1e-4, 1e-5])
 }
 
@@ -221,7 +223,7 @@ analysis = tune.run(
     mode = "min",
     config = config,
     name = params["xpt_name"],
-    num_samples = 2
+    num_samples = 12
 )
 
 print(analysis.best_config)

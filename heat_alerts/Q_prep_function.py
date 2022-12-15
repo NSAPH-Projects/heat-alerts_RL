@@ -91,7 +91,10 @@ def make_data(
     near_zero = pd.read_csv(prob_constraint)
 
     ## Get county-year IDs:
-    ID = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,int(S.shape[0]/(n_days-1)))]))
+    # ID = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,int(S.shape[0]/(n_days-1)))]))
+    county_ids = range(0, n_counties)
+    # ids_over_years = list(itertools.chain(*itertools.repeat(county_ids, n_years)))
+    ID = list(itertools.chain(*[itertools.repeat(i, (n_days-1)*n_years) for i in county_ids]))
 
     if data_only == True:
         output = dict(
