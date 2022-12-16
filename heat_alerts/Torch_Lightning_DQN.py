@@ -81,7 +81,7 @@ class DQN_Lightning(pl.LightningModule):
         self.sync_rate = sync_rate
         self.training_epochs = 0
     def make_pred_and_targets(self, batch):
-        s, a, r, s1, ee, o, id = batch
+        s, a, r, s1, ee, o = batch
         preds = self.net(s).gather(1, a.view(-1, 1)).view(-1)
         # preds = self.net(s)
         # Preds = torch.where(a == 1, preds[:,0] + torch.exp(preds[:,1]), preds[:,0])
@@ -141,9 +141,13 @@ def main(params):
         D = make_data()
         modeled_R = pd.read_csv("Fall_results/R_12-16_deaths.csv")
         
-    S,A,R,S_1,ep_end,over,near_zero,ID = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero","ID")]
-    R = 0.5 * (R - R.mean()) / np.max(np.abs(R))  # centered rewards in (-0.5, 0.5) stabilizes the Q function
+    S,A,R,S_1,ep_end,over,near_zero = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero")]
+    # R = 0.5 * (R - R.mean()) / np.max(np.abs(R))  # centered rewards in (-0.5, 0.5) stabilizes the Q function
     
+    Modeled_R = torch.gather(torch.FloatTensor(modeled_R.to_numpy()), 1, torch.LongTensor(A).view(-1, 1) +1).view(-1).detach().numpy()
+    
+    Modeled_R = 0.5 * (Modeled_R - Modeled_R.mean()) / np.max(np.abs(Modeled_R))
+
     if params["prob_constraint"] == True:
         over = over | [n for n in near_zero["x"]]
     
@@ -151,12 +155,14 @@ def main(params):
 
     N = len(D['R'])
     perm = np.random.permutation(N)  # for preshuffling
-    data = [S.drop("index", axis = 1), A, R, S_1.drop("index", axis = 1), ep_end, over, ID]
+    data = [S.drop("index", axis = 1), A, pd.DataFrame(Modeled_R), S_1.drop("index", axis = 1), ep_end, over]
 
     # Make data loader
     tensors = [v.to_numpy()[perm] for v in data]
     for j in [0, 2, 3]: tensors[j] = torch.FloatTensor(tensors[j])
-    for j in [1, 4, 5, 6]: tensors[j] = torch.LongTensor(tensors[j])
+
+    for j in [1, 4, 5]: tensors[j] = torch.LongTensor(tensors[j])
+
     DS = TensorDataset(*tensors)
     DL = DataLoader(
         DS,
@@ -192,7 +198,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_hidden", type=int, default=256, help="number of params in DQN hidden layers")
     parser.add_argument("--lr", type=float, default=0.003, help="learning rate")
     parser.add_argument("--mtm", type=float, default=0.0, help="momentum")
-    parser.add_argument("--gamma", type=float, default=0.99, help="discount factor")
+    parser.add_argument("--gamma", type=float, default=0.999, help="discount factor")
     parser.add_argument("--sync_rate", type=int, default=3, help="how often (in epochs) to sync the target model")
     # parser.add_argument("--k_size", type=int, default=100, help="how many batches per epoch")
     # parser.add_argument("--print", type=int, default=10, help="progress updates on epochs")
