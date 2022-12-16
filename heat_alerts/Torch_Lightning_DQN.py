@@ -182,7 +182,8 @@ def main(params):
         logger = logger,
         accelerator="auto",
         devices=params["n_gpus"],
-        enable_progress_bar=(not params['silent'])
+        enable_progress_bar=(not params['silent']),
+        auto_lr_find=True
         # precision=16, amp_backend="native"
     )
     trainer.fit(model, train_dataloaders=DL)
