@@ -136,8 +136,10 @@ def main(params):
         D = make_data(outcome="hosps")
     elif params["outcome"] == "other_hosps":
         D = make_data(outcome="other_hosps")
+        modeled_R = pd.read_csv("Fall_results/R_12-16_other-hosps.csv")
     else:
         D = make_data()
+        modeled_R = pd.read_csv("Fall_results/R_12-16_deaths.csv")
         
     S,A,R,S_1,ep_end,over,near_zero,ID = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero","ID")]
     R = 0.5 * (R - R.mean()) / np.max(np.abs(R))  # centered rewards in (-0.5, 0.5) stabilizes the Q function

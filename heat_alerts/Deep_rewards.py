@@ -185,7 +185,7 @@ def main(params):
     # model = torch.load("Fall_results/R_11-27_deaths.pt", map_location=torch.device('cpu'))
     
     s = torch.FloatTensor(S.drop("index", axis = 1).to_numpy())
-    id = torch.FloatTensor(pd.DataFrame(ID).to_numpy())
+    id = torch.LongTensor(pd.DataFrame(ID).to_numpy())
     r_hat = model.net(s,id)
     R_hat = r_hat
     R_hat[:,1] = r_hat[:,0] + torch.exp(r_hat[:,1])
