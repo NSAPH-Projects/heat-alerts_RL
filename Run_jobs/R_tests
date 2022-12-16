@@ -1,2 +1,2 @@
-python heat_alerts/Deep_rewards.py --loss huber --lr 0.001 --optimizer sgd --xpt_name R_deaths_sgd_001_huber --silent --n_workers 4 --n_epochs 2500 --model_name R_12-5_deaths
-python heat_alerts/Deep_rewards.py --loss huber --lr 0.001 --optimizer sgd --xpt_name R_hosps_sgd_001_huber --silent --n_workers 4 --outcome other_hosps --n_epochs 2500 --model_name R_12-5_other-hosps
+python heat_alerts/Deep_rewards.py --loss huber --optimizer adam --xpt_name R_deaths_adam_huber --silent --n_workers 4 --n_epochs 2500 --model_name R_12-16_deaths
+python heat_alerts/Deep_rewards.py --loss huber --optimizer adam --xpt_name R_hosps_adam_huber --silent --n_workers 4 --outcome other_hosps --n_epochs 2500 --model_name R_12-16_other-hosps
