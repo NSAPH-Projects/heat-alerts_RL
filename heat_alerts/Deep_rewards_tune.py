@@ -101,18 +101,18 @@ class DQN_Lightning(pl.LightningModule):
     def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor], b_idx): # latter is batch index
         preds, targets = self.make_pred_and_targets(batch)
         loss = self.loss_fn(preds, targets) + (1/self.N)*self.prior()
-        self.log("epoch_loss", loss, sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("epoch_loss", loss, sync_dist = False, on_step=False, on_epoch=True, prog_bar=False, logger=True)
         bias = (preds - targets).mean()
-        self.log("epoch_bias", bias, sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("epoch_bias", bias, sync_dist = False, on_step=False, on_epoch=True, prog_bar=False, logger=True)
         return loss
     def on_train_epoch_start(self) -> None:
         self.training_epochs += 1
     def validation_step(self, batch: Tuple[torch.Tensor, torch.Tensor], b_idx) -> None: # latter is batch index
         preds, targets = self.make_pred_and_targets(batch)
         loss = self.loss_fn(preds, targets) + (1/self.N)*self.prior()
-        self.log("val_loss", loss, sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("val_loss", loss, sync_dist = False, on_step=False, on_epoch=True, prog_bar=False, logger=True)
         bias = (preds - targets).mean()
-        self.log("val_bias", bias, sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("val_bias", bias, sync_dist = False, on_step=False, on_epoch=True, prog_bar=False, logger=True)
 
 
 def train_model(config, params, state_dim, ID, N, train_DL, val_DL):
@@ -200,10 +200,11 @@ val_DL = DataLoader(
 ## Set up hyperparameter tuning:
 
 config = {
-    "dropout_prob": tune.choice([0.0, 0.1, 0.25, 0.5]),
-    # "n_hidden": tune.choice([32, 64, 128, 256]),
+    "dropout_prob": tune.grid_search([0.0, 0.1, 0.25, 0.5, 0.75]),
+    # "n_hidden": tune.grid_search([32, 64, 128, 256]),
     "n_hidden": 256,
-    "w_decay": tune.choice([1e-3, 1e-4, 1e-5])
+    #"w_decay": tune.grid_search([1e-3, 1e-4, 1e-5])
+    "w_decay": 1e-4
 }
 
 trainable = tune.with_parameters(
@@ -223,7 +224,13 @@ analysis = tune.run(
     mode = "min",
     config = config,
     name = params["xpt_name"],
-    num_samples = 12
+    num_samples = 1
 )
 
 print(analysis.best_config)
+
+torch.save(analysis, "Fall_results/R_model_tuning_dropout.pt")
+
+# Analysis = torch.load("Fall_results/R_model_tuning.pt")
+
+# ckpt = torch.load("/n/home_fasse/econsidine/ray_results/tuning-hypers_other-hosps/train_model_b5c44_00003_3_dropout_prob=0.5000_2022-12-15_20-21-13/lightning_logs/version_713182/checkpoints/epoch=199-step=78000.ckpt")
