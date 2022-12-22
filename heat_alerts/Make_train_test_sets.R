@@ -15,7 +15,7 @@ n_days<- 153
 # april_alerts<- summer[which(summer$month==5 & summer$day == 1 & summer$alert_sum > 0), c("fips", "year")]
 # summer[which(summer$year == 2009 & summer$fips %in% april_alerts$fips),"alert_sum"]<- summer[which(summer$year == 2009 & summer$fips %in% april_alerts$fips),"alert_sum"] - 1
 # 
-# last_day<- summer[which(summer$month == 9 & summer$day == 30),] # or look at dos
+last_day<- summer[which(summer$month == 9 & summer$day == 30),] # or look at dos
 # 
 # ## Adjust a few other variables:
 # summer$holiday<- factor(summer$holiday)

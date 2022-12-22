@@ -22,6 +22,7 @@ budget<- data[which(data$dos == 153), "alert_sum"]
 Budget<- rep(budget, each = n_days)
 data$More_alerts<- Budget - data$alert_sum
 Data<- data[-seq(n_days, nrow(data), n_days),]
+Data$broadband.usage<- as.numeric(Data$broadband.usage)
 
 DF<- data.frame(scale(Data[,vars<- c("HImaxF_PopW", "quant_HI_county",
                                      "quant_HI_yest_county",
@@ -32,7 +33,7 @@ DF<- data.frame(scale(Data[,vars<- c("HImaxF_PopW", "quant_HI_county",
                                      "year", "dos",
                                      "alert_sum", "More_alerts",
                                      "death_mean_rate", "all_hosp_mean_rate",
-                                     "heat_hosp_mean_rate")]),
+                                     "heat_hosp_mean_rate", "broadband.usage")]),
                 # alert = Data$alert,
                 alert_lag1 = Data$alert_lag1,
                 alert_lag2 = Data$alert_lag2,

@@ -40,7 +40,22 @@ DF$other_hosp_mean_rate<- DF$other_hosp_mean / DF$total_count
 sum(is.na(DF[,c("death_mean_rate", "all_hosp_mean_rate", 
                 "heat_hosp_mean_rate", "other_hosp_mean_rate")]))
 
-saveRDS(DF, "data/Final_data_for_HARL_w-hosps_confounders.rds")
+## Incorporate a couple more non-Medicare datasets:
+hvi<- read.csv("data/HVI_county-level.csv")
+hvi$fips<- str_pad(hvi$fips, 5, pad="0")
+
+
+internet<- read.csv("data/broadband_data_2020October.csv", skip = 18)
+Internet<- data.frame(fips = str_pad(internet$COUNTY.ID, 5, pad="0"),
+                      broadband.availability=internet$BROADBAND.AVAILABILITY.PER.FCC,
+                      broadband.usage=internet$BROADBAND.USAGE)
+Internet$fips[which(Internet$fips == "46102")]<- "46113"
+full_DF<- inner_join(DF, Internet, by = "fips")
+# Full_DF<- inner_join(full_DF, hvi, by = "fips") 
+# missing_fips<- unique(full_DF$fips[which(! full_DF$fips %in% Full_DF$fips)])
+# Missing<- inner_join(distinct(DF[,c("fips", "Population")]), data.frame(fips=missing_fips))
+
+saveRDS(full_DF, "data/Final_data_for_HARL_w-hosps_confounders.rds")
 
 
 
