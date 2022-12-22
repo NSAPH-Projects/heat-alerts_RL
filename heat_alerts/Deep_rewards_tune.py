@@ -82,7 +82,7 @@ class DQN_Lightning(pl.LightningModule):
         s, a, r, s1, ee, o, id = batch
         # preds = self.net(s).gather(1, a.view(-1, 1)).view(-1)
         preds = self.net(s, id)
-        Preds = torch.where(a == 1, preds[:,0] + F.softplus(preds[:,1]), preds[:,0])
+        Preds = torch.where(a == 0, preds[:,1] - F.softplus(preds[:,0]), preds[:,1])
         return Preds, r
     def configure_optimizers(self):
         if self.optimizer_fn == "adam":
@@ -201,9 +201,9 @@ val_DL = DataLoader(
 
 config = {
     "dropout_prob": tune.grid_search([0.0, 0.1, 0.25, 0.5, 0.75]),
-    # "n_hidden": tune.grid_search([32, 64, 128, 256]),
-    "n_hidden": 256,
-    #"w_decay": tune.grid_search([1e-3, 1e-4, 1e-5])
+    "n_hidden": tune.grid_search([32, 64, 128, 256]),
+    # "n_hidden": 256,
+    # "w_decay": tune.grid_search([1e-3, 1e-4, 1e-5])
     "w_decay": 1e-4
 }
 
@@ -229,7 +229,7 @@ analysis = tune.run(
 
 print(analysis.best_config)
 
-torch.save(analysis, "Fall_results/R_model_tuning_dropout.pt")
+torch.save(analysis, "Fall_results/R_model_tuning_DP-NH-WD.pt")
 
 # Analysis = torch.load("Fall_results/R_model_tuning.pt")
 

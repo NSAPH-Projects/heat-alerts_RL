@@ -74,7 +74,7 @@ class DQN_Lightning(pl.LightningModule):
         s, a, r, s1, ee, o, id = batch
         # preds = self.net(s).gather(1, a.view(-1, 1)).view(-1)
         preds = self.net(s, id)
-        Preds = torch.where(a == 1, preds[:,0] + F.softplus(preds[:,1]), preds[:,0])
+        Preds = torch.where(a == 0, preds[:,1] - F.softplus(preds[:,0]), preds[:,1])
         return Preds, r
     def configure_optimizers(self):
         if self.optimizer_fn == "adam":
@@ -186,9 +186,10 @@ def main(params):
     
     s = torch.FloatTensor(S.drop("index", axis = 1).to_numpy())
     id = torch.LongTensor(pd.DataFrame(ID).to_numpy())
+    model.eval() # turns off dropout for the predictions
     r_hat = model.net(s,id)
     R_hat = r_hat
-    R_hat[:,1] = r_hat[:,0] + torch.exp(r_hat[:,1])
+    R_hat[:,0] = r_hat[:,1] - torch.exp(r_hat[:,0])
     R = D["R"]
     final = R_hat*np.max(np.abs(R))/0.5 + R.mean()
     n = final.detach().numpy()
