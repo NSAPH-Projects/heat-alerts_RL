@@ -1,5 +1,5 @@
 
-# import numpy as np
+import numpy as np
 import pandas as pd
 import itertools
 # import pyreadr
@@ -103,11 +103,26 @@ def make_data(
             S = S, A = A, R = R, S_1 = S_1, 
             ep_end = ep_end, over = over, near_zero = near_zero, ID = ID)
     else:
+        ## Get summary stats of all outcomes:
+        R_deaths = -1*(Train["N"]/Train["Pop.65"]).drop(n_seq_s)
+        R_all_hosps = -1*(Train["all_hosps"]/Train["total_count"]).drop(n_seq_s)
+        R_other_hosps = -1*(Train["other_hosps"]/Train["total_count"]).drop(n_seq_s)
+        deaths_shift = R_deaths.mean()
+        all_hosps_shift = R_all_hosps.mean()
+        other_hosps_shift = R_other_hosps.mean()
+        deaths_scale = np.max(np.abs(R_deaths))
+        all_hosps_scale = np.max(np.abs(R_all_hosps))
+        other_hosps_scale = np.max(np.abs(R_other_hosps))
+        ## Return:
         output = dict(
             S = S, A = A, R = R, S_1 = S_1, 
             ep_end = ep_end, over = over, near_zero = near_zero, ID = ID,
             Budget = Budget, n_seq_s = n_seq_s,
-            s_means = s_means, s_stds = s_stds)
+            s_means = s_means, s_stds = s_stds,
+            deaths_shift = deaths_shift, deaths_scale = deaths_scale, 
+            all_hosps_shift = all_hosps_shift, all_hosps_scale = all_hosps_scale,
+            other_hosps_shift = other_hosps_shift, other_hosps_scale = other_hosps_scale
+            )
 
     return output
 
