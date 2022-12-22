@@ -93,7 +93,7 @@ class DQN_Lightning(pl.LightningModule):
 def get_rewards(model, s, id, shift, scale):
     r_hat = model.net(s,id)
     R_hat = r_hat
-    R_hat[0] = r_hat[1] - torch.exp(r_hat[0])
+    R_hat[0] = r_hat[1] - F.softplus(r_hat[0])
     final = R_hat*scale/0.5 + shift
     n = final.detach().numpy()
     df = pd.DataFrame(n)
@@ -110,9 +110,7 @@ deaths_model.eval()
 other_hosps_model.eval()
 all_hosps_model.eval()
 
-date = "12-16"
-outcome = "deaths"
-name = date + "_" + outcome
+name = "12-16_deaths" # eventually, switch to argparse?
 policy = pd.read_csv("Fall_results/DQN_" + name + "_constrained_policy.csv")["policy"]
 
 D = make_data(data_only=False)
