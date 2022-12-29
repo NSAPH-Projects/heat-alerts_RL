@@ -6,7 +6,7 @@
 #SBATCH -t 0-2:00 # 0-12:00
 #SBATCH --mem 32G
 #SBATCH --gres gpu:1
-#SBATCH --array 0-1
+#SBATCH --array 0-2
 #SBATCH -o ./Run_jobs/slurm/r.%a.out
 #SBATCH --mail-user=ellen_considine@g.harvard.edu
 #SBATCH --mail-type=BEGIN
