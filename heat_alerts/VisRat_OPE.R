@@ -59,15 +59,18 @@ pg<- as.numeric(new_pol == A)
 if(outcome == "hosps"){
   R<- R_other_hosps[,1]
   # R<- R_hosps[,1]
-  modeled_R<- read.csv("Fall_results/R_11-27_other-hosps.csv")*1000
+  modeled_R<- read.csv("Fall_results/R_12-16_other-hosps.csv")*1000
   R_b<- modeled_R$X0
   R_b[A == 1]<- modeled_R$X1[A == 1]
   # R_model<- readRDS("Fall_results/Rewards_VarImp.rds")
 }else{
   R<- R_deaths[,1]
+  modeled_R<- read.csv("Fall_results/R_12-16_deaths.csv")*1000
+  R_b<- modeled_R$X0
+  R_b[A == 1]<- modeled_R$X1[A == 1]
 }
 
-new_R<- predict(R_model, new_DF)
+# new_R<- predict(R_model, new_DF)
 
 
 H<- n_days-1
@@ -80,8 +83,8 @@ if(constrained == TRUE){
   sink(paste0("new_results/VisRat-OPE_", date, "_", outcome, ".txt"))
 }
 
-H*mean(R)
-H*mean(new_R)
+# H*mean(R)
+# H*mean(new_R)
 
 # summary(VR_normed * R)
 # hist(log(-VR_normed*R))
@@ -89,8 +92,8 @@ H*mean(new_R)
 # H*mean(R)
 # H*sum(VR_normed*R)
 # 
-# H*mean(R_b)
-# H*sum(VR_normed*R_b)
+H*mean(R_b)
+H*sum(VR_normed*R_b)
 
 # p.a<- pg/pb
 # p.a_normed<- p.a/sum(p.a)
@@ -154,3 +157,22 @@ for(j in max(c(1,sum(Res_samps_pb_R[1,]!=0))):n2_boots){
 quantile(Res_samps_pb_R, probs=c(0.05, 0.95))
 
 sink()
+
+
+#############
+
+## Investigating probability distribution across days
+
+mean(behav >= 0.01) # 0.0898
+n_summers<- length(behav)/152
+ID<- rep(1:n_summers, each=152)
+
+df<- data.frame(ID, Pos = as.numeric(behav >= 0.01))
+pos_days<- aggregate(Pos ~ ID, df, sum)
+
+budget<- DF[seq(1,length(behav), 152),"More_alerts"]*5.089993 + 2.653544
+
+plot(budget, pos_days$Pos)
+abline(0,1, col="red")
+
+p<- which(round(budget) > pos_days$Pos)

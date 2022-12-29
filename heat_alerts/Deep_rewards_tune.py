@@ -160,7 +160,7 @@ else:
 
 S,A,R,S_1,ep_end,over,near_zero,ID = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero","ID")]
 
-R = 0.5 * (R - R.mean()) / np.max(np.abs(R))  # centered rewards in (-0.5, 0.5) stabilizes the Q function
+# R = 0.5 * (R - R.mean()) / np.max(np.abs(R))  # centered rewards in (-0.5, 0.5) stabilizes the Q function
 
 state_dim = S.drop("index", axis = 1).shape[1]
 
@@ -174,7 +174,7 @@ for j in [0, 2, 3]: tensors[j] = torch.FloatTensor(tensors[j])
 
 for j in [1, 4, 5, 6]: tensors[j] = torch.LongTensor(tensors[j])
 
-
+random.seed(321)
 train = sample(list(range(0,N)), round(0.8*N))
 val = list(set(list(range(0,N))) - set(train))
 

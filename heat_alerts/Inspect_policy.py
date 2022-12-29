@@ -108,14 +108,14 @@ if prob_constraint:
 
 n_years = 11
 n_days = 153
-# ID = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,int(S.shape[0]/(n_days-1)))]))
-ID = D["ID"]
+ID = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,int(S.shape[0]/(n_days-1)))]))
+# ID = D["ID"]
 
 Budget,n_seq_s,s_means,s_stds = [D[k] for k in ("Budget","n_seq_s","s_means","s_stds")]
 Constraint = pd.DataFrame(Budget).drop(n_seq_s)
 
 ### Look at results from model:
-name = "12-5_deaths"
+name = "12-16_hosps"
 
 pred_model = torch.load("Fall_results/DQN_" + name + "_constrained.pt", map_location=torch.device('cpu'))
 

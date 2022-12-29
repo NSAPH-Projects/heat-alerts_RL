@@ -7,8 +7,8 @@ n_days<- 153
 load("data/Small_S-A-R_prepped.RData")
 
 behavior<- A
-new_pol<- read.csv("Fall_results/DQN_11-27_deaths_constrained_policy.csv")$policy
-# new_pol<- read.csv("Fall_results/DQN_11-27_hosps_constrained_policy.csv")$policy
+new_pol<- read.csv("Fall_results/DQN_12-16_hosps_constrained_policy.csv")$policy
+# new_pol<- read.csv("Fall_results/DQN_12-16_deaths_constrained_policy.csv")$policy
 
 ## Compare policies:
 

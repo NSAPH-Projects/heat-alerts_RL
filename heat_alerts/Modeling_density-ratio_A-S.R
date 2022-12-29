@@ -2,8 +2,8 @@ library(caret)
 
 load("data/Small_S-A-R_prepped.RData")
 
-# new_pol<- read.csv("Fall_results/DQN_11-29_hosps_constrained_policy.csv")$policy
-new_pol<- read.csv("Fall_results/DQN_11-29_deaths_constrained_policy.csv")$policy
+new_pol<- read.csv("Fall_results/DQN_12-16_hosps_constrained_policy.csv")$policy
+# new_pol<- read.csv("Fall_results/DQN_12-16_deaths_constrained_policy.csv")$policy
 
 new_alert_sum<- rep(0,nrow(DF))
 for(i in which(DF$dos == min(DF$dos))){
@@ -63,8 +63,8 @@ ranger_model<- train(Policy ~ ., data = Train,
 e<- Sys.time()
 e-s
 
-# saveRDS(ranger_model, "Fall_results/DensRat_11-29_hosps_constrained_75pct.rds")
-saveRDS(ranger_model, "Fall_results/DensRat_11-29_deaths_constrained_75pct.rds")
+saveRDS(ranger_model, "Fall_results/DensRat_12-16_hosps_constrained_75pct.rds")
+# saveRDS(ranger_model, "Fall_results/DensRat_12-16_deaths_constrained_75pct.rds")
 
 
 #### Assess predictions:

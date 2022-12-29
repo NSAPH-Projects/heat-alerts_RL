@@ -122,7 +122,7 @@ def main(params):
     
     S,A,R,S_1,ep_end,over,near_zero,ID = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero","ID")]
     
-    R = 0.5 * (R - R.mean()) / np.max(np.abs(R))  # centered rewards in (-0.5, 0.5) stabilizes the Q function
+    # R = 0.5 * (R - R.mean()) / np.max(np.abs(R))
     
     state_dim = S.drop("index", axis = 1).shape[1]
 
@@ -190,9 +190,10 @@ def main(params):
     r_hat = model.net(s,id)
     R_hat = r_hat
     R_hat[:,0] = r_hat[:,1] - torch.exp(r_hat[:,0])
-    R = D["R"]
-    final = R_hat*np.max(np.abs(R))/0.5 + R.mean()
-    n = final.detach().numpy()
+    #R = D["R"]
+    # final = R_hat*np.max(np.abs(R))/0.5 + R.mean()
+    #n = final.detach().numpy()
+    n = R_hat.detach().numpy
     df = pd.DataFrame(n)
     df.to_csv("Fall_results/" + params['model_name'] + ".csv")
 
