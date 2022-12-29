@@ -231,6 +231,9 @@ print(analysis.best_config)
 
 torch.save(analysis, "Fall_results/R_model_tuning_DP-NH-WD.pt")
 
-# Analysis = torch.load("Fall_results/R_model_tuning.pt")
+Analysis = torch.load("Fall_results/R_model_tuning_DP-NH-WD.pt")
+# dir(Analysis)
+Analysis.best_config
+Analysis.results_df
 
 # ckpt = torch.load("/n/home_fasse/econsidine/ray_results/tuning-hypers_other-hosps/train_model_b5c44_00003_3_dropout_prob=0.5000_2022-12-15_20-21-13/lightning_logs/version_713182/checkpoints/epoch=199-step=78000.ckpt")

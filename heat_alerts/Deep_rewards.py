@@ -158,7 +158,7 @@ def main(params):
     )
 
     config = { # results from tuning
-        "dropout_prob": 0.5,
+        "dropout_prob": 0.1,
         "n_hidden": 256,
         "w_decay": 1e-4
     }
