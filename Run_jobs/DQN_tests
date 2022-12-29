@@ -1,2 +1,2 @@
-python heat_alerts/Torch_Lightning_DQN.py --loss huber --optimizer adam --xpt_name constr_deaths_adam_huber --silent --n_workers 4 --n_epochs 100 --model_name DQN_12-16_deaths_constrained
-python heat_alerts/Torch_Lightning_DQN.py --loss huber --optimizer adam --xpt_name constr_hosps_adam_huber --silent --n_workers 4 --outcome other_hosps --n_epochs 150 --model_name DQN_12-16_hosps_constrained 
+python heat_alerts/Torch_Lightning_DQN.py --loss huber --optimizer adam --xpt_name constr_deaths_adam_huber --silent --n_workers 4 --n_epochs 500 --model_name DQN_12-29_deaths_constrained
+python heat_alerts/Torch_Lightning_DQN.py --loss huber --optimizer adam --xpt_name constr_hosps_adam_huber --silent --n_workers 4 --outcome other_hosps --n_epochs 500 --model_name DQN_12-29_hosps_constrained 
