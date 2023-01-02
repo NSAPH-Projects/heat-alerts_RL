@@ -52,7 +52,7 @@ class my_NN(nn.Module):
         # print(step1)
         # print(self.randeff[id])
         # print(step1 + self.randeff[id])
-        return step1 + F.softplus(self.lsigma)*self.randeff[id]#.unsqueeze(1) 
+        return step1 - F.softplus(self.lsigma)*self.randeff[id]#.unsqueeze(1) 
 
 class DQN_Lightning(pl.LightningModule):
     def __init__(self, n_col, config, n_randeff, N, b_size, lr, loss="huber",  optimizer="adam", momentum=0.0, **kwargs) -> None:
@@ -123,6 +123,8 @@ def main(params):
     S,A,R,S_1,ep_end,over,near_zero,ID = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero","ID")]
     
     # R = 0.5 * (R - R.mean()) / np.max(np.abs(R))
+
+    R = R*1000
     
     state_dim = S.drop("index", axis = 1).shape[1]
 
@@ -189,6 +191,7 @@ def main(params):
     model.eval() # turns off dropout for the predictions
     r_hat = model.net(s,id)
     R_hat = -F.softplus(r_hat)
+    # R_hat = -torch.exp(r_hat)
     R_hat[:,0] = R_hat[:,1] + R_hat[:,0]
     #R = D["R"]
     # final = R_hat*np.max(np.abs(R))/0.5 + R.mean()
