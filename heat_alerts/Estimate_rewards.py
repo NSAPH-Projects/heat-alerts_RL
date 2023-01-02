@@ -102,9 +102,9 @@ def get_rewards(model, s, id, shift, scale):
 
 ## Main code:
 
-deaths_model = torch.load("Fall_results/R_12-29_deaths.pt", map_location=torch.device('cpu'))
-other_hosps_model = torch.load("Fall_results/R_12-29_other-hosps.pt", map_location=torch.device('cpu'))
-all_hosps_model = torch.load("Fall_results/R_12-29_all-hosps.pt", map_location=torch.device('cpu'))
+deaths_model = torch.load("Fall_results/R_1-2_deaths.pt", map_location=torch.device('cpu'))
+other_hosps_model = torch.load("Fall_results/R_1-2_other-hosps.pt", map_location=torch.device('cpu'))
+all_hosps_model = torch.load("Fall_results/R_1-2_all-hosps.pt", map_location=torch.device('cpu'))
 
 ## Remove dropout from evaluation of them all:
 deaths_model.eval()

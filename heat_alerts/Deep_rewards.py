@@ -182,7 +182,7 @@ def main(params):
     
     torch.save(model, "Fall_results/" + params['model_name'] + ".pt")
 
-    # model = torch.load("Fall_results/R_11-27_deaths.pt", map_location=torch.device('cpu'))
+    # model = torch.load("Fall_results/R_12-29_deaths.pt", map_location=torch.device('cpu'))
     
     s = torch.FloatTensor(S.drop("index", axis = 1).to_numpy())
     id = torch.LongTensor(pd.DataFrame(ID).to_numpy())
@@ -193,7 +193,7 @@ def main(params):
     #R = D["R"]
     # final = R_hat*np.max(np.abs(R))/0.5 + R.mean()
     #n = final.detach().numpy()
-    n = R_hat.detach().numpy
+    n = R_hat.detach().numpy()
     df = pd.DataFrame(n)
     df.to_csv("Fall_results/" + params['model_name'] + ".csv")
 
