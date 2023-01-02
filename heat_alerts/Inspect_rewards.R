@@ -14,9 +14,17 @@ Pred_hosps<- sapply(1:length(A), function(i) pred_hosps[i,A[i]+2])
 
 #### Summary stats:
 
-cor(R_deaths[,1], 1000*Pred_deaths)^2
-cor(R_all_hosps[,1], 1000*Pred_hosps)^2
-cor(R_other_hosps[,1], 1000*Pred_OH)^2
+summary(R_deaths[,1])
+summary(Pred_deaths*1000)
+summary(R_all_hosps[,1])
+summary(Pred_hosps*1000)
+summary(R_other_hosps[,1])
+summary(Pred_OH*1000)
+
+
+cor(R_deaths[,1], Pred_deaths)^2
+cor(R_all_hosps[,1], Pred_hosps)^2
+cor(R_other_hosps[,1], Pred_OH)^2
 
 ## Comparing effect of alerts:
 
@@ -33,15 +41,15 @@ summary(pred_OH$X1[A==1] - pred_OH$X0[A==1])
 set.seed(321)
 samp<- sample(1:length(A), round(0.05*length(A)))
 
-plot(R_deaths[samp,1], 1000*Pred_deaths[samp], col = A+1, main = "Deaths",
+plot(R_deaths[samp,1], Pred_deaths[samp], col = A+1, main = "Deaths",
      ylim=c(-16, 0))
 abline(0,1)
 
-plot(R_all_hosps[samp,1], 1000*Pred_hosps[samp], col = A+1, 
+plot(R_all_hosps[samp,1], Pred_hosps[samp], col = A+1, 
      main = "All Hospitalizations")
 abline(0,1)
 
-plot(R_other_hosps[samp,1], 1000*Pred_OH[samp], col = A+1,
+plot(R_other_hosps[samp,1], Pred_OH[samp], col = A+1,
      main = "Other Hospitalizations")
 abline(0,1)
 
