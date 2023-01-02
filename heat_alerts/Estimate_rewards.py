@@ -92,8 +92,8 @@ class DQN_Lightning(pl.LightningModule):
 
 def get_rewards(model, s, id, shift, scale):
     r_hat = model.net(s,id)
-    R_hat = r_hat
-    R_hat[0] = r_hat[1] - F.softplus(r_hat[0])
+    R_hat = - F.softplus(r_hat)
+    R_hat[0] = R_hat[1] + R_hat[0]
     # final = R_hat*scale/0.5 + shift
     # n = final.detach().numpy()
     n = R_hat.detach().numpy()
@@ -104,7 +104,7 @@ def get_rewards(model, s, id, shift, scale):
 
 deaths_model = torch.load("Fall_results/R_12-29_deaths.pt", map_location=torch.device('cpu'))
 other_hosps_model = torch.load("Fall_results/R_12-29_other-hosps.pt", map_location=torch.device('cpu'))
-all_hosps_model = torch.load("Fall_results/R_12-29_hosps.pt", map_location=torch.device('cpu'))
+all_hosps_model = torch.load("Fall_results/R_12-29_all-hosps.pt", map_location=torch.device('cpu'))
 
 ## Remove dropout from evaluation of them all:
 deaths_model.eval()

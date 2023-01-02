@@ -1,6 +1,6 @@
 
 library(BART)
-library(profvis)
+# library(profvis)
 library(ggplot2)
 library(parallel)
 detectCores()
@@ -44,7 +44,7 @@ post<- mc.pbart(x.train, y.train, printevery = 10, ndpost = 100,
 #                 printevery = 10)
 p<- list(treedraws = post$treedraws, binaryOffset = post$binaryOffset)
 class(p)<- "pbart"
-saveRDS(p, "Fall_results/BART-model_11-20.rds")
+saveRDS(p, "Fall_results/BART-model_12-29.rds")
 end<- Sys.time()
 end - start
 ## If we use the argument "sparse=TRUE", then can look at post$varprob...

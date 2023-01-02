@@ -115,7 +115,7 @@ Budget,n_seq_s,s_means,s_stds = [D[k] for k in ("Budget","n_seq_s","s_means","s_
 Constraint = pd.DataFrame(Budget).drop(n_seq_s)
 
 ### Look at results from model:
-name = "12-16_hosps"
+name = "12-29_deaths"
 
 pred_model = torch.load("Fall_results/DQN_" + name + "_constrained.pt", map_location=torch.device('cpu'))
 
@@ -145,6 +145,7 @@ for i in range(0, max(ID)):
             new_s["More_alerts"] = more_scaled
             v = torch.tensor(new_s)
             output = pred_model.net(v.float()).detach().numpy()
+            print(output)
             if output[1] > output[0]:
             # if math.exp(output[1]) > 0.01:
                 policy[pos[0][d]] = 1
