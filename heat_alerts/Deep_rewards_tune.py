@@ -60,7 +60,7 @@ class my_NN(nn.Module):
         # print(step1)
         # print(self.randeff[id])
         # print(step1 + self.randeff[id])
-        return step1 + F.softplus(self.lsigma)*self.randeff[id]#.unsqueeze(1) 
+        return step1 - F.softplus(self.lsigma)*self.randeff[id]#.unsqueeze(1) 
 
 class DQN_Lightning(pl.LightningModule):
     def __init__(self, n_col, config, n_randeff, N, b_size, lr, loss="huber",  optimizer="adam", momentum=0.0, **kwargs) -> None:
