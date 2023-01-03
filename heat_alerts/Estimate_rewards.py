@@ -36,7 +36,7 @@ class my_NN(nn.Module):
         # print(step1)
         # print(self.randeff[id])
         # print(step1 + self.randeff[id])
-        return step1 + F.softplus(self.lsigma)*self.randeff[id]#.unsqueeze(1) 
+        return step1 - F.softplus(self.lsigma)*self.randeff[id]#.unsqueeze(1) 
 
 class DQN_Lightning(pl.LightningModule):
     def __init__(self, n_col, config, n_randeff, N, b_size, lr, loss="huber",  optimizer="adam", momentum=0.0, **kwargs) -> None:
@@ -57,8 +57,8 @@ class DQN_Lightning(pl.LightningModule):
     def make_pred_and_targets(self, batch):
         s, a, r, s1, ee, o, id = batch
         # preds = self.net(s).gather(1, a.view(-1, 1)).view(-1)
-        preds = self.net(s, id)
-        Preds = torch.where(a == 0, preds[:,1] - F.softplus(preds[:,0]), preds[:,1])
+        preds = -F.softplus(self.net(s, id))
+        Preds = torch.where(a == 0, preds[:,1] + preds[:,0], preds[:,1])
         return Preds, r
     def configure_optimizers(self):
         if self.optimizer_fn == "adam":
@@ -90,6 +90,7 @@ class DQN_Lightning(pl.LightningModule):
         bias = (preds - targets).mean()
         self.log("val_bias", bias, sync_dist = False, on_step=False, on_epoch=True, prog_bar=False, logger=True)
 
+
 def get_rewards(model, s, id, shift=0, scale=1):
     r_hat = model.net(s,id)
     R_hat = - F.softplus(r_hat)
@@ -111,21 +112,23 @@ deaths_model.eval()
 other_hosps_model.eval()
 all_hosps_model.eval()
 
-name = "12-29_deaths" # eventually, switch to argparse?
-policy = pd.read_csv("Fall_results/DQN_" + name + "_constrained_policy.csv")["policy"]
-
 D = make_data(data_only=False)
 S = D["S"]
 S = S.drop("index", axis = 1)
 Budget,n_seq_s,s_means,s_stds = [D[k] for k in ("Budget","n_seq_s","s_means","s_stds")]
 Constraint = pd.DataFrame(Budget).drop(n_seq_s)
 deaths_shift,deaths_scale,all_hosps_shift,all_hosps_scale,other_hosps_shift,other_hosps_scale = [D[k] for k in ("deaths_shift","deaths_scale","all_hosps_shift","all_hosps_scale","other_hosps_shift","other_hosps_scale")]
- 
+
 n_years = 11
 n_days = 153
 ID = D["ID"]
 id = torch.LongTensor(pd.DataFrame(ID).to_numpy())
 summer = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,int(S.shape[0]/(n_days-1)))]))
+
+# name = "12-29_deaths" # eventually, switch to argparse?
+# policy = pd.read_csv("Fall_results/DQN_" + name + "_constrained_policy.csv")["policy"]
+policy = D["A"]
+# policy = pd.DataFrame(np.zeros(len(ID)))
 
 Deaths = np.zeros(len(ID))
 All_hosps = np.zeros(len(ID))
@@ -153,9 +156,9 @@ for i in range(0, max(summer)): # test with i=6 for nonzero constraint
         deaths = get_rewards(deaths_model, v, this_id, deaths_shift, deaths_scale)
         all_hosps = get_rewards(all_hosps_model, v, this_id, all_hosps_shift, all_hosps_scale)
         other_hosps = get_rewards(other_hosps_model, v, this_id, other_hosps_shift, other_hosps_scale)
-        death_rate_sum += deaths[0][action]
-        hosp_rate_sum += all_hosps[0][action]
-        other_hosp_rate_sum += other_hosps[0][action]
+        death_rate_sum += deaths[0][action]/1000
+        hosp_rate_sum += all_hosps[0][action]/1000
+        other_hosp_rate_sum += other_hosps[0][action]/1000
         ## Record estimated outcomes for OPE:
         Deaths[pos[0][d]] = deaths[0][action]
         All_hosps[pos[0][d]] = all_hosps[0][action]
