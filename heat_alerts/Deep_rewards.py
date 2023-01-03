@@ -124,7 +124,8 @@ def main(params):
     
     # R = 0.5 * (R - R.mean()) / np.max(np.abs(R))
 
-    R = 0.5 * R / np.max(np.abs(R))
+    # R = 0.5 * R / np.max(np.abs(R))
+    R = R*1000
     
     state_dim = S.drop("index", axis = 1).shape[1]
 
@@ -193,10 +194,10 @@ def main(params):
     R_hat = -F.softplus(r_hat)
     # R_hat = -torch.exp(r_hat)
     R_hat[:,0] = R_hat[:,1] + R_hat[:,0]
-    R = D["R"]
-    final = R_hat*np.max(np.abs(R))/0.5 # + R.mean()
-    n = final.detach().numpy()
-    # n = R_hat.detach().numpy()
+    # R = D["R"]
+    # final = R_hat*np.max(np.abs(R))/0.5 # + R.mean()
+    # n = final.detach().numpy()
+    n = R_hat.detach().numpy()
     df = pd.DataFrame(n)
     df.to_csv("Fall_results/" + params['model_name'] + ".csv")
 

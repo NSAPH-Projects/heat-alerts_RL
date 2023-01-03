@@ -94,9 +94,9 @@ def get_rewards(model, s, id, shift=0, scale=1):
     r_hat = model.net(s,id)
     R_hat = - F.softplus(r_hat)
     R_hat[0] = R_hat[1] + R_hat[0]
-    final = R_hat*scale/0.5 # + shift
-    n = final.detach().numpy()
-    # n = R_hat.detach().numpy()
+    # final = R_hat*scale/0.5 # + shift
+    # n = final.detach().numpy()
+    n = R_hat.detach().numpy()
     df = pd.DataFrame(n)
     return(df)
 

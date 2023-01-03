@@ -162,7 +162,8 @@ S,A,R,S_1,ep_end,over,near_zero,ID = [D[k] for k in ("S","A","R","S_1","ep_end",
 
 # R = 0.5 * (R - R.mean()) / np.max(np.abs(R))  # centered rewards in (-0.5, 0.5) stabilizes the Q function
 
-R = 0.5 * R / np.max(np.abs(R))
+# R = 0.5 * R / np.max(np.abs(R))
+R = R*1000
 
 state_dim = S.drop("index", axis = 1).shape[1]
 
