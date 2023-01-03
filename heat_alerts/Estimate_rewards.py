@@ -127,10 +127,10 @@ summer = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,i
 
 # name = "12-29_deaths" # eventually, switch to argparse?
 # policy = pd.read_csv("Fall_results/DQN_" + name + "_constrained_policy.csv")["policy"]
-policy = D["A"]
-name = "NWS_behavior"
-# policy = pd.DataFrame(np.zeros(len(ID)))
-# name = "No_alerts"
+# policy = D["A"]
+# name = "NWS_behavior"
+policy = pd.DataFrame(np.zeros(len(ID)))
+name = "No_alerts"
 
 Deaths = np.zeros(len(ID))
 All_hosps = np.zeros(len(ID))

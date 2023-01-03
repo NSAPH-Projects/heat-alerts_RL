@@ -11,19 +11,6 @@ n<- length(A)/H
 gamma<- 0.999
 # Gamma<- rep(cumprod(rep(gamma, H))/gamma, n) 
 
-## Using modeled rewards, not accounting for modeled past rewards:
-
-pred_deaths<- read.csv("Fall_results/R_1-2_deaths.csv")
-Pred_deaths<- sapply(1:length(A), function(i) pred_deaths[i,A[i]+2])
-pred_OH<- read.csv("Fall_results/R_1-2_other-hosps.csv")
-Pred_OH<- sapply(1:length(A), function(i) pred_OH[i,A[i]+2])
-pred_hosps<- read.csv("Fall_results/R_1-2_all-hosps.csv")
-Pred_hosps<- sapply(1:length(A), function(i) pred_hosps[i,A[i]+2])
-
-
-## Using modeled rewards, accounting for modeled past rewards:
-
-Mod2<- read.csv("Fall_results/Estimated_rewards_NWS_behavior_policy.csv")
 
 #### Benchmark:
 
@@ -71,13 +58,34 @@ subset_OPE<- function(Deaths, All_hosps, Other_hosps, discount = TRUE,
   }
 }
 
+#### Get predictions:
+
+## Using modeled rewards, not accounting for modeled past rewards:
+
+pred_deaths<- read.csv("Fall_results/R_1-2_deaths.csv")
+Pred_deaths<- sapply(1:length(A), function(i) pred_deaths[i,A[i]+2])
+pred_OH<- read.csv("Fall_results/R_1-2_other-hosps.csv")
+Pred_OH<- sapply(1:length(A), function(i) pred_OH[i,A[i]+2])
+pred_hosps<- read.csv("Fall_results/R_1-2_all-hosps.csv")
+Pred_hosps<- sapply(1:length(A), function(i) pred_hosps[i,A[i]+2])
+
+
+## Using modeled rewards, accounting for modeled past rewards:
+
+Mod2<- read.csv("Fall_results/Estimated_rewards_NWS_behavior_policy.csv")
+
+## New policies:
+
+None<- read.csv("Fall_results/Estimated_rewards_No_alerts_policy.csv")
+
 #### Discounted:
 
 Observed_NWS<- get_OPE(R_deaths[,1], R_all_hosps[,1], R_other_hosps[,1])
 Modeled_NWS<- get_OPE(Pred_deaths, Pred_hosps, Pred_OH)
 Mod2_NWS<- get_OPE(Mod2$X0, Mod2$X1, Mod2$X2)
+No_alerts<- get_OPE(None$X0, None$X1, None$X2)
 
-results<- data.frame(Observed_NWS, Modeled_NWS, Mod2_NWS)
+results<- data.frame(Observed_NWS, Modeled_NWS, Mod2_NWS, No_alerts)
 Results<- t(results)
 colnames(Results)<- c("Deaths", "All hospitalizations", "Non-heat hospitalizations")
 Results
@@ -105,7 +113,7 @@ Observed_NWS_nd<- get_OPE(R_deaths[,1], R_all_hosps[,1], R_other_hosps[,1],
 Modeled_NWS_nd<- get_OPE(Pred_deaths, Pred_hosps, Pred_OH, discount = FALSE)
 Mod2_NWS_nd<- get_OPE(Mod2$X0, Mod2$X1, Mod2$X2, discount = FALSE)
 
-results_nd<- data.frame(Observed_NWS_nd, Modeled_NWS_nd)
+results_nd<- data.frame(Observed_NWS_nd, Modeled_NWS_nd, Mod2_NWS_nd, No_alerts_nd)
 Results_nd<- t(results_nd)
 colnames(Results_nd)<- c("Deaths", "All hospitalizations", "Non-heat hospitalizations")
 Results_nd
