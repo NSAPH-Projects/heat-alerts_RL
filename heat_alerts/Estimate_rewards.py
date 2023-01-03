@@ -128,7 +128,9 @@ summer = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,i
 # name = "12-29_deaths" # eventually, switch to argparse?
 # policy = pd.read_csv("Fall_results/DQN_" + name + "_constrained_policy.csv")["policy"]
 policy = D["A"]
+name = "NWS_behavior"
 # policy = pd.DataFrame(np.zeros(len(ID)))
+# name = "No_alerts"
 
 Deaths = np.zeros(len(ID))
 All_hosps = np.zeros(len(ID))
@@ -143,9 +145,6 @@ for i in range(0, max(summer)): # test with i=6 for nonzero constraint
     other_hosp_rate_sum = hosp_rate_sum - (S.iloc[pos[0][0]]["heat_hosp_mean_rate"]*s_stds["heat_hosp_mean_rate"] + s_means["heat_hosp_mean_rate"])
     while d < n_days - 2:
         new_s = S.iloc[pos[0][d]]
-        ## Update alerts based on new policy:
-        action = policy.iloc[pos[0][d]]
-        alerts += action
         new_s["alert_sum"] = (alerts - s_means["alert_sum"])/s_stds["alert_sum"]
         new_s["More_alerts"] = (Constraint.iloc[pos[0][d]] - alerts - s_means["More_alerts"])/s_stds["More_alerts"]
         ## Update past health outcomes based on new data:
@@ -156,6 +155,10 @@ for i in range(0, max(summer)): # test with i=6 for nonzero constraint
         deaths = get_rewards(deaths_model, v, this_id, deaths_shift, deaths_scale)
         all_hosps = get_rewards(all_hosps_model, v, this_id, all_hosps_shift, all_hosps_scale)
         other_hosps = get_rewards(other_hosps_model, v, this_id, other_hosps_shift, other_hosps_scale)
+        ## Update alerts based on new policy:
+        action = policy.iloc[pos[0][d]]
+        # if action == 1: break
+        alerts += action
         death_rate_sum += deaths[0][action]/1000
         hosp_rate_sum += all_hosps[0][action]/1000
         other_hosp_rate_sum += other_hosps[0][action]/1000
