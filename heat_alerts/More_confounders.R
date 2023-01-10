@@ -55,7 +55,57 @@ full_DF<- inner_join(DF, Internet, by = "fips")
 # missing_fips<- unique(full_DF$fips[which(! full_DF$fips %in% Full_DF$fips)])
 # Missing<- inner_join(distinct(DF[,c("fips", "Population")]), data.frame(fips=missing_fips))
 
-saveRDS(full_DF, "data/Final_data_for_HARL_w-hosps_confounders.rds")
+politics<- read.csv("data/Cleaned_election_data.csv")
 
+politics<- politics %>% na.omit()
+
+# head(politics[order(politics$county_fips),])
+# pol_var<- aggregate(. ~ county_fips, politics, sd)
+
+politics$fips<- str_pad(politics$county_fips, 5, pad="0")
+
+f<- unique(politics$fips)[1]
+pos<- which(politics$fips == f)
+res<- apply(politics[pos,3:4], MARGIN=2, function(x) c( mean(c(x[1], x[2])), weighted.mean(c(x[1], x[2]), c(0.25, 0.75)), x[2],
+                                                        weighted.mean(c(x[2], x[3]), c(0.75, 0.25)), mean(c(x[2], x[3])),
+                                                        weighted.mean(c(x[2], x[3]), c(0.25, 0.75)), x[3],
+                                                        weighted.mean(c(x[3], x[4]), c(0.75, 0.25)), mean(c(x[3], x[4])),
+                                                        weighted.mean(c(x[3], x[4]), c(0.25, 0.75)), x[4] ) )
+df<- data.frame(year = 2006:2016, fips = f, res)
+row.names(df)<- NULL
+Politics<- df
+
+for(f in unique(politics$fips)[-1]){
+  pos<- which(politics$fips == f)
+  res<- apply(politics[pos,3:4], MARGIN=2, function(x) c( mean(c(x[1], x[2])), weighted.mean(c(x[1], x[2]), c(0.25, 0.75)), x[2],
+                 weighted.mean(c(x[2], x[3]), c(0.75, 0.25)), mean(c(x[2], x[3])),
+                 weighted.mean(c(x[2], x[3]), c(0.25, 0.75)), x[3],
+                 weighted.mean(c(x[3], x[4]), c(0.75, 0.25)), mean(c(x[3], x[4])),
+                 weighted.mean(c(x[3], x[4]), c(0.25, 0.75)), x[4] ) )
+  df<- data.frame(year = 2006:2016, fips = f, res)
+  row.names(df)<- NULL
+  Politics<- rbind(Politics, df)
+}
+
+
+Full_DF<- inner_join(full_DF, Politics, by = c("fips", "year"))
+
+saveRDS(Full_DF, "data/Final_data_for_HARL_w-hosps_confounders.rds")
+
+# ## Out of curiosity:
+# 
+# test<- distinct(Full_DF[,c("Population", "Pop_density", "Med.HH.Income", "broadband.usage", "Democrat", "Republican")])
+# test$broadband.usage<- as.numeric(test$broadband.usage)
+# Test<- test[which(test$Population >= 65000),]
+# 
+# library(ggplot2)
+# 
+# ggplot(test, aes(x=log(Pop_density), y=Democrat)) + geom_point() + geom_smooth()
+# 
+# ggplot(test, aes(x=log(Med.HH.Income), y=Republican)) + geom_point() + geom_smooth()
+# 
+# ggplot(distinct(test[,3:4]), aes(x=log(Med.HH.Income), y=broadband.usage)) + geom_point() + geom_smooth()
+# 
+# ggplot(test, aes(x=broadband.usage, y=Democrat))+ geom_point() + geom_smooth()
 
 

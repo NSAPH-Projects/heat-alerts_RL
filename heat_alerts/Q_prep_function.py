@@ -48,7 +48,7 @@ def make_data(
                         "year", "dos", "holiday", "dow", 
                         "alert_lag1", "alert_lag2", "alert_sum", "More_alerts", 
                         "death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate",
-                        "broadband.usage"]]
+                        "broadband.usage", "Democrat", "Republican"]]
     States = States_1.drop(n_seq_s)
     States_1 = States_1.drop(range(0, Train.shape[0], n_days))
 
@@ -71,7 +71,7 @@ def make_data(
                         "l.Pop_density", "l.Med.HH.Income",
                         "year", "dos", "alert_sum", "More_alerts",
                          "death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate",
-                         "broadband.usage"]
+                         "broadband.usage", "Democrat", "Republican"]
 
     s_means = States[num_vars].mean(0)
     s_stds = States[num_vars].std(0)
