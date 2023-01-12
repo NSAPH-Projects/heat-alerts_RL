@@ -17,7 +17,7 @@ DQN<- read.csv("lightning_logs/constr_hosps_adam_huber/version_5/metrics.csv")
 ggplot(DQN, aes(x=epoch, y=epoch_loss)) + geom_line() + 
   xlab("Epochs") + ylab("Huber Loss") + ggtitle("DQN Model")
 
-### Validation vs Training, Rewards Model
+### Validation vs Training, Rewards and Alerts Models
 
 DF<- read.csv("lightning_logs/R_tuned_deaths_adam_huber/version_7/metrics.csv")
 DF<- read.csv("lightning_logs/R_tuned_hosps_adam_huber/version_7/metrics.csv")
@@ -27,11 +27,18 @@ Val_Loss<- DF[seq(1,nrow(DF),2),1]
 Train_Loss<- DF[seq(2,nrow(DF),2),5]
 Epoch<- 1:length(Val_Loss)
 
+DF<- read.csv("lightning_logs/test_NN_alerts/version_1/metrics.csv")
+
+Val_Loss<- DF[seq(1,nrow(DF),2),1]
+Train_Loss<- DF[seq(2,nrow(DF),2),4]
+Epoch<- 1:length(Val_Loss)
+
+
 Plot_df<- data.frame(Epoch, Train_Loss, Val_Loss)[-1,]
 
 ggplot(Plot_df, aes(x=Epoch)) + geom_line(aes(y=Train_Loss)) + 
   geom_line(aes(y=Val_Loss), col = "blue") +
-  ylab("Huber Loss") + ggtitle("Reward Model Convergence")
+  ylab("Loss") + ggtitle("Model Convergence")
 
 #### Torch lm:
 
