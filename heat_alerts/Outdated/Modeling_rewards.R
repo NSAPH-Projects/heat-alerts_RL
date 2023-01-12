@@ -14,7 +14,7 @@ myControl<- trainControl(method = "none", savePredictions = "final",
                          verboseIter = TRUE, allowParallel = FALSE)
 
 tgrid<- expand.grid( .mtry = 15, .splitrule = "extratrees", 
-                     .min.node.size = 1) # change this to 5?
+                     .min.node.size = 5)
 
 
 ## Run model:
@@ -50,6 +50,10 @@ for(o in list(R_deaths, R_other_hosps)){
 }
 
 sink()
+
+VI<- varImp(ranger_model)
+VI_df<- data.frame(Variable=row.names(VI$importance), Importance=VI$importance$Overall)
+VI_df[order(VI_df$Importance, decreasing = TRUE),]
 
 ## Make marginal plots
 
