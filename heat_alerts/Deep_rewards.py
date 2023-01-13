@@ -73,7 +73,7 @@ class DQN_Lightning(pl.LightningModule):
     def make_pred_and_targets(self, batch):
         s, a, r, s1, ee, o, id = batch
         # preds = self.net(s).gather(1, a.view(-1, 1)).view(-1)
-        preds = -F.softplus(self.net(s, id))
+        preds = -F.relu(self.net(s, id))
         Preds = torch.where(a == 0, preds[:,1] + preds[:,0], preds[:,1])
         return Preds, r
     def configure_optimizers(self):
@@ -194,7 +194,7 @@ def main(params):
     id = torch.LongTensor(pd.DataFrame(ID).to_numpy())
     model.eval() # turns off dropout for the predictions
     r_hat = model.net(s,id)
-    R_hat = -F.softplus(r_hat)
+    R_hat = -F.relu(r_hat)
     # R_hat = -torch.exp(r_hat)
     R_hat[:,0] = R_hat[:,1] + R_hat[:,0]
     # R = D["R"]
