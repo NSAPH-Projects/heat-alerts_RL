@@ -126,7 +126,7 @@ params = {
     "model_name": "alerts_sgd_003",
     "silent": False,
     "optimizer": "adam",
-    "n_workers": 4
+    "n_workers": 3 # 4
 }
 
 D = make_data()
