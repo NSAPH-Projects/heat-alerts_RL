@@ -7,12 +7,14 @@ load("data/Small_S-A-R_prepped.RData")
 DF$alert<- A
 Data<- DF
 
-pred_deaths<- read.csv("Fall_results/R_1-12_deaths.csv")#*1000
+## 1-12 was MSE with softplus, 1-13 was MSE with relu
+
+pred_deaths<- read.csv("Fall_results/R_1-13_deaths.csv")#*1000
 Pred_deaths<- sapply(1:length(A), function(i) pred_deaths[i,A[i]+2])
 # Pred_deaths[which(Pred_deaths > 0)]<- 0
-pred_OH<- read.csv("Fall_results/R_1-12_other-hosps.csv")#*1000
+pred_OH<- read.csv("Fall_results/R_1-13_other-hosps.csv")#*1000
 Pred_OH<- sapply(1:length(A), function(i) pred_OH[i,A[i]+2])
-pred_hosps<- read.csv("Fall_results/R_1-12_all-hosps.csv")#*1000
+pred_hosps<- read.csv("Fall_results/R_1-13_all-hosps.csv")#*1000
 Pred_hosps<- sapply(1:length(A), function(i) pred_hosps[i,A[i]+2])
 
 #### Summary stats:
