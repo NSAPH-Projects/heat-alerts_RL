@@ -177,7 +177,8 @@ def main(params):
         # "w_decay": 1e-4
         "dropout_prob": 0.0,
         # "n_hidden": 64,
-        "w_decay": 1e-4
+        # "w_decay": 1e-4
+        "w_decay": 0.0
     }
 
     model = DQN_Lightning(state_dim, config, n_randeff = len(np.unique(ID)), N = N, **params)
