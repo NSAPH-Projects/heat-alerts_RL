@@ -121,7 +121,7 @@ params = {
     "n_hidden": 256,
     "lr": 0.003,
     "n_gpus": 1,
-    "n_epochs": 2, # 200,
+    "n_epochs": 200,
     "xpt_name": "tuning-hypers_alerts_model",
     "model_name": "alerts_sgd_003",
     "silent": False,
@@ -173,8 +173,7 @@ val_DL = DataLoader(
 ## Set up hyperparameter tuning:
 
 config = {
-    # "dropout_prob": tune.grid_search([0.0, 0.1, 0.25, 0.5, 0.75]),
-    "dropout_prob": tune.grid_search([0.0, 0.1, 0.25]),
+    "dropout_prob": tune.grid_search([0.0, 0.1, 0.25, 0.5, 0.75]),
     "n_hidden": tune.grid_search([32, 64, 128, 256]),
     # "n_hidden": 256,
     # "w_decay": tune.grid_search([1e-3, 1e-4, 1e-5])
