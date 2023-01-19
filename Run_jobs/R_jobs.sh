@@ -3,8 +3,8 @@
 #SBATCH -N 1
 #SBATCH -n 4
 #SBATCH -p fasse_gpu
-#SBATCH -t 0-4:00 # 0-12:00
-#SBATCH --mem 32G
+#SBATCH -t 0-10:00
+#SBATCH --mem 50G
 #SBATCH --gres gpu:1
 #SBATCH --array 0-2
 #SBATCH -o ./Run_jobs/slurm/r.%a.out
