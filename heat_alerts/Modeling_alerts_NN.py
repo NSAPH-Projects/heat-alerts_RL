@@ -8,6 +8,7 @@ import random
 import pandas as pd
 from scipy.special import expit, softmax
 from random import sample
+from imblearn.under_sampling import NearMiss
 
 import torch 
 from torch import nn # creating modules
@@ -61,7 +62,7 @@ class Logit_Lightning(pl.LightningModule):
         self.training_epochs = 0
         self.w_decay = config["w_decay"]
     def make_pred_and_targets(self, batch):
-        s, a, r, s1, ee, o, id = batch
+        s, a = batch
         preds = self.net(s)[:,0]
         return preds, a.float()
     def configure_optimizers(self):
@@ -96,25 +97,29 @@ def main(params):
     
     D = make_data()
     
-    S,A,R,S_1,ep_end,over,near_zero,ID = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero","ID")]
+    S,A = [D[k] for k in ("S","A")]
     
     state_dim = S.drop("index", axis = 1).shape[1]
 
-    N = len(D['R'])
+    N = len(D['A'])
     perm = np.random.permutation(N)  # for preshuffling
-    data = [S.drop("index", axis = 1), A, R, S_1.drop("index", axis = 1), ep_end, over, pd.DataFrame(ID)]
+    data = [S.drop("index", axis = 1), A]
 
-    # Make data loader
-    tensors = [v.to_numpy()[perm] for v in data]
-    for j in [0, 2, 3]: tensors[j] = torch.FloatTensor(tensors[j])
-    for j in [1, 4, 5, 6]: tensors[j] = torch.LongTensor(tensors[j])
-    
+    # Make data loader, re-balanced
+    shuffled = [v.to_numpy()[perm] for v in data]
     train = sample(list(range(0,N)), round(0.8*N))
     val = list(set(list(range(0,N))) - set(train))
+    train_data = [d[train] for d in shuffled]
+    val_data = [d[val] for d in shuffled]
 
-    train_tensors = [t[train] for t in tensors]
+    nm = NearMiss()
+  
+    S_train_miss, A_train_miss = nm.fit_resample(train_data[0], train_data[1].ravel())
+
+    train_tensors = [torch.FloatTensor(S_train_miss), torch.LongTensor(A_train_miss)]
+    val_tensors = [torch.FloatTensor(val_data[0]), torch.LongTensor(val_data[1])]
+
     train_DS = TensorDataset(*train_tensors)
-    val_tensors = [t[val] for t in tensors]
     val_DS = TensorDataset(*val_tensors)
 
     train_DL = DataLoader(
