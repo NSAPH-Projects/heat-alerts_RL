@@ -55,13 +55,12 @@ class NN_logit(nn.Module):
         return self.net(x) 
 
 class Logit_Lightning(pl.LightningModule):
-    def __init__(self, n_col, config, b_size, lr,  optimizer="adam", momentum=0.0, **kwargs) -> None:
+    def __init__(self, n_col, config, b_size, lr,  optimizer="adam", **kwargs) -> None:
         super().__init__()
         assert optimizer in ("adam", "sgd")
         self.save_hyperparameters()
         self.loss_fn = F.binary_cross_entropy_with_logits
         self.optimizer_fn = optimizer
-        self.momentum = momentum
         self.net = NN_logit(n_col, config["n_hidden"], config["dropout_prob"])
         # self.target_net.eval()  # in case using layer normalization
         self.b_size = b_size
@@ -74,9 +73,9 @@ class Logit_Lightning(pl.LightningModule):
         return preds, a.float()
     def configure_optimizers(self):
         if self.optimizer_fn == "adam":
-            optimizer = optim.Adam(self.net.parameters(), lr = self.lr, betas=(self.momentum, 0.9), eps=1e-4, weight_decay=self.w_decay)
+            optimizer = optim.Adam(self.net.parameters(), lr = self.lr, eps=1e-4, weight_decay=self.w_decay)
         elif self.optimizer_fn == "sgd":
-            optimizer = optim.SGD(self.net.parameters(), lr = self.lr, momentum=self.momentum, weight_decay=self.w_decay)
+            optimizer = optim.SGD(self.net.parameters(), lr = self.lr, weight_decay=self.w_decay)
         return optimizer
     def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor], b_idx): # latter is batch index
         preds, targets = self.make_pred_and_targets(batch)
@@ -106,6 +105,7 @@ def train_model(config, params, state_dim, train_DL, val_DL):
         auto_lr_find=True,
         callbacks=[TuneReportCallback(metrics, on="validation_end")]
     )
+    trainer.tune(model, train_DL, val_DL)
     trainer.fit(model, train_DL, val_DL)
     
     # torch.save(model, "Fall_results/" + params['model_name'] + ".pt")
@@ -119,9 +119,8 @@ params = {
     "b_size": 2048,
     "n_hidden": 256,
     "lr": 0.003,
-    "mtm": 0.0,
     "n_gpus": 1,
-    "n_epochs": 200,
+    "n_epochs": 2, # 200,
     "xpt_name": "tuning-hypers_alerts_model",
     "model_name": "alerts_sgd_003",
     "silent": False,

@@ -27,7 +27,7 @@ Val_Loss<- DF[seq(1,nrow(DF),2),1]
 Train_Loss<- DF[seq(2,nrow(DF),2),5]
 Epoch<- 1:length(Val_Loss)
 
-DF<- read.csv("lightning_logs/test_NN_alerts/version_2/metrics.csv")
+DF<- read.csv("lightning_logs/test_NN_alerts/version_3/metrics.csv")
 
 Val_Loss<- DF[seq(1,nrow(DF),2),1]
 Train_Loss<- DF[seq(2,nrow(DF),2),4]

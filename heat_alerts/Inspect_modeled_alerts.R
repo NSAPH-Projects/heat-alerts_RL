@@ -18,6 +18,7 @@ tab[1,1]/sum(tab[,1])
 ### Looking at probability constraint:
 
 allow<- ahat >= 0.01
+allow<- ahat >= 0.0001
 mean(allow) 
 
 data<- read.csv("data/Train_smaller-for-Python.csv")
@@ -39,5 +40,5 @@ plot(budget, tot_allow$allow, col = Validation[seq(1, length(A), 152)])
 abline(0,1)
 
 Over<- data.frame(Budget = budget, Allowed = tot_allow$allow)[which(budget > tot_allow$allow),]
-
-
+Over$Diff<- Over$Budget - Over$Allowed
+Over[order(Over$Diff, decreasing=TRUE),]

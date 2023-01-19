@@ -55,14 +55,13 @@ class my_NN(nn.Module):
         return step1 - F.softplus(self.lsigma)*self.randeff[id]#.unsqueeze(1) 
 
 class DQN_Lightning(pl.LightningModule):
-    def __init__(self, n_col, config, n_randeff, N, b_size, lr, loss="huber",  optimizer="adam", momentum=0.0, **kwargs) -> None:
+    def __init__(self, n_col, config, n_randeff, N, b_size, lr, loss="huber",  optimizer="adam", **kwargs) -> None:
         super().__init__()
         assert loss in ("huber", "mse")
         assert optimizer in ("adam", "sgd")
         self.save_hyperparameters()
         self.loss_fn = F.smooth_l1_loss if loss=="huber" else F.mse_loss
         self.optimizer_fn = optimizer
-        self.momentum = momentum
         self.net = my_NN(n_col, config["n_hidden"], config["dropout_prob"], n_randeff)
         # self.target_net.eval()  # in case using layer normalization
         self.N = N
@@ -78,9 +77,9 @@ class DQN_Lightning(pl.LightningModule):
         return Preds, r
     def configure_optimizers(self):
         if self.optimizer_fn == "adam":
-            optimizer = optim.Adam(self.net.parameters(), lr = self.lr, betas=(self.momentum, 0.9), eps=1e-4, weight_decay=self.w_decay)
+            optimizer = optim.Adam(self.net.parameters(), lr = self.lr, eps=1e-4, weight_decay=self.w_decay)
         elif self.optimizer_fn == "sgd":
-            optimizer = optim.SGD(self.net.parameters(), lr = self.lr, momentum=self.momentum, weight_decay=self.w_decay)
+            optimizer = optim.SGD(self.net.parameters(), lr = self.lr, weight_decay=self.w_decay)
         return optimizer
     def prior(self):
         re = self.net.randeff
@@ -184,6 +183,7 @@ def main(params):
         auto_lr_find=True
         # precision=16, amp_backend="native"
     )
+    trainer.tune(model, train_DL, val_DL)
     trainer.fit(model, train_DL, val_DL)
     
     torch.save(model, "Fall_results/" + params['model_name'] + ".pt")
@@ -211,7 +211,6 @@ if __name__ == "__main__":
     parser.add_argument("--b_size", type=int, default=2048, help="size of the batches")
     parser.add_argument("--n_hidden", type=int, default=256, help="number of params in DQN hidden layers")
     parser.add_argument("--lr", type=float, default=0.003, help="learning rate")
-    parser.add_argument("--mtm", type=float, default=0.0, help="momentum")
     parser.add_argument("--n_gpus", type=int, default=1, help="number of gpus")
     parser.add_argument("--n_epochs", type=int, default=5000, help="number of epochs to run")
     parser.add_argument("--xpt_name", type=str, default="test", help="name for the experiment log")
