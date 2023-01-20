@@ -19,19 +19,19 @@ ggplot(DQN, aes(x=epoch, y=epoch_loss)) + geom_line() +
 
 ### Validation vs Training, Rewards and Alerts Models
 
-DF<- read.csv("lightning_logs/R_tuned_deaths_adam_mse/version_3/metrics.csv")
-DF<- read.csv("lightning_logs/R_tuned_hosps_adam_mse/version_3/metrics.csv")
-DF<- read.csv("lightning_logs/R_tuned_other-hosps_adam_mse/version_3/metrics.csv")
+DF<- read.csv("lightning_logs/R_tuned_deaths_adam_mse/version_5/metrics.csv")
+DF<- read.csv("lightning_logs/R_tuned_hosps_adam_mse/version_5/metrics.csv")
+DF<- read.csv("lightning_logs/R_tuned_other-hosps_adam_mse/version_5/metrics.csv")
 
 Val_Loss<- DF[seq(1,nrow(DF),2),1]
 Train_Loss<- DF[seq(2,nrow(DF),2),5]
 Epoch<- 1:length(Val_Loss)
 
-DF<- read.csv("lightning_logs/test_NN_alerts/version_3/metrics.csv")
-
-Val_Loss<- DF[seq(1,nrow(DF),2),1]
-Train_Loss<- DF[seq(2,nrow(DF),2),4]
-Epoch<- 1:length(Val_Loss)
+# DF<- read.csv("lightning_logs/test_NN_alerts/version_3/metrics.csv")
+# 
+# Val_Loss<- DF[seq(1,nrow(DF),2),1]
+# Train_Loss<- DF[seq(2,nrow(DF),2),4]
+# Epoch<- 1:length(Val_Loss)
 
 
 Plot_df<- data.frame(Epoch, Train_Loss, Val_Loss)[-1,]

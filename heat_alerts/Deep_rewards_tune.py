@@ -53,6 +53,8 @@ class my_NN(nn.Module):
         )
         self.randeff = nn.Parameter(torch.zeros(n_randeff).to("cuda"))
         self.lsigma = nn.Parameter(torch.tensor(0.0).to("cuda"))
+        self.randeff_slopes = nn.Parameter(torch.zeros(n_randeff).to("cuda"))
+        self.lsigma_slopes = nn.Parameter(torch.tensor(0.0).to("cuda"))
         # self.rePrior = torch.distributions.Normal(0, F.softplus(self.lsigma))
         # self.sigmaPrior = torch.distributions.HalfCauchy(1.0)
     def forward(self, x, id):
@@ -60,7 +62,7 @@ class my_NN(nn.Module):
         # print(step1)
         # print(self.randeff[id])
         # print(step1 + self.randeff[id])
-        return step1 - F.softplus(self.lsigma)*self.randeff[id]#.unsqueeze(1) 
+        return step1
 
 class DQN_Lightning(pl.LightningModule):
     def __init__(self, n_col, config, n_randeff, N, b_size, lr, loss="huber",  optimizer="adam", **kwargs) -> None:
@@ -80,8 +82,14 @@ class DQN_Lightning(pl.LightningModule):
     def make_pred_and_targets(self, batch):
         s, a, r, s1, ee, o, id = batch
         # preds = self.net(s).gather(1, a.view(-1, 1)).view(-1)
-        preds = -F.softplus(self.net(s, id))
-        Preds = torch.where(a == 0, preds[:,1] + preds[:,0], preds[:,1])
+        preds = self.net(s, id)
+        random_slopes = F.softplus(self.net.lsigma_slopes)*self.net.randeff_slopes[id]
+        Preds = torch.where(a == 0, preds[:,0], preds[:,0] + preds[:,1] + random_slopes)
+        Preds = Preds + F.softplus(self.net.lsigma)*self.net.randeff[id]
+        Preds = -torch.exp(Preds)
+        # preds = -F.softplus(self.net(s, id))
+        # Preds = torch.where(a == 0, preds[:,1] + preds[:,0], preds[:,1])
+        # Preds = Preds - F.softplus(self.lsigma)*self.randeff[id]#.unsqueeze(1) 
         return Preds, r
     def configure_optimizers(self):
         if self.optimizer_fn == "adam":
@@ -94,9 +102,13 @@ class DQN_Lightning(pl.LightningModule):
         lsig = self.net.lsigma
         loss1 = -torch.distributions.Normal(0, 1).log_prob(re)
         loss2 = -torch.distributions.HalfCauchy(1.0).log_prob(F.softplus(lsig))
+        re_s = self.net.randeff_slopes
+        lsig_s = self.net.lsigma_slopes
+        loss3 = -torch.distributions.Normal(0, 1).log_prob(re_s)
+        loss4 = -torch.distributions.HalfCauchy(1.0).log_prob(F.softplus(lsig_s))
         # print(F.softplus(lsig))
-        print(loss1.sum() + loss2)
-        return loss1.sum() + loss2
+        #print(loss1.sum() + loss2)
+        return loss1.sum() + loss2 + loss3.sum() + loss4
     def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor], b_idx): # latter is batch index
         preds, targets = self.make_pred_and_targets(batch)
         loss = self.loss_fn(preds, targets) + (1/self.N)*self.prior()
@@ -202,12 +214,12 @@ val_DL = DataLoader(
 ## Set up hyperparameter tuning:
 
 config = {
-    # "dropout_prob": tune.grid_search([0.0, 0.1, 0.25, 0.5, 0.75]),
-    "dropout_prob": tune.grid_search([0.1, 0.25, 0.5, 0.75]),
-    # "n_hidden": tune.grid_search([32, 64, 128, 256]),
-    "n_hidden": 256,
+    "dropout_prob": tune.grid_search([0.0, 0.1, 0.25, 0.5, 0.75]),
+    "n_hidden": tune.grid_search([32, 64, 128, 256]),
+    # "n_hidden": 256,
     # "w_decay": tune.grid_search([1e-3, 1e-4, 1e-5])
-    "w_decay": 1e-4
+    # "w_decay": 1e-4
+    "w_decay": 0.0
 }
 
 trainable = tune.with_parameters(
@@ -232,7 +244,7 @@ analysis = tune.run(
 
 print(analysis.best_config)
 
-torch.save(analysis, "Fall_results/R_model_tuning_DP.pt")
+torch.save(analysis, "Fall_results/R_model_tuning_DP-NH.pt")
 
 # Analysis = torch.load("Fall_results/R_model_tuning_DP-NH-WD.pt")
 # # dir(Analysis)
