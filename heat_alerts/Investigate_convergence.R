@@ -27,16 +27,16 @@ Val_Loss<- DF[seq(1,nrow(DF),2),1]
 Train_Loss<- DF[seq(2,nrow(DF),2),5]
 Epoch<- 1:length(Val_Loss)
 
-# DF<- read.csv("lightning_logs/test_NN_alerts/version_3/metrics.csv")
-# 
-# Val_Loss<- DF[seq(1,nrow(DF),2),1]
-# Train_Loss<- DF[seq(2,nrow(DF),2),4]
-# Epoch<- 1:length(Val_Loss)
+DF<- read.csv("lightning_logs/test_NN_alerts/version_8/metrics.csv")
+
+Val_Loss<- DF[seq(1,nrow(DF),2),1]
+Train_Loss<- DF[seq(2,nrow(DF),2),4]
+Epoch<- 1:length(Val_Loss)
 
 
 Plot_df<- data.frame(Epoch, Train_Loss, Val_Loss)[-1,]
 
-ggplot(Plot_df, aes(x=Epoch)) + geom_line(aes(y=Train_Loss)) + 
+ggplot(Plot_df[450:nrow(Plot_df),], aes(x=Epoch)) + geom_line(aes(y=Train_Loss)) + 
   geom_line(aes(y=Val_Loss), col = "blue") +
   ylab("Loss") + ggtitle("Model Convergence")
 

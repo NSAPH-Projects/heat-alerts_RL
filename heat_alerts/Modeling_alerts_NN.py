@@ -112,11 +112,12 @@ def main(params):
     train_data = [d[train] for d in shuffled]
     val_data = [d[val] for d in shuffled]
 
-    nm = NearMiss()
-  
-    S_train_miss, A_train_miss = nm.fit_resample(train_data[0], train_data[1].ravel())
+    # nm = NearMiss(sampling_strategy=0.5)
 
-    train_tensors = [torch.FloatTensor(S_train_miss), torch.LongTensor(A_train_miss)]
+    # S_train_miss, A_train_miss = nm.fit_resample(train_data[0], train_data[1].ravel())
+
+    # train_tensors = [torch.FloatTensor(S_train_miss), torch.LongTensor(A_train_miss)]
+    train_tensors = [torch.FloatTensor(train_data[0]), torch.LongTensor(train_data[1])]
     val_tensors = [torch.FloatTensor(val_data[0]), torch.LongTensor(val_data[1])]
 
     train_DS = TensorDataset(*train_tensors)
@@ -137,9 +138,9 @@ def main(params):
     )
 
     config = { # results from tuning
-        "dropout_prob": 0.25,
+        "dropout_prob": 0.5,
         "n_hidden": 64,
-        "w_decay": 1e-4
+        "w_decay": 0.0
     }
 
     model = Logit_Lightning(state_dim, config, **params)
@@ -162,12 +163,13 @@ def main(params):
     
     torch.save(model, "Fall_results/" + params['model_name'] + ".pt")
 
-    # model = torch.load("Fall_results/R_12-29_deaths.pt", map_location=torch.device('cpu'))
+    # model = torch.load("Fall_results/Alerts_model_1-20.pt", map_location=torch.device('cpu'))
     
     s = torch.FloatTensor(S.drop("index", axis = 1).to_numpy())
     model.eval() # turns off dropout for the predictions
     a_hat = model.net(s)
-    A_hat = torch.exp(a_hat) # gives odds
+    # A_hat = torch.exp(a_hat) # gives odds
+    A_hat = F.softplus(a_hat) # gives truncated odds
     A_hat_prob = A_hat / (1 + A_hat) # gives probabilities
     a = A_hat_prob.detach().numpy()
     df = pd.DataFrame(a)

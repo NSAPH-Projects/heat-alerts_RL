@@ -10,7 +10,7 @@ import random
 import pandas as pd
 from scipy.special import expit, softmax
 from random import sample
-from imblearn.under_sampling import NearMiss
+# from imblearn.under_sampling import NearMiss
 
 import torch 
 from torch import nn # creating modules
@@ -121,7 +121,7 @@ params = {
     "n_hidden": 256,
     "lr": 0.003,
     "n_gpus": 1,
-    "n_epochs": 200,
+    "n_epochs": 500,
     "xpt_name": "tuning-hypers_alerts_model",
     "model_name": "alerts_sgd_003",
     "silent": False,
@@ -146,11 +146,12 @@ val = list(set(list(range(0,N))) - set(train))
 train_data = [d[train] for d in shuffled]
 val_data = [d[val] for d in shuffled]
 
-nm = NearMiss()
+# nm = NearMiss(sampling_strategy=0.5)
 
-S_train_miss, A_train_miss = nm.fit_resample(train_data[0], train_data[1].ravel())
+# S_train_miss, A_train_miss = nm.fit_resample(train_data[0], train_data[1].ravel())
 
-train_tensors = [torch.FloatTensor(S_train_miss), torch.LongTensor(A_train_miss)]
+# train_tensors = [torch.FloatTensor(S_train_miss), torch.LongTensor(A_train_miss)]
+train_tensors = [torch.FloatTensor(train_data[0]), torch.LongTensor(train_data[1])]
 val_tensors = [torch.FloatTensor(val_data[0]), torch.LongTensor(val_data[1])]
 
 train_DS = TensorDataset(*train_tensors)
@@ -177,7 +178,7 @@ config = {
     "n_hidden": tune.grid_search([32, 64, 128, 256]),
     # "n_hidden": 256,
     # "w_decay": tune.grid_search([1e-3, 1e-4, 1e-5])
-    "w_decay": 1e-4
+    "w_decay": 0.0
 }
 
 trainable = tune.with_parameters(
