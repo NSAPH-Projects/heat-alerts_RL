@@ -18,10 +18,7 @@ tab[1,1]/sum(tab[,1])
 
 ### Looking at probability constraint:
 
-allow<- ahat >= 0.1
 allow<- ahat >= 0.01
-allow<- ahat >= 0.0001
-allow<- ahat > 0.00000001
 mean(allow) 
 Tab<- table(data.frame(Obs=A, Preds=allow))
 Tab

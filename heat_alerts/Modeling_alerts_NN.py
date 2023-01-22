@@ -139,7 +139,7 @@ def main(params):
 
     config = { # results from tuning
         "dropout_prob": 0.5,
-        "n_hidden": 64,
+        "n_hidden": 256,
         "w_decay": 0.0
     }
 
@@ -168,8 +168,8 @@ def main(params):
     s = torch.FloatTensor(S.drop("index", axis = 1).to_numpy())
     model.eval() # turns off dropout for the predictions
     a_hat = model.net(s)
-    # A_hat = torch.exp(a_hat) # gives odds
-    A_hat = F.softplus(a_hat) # gives truncated odds
+    A_hat = torch.exp(a_hat) # gives odds
+    # A_hat = F.softplus(a_hat) # gives truncated odds
     A_hat_prob = A_hat / (1 + A_hat) # gives probabilities
     a = A_hat_prob.detach().numpy()
     df = pd.DataFrame(a)

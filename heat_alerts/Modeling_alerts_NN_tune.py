@@ -121,7 +121,7 @@ params = {
     "n_hidden": 256,
     "lr": 0.003,
     "n_gpus": 1,
-    "n_epochs": 500,
+    "n_epochs": 200,
     "xpt_name": "tuning-hypers_alerts_model",
     "model_name": "alerts_sgd_003",
     "silent": False,
@@ -205,7 +205,7 @@ print(analysis.best_config)
 
 torch.save(analysis, "Fall_results/Alerts_model_tuning_DP-NH.pt")
 
-# Analysis = torch.load("Fall_results/R_model_tuning_DP-NH-WD.pt")
+# Analysis = torch.load("Fall_results/Alerts_model_tuning_DP-NH.pt")
 # # dir(Analysis)
 # Analysis.best_config
 # Analysis.results_df
