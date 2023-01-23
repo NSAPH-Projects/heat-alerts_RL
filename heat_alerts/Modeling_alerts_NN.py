@@ -138,9 +138,9 @@ def main(params):
     )
 
     config = { # results from tuning
-        "dropout_prob": 0.5,
+        "dropout_prob": 0.0,
         "n_hidden": 256,
-        "w_decay": 0.0
+        "w_decay": 1e-4
     }
 
     model = Logit_Lightning(state_dim, config, **params)

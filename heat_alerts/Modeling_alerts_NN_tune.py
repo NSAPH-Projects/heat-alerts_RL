@@ -178,7 +178,7 @@ config = {
     "n_hidden": tune.grid_search([32, 64, 128, 256]),
     # "n_hidden": 256,
     # "w_decay": tune.grid_search([1e-3, 1e-4, 1e-5])
-    "w_decay": 0.0
+    "w_decay": 1e-4
 }
 
 trainable = tune.with_parameters(
@@ -203,9 +203,9 @@ analysis = tune.run(
 
 print(analysis.best_config)
 
-torch.save(analysis, "Fall_results/Alerts_model_tuning_DP-NH.pt")
+torch.save(analysis, "Fall_results/Alerts_model_tuning_DP-NH_nz-WD.pt")
 
-# Analysis = torch.load("Fall_results/Alerts_model_tuning_DP-NH.pt")
+# Analysis = torch.load("Fall_results/Alerts_model_tuning_DP-NH_nz-WD.pt")
 # # dir(Analysis)
 # Analysis.best_config
 # Analysis.results_df

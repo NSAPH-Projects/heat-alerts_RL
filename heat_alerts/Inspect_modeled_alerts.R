@@ -1,7 +1,7 @@
 
 load("data/Small_S-A-R_prepped.RData")
 
-ahat<- read.csv("Fall_results/Alerts_model_1-17.csv")[,2]
+ahat<- read.csv("Fall_results/Alerts_model_1-23.csv")[,2]
 
 summary(ahat)
 
