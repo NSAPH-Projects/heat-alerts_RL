@@ -119,6 +119,7 @@ def make_data(
             ep_end = ep_end, over = over, near_zero = near_zero, ID = ID,
             Budget = Budget, n_seq_s = n_seq_s,
             s_means = s_means, s_stds = s_stds,
+            R_deaths = R_deaths, R_all_hosps = R_all_hosps, R_other_hosps = R_other_hosps,
             deaths_shift = deaths_shift, deaths_scale = deaths_scale, 
             all_hosps_shift = all_hosps_shift, all_hosps_scale = all_hosps_scale,
             other_hosps_shift = other_hosps_shift, other_hosps_scale = other_hosps_scale

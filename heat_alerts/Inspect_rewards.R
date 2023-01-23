@@ -12,7 +12,7 @@ Data<- DF
 pred_deaths<- read.csv("Fall_results/R_1-13_deaths.csv")#*1000
 Pred_deaths<- sapply(1:length(A), function(i) pred_deaths[i,A[i]+2])
 # Pred_deaths[which(Pred_deaths > 0)]<- 0
-pred_OH<- read.csv("Fall_results/R_1-13_other-hosps.csv")#*1000
+pred_OH<- read.csv("Fall_results/R_1-23_other-hosps.csv")#*1000
 Pred_OH<- sapply(1:length(A), function(i) pred_OH[i,A[i]+2])
 pred_hosps<- read.csv("Fall_results/R_1-13_all-hosps.csv")#*1000
 Pred_hosps<- sapply(1:length(A), function(i) pred_hosps[i,A[i]+2])
@@ -61,9 +61,11 @@ abline(0,1)
 
 ## With covariates:
 
-ggplot(data.frame(Data, Pred_deaths)[samp,], 
-       aes(x=quant_HI_county, y=Pred_deaths, col = A[samp], alpha=0.5)) +
-  geom_point() + geom_smooth() + scale_color_viridis()
+plot_DF<- data.frame(Data, Pred_deaths)[samp,]
+ggplot(plot_DF, 
+       aes(x=quant_HI_county, y=Pred_deaths, col = alert, alpha=0.5)) +
+  geom_point() + geom_smooth(data=subset(plot_DF, alert == 0), col = "red") +
+  scale_color_viridis()
 
 ggplot(data.frame(Data, Pred_deaths)[samp,], 
        aes(x=quant_HI_county, y=Pred_deaths, col = quant_HI_yest_county, alpha=0.5)) +
@@ -107,9 +109,11 @@ ggplot(data.frame(Data, Pred_deaths)[samp,],
 
 
 
-ggplot(data.frame(Data, Pred_hosps)[samp,], 
-       aes(x=quant_HI_county, y=Pred_hosps, col = A[samp], alpha=0.5)) +
-  geom_point() + geom_smooth() + scale_color_viridis()
+plot_DF<- data.frame(Data, Pred_hosps)[samp,]
+ggplot(plot_DF, 
+       aes(x=quant_HI_county, y=Pred_hosps, col = alert, alpha=0.5)) +
+  geom_point() + geom_smooth(data=subset(plot_DF, alert == 0), col = "red") +
+  scale_color_viridis()
 
 ggplot(data.frame(Data, Pred_hosps)[samp,], 
        aes(x=quant_HI_county, y=Pred_hosps, col = quant_HI_yest_county, alpha=0.5)) +
@@ -151,10 +155,11 @@ ggplot(data.frame(Data, Pred_hosps)[samp,],
        aes(x=quant_HI_county, y=Pred_hosps, col = all_hosp_mean_rate, alpha=0.5)) +
   geom_point() + scale_color_viridis()
 
-
-ggplot(data.frame(Data, Pred_OH)[samp,], 
-       aes(x=quant_HI_county, y=Pred_OH, col = A[samp], alpha=0.5)) +
-  geom_point() + geom_smooth() + scale_color_viridis()
+plot_DF<- data.frame(Data, Pred_OH)[samp,]
+ggplot(plot_DF, 
+       aes(x=quant_HI_county, y=Pred_OH, col = alert, alpha=0.5)) +
+  geom_point() + geom_smooth(data=subset(plot_DF, alert == 0), col = "red") +
+  scale_color_viridis()
 
 ggplot(data.frame(Data, Pred_OH)[samp,], 
        aes(x=quant_HI_county, y=Pred_OH, col = quant_HI_yest_county, alpha=0.5)) +
