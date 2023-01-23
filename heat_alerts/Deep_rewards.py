@@ -201,7 +201,7 @@ def main(params):
     
     torch.save(model, "Fall_results/" + params['model_name'] + ".pt")
 
-    # model = torch.load("Fall_results/R_12-29_deaths.pt", map_location=torch.device('cpu'))
+    # Model = torch.load("Fall_results/R_1-23_other-hosps.pt", map_location=torch.device('cpu'))
     
     s = torch.FloatTensor(S.drop("index", axis = 1).to_numpy())
     id = torch.LongTensor(pd.DataFrame(ID).to_numpy())
@@ -209,7 +209,7 @@ def main(params):
     r_hat = model.net(s,id)
     random_slopes = F.softplus(model.net.lsigma_slopes)*model.net.randeff_slopes[id]
     R_hat = r_hat
-    R_hat[:,1] = R_hat[:,0] + R_hat[:,1] + random_slopes
+    R_hat[:,1] = R_hat[:,0] + R_hat[:,1] + random_slopes[:,0]
     R_hat = R_hat + F.softplus(model.net.lsigma)*model.net.randeff[id]
     R_hat = -torch.exp(R_hat)
     # R_hat = -F.softplus(r_hat)
