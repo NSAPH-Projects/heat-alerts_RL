@@ -210,10 +210,10 @@ summer = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,i
 # policy = pd.read_csv("Fall_results/DQN_" + name + "_constrained_policy.csv")["policy"]
 # policy = D["A"]
 # name = "NWS_behavior"
-policy = A
+policy = pd.DataFrame(np.zeros(len(ID)))
 dqn = "get_new_post_run"
 DQN = False
-name = "NWS"
+name = "No_alerts_hosps-only"
 
 Policy = np.zeros(len(ID))
 Deaths = np.zeros(len(ID))
@@ -240,7 +240,7 @@ for i in range(0, max(summer)): # test with i=6 for nonzero constraint
         new_s["alert_sum"] = (alerts - s_means["alert_sum"])/s_stds["alert_sum"]
         new_s["More_alerts"] = (Constraint.iloc[p] - alerts - s_means["More_alerts"])/s_stds["More_alerts"]
         ## Update past health outcomes based on new data:
-        new_s["death_mean_rate"] = (death_rate_sum/(d+1) - s_means["death_mean_rate"])/s_stds["death_mean_rate"]
+        # new_s["death_mean_rate"] = (death_rate_sum/(d+1) - s_means["death_mean_rate"])/s_stds["death_mean_rate"]
         new_s["all_hosp_mean_rate"] = (hosp_rate_sum/(d+1) - s_means["all_hosp_mean_rate"])/s_stds["all_hosp_mean_rate"]
         new_s["heat_hosp_mean_rate"] = ((hosp_rate_sum - other_hosp_rate_sum)/(d+1) - s_means["heat_hosp_mean_rate"])/s_stds["heat_hosp_mean_rate"]
         v1 = torch.FloatTensor(new_s)

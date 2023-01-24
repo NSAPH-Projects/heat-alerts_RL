@@ -77,6 +77,7 @@ Mod2<- read.csv("Fall_results/Estimated_rewards_NWS_policy.csv")
 ## New policies:
 
 None<- read.csv("Fall_results/Estimated_rewards_No_alerts_policy.csv")
+None_b<- read.csv("Fall_results/Estimated_rewards_No_alerts_hosps-only_policy.csv")
 
 #### Discounted:
 
@@ -84,8 +85,10 @@ Observed_NWS<- get_OPE(R_deaths[,1], R_all_hosps[,1], R_other_hosps[,1])
 Modeled_NWS<- get_OPE(Pred_deaths, Pred_hosps, Pred_OH)
 Mod2_NWS<- get_OPE(Mod2$X0, Mod2$X1, Mod2$X2)
 No_alerts<- get_OPE(None$X0, None$X1, None$X2)
+No_alerts_b<- get_OPE(None_b$X0, None_b$X1, None_b$X2)
 
-results<- data.frame(Observed_NWS, Modeled_NWS, Mod2_NWS, No_alerts)
+results<- data.frame(Observed_NWS, Modeled_NWS, Mod2_NWS,
+                     No_alerts, No_alerts_b)
 Results<- t(results)
 colnames(Results)<- c("Deaths", "All hospitalizations", "Non-heat hospitalizations")
 Results
@@ -113,8 +116,10 @@ Observed_NWS_nd<- get_OPE(R_deaths[,1], R_all_hosps[,1], R_other_hosps[,1],
 Modeled_NWS_nd<- get_OPE(Pred_deaths, Pred_hosps, Pred_OH, discount = FALSE)
 Mod2_NWS_nd<- get_OPE(Mod2$X0, Mod2$X1, Mod2$X2, discount = FALSE)
 No_alerts_nd<- get_OPE(None$X0, None$X1, None$X2, discount = FALSE)
+No_alerts_nd_b<- get_OPE(None_b$X0, None_b$X1, None_b$X2, discount = FALSE)
 
-results_nd<- data.frame(Observed_NWS_nd, Modeled_NWS_nd, Mod2_NWS_nd, No_alerts_nd)
+results_nd<- data.frame(Observed_NWS_nd, Modeled_NWS_nd, Mod2_NWS_nd,
+                        No_alerts_nd, No_alerts_nd_b)
 Results_nd<- t(results_nd)
 colnames(Results_nd)<- c("Deaths", "All hospitalizations", "Non-heat hospitalizations")
 Results_nd
