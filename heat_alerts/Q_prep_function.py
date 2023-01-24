@@ -13,7 +13,7 @@ from scipy.special import expit, softmax
 def make_data(
     filename="data/Train_smaller-for-Python.csv", 
     # budget_file="data/Over_budget_S_t3.csv",
-    prob_constraint="Fall_results/BART_preds_near-zero_11-20.csv",
+    # prob_constraint="Fall_results/BART_preds_near-zero_11-20.csv",
     data_only=True,
     outcome="deaths"
 ):
@@ -90,7 +90,9 @@ def make_data(
 
     ## Get behavior policy probability constraint:
     # near_zero = pd.read_csv(prob_constraint).drop(n_seq_s)
-    near_zero = pd.read_csv(prob_constraint)
+    # near_zero = pd.read_csv(prob_constraint)
+    behav_prob = pd.read_csv("Fall_results/Alerts_model_1-23.csv")
+    near_zero = (np.array(behav_prob)[:,1] >= 0.01).astype(int)
 
     ## Get county-year IDs:
     # ID = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,int(S.shape[0]/(n_days-1)))]))
