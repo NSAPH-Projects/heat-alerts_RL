@@ -92,7 +92,7 @@ def make_data(
     # near_zero = pd.read_csv(prob_constraint).drop(n_seq_s)
     # near_zero = pd.read_csv(prob_constraint)
     behav_prob = pd.read_csv("Fall_results/Alerts_model_1-23.csv")
-    near_zero = (np.array(behav_prob)[:,1] >= 0.01).astype(int)
+    near_zero = (np.array(behav_prob)[:,1] < 0.01).astype(int)
 
     ## Get county-year IDs:
     # ID = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,int(S.shape[0]/(n_days-1)))]))

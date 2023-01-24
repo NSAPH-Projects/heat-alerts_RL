@@ -61,7 +61,7 @@ class DQN(nn.Module):
 #     return best_Q
 
 
-class DQN_Lightning(pl.LightningModule):
+class actual_DQN_Lightning(pl.LightningModule): # change name?
     def __init__(self, n_col, n_hidden, b_size, lr, gamma, sync_rate, loss="huber",  optimizer="adam", momentum=0.0, **kwargs) -> None:
         super().__init__()
         assert loss in ("huber", "mse")
@@ -124,6 +124,7 @@ class DQN_Lightning(pl.LightningModule):
             self.target_net.load_state_dict(self.net.state_dict())
         self.training_epochs += 1
 
+
 def main(params):
     params = vars(params)
     # if isinstance(params, ArgumentParser):
@@ -134,23 +135,24 @@ def main(params):
     ## Set up data:
     if params["outcome"] == "hosps":
         D = make_data(outcome="hosps")
-        modeled_R = pd.read_csv("Fall_results/R_1-2_all-hosps.csv")
+        modeled_R = pd.read_csv("Fall_results/R_1-23_all-hosps.csv")
     elif params["outcome"] == "other_hosps":
         D = make_data(outcome="other_hosps")
-        modeled_R = pd.read_csv("Fall_results/R_1-2_other-hosps.csv")
+        modeled_R = pd.read_csv("Fall_results/R_1-23_other-hosps.csv")
     else:
         D = make_data()
-        modeled_R = pd.read_csv("Fall_results/R_1-2_deaths.csv")
+        modeled_R = pd.read_csv("Fall_results/R_1-23_deaths.csv")
         
     S,A,R,S_1,ep_end,over,near_zero = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero")]
     # R = 0.5 * (R - R.mean()) / np.max(np.abs(R))  # centered rewards in (-0.5, 0.5) stabilizes the Q function
     
     Modeled_R = torch.gather(torch.FloatTensor(modeled_R.to_numpy()), 1, torch.LongTensor(A).view(-1, 1) +1).view(-1).detach().numpy()
     
-    Modeled_R = 0.5 * (Modeled_R - Modeled_R.mean()) / np.max(np.abs(Modeled_R))
+    # Modeled_R = 0.5 * (Modeled_R - Modeled_R.mean()) / np.max(np.abs(Modeled_R))
 
     if params["prob_constraint"] == True:
-        over = over | [n for n in near_zero["x"]]
+        # over = over | [n for n in near_zero["x"]]
+        over = over | near_zero
     
     state_dim = S.drop("index", axis = 1).shape[1]
 
@@ -172,7 +174,7 @@ def main(params):
         persistent_workers=(params['n_workers'] > 0)
     )
 
-    model = DQN_Lightning(state_dim, **params)
+    model = actual_DQN_Lightning(state_dim, **params)
     logger_name = params["xpt_name"]
     logger = CSVLogger("lightning_logs", name=logger_name)
     
@@ -183,10 +185,11 @@ def main(params):
         logger = logger,
         accelerator="auto",
         devices=params["n_gpus"],
-        enable_progress_bar=(not params['silent']),
-        auto_lr_find=True
+        enable_progress_bar=(not params['silent'])
+        # auto_lr_find=True
         # precision=16, amp_backend="native"
     )
+    # trainer.tune(model, train_dataloaders=DL)
     trainer.fit(model, train_dataloaders=DL)
     
     torch.save(model, "Fall_results/" + params['model_name'] + ".pt")
