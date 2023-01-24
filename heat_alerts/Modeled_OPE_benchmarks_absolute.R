@@ -1,8 +1,6 @@
-
 library(ggplot2)
 
 ## Setup
-load("data/Small_S-A-R_prepped.RData")
 
 n_days<- 153
 H<- n_days-1
@@ -11,26 +9,35 @@ n<- length(A)/H
 gamma<- 0.999
 # Gamma<- rep(cumprod(rep(gamma, H))/gamma, n) 
 
+load("data/Small_S-A-R_prepped.RData")
+
+data<- read.csv("data/Train_smaller-for-Python.csv")
+Data<- data[-seq(n_days, nrow(data), n_days),]
+
 
 #### Benchmark:
 
 get_OPE<- function(Deaths, All_hosps, Other_hosps, discount = TRUE){
   this_n<- length(Deaths)/H
-  this_Gamma<- rep(cumprod(rep(gamma, H))/gamma, this_n) 
+  this_Gamma<- t(as.data.frame(rep(cumprod(rep(gamma, H))/gamma, this_n)))
   if(discount){
-    return(c( (this_Gamma %*% Deaths)/this_n,
-              (this_Gamma %*% All_hosps)/this_n,
-              (this_Gamma %*% Other_hosps)/this_n ))
+    return(c( (this_Gamma %*% (Deaths*Data$Pop.65))/this_n/1000,
+              (this_Gamma %*% (All_hosps*Data$total_count))/this_n/1000,
+              (this_Gamma %*% (Other_hosps*Data$total_count))/this_n/1000 ))
     
   }else{
-    return(c( sum(Deaths)/this_n,
-              sum(All_hosps)/this_n,
-              sum(Other_hosps)/this_n ))
+    return(c( sum(Deaths*Data$Pop.65/1000)/this_n,
+              sum(All_hosps*Data$total_count/1000)/this_n,
+              sum(Other_hosps*Data$total_count/1000)/this_n ))
   }
 }
 
 subset_OPE<- function(Deaths, All_hosps, Other_hosps, discount = TRUE, 
                       split_vars, breaks = NULL){
+  Deaths<- Deaths*Data$Pop.65/1000
+  All_hosps<- All_hosps*Data$total_count/1000
+  Other_hosps<- Other_hosps*Data$total_count/1000
+  
   if(is.null(breaks)){
     results<- apply(DF[,split_vars], MARGIN=2, function(y){
       pos<- which(y == 1)
@@ -92,12 +99,12 @@ Results
 
 ## Note: for the subset function, must keep together county-summers
 Zone<- subset_OPE(Pred_deaths, Pred_hosps, Pred_OH,
-           split_vars = c("ZoneCold", "ZoneHot.Dry", "ZoneHot.Humid", "ZoneMarine",
-                          "ZoneMixed.Dry", "ZoneMixed.Humid", "ZoneVery.Cold"))
+                  split_vars = c("ZoneCold", "ZoneHot.Dry", "ZoneHot.Humid", "ZoneMarine",
+                                 "ZoneMixed.Dry", "ZoneMixed.Humid", "ZoneVery.Cold"))
 
 SES<- subset_OPE(Pred_deaths, Pred_hosps, Pred_OH,
-           split_vars = "l.Med.HH.Income", 
-           breaks = quantile(DF$l.Med.HH.Income, probs=seq(0,1,length.out=11)))
+                 split_vars = "l.Med.HH.Income", 
+                 breaks = quantile(DF$l.Med.HH.Income, probs=seq(0,1,length.out=11)))
 SES$Med.HH.Income_decile<- seq(0,1,length.out=11)[-1]
 
 ggplot(SES, aes(x=Med.HH.Income_decile, y= `All hospitalizations`, col = "blue")) + 

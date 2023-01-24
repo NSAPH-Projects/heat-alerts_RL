@@ -210,10 +210,10 @@ summer = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,i
 # policy = pd.read_csv("Fall_results/DQN_" + name + "_constrained_policy.csv")["policy"]
 # policy = D["A"]
 # name = "NWS_behavior"
-policy = pd.DataFrame(np.zeros(len(ID)))
-dqn = torch.load("Fall_results/DQN_12-29_hosps_constrained.pt", map_location=torch.device('cpu'))
+policy = A
+dqn = "get_new_post_run"
 DQN = False
-name = "No_alerts"
+name = "NWS"
 
 Policy = np.zeros(len(ID))
 Deaths = np.zeros(len(ID))
@@ -279,3 +279,6 @@ for i in range(0, max(summer)): # test with i=6 for nonzero constraint
 
 DF = np.column_stack((Deaths, All_hosps, Other_hosps))
 pd.DataFrame(DF).to_csv("Fall_results/Estimated_rewards_" + name + "_policy.csv")
+if DQN == True:
+    pd.DataFrame(Policy).to_csv("Fall_results/New_policy_" + name + "_policy.csv")
+
