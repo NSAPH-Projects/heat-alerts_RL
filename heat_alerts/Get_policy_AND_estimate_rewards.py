@@ -246,8 +246,8 @@ for i in range(0, max(summer)): # test with i=6 for nonzero constraint
         v1 = torch.FloatTensor(new_s)
         ## Get new policy:
         alert_prob = get_alert_prob(alerts_model, v1.float())
-        if alert_prob >= 0.01:
-            if (DQN == True) & (alerts < Constraint.iloc[p]).all():
+        if (alert_prob >= 0.01).bool() and (alerts < Constraint.iloc[p]).bool():
+            if DQN == True:
                 output = dqn.net(v1.float()).detach().numpy()
                 if output[1] > output[0]:
                     Policy[p] = 1
@@ -263,9 +263,9 @@ for i in range(0, max(summer)): # test with i=6 for nonzero constraint
         all_hosps_1 = get_rewards(all_hosps_model, v1, this_id, all_hosps_shift, all_hosps_scale)
         other_hosps_1 = get_rewards(other_hosps_model, v1, this_id, other_hosps_shift, other_hosps_scale)
         ## Adjust observed health outcomes:
-        deaths = R_deaths[p]*1000 - deaths_0[0][A[p]] + deaths_1[0][action]
-        all_hosps = R_all_hosps[p]*1000 - all_hosps_0[0][A[p]] + all_hosps_1[0][action]
-        other_hosps = R_other_hosps[p]*1000 - other_hosps_0[0][A[p]] + other_hosps_1[0][action]
+        deaths = R_deaths.iloc[p]*1000 - deaths_0[0][A.iloc[p]] + deaths_1[0][action]
+        all_hosps = R_all_hosps.iloc[p]*1000 - all_hosps_0[0][A.iloc[p]] + all_hosps_1[0][action]
+        other_hosps = R_other_hosps.iloc[p]*1000 - other_hosps_0[0][A.iloc[p]] + other_hosps_1[0][action]
         ## Record estimated outcomes for OPE:
         Deaths[p] = deaths
         All_hosps[p] = all_hosps
