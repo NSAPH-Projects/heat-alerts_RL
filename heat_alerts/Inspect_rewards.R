@@ -107,6 +107,9 @@ ggplot(data.frame(Data, Pred_deaths)[samp,],
        aes(x=quant_HI_county, y=Pred_deaths, col = death_mean_rate, alpha=0.5)) +
   geom_point() + scale_color_viridis()
 
+ggplot(data.frame(Data, Pred_deaths)[samp,], 
+       aes(x=quant_HI_county, y=Pred_deaths, col = all_hosp_mean_rate, alpha=0.5)) +
+  geom_point() + scale_color_viridis()
 
 
 plot_DF<- data.frame(Data, Pred_hosps)[samp,]
@@ -155,6 +158,12 @@ ggplot(data.frame(Data, Pred_hosps)[samp,],
        aes(x=quant_HI_county, y=Pred_hosps, col = all_hosp_mean_rate, alpha=0.5)) +
   geom_point() + scale_color_viridis()
 
+ggplot(data.frame(Data, Pred_hosps)[samp,], 
+       aes(x=quant_HI_county, y=Pred_hosps, col = death_mean_rate, alpha=0.5)) +
+  geom_point() + scale_color_viridis()
+
+
+
 plot_DF<- data.frame(Data, Pred_OH)[samp,]
 ggplot(plot_DF, 
        aes(x=quant_HI_county, y=Pred_OH, col = alert, alpha=0.5)) +
@@ -201,6 +210,9 @@ ggplot(data.frame(Data, Pred_OH)[samp,],
        aes(x=quant_HI_county, y=Pred_OH, col = all_hosp_mean_rate, alpha=0.5)) +
   geom_point() + scale_color_viridis()
 
+ggplot(data.frame(Data, Pred_OH)[samp,], 
+       aes(x=quant_HI_county, y=Pred_OH, col = death_mean_rate, alpha=0.5)) +
+  geom_point() + scale_color_viridis()
 
 
 

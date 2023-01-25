@@ -6,7 +6,7 @@ library(ggplot2)
 # LM<- read.csv("Fall_results/LM_9-23_epoch-losses.csv")
 # DQN<- read.csv("Fall_results/DQN_10-18_epoch-losses.csv")
 # DQN<- read.csv("lightning_logs/constr_deaths_adam_huber/version_4/metrics.csv")
-DQN<- read.csv("lightning_logs/jan_constr_hosps_adam_huber/version_3/metrics.csv")
+DQN<- read.csv("lightning_logs/jan_constr_hosps_adam_huber/version_5/metrics.csv")
 # DQN<- read.csv("lightning_logs/constr_all-hosps_adam_huber/version_0/metrics.csv")
 
 
