@@ -176,6 +176,7 @@ def main(params):
     )
 
     model = actual_DQN_Lightning(state_dim, **params)
+    # model = torch.load("Fall_results/DQN_1-23_hosps.pt")
     logger_name = params["xpt_name"]
     logger = CSVLogger("lightning_logs", name=logger_name)
     
