@@ -2,6 +2,7 @@
 library(ggplot2)
 # install.packages("viridis")
 library(viridis)
+library(cowplot)
 
 load("data/Small_S-A-R_prepped.RData")
 DF$alert<- A
@@ -31,11 +32,23 @@ cor(R_deaths[,1], Pred_deaths)^2
 cor(R_all_hosps[,1], Pred_hosps)^2
 cor(R_other_hosps[,1], Pred_OH)^2
 
+sqrt(mean((R_deaths[,1] - Pred_deaths)^2)) / sd(R_deaths[,1])
+sqrt(mean((R_all_hosps[,1] - Pred_hosps)^2)) / sd(R_all_hosps[,1])
+sqrt(mean((R_other_hosps[,1] - Pred_OH)^2)) / sd(R_other_hosps[,1])
+
+mean((R_deaths[,1] - Pred_deaths)^2) / sd(R_deaths[,1])
+mean((R_all_hosps[,1] - Pred_hosps)^2) / sd(R_all_hosps[,1])
+mean((R_other_hosps[,1] - Pred_OH)^2) / sd(R_other_hosps[,1])
+
 ## Comparing effect of alerts:
 
 summary(pred_deaths$X1 - pred_deaths$X0)
 summary(pred_hosps$X1 - pred_hosps$X0)
 summary(pred_OH$X1 - pred_OH$X0)
+
+summary(pred_deaths$X1[A==1] - pred_deaths$X0[A==1])
+summary(pred_hosps$X1[A==1] - pred_hosps$X0[A==1])
+summary(pred_OH$X1[A==1] - pred_OH$X0[A==1])
 
 summary(pred_deaths$X1[A==1] - pred_deaths$X0[A==1])
 summary(pred_hosps$X1[A==1] - pred_hosps$X0[A==1])
@@ -215,7 +228,38 @@ ggplot(data.frame(Data, Pred_OH)[samp,],
   geom_point() + scale_color_viridis()
 
 
+############### Making figure(s) for paper:
+
+plot_DF_deaths<- data.frame(Data, Pred_deaths)[samp,]
+plot_DF_deaths[,"No Alert"] = as.factor(!plot_DF_deaths$alert)
+p4<- ggplot(plot_DF_deaths, 
+       aes(x=quant_HI_county, y=-Pred_deaths, col = `No Alert`)) +
+  geom_point(alpha=0.3) + geom_smooth(data=subset(plot_DF_deaths, alert == 0), col = "black") +
+  xlab("County Quantile of Heat Index") + ylab("Predicted Deaths")
+
+plot_DF_hosps<- data.frame(Data, Pred_hosps)[samp,]
+plot_DF_hosps[,"No Alert"] = as.factor(!plot_DF_hosps$alert)
+p3<- ggplot(plot_DF_hosps, 
+            aes(x=quant_HI_county, y=-Pred_hosps, col = `No Alert`)) +
+  geom_point(alpha=0.3) + geom_smooth(data=subset(plot_DF_hosps, alert == 0), col = "black") +
+  xlab("County Quantile of Heat Index") + ylab("Predicted Hosps (All HR)")
+
+plot_DF_OH<- data.frame(Data, Pred_OH)[samp,]
+plot_DF_OH[,"No Alert"] = as.factor(!plot_DF_OH$alert)
+p1<- ggplot(plot_DF_OH, 
+            aes(x=quant_HI_county, y=-Pred_OH, col = `No Alert`)) +
+  geom_point(alpha=0.3) + geom_smooth(data=subset(plot_DF_OH, alert == 0), col = "black") +
+  xlab("County Quantile of Heat Index") + ylab("Predicted Hosps (NOHR)")
+
+p2<- ggplot(data.frame(Data, Pred_OH)[samp,], 
+            aes(x=quant_HI_county, y=-Pred_OH, col = all_hosp_mean_rate)) +
+  geom_point(alpha = 0.4) + scale_color_viridis() +
+  xlab("County Quantile of Heat Index") + ylab("Predicted Hosps (NOHR)") +
+  guides(color=guide_legend(title="Hosps Mean"))
 
 
-
-
+plot_grid(p1,
+          p2,
+          p3,
+          p4,
+          nrow = 2)

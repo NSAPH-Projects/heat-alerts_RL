@@ -87,14 +87,17 @@ None<- read.csv("Fall_results/Estimated_rewards_No_alerts_policy.csv")
 Observed_NWS<- get_OPE(R_deaths[,1], R_all_hosps[,1], R_other_hosps[,1])
 Modeled_NWS<- get_OPE(Pred_deaths, Pred_hosps, Pred_OH)
 Mod2_NWS<- get_OPE(Mod2$X0, Mod2$X1, Mod2$X2)
-Mod2_NWS_b<- get_OPE(Mod2_b$X0, Mod2_b$X1, Mod2_b$X2)
-Mod2_NWS_c<- get_OPE(Mod2_c$X0, Mod2_c$X1, Mod2_c$X2)
+# Mod2_NWS_b<- get_OPE(Mod2_b$X0, Mod2_b$X1, Mod2_b$X2)
+# Mod2_NWS_c<- get_OPE(Mod2_c$X0, Mod2_c$X1, Mod2_c$X2)
 No_alerts<- get_OPE(None$X0, None$X1, None$X2)
-No_alerts_b<- get_OPE(None_b$X0, None_b$X1, None_b$X2)
-No_alerts_c<- get_OPE(None_c$X0, None_c$X1, None_c$X2)
+# No_alerts_b<- get_OPE(None_b$X0, None_b$X1, None_b$X2)
+# No_alerts_c<- get_OPE(None_c$X0, None_c$X1, None_c$X2)
 
-results<- data.frame(Observed_NWS, Modeled_NWS, Mod2_NWS, Mod2_NWS_b, Mod2_NWS_c,
-                     No_alerts, No_alerts_b, No_alerts_c)
+results<- data.frame(Observed_NWS, Modeled_NWS, Mod2_NWS,
+                     # Mod2_NWS_b, Mod2_NWS_c,
+                     No_alerts 
+                     # No_alerts_b, No_alerts_c
+                     )
 Results<- t(results)
 colnames(Results)<- c("Deaths", "All hospitalizations", "Non-heat hospitalizations")
 Results
