@@ -36,7 +36,7 @@ def set_seed(seed):
 
 ## Set up model:
 class DQN(nn.Module):
-    def __init__(self, n_col: int, n_hidden: int) -> None:
+    def __init__(self, n_col: int, n_hidden: int, n_randeff: int) -> None:
         super().__init__()
         self.net = nn.Sequential(
             nn.Linear(n_col, n_hidden),
@@ -48,22 +48,15 @@ class DQN(nn.Module):
             nn.ELU(),
             nn.Linear(n_hidden, 2)
         )
+        self.randeff = nn.Parameter(torch.zeros(n_randeff).to("cuda"))
+        self.lsigma = nn.Parameter(torch.tensor(0.0).to("cuda"))
+        self.randeff_slopes = nn.Parameter(torch.zeros(n_randeff).to("cuda"))
+        self.lsigma_slopes = nn.Parameter(torch.tensor(0.0).to("cuda"))
     def forward(self, x):
         return self.net(x)
 
-# def eval_Q_double(Q_model, Qtgt_model, S, over = None): 
-#     Q = Q_model(S) # n x 2
-#     Qtgt = Qtgt_model(S) # n x 2
-#     best_action = Q.argmax(axis=1).view(-1, 1)
-#     best_Q = torch.gather(Qtgt, 1, best_action).view(-1) # n 
-#     if over is not None:
-#         final_Q = torch.where(over, Qtgt[:,0], best_Q) # n
-#         return final_Q
-#     return best_Q
-
-
 class actual_DQN_Lightning(pl.LightningModule): # change name?
-    def __init__(self, n_col, n_hidden, b_size, lr, gamma, sync_rate, loss="huber",  optimizer="adam", momentum=0.0, **kwargs) -> None:
+    def __init__(self, n_col, n_randeff, N, n_hidden, b_size, lr, gamma, sync_rate, loss="huber",  optimizer="adam", momentum=0.0, **kwargs) -> None:
         super().__init__()
         assert loss in ("huber", "mse")
         assert optimizer in ("adam", "sgd")
@@ -71,41 +64,46 @@ class actual_DQN_Lightning(pl.LightningModule): # change name?
         self.loss_fn = F.smooth_l1_loss if loss=="huber" else F.mse_loss
         self.optimizer_fn = optimizer
         self.momentum = momentum
-        self.net = DQN(n_col, n_hidden)
-        self.target_net = DQN(n_col, n_hidden)
-        # self.target_net.eval()  # in case using layer normalization
+        self.net = DQN(n_col, n_hidden, n_randeff)
+        self.target_net = DQN(n_col, n_hidden, n_randeff)
         for p in self.target_net.parameters():
             p.requires_grad_(False)
         self.b_size = b_size
         self.lr = lr
+        self.N = N
         self.gamma = gamma
         self.sync_rate = sync_rate
         self.training_epochs = 0
     def make_pred_and_targets(self, batch):
-        s, a, r, s1, ee, o = batch
-        preds = self.net(s).gather(1, a.view(-1, 1)).view(-1)
-        # preds = self.net(s)
-        # Preds = torch.where(a == 1, preds[:,0] + torch.exp(preds[:,1]), preds[:,0])
+        s, a, r, s1, ee, o, id = batch
+        preds = self.net(s)
+        random_slopes = F.softplus(self.net.lsigma_slopes)*self.net.randeff_slopes[id]
+        Preds = torch.where(a == 0, preds[:,0], preds[:,0] + preds[:,1] + random_slopes)
+        Preds = Preds + F.softplus(self.net.lsigma)*self.net.randeff[id]
+        Preds = -torch.exp(Preds)
+        # preds = self.net(s).gather(1, a.view(-1, 1)).view(-1)
         with torch.no_grad():
-            target = r + self.gamma * (1-ee) * self.eval_Q_double(s1, o)
-        return preds, target
-    def eval_Q_double(self, S1, over = None): 
-        Q = self.net(S1)
-        Qtgt = self.target_net(S1)
+            target = r + self.gamma * (1-ee) * self.eval_Q_double(s1, id, o)
+        return Preds, target
+    def eval_Q_double(self, S1, id, over = None):
+        ## Find best action: 
+        q = self.net(S1)
+        random_slopes = F.softplus(self.net.lsigma_slopes)*self.net.randeff_slopes[id]
+        Q = q
+        Q[:,1] = q[:,0] + q[:,1] + random_slopes[:,0]
+        Q = Q + F.softplus(self.net.lsigma)*self.net.randeff[id]
+        Q = -torch.exp(Q)
         best_action = Q.argmax(axis=1)
-        # best_action = torch.gt(torch.exp(Q[:,1]), 0.01)
         if over is not None:
             best_action = torch.tensor(best_action * (1 - over))
+        ## Get Q-values from target model:
+        qtgt = self.target_net(S1)
+        Qtgt = qtgt
+        tgt_random_slopes = F.softplus(self.target_net.lsigma_slopes)*self.target_net.randeff_slopes[id]
+        Qtgt[:,1] = qtgt[:,0] + qtgt[:,1] + tgt_random_slopes[:,0]
+        Qtgt = Qtgt + F.softplus(self.target_net.lsigma)*self.target_net.randeff[id]
+        Qtgt = -torch.exp(Qtgt)
         best_Q = torch.gather(Qtgt, 1, best_action.view(-1, 1)).view(-1)
-        # summary_0 = stats.describe(Qtgt[:,0].cpu().numpy())[1:3]
-        # summary_1 = stats.describe(Qtgt[:,1].cpu().numpy())[1:3]
-        # self.log("Q0 min", summary_0[0][0], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        # self.log("Q0 max", summary_0[0][1], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        # self.log("Q0 mean", summary_0[1], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        # self.log("Q1 min", summary_1[0][0], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        # self.log("Q1 max", summary_1[0][1], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        # self.log("Q1 mean", summary_1[1], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        # best_Q = torch.where(best_action == 1, Qtgt[:,0] + torch.exp(Qtgt[:,1]), Qtgt[:,0])
         return best_Q
     def configure_optimizers(self):
         if self.optimizer_fn == "adam":
@@ -113,9 +111,19 @@ class actual_DQN_Lightning(pl.LightningModule): # change name?
         elif self.optimizer_fn == "sgd":
             optimizer = optim.SGD(self.net.parameters(), lr = self.lr, momentum=self.momentum, weight_decay=1e-4)
         return optimizer
+    def prior(self):
+        re = self.net.randeff
+        lsig = self.net.lsigma
+        loss1 = -torch.distributions.Normal(0, 1).log_prob(re)
+        loss2 = -torch.distributions.HalfCauchy(1.0).log_prob(F.softplus(lsig))
+        re_s = self.net.randeff_slopes
+        lsig_s = self.net.lsigma_slopes
+        loss3 = -torch.distributions.Normal(0, 1).log_prob(re_s)
+        loss4 = -torch.distributions.HalfCauchy(1.0).log_prob(F.softplus(lsig_s))
+        return loss1.sum() + loss2 + loss3.sum() + loss4
     def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor], b_idx): # latter is batch index
         preds, targets = self.make_pred_and_targets(batch)
-        loss = self.loss_fn(preds, targets)
+        loss = self.loss_fn(preds, targets) + (1/self.N)*self.prior()
         self.log("epoch_loss", loss, sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         bias = (preds - targets).mean()
         self.log("epoch_bias", bias, sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
@@ -144,7 +152,7 @@ def main(params):
         D = make_data()
         modeled_R = pd.read_csv("Fall_results/R_1-23_deaths.csv")
         
-    S,A,R,S_1,ep_end,over,near_zero = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero")]
+    S,A,R,S_1,ep_end,over,near_zero,ID = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero","ID")]
     # R = 0.5 * (R - R.mean()) / np.max(np.abs(R))  # centered rewards in (-0.5, 0.5) stabilizes the Q function
     
     Modeled_R = torch.gather(torch.FloatTensor(modeled_R.to_numpy()), 1, torch.LongTensor(A).view(-1, 1) +1).view(-1).detach().numpy()
@@ -159,13 +167,13 @@ def main(params):
 
     N = len(D['R'])
     perm = np.random.permutation(N)  # for preshuffling
-    data = [S.drop("index", axis = 1), A, pd.DataFrame(Modeled_R), S_1.drop("index", axis = 1), ep_end, over]
+    data = [S.drop("index", axis = 1), A, pd.DataFrame(Modeled_R), S_1.drop("index", axis = 1), ep_end, over, pd.DataFrame(ID)]
 
     # Make data loader
     tensors = [v.to_numpy()[perm] for v in data]
     for j in [0, 2, 3]: tensors[j] = torch.FloatTensor(tensors[j])
 
-    for j in [1, 4, 5]: tensors[j] = torch.LongTensor(tensors[j])
+    for j in [1, 4, 5, 6]: tensors[j] = torch.LongTensor(tensors[j])
 
     DS = TensorDataset(*tensors)
     DL = DataLoader(
@@ -175,7 +183,7 @@ def main(params):
         persistent_workers=(params['n_workers'] > 0)
     )
 
-    model = actual_DQN_Lightning(state_dim, **params)
+    model = actual_DQN_Lightning(state_dim, n_randeff = len(np.unique(ID)), N = N, **params)
     # model = torch.load("Fall_results/DQN_1-23_hosps.pt")
     logger_name = params["xpt_name"]
     logger = CSVLogger("lightning_logs", name=logger_name)

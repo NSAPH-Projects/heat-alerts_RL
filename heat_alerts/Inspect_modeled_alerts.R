@@ -1,4 +1,8 @@
 
+library(ggplot2)
+library(dplyr)
+library(viridis)
+
 load("data/Small_S-A-R_prepped.RData")
 
 ahat<- read.csv("Fall_results/Alerts_model_1-23.csv")[,2]
@@ -40,8 +44,23 @@ val<- read.csv("data/Python_val_set.csv")[,2]
 Validation<- rep(1,length(A))
 Validation[val]<- 2
 
-plot(tot_episode$alert, tot_allow$allow, col = Validation[seq(1, length(A), 152)])
-abline(0,1)
+# plot(tot_episode$alert, tot_allow$allow, col = Validation[seq(1, length(A), 152)])
+# abline(0,1)
+
+counties<- distinct(Data[,c("fips", "BA_zone")])
+
+plot_DF<- data.frame(Observed = tot_episode$alert, Allowed = tot_allow$allow, 
+                     fips = tot_allow$fips)
+Plot_DF<- inner_join(plot_DF, counties)
+names(Plot_DF)[4]<- "Climate Zone"
+Plot_DF$`Climate Zone`<- factor(Plot_DF$`Climate Zone`, 
+                                   levels = c("Very Cold", "Cold",
+                                              "Mixed-Dry", "Mixed-Humid",
+                                              "Marine", "Hot-Dry", "Hot-Humid"))
+
+ggplot(Plot_DF, aes(x=Observed, y=Allowed, col = `Climate Zone`)) + geom_point() +
+  ggtitle("Number of Alerts per County-Summer: Model vs Reality") + 
+  geom_abline(slope=1, intercept = 0) + scale_color_viridis(discrete = TRUE)
 
 Over<- data.frame(Budget = tot_episode$alert, Allowed = tot_allow$allow)[which(tot_episode$alert > tot_allow$allow),]
 Over$Diff<- Over$Budget - Over$Allowed

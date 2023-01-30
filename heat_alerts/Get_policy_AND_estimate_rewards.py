@@ -209,10 +209,10 @@ summer = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,i
 
 # name = "12-29_deaths" # eventually, switch to argparse?
 # policy = pd.read_csv("Fall_results/DQN_" + name + "_constrained_policy.csv")["policy"]
-# policy = A
-# name = "NWS"
-policy = pd.DataFrame(np.zeros(len(ID)))
-name = "No_alerts"
+policy = A
+name = "NWS"
+# policy = pd.DataFrame(np.zeros(len(ID)))
+# name = "No_alerts"
 dqn = "get_new_post_run"
 DQN = False
 
@@ -238,6 +238,13 @@ for i in range(0, max(summer)): # test with i=6 for nonzero constraint
         all_hosps_0 = get_rewards(all_hosps_model, v0, this_id, all_hosps_shift, all_hosps_scale)
         other_hosps_0 = get_rewards(other_hosps_model, v0, this_id, other_hosps_shift, other_hosps_scale)
         ## Update alert-related features based on past actions:
+        if d == 0:
+            pass
+        elif d == 1:
+            new_s["alert_lag1_1"] = Policy[p-1]
+        else:
+            new_s["alert_lag1_1"] = Policy[p-1]
+            new_s["alert_lag2_1"] = Policy[p-2]
         new_s["alert_sum"] = (alerts - s_means["alert_sum"])/s_stds["alert_sum"]
         new_s["More_alerts"] = (Constraint.iloc[p] - alerts - s_means["More_alerts"])/s_stds["More_alerts"]
         ## Update past health outcomes based on new data:
