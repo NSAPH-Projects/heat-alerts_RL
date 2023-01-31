@@ -120,9 +120,15 @@ class actual_DQN_Lightning(pl.LightningModule): # change name?
         lsig_s = self.net.lsigma_slopes
         loss3 = -torch.distributions.Normal(0, 1).log_prob(re_s)
         loss4 = -torch.distributions.HalfCauchy(1.0).log_prob(F.softplus(lsig_s))
+        print(loss1.sum())
+        print(loss2)
+        print(loss3.sum())
+        print(loss4)
+        print(loss1.sum() + loss2 + loss3.sum() + loss4)
         return loss1.sum() + loss2 + loss3.sum() + loss4
     def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor], b_idx): # latter is batch index
         preds, targets = self.make_pred_and_targets(batch)
+        print(self.loss_fn(preds, targets))
         loss = self.loss_fn(preds, targets) + (1/self.N)*self.prior()
         self.log("epoch_loss", loss, sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         bias = (preds - targets).mean()
