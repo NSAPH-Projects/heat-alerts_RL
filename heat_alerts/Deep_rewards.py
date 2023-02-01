@@ -21,6 +21,7 @@ from tqdm import tqdm
 import multiprocessing as mp
 
 from Q_prep_function import make_data
+# from heat_alerts.Q_prep_function import make_data
 
 def set_seed(seed):
     np.random.seed(seed)
@@ -133,6 +134,10 @@ def main(params):
     
     S,A,R,S_1,ep_end,over,near_zero,ID = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero","ID")]
     
+    ## Test if we need autoregressive model:
+    S = S.drop(["death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate"], axis = 1)
+    S_1 = S_1.drop(["death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate"], axis = 1)
+
     # R = 0.5 * (R - R.mean()) / np.max(np.abs(R))
 
     # R = 0.5 * R / np.max(np.abs(R))

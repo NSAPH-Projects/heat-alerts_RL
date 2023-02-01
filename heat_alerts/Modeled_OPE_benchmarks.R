@@ -75,6 +75,7 @@ Pred_hosps<- sapply(1:length(A), function(i) pred_hosps[i,A[i]+2])
 Mod2<- read.csv("Fall_results/Estimated_rewards_NWS_policy.csv")
 Mod2_b<- read.csv("Fall_results/Estimated_rewards_NWS_hosps-only_policy.csv")
 Mod2_oh<- read.csv("Fall_results/Estimated_rewards_NWS_OH-only_policy.csv")
+Mod2_nh<- read.csv("Fall_results/Estimated_rewards_NWS_no-health-history_policy.csv")
 # Mod2_c<- read.csv("Fall_results/Estimated_rewards_NWS_hosps-only-b_policy.csv")
 
 ## New policies:
@@ -82,6 +83,7 @@ Mod2_oh<- read.csv("Fall_results/Estimated_rewards_NWS_OH-only_policy.csv")
 None<- read.csv("Fall_results/Estimated_rewards_No_alerts_policy.csv")
 None_b<- read.csv("Fall_results/Estimated_rewards_No_alerts_hosps-only_policy.csv")
 None_oh<- read.csv("Fall_results/Estimated_rewards_No_alerts_OH-only_policy.csv")
+None_nh<- read.csv("Fall_results/Estimated_rewards_No_alerts_no-health-history_policy.csv")
 # None_c<- read.csv("Fall_results/Estimated_rewards_No_alerts_hosps-only-b_policy.csv")
 
 #### Discounted:
@@ -90,16 +92,20 @@ Observed_NWS<- get_OPE(R_deaths[,1], R_all_hosps[,1], R_other_hosps[,1])
 Modeled_NWS<- get_OPE(Pred_deaths, Pred_hosps, Pred_OH)
 Mod2_NWS<- get_OPE(Mod2$X0, Mod2$X1, Mod2$X2)
 Mod2_NWS_b<- get_OPE(Mod2_b$X0, Mod2_b$X1, Mod2_b$X2)
+Mod2_NWS_OH<- get_OPE(Mod2_oh$X0, Mod2_oh$X1, Mod2_oh$X2)
+Mod2_NWS_NH<- get_OPE(Mod2_nh$X0, Mod2_nh$X1, Mod2_nh$X2)
 # Mod2_NWS_c<- get_OPE(Mod2_c$X0, Mod2_c$X1, Mod2_c$X2)
 No_alerts<- get_OPE(None$X0, None$X1, None$X2)
 No_alerts_b<- get_OPE(None_b$X0, None_b$X1, None_b$X2)
+No_alerts_OH<- get_OPE(None_oh$X0, None_oh$X1, None_oh$X2)
+No_alerts_NH<- get_OPE(None_nh$X0, None_nh$X1, None_nh$X2)
 # No_alerts_c<- get_OPE(None_c$X0, None_c$X1, None_c$X2)
 
 results<- data.frame(Observed_NWS, Modeled_NWS, Mod2_NWS,
-                     Mod2_NWS_b,
+                     Mod2_NWS_b, Mod2_NWS_OH, Mod2_NWS_NH,
                      # Mod2_NWS_c,
                      No_alerts, 
-                     No_alerts_b
+                     No_alerts_b, No_alerts_OH, No_alerts_NH
                      # No_alerts_c
                      )
 Results<- t(results)
