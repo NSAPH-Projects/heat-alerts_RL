@@ -3,10 +3,10 @@
 #SBATCH -N 1
 #SBATCH -n 4
 #SBATCH -p fasse_gpu
-#SBATCH -t 0-72:00 #0-20:00
-#SBATCH --mem 32G
+#SBATCH -t 0-20:00
+#SBATCH --mem 35G
 #SBATCH --gres gpu:1
-#SBATCH --array 0-1
+#SBATCH --array 0 # 0-1
 #SBATCH -o ./Run_jobs/slurm/dqn.%a.out
 #SBATCH --mail-user=ellen_considine@g.harvard.edu
 #SBATCH --mail-type=BEGIN
