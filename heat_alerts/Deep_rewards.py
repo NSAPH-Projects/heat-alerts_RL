@@ -134,14 +134,14 @@ def main(params):
     
     S,A,R,S_1,ep_end,over,near_zero,ID = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero","ID")]
     
-    ## Test if we need autoregressive model:
-    S = S.drop(["death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate"], axis = 1)
-    S_1 = S_1.drop(["death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate"], axis = 1)
-
     # R = 0.5 * (R - R.mean()) / np.max(np.abs(R))
 
     # R = 0.5 * R / np.max(np.abs(R))
     R = R*1000
+
+    # ## Test if we need autoregressive model:
+    # S = S.drop(["death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate"], axis = 1)
+    # S_1 = S_1.drop(["death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate"], axis = 1)
     
     state_dim = S.drop("index", axis = 1).shape[1]
 
@@ -206,7 +206,7 @@ def main(params):
     
     torch.save(model, "Fall_results/" + params['model_name'] + ".pt")
 
-    # Model = torch.load("Fall_results/R_1-23_other-hosps.pt", map_location=torch.device('cpu'))
+    # model = torch.load("Fall_results/R_1-23_other-hosps.pt", map_location=torch.device('cpu'))
     
     s = torch.FloatTensor(S.drop("index", axis = 1).to_numpy())
     id = torch.LongTensor(pd.DataFrame(ID).to_numpy())
@@ -215,7 +215,8 @@ def main(params):
     random_slopes = F.softplus(model.net.lsigma_slopes)*model.net.randeff_slopes[id]
     R_hat = r_hat
     R_hat[:,1] = R_hat[:,0] + R_hat[:,1] + random_slopes[:,0]
-    R_hat = R_hat + F.softplus(model.net.lsigma)*model.net.randeff[id]
+    random_intercepts = F.softplus(model.net.lsigma)*model.net.randeff[id]
+    R_hat = R_hat + random_intercepts
     R_hat = -torch.exp(R_hat)
     # R_hat = -F.softplus(r_hat)
     # # R_hat = -torch.exp(r_hat)
@@ -226,6 +227,10 @@ def main(params):
     n = R_hat.detach().numpy()
     df = pd.DataFrame(n)
     df.to_csv("Fall_results/" + params['model_name'] + ".csv")
+    RE_df = pd.DataFrame([random_intercepts.detach().numpy()[:,0], random_slopes.detach().numpy()[:,0]])
+    RE_df = RE_df.transpose()
+    RE_df.columns = ["Rand_Ints", "Rand_Slopes"]
+    RE_df.to_csv("Fall_results/" + params['model_name'] + "_random-effects.csv")
 
 if __name__ == "__main__":
     set_seed(321)

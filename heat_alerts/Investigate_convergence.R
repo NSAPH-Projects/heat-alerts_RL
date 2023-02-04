@@ -24,9 +24,9 @@ ggplot(DQN, aes(x=epoch, y=epoch_loss)) + geom_line() +
 
 ### Validation vs Training, Rewards and Alerts Models
 
-DF<- read.csv("lightning_logs/R_tuned_deaths_poisson-like/version_0/metrics.csv")
-DF<- read.csv("lightning_logs/R_tuned_hosps_poisson-like/version_0/metrics.csv")
-DF<- read.csv("lightning_logs/R_tuned_other-hosps_poisson-like/version_0/metrics.csv")
+DF<- read.csv("lightning_logs/R_no-past_deaths_adam_mse/version_0/metrics.csv")
+DF<- read.csv("lightning_logs/R_no-past_hosps_adam_mse/version_0/metrics.csv")
+DF<- read.csv("lightning_logs/R_no-past_other-hosps_adam_mse/version_0/metrics.csv")
 
 Val_Loss<- DF[seq(1,nrow(DF),2),1]
 Train_Loss<- DF[seq(2,nrow(DF),2),5]

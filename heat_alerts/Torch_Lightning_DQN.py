@@ -50,16 +50,6 @@ class DQN(nn.Module):
     def forward(self, x):
         return self.net(x)
 
-# def eval_Q_double(Q_model, Qtgt_model, S, over = None): 
-#     Q = Q_model(S) # n x 2
-#     Qtgt = Qtgt_model(S) # n x 2
-#     best_action = Q.argmax(axis=1).view(-1, 1)
-#     best_Q = torch.gather(Qtgt, 1, best_action).view(-1) # n 
-#     if over is not None:
-#         final_Q = torch.where(over, Qtgt[:,0], best_Q) # n
-#         return final_Q
-#     return best_Q
-
 
 class actual_DQN_Lightning(pl.LightningModule): # change name?
     def __init__(self, n_col, n_hidden, b_size, lr, gamma, sync_rate, loss="huber",  optimizer="adam", momentum=0.0, **kwargs) -> None:
@@ -83,8 +73,6 @@ class actual_DQN_Lightning(pl.LightningModule): # change name?
     def make_pred_and_targets(self, batch):
         s, a, r, s1, ee, o = batch
         preds = self.net(s).gather(1, a.view(-1, 1)).view(-1)
-        # preds = self.net(s)
-        # Preds = torch.where(a == 1, preds[:,0] + torch.exp(preds[:,1]), preds[:,0])
         with torch.no_grad():
             target = r + self.gamma * (1-ee) * self.eval_Q_double(s1, o)
         return preds, target
@@ -127,8 +115,6 @@ class actual_DQN_Lightning(pl.LightningModule): # change name?
 
 def main(params):
     params = vars(params)
-    # if isinstance(params, ArgumentParser):
-    #     params = vars(params)  # convert args to dictionary 
     
     print(params["outcome"])
 
@@ -136,16 +122,23 @@ def main(params):
     if params["outcome"] == "hosps":
         D = make_data(outcome="hosps")
         modeled_R = pd.read_csv("Fall_results/R_1-23_all-hosps.csv")
+        rand_effs = pd.read_csv("Fall_results/R_1-23_all-hosps_random-effects.csv")
     elif params["outcome"] == "other_hosps":
         D = make_data(outcome="other_hosps")
         modeled_R = pd.read_csv("Fall_results/R_1-23_other-hosps.csv")
+        rand_effs = pd.read_csv("Fall_results/R_1-23_other-hosps_random-effects.csv")
     else:
         D = make_data()
         modeled_R = pd.read_csv("Fall_results/R_1-23_deaths.csv")
+        rand_effs = pd.read_csv("Fall_results/R_1-23_deaths_random-effects.csv")
         
     S,A,R,S_1,ep_end,over,near_zero = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero")]
-    # R = 0.5 * (R - R.mean()) / np.max(np.abs(R))  # centered rewards in (-0.5, 0.5) stabilizes the Q function
+    S["rand_ints"] = rand_effs["Rand_Ints"]
+    S["rand_slopes"] = rand_effs["Rand_Slopes"]
+    S_1["rand_ints"] = rand_effs["Rand_Ints"]
+    S_1["rand_slopes"] = rand_effs["Rand_Slopes"]
     
+    # R = 0.5 * (R - R.mean()) / np.max(np.abs(R))  # centered rewards in (-0.5, 0.5) stabilizes the Q function
     Modeled_R = torch.gather(torch.FloatTensor(modeled_R.to_numpy()), 1, torch.LongTensor(A).view(-1, 1) +1).view(-1).detach().numpy()
     
     # Modeled_R = 0.5 * (Modeled_R - Modeled_R.mean()) / np.max(np.abs(Modeled_R))
