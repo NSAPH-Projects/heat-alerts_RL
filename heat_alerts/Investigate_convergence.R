@@ -3,16 +3,14 @@ library(ggplot2)
 
 #### Pytorch convergence in terms of loss:
 
-# LM<- read.csv("Fall_results/LM_9-23_epoch-losses.csv")
 # DQN<- read.csv("Fall_results/DQN_10-18_epoch-losses.csv")
 # DQN<- read.csv("lightning_logs/constr_deaths_adam_huber/version_4/metrics.csv")
-DQN<- read.csv("lightning_logs/jan_constr_hosps_adam_huber/version_8/metrics.csv")
-# DQN_a<- read.csv("lightning_logs/jan_constr_hosps_adam_huber/version_5/metrics.csv")
-# DQN_b<- read.csv("lightning_logs/jan_constr_hosps_adam_huber/version_6/metrics.csv")
-# DQN_b$epoch<- 1:nrow(DQN_b) + 2499
-# DQN<- rbind(DQN_a, DQN_b)
+# DQN<- read.csv("lightning_logs/constr_hosps_adam_huber_REs/version_0/metrics.csv")
+DQN_a<- read.csv("lightning_logs/constr_hosps_adam_huber_REs/version_0/metrics.csv")
+DQN_b<- read.csv("lightning_logs/constr_hosps_adam_huber_REs/version_1/metrics.csv")
+DQN_b$epoch<- 1:nrow(DQN_b) + 999
+DQN<- rbind(DQN_a, DQN_b)
 # DQN<- read.csv("lightning_logs/constr_all-hosps_adam_huber/version_0/metrics.csv")
-
 
 
 # ggplot(LM, aes(x=X, y=Means)) + geom_line() + 

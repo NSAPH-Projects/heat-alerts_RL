@@ -139,9 +139,9 @@ def main(params):
     S_1["rand_slopes"] = rand_effs["Rand_Slopes"]
     
     # R = 0.5 * (R - R.mean()) / np.max(np.abs(R))  # centered rewards in (-0.5, 0.5) stabilizes the Q function
-    Modeled_R = torch.gather(torch.FloatTensor(modeled_R.to_numpy()), 1, torch.LongTensor(A).view(-1, 1) +1).view(-1).detach().numpy()
-    
-    # Modeled_R = 0.5 * (Modeled_R - Modeled_R.mean()) / np.max(np.abs(Modeled_R))
+    Modeled_R = torch.gather(torch.FloatTensor(modeled_R.to_numpy()), 1, torch.LongTensor(A).view(-1, 1) +1).view(-1)#.detach().numpy()
+    Modeled_R = -torch.log(-Modeled_R).detach().numpy()
+    Modeled_R = 0.5 * (Modeled_R - Modeled_R.mean()) / np.max(np.abs(Modeled_R))
 
     if params["prob_constraint"] == True:
         # over = over | [n for n in near_zero["x"]]
@@ -168,7 +168,7 @@ def main(params):
     )
 
     model = actual_DQN_Lightning(state_dim, **params)
-    # model = torch.load("Fall_results/DQN_1-23_hosps.pt")
+    # model = torch.load("Fall_results/DQN_2-4_hosps_constrained.pt")
     logger_name = params["xpt_name"]
     logger = CSVLogger("lightning_logs", name=logger_name)
     
