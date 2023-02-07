@@ -159,6 +159,75 @@ class DQN_Lightning(pl.LightningModule): # change name!
         bias = (preds - targets).mean()
         self.log("val_bias", bias, sync_dist = False, on_step=False, on_epoch=True, prog_bar=False, logger=True)
 
+class DQN(nn.Module):
+    def __init__(self, n_col: int, n_hidden: int) -> None:
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(n_col, n_hidden),
+            nn.ELU(),
+            nn.Dropout(0.1),
+            nn.Linear(n_hidden, n_hidden),
+            nn.ELU(),
+            nn.Linear(n_hidden, n_hidden),
+            nn.ELU(),
+            nn.Linear(n_hidden, 2)
+        )
+    def forward(self, x):
+        return self.net(x)
+
+
+class actual_DQN_Lightning(pl.LightningModule): # change name?
+    def __init__(self, n_col, n_hidden, b_size, lr, gamma, sync_rate, loss="huber",  optimizer="adam", momentum=0.0, **kwargs) -> None:
+        super().__init__()
+        assert loss in ("huber", "mse")
+        assert optimizer in ("adam", "sgd")
+        self.save_hyperparameters()
+        self.loss_fn = F.smooth_l1_loss if loss=="huber" else F.mse_loss
+        self.optimizer_fn = optimizer
+        self.momentum = momentum
+        self.net = DQN(n_col, n_hidden)
+        self.target_net = DQN(n_col, n_hidden)
+        # self.target_net.eval()  # in case using layer normalization
+        for p in self.target_net.parameters():
+            p.requires_grad_(False)
+        self.b_size = b_size
+        self.lr = lr
+        self.gamma = gamma
+        self.sync_rate = sync_rate
+        self.training_epochs = 0
+    def make_pred_and_targets(self, batch):
+        s, a, r, s1, ee, o = batch
+        preds = self.net(s).gather(1, a.view(-1, 1)).view(-1)
+        with torch.no_grad():
+            target = r + self.gamma * (1-ee) * self.eval_Q_double(s1, o)
+        return preds, target
+    def eval_Q_double(self, S1, over = None): 
+        Q = self.net(S1)
+        Qtgt = self.target_net(S1)
+        best_action = Q.argmax(axis=1)
+        # best_action = torch.gt(torch.exp(Q[:,1]), 0.01)
+        if over is not None:
+            best_action = torch.tensor(best_action * (1 - over))
+        best_Q = torch.gather(Qtgt, 1, best_action.view(-1, 1)).view(-1)
+        return best_Q
+    def configure_optimizers(self):
+        if self.optimizer_fn == "adam":
+            optimizer = optim.Adam(self.net.parameters(), lr = self.lr, betas=(self.momentum, 0.9), eps=1e-4, weight_decay=1e-4)
+        elif self.optimizer_fn == "sgd":
+            optimizer = optim.SGD(self.net.parameters(), lr = self.lr, momentum=self.momentum, weight_decay=1e-4)
+        return optimizer
+    def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor], b_idx): # latter is batch index
+        preds, targets = self.make_pred_and_targets(batch)
+        loss = self.loss_fn(preds, targets)
+        self.log("epoch_loss", loss, sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        bias = (preds - targets).mean()
+        self.log("epoch_bias", bias, sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        return loss
+    def on_train_epoch_start(self) -> None:
+        if self.training_epochs % self.sync_rate == 0:  # copy params over target network
+            self.target_net.load_state_dict(self.net.state_dict())
+        self.training_epochs += 1
+
 
 def get_rewards(model, s, id, shift=0, scale=1):
     r_hat = model.net(s,id)
@@ -210,11 +279,13 @@ summer = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,i
 # name = "12-29_deaths" # eventually, switch to argparse?
 # policy = pd.read_csv("Fall_results/DQN_" + name + "_constrained_policy.csv")["policy"]
 policy = A
-name = "NWS_no-health-history"
+# name = "NWS_no-health-history"
 # policy = pd.DataFrame(np.zeros(len(ID)))
 # name = "No_alerts_no-health-history"
-dqn = "get_new_post_run"
-DQN = False
+dqn = torch.load("Fall_results/DQN_2-5_hosps_constrained.pt", map_location=torch.device('cpu'))
+rand_effs = pd.read_csv("Fall_results/R_1-23_other-hosps_random-effects.csv")
+name = "DQN_2-5_hosps_no-health-history"
+DQN = True
 
 Policy = np.zeros(len(ID))
 Deaths = np.zeros(len(ID))
@@ -252,11 +323,12 @@ for i in range(0, max(summer)): # test with i=6 for nonzero constraint
         # new_s["all_hosp_mean_rate"] = (hosp_rate_sum/(d+1) - s_means["all_hosp_mean_rate"])/s_stds["all_hosp_mean_rate"]
         # new_s["heat_hosp_mean_rate"] = ((hosp_rate_sum - other_hosp_rate_sum)/(d+1) - s_means["heat_hosp_mean_rate"])/s_stds["heat_hosp_mean_rate"]
         v1 = torch.FloatTensor(new_s)
+        new_s_id = np.append(new_s, [rand_effs["Rand_Ints"][p],rand_effs["Rand_Slopes"][p]], axis=0)
         ## Get new policy:
         alert_prob = get_alert_prob(alerts_model, v1.float())
         if (alert_prob >= 0.01).bool() and (alerts < Constraint.iloc[p]).bool():
             if DQN == True:
-                output = dqn.net(v1.float()).detach().numpy()
+                output = dqn.net(torch.FloatTensor(new_s_id)).detach().numpy()
                 if output[1] > output[0]:
                     Policy[p] = 1
                     action = 1
