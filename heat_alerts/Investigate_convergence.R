@@ -1,24 +1,29 @@
 library(dplyr)
 library(ggplot2)
+library(cowplot)
 
 #### Pytorch convergence in terms of loss:
 
 # DQN<- read.csv("Fall_results/DQN_10-18_epoch-losses.csv")
 # DQN<- read.csv("lightning_logs/constr_deaths_adam_huber/version_4/metrics.csv")
-DQN<- read.csv("lightning_logs/feb_constr_hosps_adam_huber_REs/version_0/metrics.csv")
+DQN<- read.csv("lightning_logs/feb_constr_hosps_adam_huber_REs/version_3/metrics.csv")
 # DQN_a<- read.csv("lightning_logs/constr_hosps_adam_huber_REs/version_0/metrics.csv")
 # DQN_b<- read.csv("lightning_logs/constr_hosps_adam_huber_REs/version_1/metrics.csv")
 # DQN_b$epoch<- 1:nrow(DQN_b) + 999
 # DQN<- rbind(DQN_a, DQN_b)
 # DQN<- read.csv("lightning_logs/constr_all-hosps_adam_huber/version_0/metrics.csv")
 
-
-# ggplot(LM, aes(x=X, y=Means)) + geom_line() + 
-#   geom_line(aes(y=Full), col = "red") + 
-#   xlab("Epochs") + ylab("Huber Loss") + ggtitle("Linear Model")
-
 ggplot(DQN, aes(x=epoch, y=log(epoch_loss))) + geom_line() + 
   xlab("Epochs") + ylab("Log of Huber Loss") + ggtitle("DQN Model")
+
+ggplot(DQN, aes(x=epoch, y=Q1.Q0)) + geom_line() + 
+  xlab("Epochs") + ylab("Number of Days Q1 > Q0") + ggtitle("DQN Model")
+
+ggplot(DQN, aes(x=epoch, y=n_alerts)) + geom_line() + 
+  xlab("Epochs") + ylab("Number of Alerts Issued") + ggtitle("DQN Model")
+
+ggplot(DQN, aes(x=epoch, y=log(n_alerts/Q1.Q0))) + geom_line() + 
+  xlab("Epochs") + ylab("Log of {Number of Alerts Issued / Number of Days Q1 > Q0}") + ggtitle("DQN Model")
 
 ### Validation vs Training, Rewards and Alerts Models
 

@@ -159,6 +159,7 @@ class DQN_Lightning(pl.LightningModule): # change name!
         bias = (preds - targets).mean()
         self.log("val_bias", bias, sync_dist = False, on_step=False, on_epoch=True, prog_bar=False, logger=True)
 
+
 class DQN(nn.Module):
     def __init__(self, n_col: int, n_hidden: int) -> None:
         super().__init__()

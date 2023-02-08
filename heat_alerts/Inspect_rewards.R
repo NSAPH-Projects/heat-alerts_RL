@@ -4,18 +4,29 @@ library(ggplot2)
 library(viridis)
 library(cowplot)
 
+## Average effect of heat alerts vs health history:
+
+ests<- read.csv("Fall_results/Hosp_preds_vs_History.csv")
+Ests<- data.frame(t(ests)[-1,])
+names(Ests)<- c("Health History", "Average Effect", "Average Effect when A=1")
+
+ggplot(Ests, aes(x = `Health History`, y = `Average Effect`)) + geom_line() +
+  geom_line(aes(y = `Average Effect when A=1`), col = "green")
+
+## Compare to actual / covariates:
+
 load("data/Small_S-A-R_prepped.RData")
 DF$alert<- A
 Data<- DF
 
 ## 1-12 was MSE with softplus, 1-13 was MSE with relu
 
-pred_deaths<- read.csv("Fall_results/R_2-1_deaths.csv")#*1000
+pred_deaths<- read.csv("Fall_results/R_1-23_deaths.csv")#*1000
 Pred_deaths<- sapply(1:length(A), function(i) pred_deaths[i,A[i]+2])
 # Pred_deaths[which(Pred_deaths > 0)]<- 0
-pred_OH<- read.csv("Fall_results/R_2-1_other-hosps.csv")#*1000
+pred_OH<- read.csv("Fall_results/R_1-23_other-hosps.csv")#*1000
 Pred_OH<- sapply(1:length(A), function(i) pred_OH[i,A[i]+2])
-pred_hosps<- read.csv("Fall_results/R_2-1_all-hosps.csv")#*1000
+pred_hosps<- read.csv("Fall_results/R_1-23_all-hosps.csv")#*1000
 Pred_hosps<- sapply(1:length(A), function(i) pred_hosps[i,A[i]+2])
 
 #### Summary stats:
