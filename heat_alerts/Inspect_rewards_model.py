@@ -104,16 +104,16 @@ class DQN_Lightning(pl.LightningModule): # change name!
 
 ## Main code:
 
-deaths_model = torch.load("Fall_results/R_1-23_deaths.pt", map_location=torch.device('cpu'))
-other_hosps_model = torch.load("Fall_results/R_1-23_other-hosps.pt", map_location=torch.device('cpu'))
-all_hosps_model = torch.load("Fall_results/R_1-23_all-hosps.pt", map_location=torch.device('cpu'))
+# deaths_model = torch.load("Fall_results/R_1-23_deaths.pt", map_location=torch.device('cpu'))
+# other_hosps_model = torch.load("Fall_results/R_2-8_other-hosps.pt", map_location=torch.device('cpu'))
+all_hosps_model = torch.load("Fall_results/R_2-8_all-hosps.pt", map_location=torch.device('cpu'))
 
 ## Remove dropout from evaluation of them all:
-deaths_model.eval()
-other_hosps_model.eval()
+# deaths_model.eval()
+# other_hosps_model.eval()
 all_hosps_model.eval()
 
-model = other_hosps_model
+model = all_hosps_model # other_hosps_model
 
 D = make_data(data_only=False)
 S, A, ID = [D[k] for k in ("S", "A", "ID")]
@@ -148,4 +148,4 @@ for h in history_values:
 
 ## Save results:
 df = pd.DataFrame([history_values, Diffs, A1_Diffs])
-df.to_csv("Fall_results/Hosp_preds_vs_History.csv")
+df.to_csv("Fall_results/All-Hosp_preds_vs_History.csv")

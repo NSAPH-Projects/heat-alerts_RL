@@ -6,7 +6,7 @@ library(cowplot)
 
 ## Average effect of heat alerts vs health history:
 
-ests<- read.csv("Fall_results/Hosp_preds_vs_History.csv")
+ests<- read.csv("Fall_results/All-Hosp_preds_vs_History.csv")
 Ests<- data.frame(t(ests)[-1,])
 names(Ests)<- c("Health History", "Average Effect", "Average Effect when A=1")
 
@@ -24,9 +24,9 @@ Data<- DF
 pred_deaths<- read.csv("Fall_results/R_1-23_deaths.csv")#*1000
 Pred_deaths<- sapply(1:length(A), function(i) pred_deaths[i,A[i]+2])
 # Pred_deaths[which(Pred_deaths > 0)]<- 0
-pred_OH<- read.csv("Fall_results/R_1-23_other-hosps.csv")#*1000
+pred_OH<- read.csv("Fall_results/R_2-8_other-hosps.csv")#*1000
 Pred_OH<- sapply(1:length(A), function(i) pred_OH[i,A[i]+2])
-pred_hosps<- read.csv("Fall_results/R_1-23_all-hosps.csv")#*1000
+pred_hosps<- read.csv("Fall_results/R_2-8_all-hosps.csv")#*1000
 Pred_hosps<- sapply(1:length(A), function(i) pred_hosps[i,A[i]+2])
 
 #### Summary stats:
