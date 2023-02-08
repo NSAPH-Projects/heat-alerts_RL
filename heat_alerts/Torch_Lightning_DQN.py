@@ -98,9 +98,9 @@ class actual_DQN_Lightning(pl.LightningModule): # change name?
         return best_Q
     def configure_optimizers(self):
         if self.optimizer_fn == "adam":
-            optimizer = optim.Adam(self.net.parameters(), lr = self.lr, betas=(self.momentum, 0.9), eps=1e-4, weight_decay=1e-4)
+            optimizer = optim.Adam(self.net.parameters(), lr = self.lr, betas=(self.momentum, 0.9), eps=1e-4, weight_decay=0.0) # weight_decay=1e-4
         elif self.optimizer_fn == "sgd":
-            optimizer = optim.SGD(self.net.parameters(), lr = self.lr, momentum=self.momentum, weight_decay=1e-4)
+            optimizer = optim.SGD(self.net.parameters(), lr = self.lr, momentum=self.momentum, weight_decay=0.0) # weight_decay=1e-4
         return optimizer
     def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor], b_idx): # latter is batch index
         preds, targets = self.make_pred_and_targets(batch)
