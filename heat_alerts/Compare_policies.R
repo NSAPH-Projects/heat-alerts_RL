@@ -8,7 +8,7 @@ load("data/Small_S-A-R_prepped.RData")
 
 behavior<- A
 # new_pol<- read.csv("Fall_results/DQN_12-29_hosps_constrained_policy.csv")$policy
-new_pol<- read.csv("Fall_results/DQN_12-29_deaths_constrained_policy.csv")$policy
+new_pol<- read.csv("Fall_results/New_policy_DQN_2-5_hosps_no-health-history_policy.csv")$X0
 
 ## Compare policies:
 

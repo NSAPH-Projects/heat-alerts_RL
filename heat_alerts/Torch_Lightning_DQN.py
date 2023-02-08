@@ -84,6 +84,8 @@ class actual_DQN_Lightning(pl.LightningModule): # change name?
         if over is not None:
             best_action = torch.tensor(best_action * (1 - over))
         best_Q = torch.gather(Qtgt, 1, best_action.view(-1, 1)).view(-1)
+        self.log("n_alerts", sum(best_action), sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log("Q1>Q0", (Qtgt[:,1] > Qtgt[:,0]).sum(), sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         # summary_0 = stats.describe(Qtgt[:,0].cpu().numpy())[1:3]
         # summary_1 = stats.describe(Qtgt[:,1].cpu().numpy())[1:3]
         # self.log("Q0 min", summary_0[0][0], sync_dist = False, on_step=False, on_epoch=True, prog_bar=True, logger=True)

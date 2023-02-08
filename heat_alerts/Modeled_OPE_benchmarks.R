@@ -86,6 +86,8 @@ None_oh<- read.csv("Fall_results/Estimated_rewards_No_alerts_OH-only_policy.csv"
 None_nh<- read.csv("Fall_results/Estimated_rewards_No_alerts_no-health-history_policy.csv")
 # None_c<- read.csv("Fall_results/Estimated_rewards_No_alerts_hosps-only-b_policy.csv")
 
+DQN_nh<- read.csv("Fall_results/Estimated_rewards_DQN_2-5_hosps_no-health-history_policy.csv")
+
 #### Discounted:
 
 Observed_NWS<- get_OPE(R_deaths[,1], R_all_hosps[,1], R_other_hosps[,1])
@@ -100,13 +102,15 @@ No_alerts_b<- get_OPE(None_b$X0, None_b$X1, None_b$X2)
 No_alerts_OH<- get_OPE(None_oh$X0, None_oh$X1, None_oh$X2)
 No_alerts_NH<- get_OPE(None_nh$X0, None_nh$X1, None_nh$X2)
 # No_alerts_c<- get_OPE(None_c$X0, None_c$X1, None_c$X2)
+DQN_NH<- get_OPE(DQN_nh$X0, DQN_nh$X1, DQN_nh$X2)
 
 results<- data.frame(Observed_NWS, Modeled_NWS, Mod2_NWS,
                      Mod2_NWS_b, Mod2_NWS_OH, Mod2_NWS_NH,
                      # Mod2_NWS_c,
                      No_alerts, 
-                     No_alerts_b, No_alerts_OH, No_alerts_NH
+                     No_alerts_b, No_alerts_OH, No_alerts_NH,
                      # No_alerts_c
+                     DQN_NH
                      )
 Results<- t(results)
 colnames(Results)<- c("Deaths", "All hospitalizations", "Non-heat hospitalizations")

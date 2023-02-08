@@ -284,7 +284,7 @@ policy = A
 # name = "No_alerts_no-health-history"
 dqn = torch.load("Fall_results/DQN_2-5_hosps_constrained.pt", map_location=torch.device('cpu'))
 rand_effs = pd.read_csv("Fall_results/R_1-23_other-hosps_random-effects.csv")
-name = "DQN_2-5_hosps_no-health-history"
+name = "DQN_2-5_hosps"
 DQN = True
 
 Policy = np.zeros(len(ID))
@@ -318,17 +318,19 @@ for i in range(0, max(summer)): # test with i=6 for nonzero constraint
             new_s["alert_lag2_1"] = Policy[p-2]
         new_s["alert_sum"] = (alerts - s_means["alert_sum"])/s_stds["alert_sum"]
         new_s["More_alerts"] = (Constraint.iloc[p] - alerts - s_means["More_alerts"])/s_stds["More_alerts"]
-        ## Update past health outcomes based on new data:
-        # new_s["death_mean_rate"] = (death_rate_sum/(d+1) - s_means["death_mean_rate"])/s_stds["death_mean_rate"]
-        # new_s["all_hosp_mean_rate"] = (hosp_rate_sum/(d+1) - s_means["all_hosp_mean_rate"])/s_stds["all_hosp_mean_rate"]
-        # new_s["heat_hosp_mean_rate"] = ((hosp_rate_sum - other_hosp_rate_sum)/(d+1) - s_means["heat_hosp_mean_rate"])/s_stds["heat_hosp_mean_rate"]
+        # Update past health outcomes based on new data:
+        new_s["death_mean_rate"] = (death_rate_sum/(d+1) - s_means["death_mean_rate"])/s_stds["death_mean_rate"]
+        new_s["all_hosp_mean_rate"] = (hosp_rate_sum/(d+1) - s_means["all_hosp_mean_rate"])/s_stds["all_hosp_mean_rate"]
+        new_s["heat_hosp_mean_rate"] = ((hosp_rate_sum - other_hosp_rate_sum)/(d+1) - s_means["heat_hosp_mean_rate"])/s_stds["heat_hosp_mean_rate"]
         v1 = torch.FloatTensor(new_s)
         new_s_id = np.append(new_s, [rand_effs["Rand_Ints"][p],rand_effs["Rand_Slopes"][p]], axis=0)
         ## Get new policy:
         alert_prob = get_alert_prob(alerts_model, v1.float())
+        print(alert_prob)
         if (alert_prob >= 0.01).bool() and (alerts < Constraint.iloc[p]).bool():
             if DQN == True:
                 output = dqn.net(torch.FloatTensor(new_s_id)).detach().numpy()
+                print(output)
                 if output[1] > output[0]:
                     Policy[p] = 1
                     action = 1
