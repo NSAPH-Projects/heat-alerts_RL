@@ -127,12 +127,12 @@ def main(params):
         rand_effs = pd.read_csv("Fall_results/R_1-23_all-hosps_random-effects.csv")
     elif params["outcome"] == "other_hosps":
         D = make_data(outcome="other_hosps")
-        modeled_R = pd.read_csv("Fall_results/R_1-23_other-hosps.csv")
-        rand_effs = pd.read_csv("Fall_results/R_1-23_other-hosps_random-effects.csv")
+        modeled_R = pd.read_csv("Fall_results/R_2-8_other-hosps.csv")
+        rand_effs = pd.read_csv("Fall_results/R_2-8_other-hosps_random-effects.csv")
     else:
         D = make_data()
-        modeled_R = pd.read_csv("Fall_results/R_1-23_deaths.csv")
-        rand_effs = pd.read_csv("Fall_results/R_1-23_deaths_random-effects.csv")
+        modeled_R = pd.read_csv("Fall_results/R_2-8_deaths.csv")
+        rand_effs = pd.read_csv("Fall_results/R_2-8_deaths_random-effects.csv")
         
     S,A,R,S_1,ep_end,over,near_zero = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero")]
     S["rand_ints"] = rand_effs["Rand_Ints"]
