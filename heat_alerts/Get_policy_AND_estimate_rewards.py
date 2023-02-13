@@ -98,7 +98,7 @@ class my_NN(nn.Module): # change name!
         # print(step1 + self.randeff[id])
         return step1
 
-class DQN_Lightning(pl.LightningModule): # change name!
+class DQN_Lightning(pl.LightningModule):
     def __init__(self, n_col, config, n_randeff, N, b_size, lr, loss="huber",  optimizer="adam", **kwargs) -> None:
         super().__init__()
         assert loss in ("huber", "mse")
@@ -118,7 +118,7 @@ class DQN_Lightning(pl.LightningModule): # change name!
         # preds = self.net(s).gather(1, a.view(-1, 1)).view(-1)
         preds = self.net(s, id)
         random_slopes = F.softplus(self.net.lsigma_slopes)*self.net.randeff_slopes[id]
-        Preds = torch.where(a == 0, preds[:,0], preds[:,0] + preds[:,1] + random_slopes)
+        Preds = torch.where(a == 0, preds[:,0], preds[:,0] - F.softplus(preds[:,1]) - F.softplus(random_slopes))
         Preds = Preds + F.softplus(self.net.lsigma)*self.net.randeff[id]
         Preds = -torch.exp(Preds)
         # preds = -F.softplus(self.net(s, id))
@@ -234,7 +234,7 @@ def get_rewards(model, s, id, shift=0, scale=1):
     r_hat = model.net(s,id)
     random_slopes = F.softplus(model.net.lsigma_slopes)*model.net.randeff_slopes[id]
     R_hat = r_hat
-    R_hat[1] = R_hat[0] + R_hat[1] + random_slopes
+    R_hat[1] = R_hat[0] - F.softplus(R_hat[1]) - F.softplus(random_slopes)
     R_hat = R_hat + F.softplus(model.net.lsigma)*model.net.randeff[id]
     R_hat = -torch.exp(R_hat)
     n = R_hat.detach().numpy()
@@ -252,8 +252,8 @@ def get_alert_prob(model, s):
 ## Main code:
 
 deaths_model = torch.load("Fall_results/R_1-23_deaths.pt", map_location=torch.device('cpu'))
-other_hosps_model = torch.load("Fall_results/R_1-23_other-hosps.pt", map_location=torch.device('cpu'))
-all_hosps_model = torch.load("Fall_results/R_1-23_all-hosps.pt", map_location=torch.device('cpu'))
+other_hosps_model = torch.load("Fall_results/R_2-11_other-hosps.pt", map_location=torch.device('cpu'))
+all_hosps_model = torch.load("Fall_results/R_2-11_all-hosps.pt", map_location=torch.device('cpu'))
 
 alerts_model = torch.load("Fall_results/Alerts_model_1-23.pt", map_location=torch.device('cpu'))
 
@@ -280,13 +280,14 @@ summer = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,i
 # name = "12-29_deaths" # eventually, switch to argparse?
 # policy = pd.read_csv("Fall_results/DQN_" + name + "_constrained_policy.csv")["policy"]
 policy = A
-# name = "NWS_no-health-history"
+name = "NWS_2-11"
 # policy = pd.DataFrame(np.zeros(len(ID)))
 # name = "No_alerts_no-health-history"
-dqn = torch.load("Fall_results/DQN_2-5_hosps_constrained.pt", map_location=torch.device('cpu'))
-rand_effs = pd.read_csv("Fall_results/R_1-23_other-hosps_random-effects.csv")
-name = "DQN_2-5_hosps"
-DQN = True
+dqn = torch.load("Fall_results/DQN_2-11_hosps_format-2.pt", map_location=torch.device('cpu'))
+rand_effs = pd.read_csv("Fall_results/R_2-11_other-hosps_random-effects.csv")
+# name = "DQN_2-11_hosps_format-2"
+# DQN = True
+DQN = False
 
 Policy = np.zeros(len(ID))
 Deaths = np.zeros(len(ID))
@@ -327,11 +328,11 @@ for i in range(0, max(summer)): # test with i=6 for nonzero constraint
         new_s_id = np.append(new_s, [rand_effs["Rand_Ints"][p],rand_effs["Rand_Slopes"][p]], axis=0)
         ## Get new policy:
         alert_prob = get_alert_prob(alerts_model, v1.float())
-        print(alert_prob)
+        # print(alert_prob)
         if (alert_prob >= 0.01).bool() and (alerts < Constraint.iloc[p]).bool():
             if DQN == True:
                 output = dqn.net(torch.FloatTensor(new_s_id)).detach().numpy()
-                print(output)
+                # print(output)
                 if output[1] > output[0]:
                     Policy[p] = 1
                     action = 1

@@ -78,6 +78,8 @@ Mod2_oh<- read.csv("Fall_results/Estimated_rewards_NWS_OH-only_policy.csv")
 Mod2_nh<- read.csv("Fall_results/Estimated_rewards_NWS_no-health-history_policy.csv")
 # Mod2_c<- read.csv("Fall_results/Estimated_rewards_NWS_hosps-only-b_policy.csv")
 
+NWS<- read.csv("Fall_results/Estimated_rewards_NWS_2-11_policy.csv")
+
 ## New policies:
 
 None<- read.csv("Fall_results/Estimated_rewards_No_alerts_policy.csv")
@@ -86,7 +88,9 @@ None_oh<- read.csv("Fall_results/Estimated_rewards_No_alerts_OH-only_policy.csv"
 None_nh<- read.csv("Fall_results/Estimated_rewards_No_alerts_no-health-history_policy.csv")
 # None_c<- read.csv("Fall_results/Estimated_rewards_No_alerts_hosps-only-b_policy.csv")
 
-DQN_nh<- read.csv("Fall_results/Estimated_rewards_DQN_2-5_hosps_no-health-history_policy.csv")
+# DQN_nh<- read.csv("Fall_results/Estimated_rewards_DQN_2-5_hosps_no-health-history_policy.csv")
+DQN<- read.csv("Fall_results/Estimated_rewards_DQN_2-11_hosps_format-2_policy.csv")
+
 
 #### Discounted:
 
@@ -102,7 +106,10 @@ No_alerts_b<- get_OPE(None_b$X0, None_b$X1, None_b$X2)
 No_alerts_OH<- get_OPE(None_oh$X0, None_oh$X1, None_oh$X2)
 No_alerts_NH<- get_OPE(None_nh$X0, None_nh$X1, None_nh$X2)
 # No_alerts_c<- get_OPE(None_c$X0, None_c$X1, None_c$X2)
-DQN_NH<- get_OPE(DQN_nh$X0, DQN_nh$X1, DQN_nh$X2)
+# DQN_NH<- get_OPE(DQN_nh$X0, DQN_nh$X1, DQN_nh$X2)
+
+DQN_r<- get_OPE(DQN$X0, DQN$X1, DQN$X2)
+NWS_r<- get_OPE(NWS$X0, NWS$X1, NWS$X2)
 
 results<- data.frame(Observed_NWS, Modeled_NWS, Mod2_NWS,
                      Mod2_NWS_b, Mod2_NWS_OH, Mod2_NWS_NH,

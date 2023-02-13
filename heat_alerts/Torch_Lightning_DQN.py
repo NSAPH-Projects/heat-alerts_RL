@@ -79,8 +79,9 @@ class actual_DQN_Lightning(pl.LightningModule): # change name?
     def eval_Q_double(self, S1, over = None): 
         Q = self.net(S1)
         Qtgt = self.target_net(S1)
+        # Qtgt[:,1] = Qtgt[:,0] + Qtgt[:,1]
         best_action = Q.argmax(axis=1)
-        # best_action = torch.gt(torch.exp(Q[:,1]), 0.01)
+        # best_action = torch.where(Q[:,1] > 0, 1, 0)
         if over is not None:
             best_action = torch.tensor(best_action * (1 - over))
         best_Q = torch.gather(Qtgt, 1, best_action.view(-1, 1)).view(-1)
@@ -136,9 +137,9 @@ def main(params):
         
     S,A,R,S_1,ep_end,over,near_zero = [D[k] for k in ("S","A","R","S_1","ep_end","over","near_zero")]
     S["rand_ints"] = rand_effs["Rand_Ints"]
-    S["rand_slopes"] = rand_effs["Rand_Slopes"]
+    S["rand_slopes"] = F.softplus(torch.FloatTensor(rand_effs["Rand_Slopes"].to_numpy()))
     S_1["rand_ints"] = rand_effs["Rand_Ints"]
-    S_1["rand_slopes"] = rand_effs["Rand_Slopes"]
+    S_1["rand_slopes"] = F.softplus(torch.FloatTensor(rand_effs["Rand_Slopes"].to_numpy()))
     
     # R = 0.5 * (R - R.mean()) / np.max(np.abs(R))  # centered rewards in (-0.5, 0.5) stabilizes the Q function
     Modeled_R = torch.gather(torch.FloatTensor(modeled_R.to_numpy()), 1, torch.LongTensor(A).view(-1, 1) +1).view(-1)#.detach().numpy()
@@ -170,7 +171,7 @@ def main(params):
     )
 
     model = actual_DQN_Lightning(state_dim, **params)
-    # model = torch.load("Fall_results/DQN_2-4_hosps_constrained.pt")
+    # model = torch.load("Fall_results/DQN_2-13_hosps_format-2.pt")
     logger_name = params["xpt_name"]
     logger = CSVLogger("lightning_logs", name=logger_name)
     

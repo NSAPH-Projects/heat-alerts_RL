@@ -6,12 +6,29 @@ library(cowplot)
 
 # DQN<- read.csv("Fall_results/DQN_10-18_epoch-losses.csv")
 # DQN<- read.csv("lightning_logs/constr_deaths_adam_huber/version_4/metrics.csv")
-DQN<- read.csv("lightning_logs/feb_constr_hosps_adam_huber_REs/version_3/metrics.csv")
+# DQN<- read.csv("lightning_logs/feb_constr_hosps_adam_huber_REs/version_5/metrics.csv") # not separating preds_1 and RS in softplus
+DQN_a<- read.csv("lightning_logs/feb_constr_hosps_adam_huber_REs/version_6/metrics.csv") # additive RS
+DQN_b<- read.csv("lightning_logs/feb_constr_hosps_adam_huber_REs/version_8/metrics.csv")
+DQN_c<- read.csv("lightning_logs/feb_constr_hosps_adam_huber_REs/version_10/metrics.csv")
+DQN_b$epoch<- 1:nrow(DQN_b) + 1999
+DQN<- rbind(DQN_a, DQN_b)
+DQN_c$epoch<- 1:nrow(DQN_c) + 3499
+DQN<- rbind(DQN, DQN_c)
+DQN_a<- read.csv("lightning_logs/feb_constr_hosps_adam_huber_REs/version_7/metrics.csv") # additive RS with lr=0.001
+DQN_b<- read.csv("lightning_logs/feb_constr_hosps_adam_huber_REs/version_9/metrics.csv")
+DQN_c<- read.csv("lightning_logs/feb_constr_hosps_adam_huber_REs/version_11/metrics.csv")
 # DQN_a<- read.csv("lightning_logs/constr_hosps_adam_huber_REs/version_0/metrics.csv")
 # DQN_b<- read.csv("lightning_logs/constr_hosps_adam_huber_REs/version_1/metrics.csv")
-# DQN_b$epoch<- 1:nrow(DQN_b) + 999
-# DQN<- rbind(DQN_a, DQN_b)
+DQN_b$epoch<- 1:nrow(DQN_b) + 1999
+DQN<- rbind(DQN_a, DQN_b)
+DQN_c$epoch<- 1:nrow(DQN_c) + 4999
+DQN<- rbind(DQN, DQN_c)
 # DQN<- read.csv("lightning_logs/constr_all-hosps_adam_huber/version_0/metrics.csv")
+DQN_a<- read.csv("lightning_logs/feb_constr_hosps_adam_huber_REs/version_12/metrics.csv")
+DQN_b<- read.csv("lightning_logs/feb_constr_hosps_adam_huber_REs/version_14/metrics.csv")
+DQN_b$epoch<- 1:nrow(DQN_b) + 1499
+DQN<- rbind(DQN_a, DQN_b)
+# DQN<- read.csv("lightning_logs/feb_constr_hosps_adam_huber_REs/version_13/metrics.csv")
 
 ggplot(DQN, aes(x=epoch, y=log(epoch_loss))) + geom_line() + 
   xlab("Epochs") + ylab("Log of Huber Loss") + ggtitle("DQN Model")
@@ -28,8 +45,8 @@ ggplot(DQN, aes(x=epoch, y=log(n_alerts/Q1.Q0))) + geom_line() +
 ### Validation vs Training, Rewards and Alerts Models
 
 # DF<- read.csv("lightning_logs/R_no-past_deaths_adam_mse/version_0/metrics.csv")
-DF<- read.csv("lightning_logs/feb_R_hosps_adam_mse/version_0/metrics.csv")
-DF<- read.csv("lightning_logs/feb_R_other-hosps_adam_mse/version_0/metrics.csv")
+DF<- read.csv("lightning_logs/feb_R_hosps_adam_mse/version_2/metrics.csv")
+DF<- read.csv("lightning_logs/feb_R_other-hosps_adam_mse/version_2/metrics.csv")
 
 Val_Loss<- DF[seq(1,nrow(DF),2),1]
 Train_Loss<- DF[seq(2,nrow(DF),2),5]
