@@ -29,6 +29,7 @@ DQN_b<- read.csv("lightning_logs/feb_constr_hosps_adam_huber_REs/version_14/metr
 DQN_b$epoch<- 1:nrow(DQN_b) + 1499
 DQN<- rbind(DQN_a, DQN_b)
 # DQN<- read.csv("lightning_logs/feb_constr_hosps_adam_huber_REs/version_13/metrics.csv")
+DQN<- read.csv("lightning_logs/feb_constr_hosps_adam_huber_REs/version_15/metrics.csv")
 
 ggplot(DQN, aes(x=epoch, y=log(epoch_loss))) + geom_line() + 
   xlab("Epochs") + ylab("Log of Huber Loss") + ggtitle("DQN Model")

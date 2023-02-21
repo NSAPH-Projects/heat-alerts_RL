@@ -27,6 +27,13 @@ mean(allow)
 Tab<- table(data.frame(Obs=A, Preds=allow))
 Tab
 
+Prob_threshold<- c(0.00001, 0.0001, 0.001, 0.01, seq(0.02, 0.1, 0.02))
+Allowed_alert_rate<- sapply(Prob_threshold, function(p){mean(ahat >= p)})
+Allowed_days<- Allowed_alert_rate*152
+
+data.frame(Prob_threshold, Allowed_alert_rate, Allowed_days)
+plot(log10(Prob_threshold), Allowed_days)
+
 data<- read.csv("data/Train_smaller-for-Python.csv")
 
 # budget<- data[which(data$dos == 153), "alert_sum"]

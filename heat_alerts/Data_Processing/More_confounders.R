@@ -90,7 +90,49 @@ for(f in unique(politics$fips)[-1]){
 
 Full_DF<- inner_join(full_DF, Politics, by = c("fips", "year"))
 
-saveRDS(Full_DF, "data/Final_data_for_HARL_w-hosps_confounders.rds")
+# saveRDS(Full_DF, "data/Final_data_for_HARL_w-hosps_confounders.rds")
+
+## Add in time since last alert:
+# Full_DF<- readRDS("data/Final_data_for_HARL_w-hosps_confounders.rds")
+
+n_days<- 153
+episode_inds<- seq(1, nrow(Full_DF), n_days)
+
+T_since_alert<- rep(0, nrow(Full_DF))
+for(i in 2:length(episode_inds)){
+  pos<- episode_inds[i-1]:(episode_inds[i]-1)
+  t<- 0 # does this make sense to start each season?
+  for(d in 1:n_days){
+    T_since_alert[pos[d]]<- t
+    if(Full_DF$alert[pos[d]] == 0){
+      t<- t+1
+    }else{
+      t<- 300 # on first day of summer
+    }
+  }
+  print(i)
+}
+
+# hist(T_since_alert)
+Full_DF$T_since_alert<- T_since_alert
+
+## Add in annual average air quality:
+
+all_AQ<- read.csv(paste0("/n/dominici_nsaph_l3/Lab/data/exposure/pm25/whole_us/annual/counties/county_rm/data/county_pm25_2006.csv"))
+all_AQ$fips<- str_pad(all_AQ$fips, 5, pad="0")
+
+years<- 2007:2016
+for(y in years){
+  AQ<- read.csv(paste0("/n/dominici_nsaph_l3/Lab/data/exposure/pm25/whole_us/annual/counties/county_rm/data/county_pm25_", y, ".csv"))
+  AQ$fips<- str_pad(AQ$fips, 5, pad="0")
+  all_AQ<- rbind(all_AQ, AQ)
+}
+
+all_AQ$fips[which(all_AQ$fips == "46102")]<- "46113"
+Final_DF<- left_join(Full_DF, all_AQ, by = c("fips","year"))
+
+saveRDS(Final_DF, "data/Final_data_for_HARL_w-hosps_confounders.rds")
+
 
 # ## Out of curiosity:
 # 
