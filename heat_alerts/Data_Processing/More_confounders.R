@@ -101,13 +101,13 @@ episode_inds<- seq(1, nrow(Full_DF), n_days)
 T_since_alert<- rep(0, nrow(Full_DF))
 for(i in 2:length(episode_inds)){
   pos<- episode_inds[i-1]:(episode_inds[i]-1)
-  t<- 0 # does this make sense to start each season?
+  t<- 300 # start of each summer
   for(d in 1:n_days){
     T_since_alert[pos[d]]<- t
     if(Full_DF$alert[pos[d]] == 0){
       t<- t+1
     }else{
-      t<- 300 # on first day of summer
+      t<- 0
     }
   }
   print(i)
