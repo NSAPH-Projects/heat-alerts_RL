@@ -143,6 +143,7 @@ def main(params):
 
     ## For now, drop the new variables:
     S = S.drop(["T_since_alert", "alerts_2wks", "pm25"], axis = 1)
+    S_1 = S_1.drop(["T_since_alert", "alerts_2wks", "pm25"], axis = 1)
     
     # R = 0.5 * (R - R.mean()) / np.max(np.abs(R))  # centered rewards in (-0.5, 0.5) stabilizes the Q function
     Modeled_R = torch.gather(torch.FloatTensor(modeled_R.to_numpy()), 1, torch.LongTensor(A).view(-1, 1) +1).view(-1)#.detach().numpy()
