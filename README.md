@@ -16,6 +16,7 @@ This is code for investigating applicability of RL to environmental health, spec
 ```bash
 conda install scikit-learn
 conda install -c conda-forge tqdm
+pip install d3rlpy 
 ```
 3. Might need to manually install pandas as well depending on the conda environment version...
 
