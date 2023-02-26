@@ -5,6 +5,7 @@ import random
 import pandas as pd
 
 import torch
+import torch.nn as nn
 import d3rlpy
 from Setup_d3rlpy import make_data
 
@@ -15,12 +16,15 @@ def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
+
+
+
 def main(params):
     params = vars(params)
 
     dataset = make_data(outcome = "other_hosps", modeled_r = False, log_r = True, random_effects = False)
 
-    
+
 
 
 if __name__ == "__main__":

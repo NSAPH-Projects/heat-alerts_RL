@@ -40,7 +40,7 @@ class DQN(nn.Module):
         self.net = nn.Sequential(
             nn.Linear(n_col, n_hidden),
             nn.ELU(),
-            nn.Dropout(0.1),
+            nn.Dropout(0.0), # used to be 0.1
             nn.Linear(n_hidden, n_hidden),
             nn.ELU(),
             nn.Linear(n_hidden, n_hidden),
@@ -140,6 +140,9 @@ def main(params):
     S["rand_slopes"] = F.softplus(torch.FloatTensor(rand_effs["Rand_Slopes"].to_numpy()))
     S_1["rand_ints"] = rand_effs["Rand_Ints"]
     S_1["rand_slopes"] = F.softplus(torch.FloatTensor(rand_effs["Rand_Slopes"].to_numpy()))
+
+    ## For now, drop the new variables:
+    S = S.drop(["T_since_alert", "alerts_2wks", "pm25"], axis = 1)
     
     # R = 0.5 * (R - R.mean()) / np.max(np.abs(R))  # centered rewards in (-0.5, 0.5) stabilizes the Q function
     Modeled_R = torch.gather(torch.FloatTensor(modeled_R.to_numpy()), 1, torch.LongTensor(A).view(-1, 1) +1).view(-1)#.detach().numpy()
