@@ -121,7 +121,7 @@ params = {
     "n_hidden": 256,
     "lr": 0.003,
     "n_gpus": 1,
-    "n_epochs": 200,
+    "n_epochs": 500, # 200
     "xpt_name": "tuning-hypers_alerts_model",
     "model_name": "alerts_sgd_003",
     "silent": False,
@@ -174,11 +174,11 @@ val_DL = DataLoader(
 ## Set up hyperparameter tuning:
 
 config = {
-    "dropout_prob": tune.grid_search([0.0, 0.1, 0.25, 0.5, 0.75]),
-    "n_hidden": tune.grid_search([32, 64, 128, 256]),
-    # "n_hidden": 256,
-    # "w_decay": tune.grid_search([1e-3, 1e-4, 1e-5])
-    "w_decay": 1e-4
+    "dropout_prob": tune.grid_search([0.0]), # 0.0, 0.1, 0.25, 0.5, 0.75
+    # "n_hidden": tune.grid_search([32, 64, 128, 256]),
+    "n_hidden": 256,
+    "w_decay": tune.grid_search([1e-4, 1e-5]) # 1e-3, 1e-4, 1e-5 
+    # "w_decay": 1e-4
 }
 
 trainable = tune.with_parameters(
@@ -203,7 +203,7 @@ analysis = tune.run(
 
 print(analysis.best_config)
 
-torch.save(analysis, "Fall_results/Alerts_model_tuning_DP-NH_nz-WD.pt")
+# torch.save(analysis, "Fall_results/Alerts_model_tuning_DP-NH_nz-WD_2-22.pt")
 
 # Analysis = torch.load("Fall_results/Alerts_model_tuning_DP-NH_nz-WD.pt")
 # # dir(Analysis)

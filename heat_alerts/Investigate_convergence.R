@@ -53,11 +53,11 @@ Val_Loss<- DF[seq(1,nrow(DF),2),1]
 Train_Loss<- DF[seq(2,nrow(DF),2),5]
 Epoch<- 1:length(Val_Loss)
 
-# DF<- read.csv("lightning_logs/test_NN_alerts/version_11/metrics.csv")
-# 
-# Val_Loss<- DF[seq(1,nrow(DF),2),1]
-# Train_Loss<- DF[seq(2,nrow(DF),2),4]
-# Epoch<- 1:length(Val_Loss)
+DF<- read.csv("lightning_logs/test_NN_alerts/version_12/metrics.csv")
+
+Val_Loss<- DF[seq(1,nrow(DF),2),1]
+Train_Loss<- DF[seq(2,nrow(DF),2),4]
+Epoch<- 1:length(Val_Loss)
 
 
 Plot_df<- data.frame(Epoch, Train_Loss, Val_Loss)[-1,]

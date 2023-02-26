@@ -5,11 +5,30 @@ library(viridis)
 
 load("data/Small_S-A-R_prepped.RData")
 
-ahat<- read.csv("Fall_results/Alerts_model_1-23.csv")[,2]
+val<- read.csv("data/Python_val_set.csv")[,2]
+Validation<- rep(1,length(A))
+Validation[val]<- 2
+
+# ahat<- read.csv("Fall_results/Alerts_model_1-23.csv")[,2]
+ahat<- read.csv("Fall_results/Alerts_model_2-21.csv")[,2]
 
 summary(ahat)
 
-tab<- table(data.frame(Obs=A, Preds=round(ahat)))
+# tab<- table(data.frame(Obs=A, Preds=round(ahat)))
+tab<- table(data.frame(Obs=A[-val], Preds=ahat[-val] >= 0.01))
+tab
+# sensitivity:
+tab[2,2]/sum(tab[2,])
+# specificity:
+tab[1,1]/sum(tab[1,])
+# PPV:
+tab[2,2]/sum(tab[,2])
+# NPV:
+tab[1,1]/sum(tab[,1])
+
+## Just in validation set:
+tab<- table(data.frame(Obs=A[val], Preds=round(ahat[val])))
+tab<- table(data.frame(Obs=A[val], Preds=ahat[val] >= 0.01))
 tab
 # sensitivity:
 tab[2,2]/sum(tab[2,])
@@ -22,7 +41,7 @@ tab[1,1]/sum(tab[,1])
 
 ### Looking at probability constraint:
 
-allow<- ahat >= 0.01
+allow<- ahat >= 0.001
 mean(allow) 
 Tab<- table(data.frame(Obs=A, Preds=allow))
 Tab
@@ -47,9 +66,6 @@ tot_allow<- aggregate(allow ~ year + fips, Data, sum)
 
 tot_episode<- aggregate(alert ~ year + fips, Data, sum)
 
-val<- read.csv("data/Python_val_set.csv")[,2]
-Validation<- rep(1,length(A))
-Validation[val]<- 2
 
 # plot(tot_episode$alert, tot_allow$allow, col = Validation[seq(1, length(A), 152)])
 # abline(0,1)

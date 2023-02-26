@@ -46,9 +46,10 @@ def make_data(
                         "quant_HI_3d_county", "quant_HI_fwd_avg_county", "HI_mean",
                         "BA_zone", "l.Pop_density", "l.Med.HH.Income",
                         "year", "dos", "holiday", "dow", 
-                        "alert_lag1", "alert_lag2", "alert_sum", "More_alerts", 
+                        "alert_lag1", "alert_lag2", "alerts_2wks", "T_since_alert",
+                        "alert_sum", "More_alerts",
                         "death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate",
-                        "broadband.usage", "Democrat", "Republican", "T_since_alert", "pm25"]]
+                        "broadband.usage", "Democrat", "Republican", "pm25"]]
     States = States_1.drop(n_seq_s)
     States_1 = States_1.drop(range(0, Train.shape[0], n_days))
 
@@ -68,10 +69,11 @@ def make_data(
     ## Standardize numeric variables
     num_vars = ["HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
                         "quant_HI_3d_county", "quant_HI_fwd_avg_county", "HI_mean",
-                        "l.Pop_density", "l.Med.HH.Income",
-                        "year", "dos", "alert_sum", "More_alerts",
+                        "l.Pop_density", "l.Med.HH.Income", 
+                        "year", "dos", "alerts_2wks", "T_since_alert",
+                         "alert_sum", "More_alerts",
                          "death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate",
-                         "broadband.usage", "Democrat", "Republican", "T_since_alert", "pm25"]
+                         "broadband.usage", "Democrat", "Republican", "pm25"]
 
     s_means = States[num_vars].mean(0)
     s_stds = States[num_vars].std(0)
