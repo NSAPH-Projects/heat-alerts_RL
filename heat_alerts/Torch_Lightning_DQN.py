@@ -40,7 +40,7 @@ class DQN(nn.Module):
         self.net = nn.Sequential(
             nn.Linear(n_col, n_hidden),
             nn.ELU(),
-            nn.Dropout(0.0), # used to be 0.1
+            nn.Dropout(0.1),
             nn.Linear(n_hidden, n_hidden),
             nn.ELU(),
             nn.Linear(n_hidden, n_hidden),
