@@ -2,6 +2,22 @@ library(dplyr)
 library(ggplot2)
 library(cowplot)
 
+setwd("/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL")
+
+#### Using d3rlpy:
+folder<- "d3rlpy_logs/vanilla_DQN_20230227173321"
+Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
+DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
+
+ggplot(DF, aes(x=Epoch, y=Loss)) + geom_line() + 
+  xlab("Epochs") + ylab("Loss") + ggtitle("DQN Model")
+
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN.csv")[,1]
+a_DF<-  data.frame(Epoch=Loss$V1[-1], Alerts)
+
+ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 
+  xlab("Epochs") + ylab("Alerts") + ggtitle("DQN Model")
+
 #### Pytorch convergence in terms of loss:
 
 # DQN<- read.csv("Fall_results/DQN_10-18_epoch-losses.csv")
@@ -53,7 +69,7 @@ Val_Loss<- DF[seq(1,nrow(DF),2),1]
 Train_Loss<- DF[seq(2,nrow(DF),2),5]
 Epoch<- 1:length(Val_Loss)
 
-DF<- read.csv("lightning_logs/test_NN_alerts/version_12/metrics.csv")
+DF<- read.csv("lightning_logs/test_NN_alerts/version_13/metrics.csv")
 
 Val_Loss<- DF[seq(1,nrow(DF),2),1]
 Train_Loss<- DF[seq(2,nrow(DF),2),4]

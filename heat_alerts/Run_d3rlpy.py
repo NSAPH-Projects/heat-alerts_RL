@@ -24,14 +24,21 @@ def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
-
-
 def main(params):
+    set_seed(321)
     params = vars(params)
+
+    ## For now:
+    params = dict(
+        outcome = "other_hosps", n_hidden = 256,
+        n_gpus=1, batch_size=2048, n_epochs=1000,
+        lr=0.003, gamma=1.0, sync_rate = 3,
+        model_name="vanilla_DQN_modeled-R"
+        )
 
     ## Prepare data:
 
-    dataset = make_data(outcome = "other_hosps", modeled_r = False, log_r = True, random_effects = False)
+    dataset = make_data(outcome = params["outcome"], modeled_r = True, log_r = True, random_effects = False)
     # dataset.episodes[0][0].observation
     # dataset.episodes[0][0].next_observation
 
@@ -50,7 +57,8 @@ def main(params):
         batch_size=params["batch_size"],
         learning_rate=params["lr"],
         gamma=params["gamma"],
-        target_update_interval=params["batch_size"]*params["sync_rate"]) 
+        target_update_interval=params["batch_size"]*params["sync_rate"]
+        ) 
     
     dqn.build_with_dataset(dataset) # initialize neural networks
 
@@ -68,14 +76,15 @@ def main(params):
         })
 
     ## Check how many alerts are being sent:
-    folder = glob.glob("d3rlpy_logs/" + "test" + "*")[0]
+    folder = glob.glob("d3rlpy_logs/" + params["model_name"] + "*")[0]
     dqn2 = DQN( # DoubleDQN
         encoder_factory=encoder_factory,
         use_gpu=gpu, 
         batch_size=params["batch_size"],
         learning_rate=params["lr"],
         gamma=params["gamma"],
-        target_update_interval=params["batch_size"]*params["sync_rate"])  
+        target_update_interval=params["batch_size"]*params["sync_rate"]
+        )  
     dqn2.build_with_dataset(dataset)
     steps_per_epoch=int(np.trunc(len(train_episodes)*len(dataset.episodes[0])/params["batch_size"]))
     Total_Alerts = []
@@ -83,8 +92,10 @@ def main(params):
         dqn2.load_model(folder + "/model_" + str(steps_per_epoch*(i+1)) + ".pt")
         a = sum(dqn2.predict(dataset.observations))
         Total_Alerts.append(a)
+        print(i)
     
-    pd.DataFrame(Total_Alerts).to_csv("Fall_results/Total_alerts_" + params['model_name'] + ".csv")
+    # pd.DataFrame(Total_Alerts).to_csv("Fall_results/Total_alerts_" + params['model_name'] + ".csv")
+    np.savetxt("Fall_results/Total_alerts_" + params['model_name'] + ".csv", Total_Alerts)
     
     # ## Save final results for easy access:
     # Action = dqn.predict(dataset.observations) # return actions based on the greedy-policy
@@ -97,7 +108,6 @@ def main(params):
     # dqn.save_model("Fall_results/" + params['model_name'] + ".pt") # save full parameters
 
 if __name__ == "__main__":
-    set_seed(321)
     parser = ArgumentParser()
     parser.add_argument("--outcome", type=str, default="deaths", help = "deaths or hosps")
     parser.add_argument("--prob_constraint", type=bool, default=True, help="constrained by behavior model probablities?")

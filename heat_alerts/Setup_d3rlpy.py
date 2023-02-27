@@ -34,6 +34,7 @@ def make_data(
             rewards = -1*(Train["other_hosps"]/Train["total_count"])
         else:
             rewards = -1*(Train["N"]/Train["Pop.65"])
+        rewards = rewards.to_numpy()
     else:
         if outcome == "all_hosps":
             rewards = pd.read_csv("Fall_results/R_1-23_all-hosps.csv")
@@ -46,6 +47,8 @@ def make_data(
         rewards = -np.log(-rewards + 0.0000000001)
 
     rewards = 0.5 * (rewards - rewards.mean()) / np.max(np.abs(rewards))
+
+    rewards = torch.gather(torch.FloatTensor(rewards.to_numpy()), 1, torch.LongTensor(actions).view(-1, 1) +1).view(-1).detach().numpy()
     
     ## Prepare observations (S):
     budget = Train[Train["dos"] == n_days]["alert_sum"]
@@ -97,7 +100,7 @@ def make_data(
     ## Put everything together:
     dataset = MDPDataset(
         observations.to_numpy(), actions.to_numpy(), 
-        rewards.to_numpy(), terminals.to_numpy()
+        rewards, terminals.to_numpy()
     )
 
     return dataset

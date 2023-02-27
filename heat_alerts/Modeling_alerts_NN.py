@@ -6,9 +6,9 @@ import time
 import numpy as np
 import random
 import pandas as pd
-from scipy.special import expit, softmax
+# from scipy.special import expit, softmax
 from random import sample
-from imblearn.under_sampling import NearMiss
+# from imblearn.under_sampling import NearMiss
 
 import torch 
 from torch import nn # creating modules
@@ -102,15 +102,31 @@ def main(params):
     state_dim = S.drop("index", axis = 1).shape[1]
 
     N = len(D['A'])
-    perm = np.random.permutation(N)  # for preshuffling
     data = [S.drop("index", axis = 1), A]
 
-    # Make data loader, re-balanced
-    shuffled = [v.to_numpy()[perm] for v in data]
-    train = sample(list(range(0,N)), round(0.8*N))
-    val = list(set(list(range(0,N))) - set(train))
-    train_data = [d[train] for d in shuffled]
-    val_data = [d[val] for d in shuffled]
+    # Select validation set by episode, ensure equal representation by all counties
+    n_years = 11
+    n_days = 152
+    all_days = 11*152
+    n_counties = int(N/all_days)
+    years = S["year"].unique()
+
+    val = []
+    for i in range(0,n_counties):
+        y_val = sample(list(years), 2)
+        start = i*all_days
+        end = (i+1)*all_days
+        val.extend([start + x for x in np.where(S["year"][start:end] == y_val[0])][0])
+        val.extend([start + x for x in np.where(S["year"][start:end] == y_val[1])][0])
+        print(i)
+
+    train = list(set(list(range(0,N))) - set(val))
+
+    # Make data loader, shuffled:
+    train_perm = np.random.permutation(len(train))
+    val_perm = np.random.permutation(len(val))
+    train_data = [v.to_numpy()[train][train_perm] for v in data]
+    val_data = [v.to_numpy()[val][val_perm] for v in data]
 
     # nm = NearMiss(sampling_strategy=0.5)
 
