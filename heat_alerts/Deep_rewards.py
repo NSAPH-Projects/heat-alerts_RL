@@ -146,20 +146,41 @@ def main(params):
     state_dim = S.drop("index", axis = 1).shape[1]
 
     N = len(D['R'])
-    perm = np.random.permutation(N)  # for preshuffling
     data = [S.drop("index", axis = 1), A, R, S_1.drop("index", axis = 1), ep_end, over, pd.DataFrame(ID)]
 
-    # Make data loader
-    tensors = [v.to_numpy()[perm] for v in data]
-    for j in [0, 2, 3]: tensors[j] = torch.FloatTensor(tensors[j])
-    for j in [1, 4, 5, 6]: tensors[j] = torch.LongTensor(tensors[j])
-    
-    train = sample(list(range(0,N)), round(0.8*N))
-    val = list(set(list(range(0,N))) - set(train))
+    # Select validation set by episode, ensure equal representation by all counties
+    n_years = 11
+    n_days = 152
+    all_days = 11*152
+    n_counties = int(N/all_days)
+    years = S["year"].unique()
 
-    train_tensors = [t[train] for t in tensors]
+    val = []
+    for i in range(0,n_counties):
+        y_val = sample(list(years), 2)
+        start = i*all_days
+        end = (i+1)*all_days
+        val.extend([start + x for x in np.where(S["year"][start:end] == y_val[0])][0])
+        val.extend([start + x for x in np.where(S["year"][start:end] == y_val[1])][0])
+        # print(i)
+
+    # pd.DataFrame(val).to_csv("data/Python_val_set_by-county.csv")
+    train = list(set(list(range(0,N))) - set(val))
+
+    # Make data loader, shuffled:
+    train_perm = np.random.permutation(len(train))
+    val_perm = np.random.permutation(len(val))
+    train_data = [v.to_numpy()[train][train_perm] for v in data]
+    val_data = [v.to_numpy()[val][val_perm] for v in data]
+
+    train_tensors = train_data
+    val_tensors = val_data
+    for j in [0, 2, 3]: train_tensors[j] = torch.FloatTensor(train_tensors[j])
+    for j in [1, 4, 5, 6]: train_tensors[j] = torch.LongTensor(train_tensors[j])
+    for j in [0, 2, 3]: val_tensors[j] = torch.FloatTensor(val_tensors[j])
+    for j in [1, 4, 5, 6]: val_tensors[j] = torch.LongTensor(val_tensors[j])
+
     train_DS = TensorDataset(*train_tensors)
-    val_tensors = [t[val] for t in tensors]
     val_DS = TensorDataset(*val_tensors)
 
     train_DL = DataLoader(

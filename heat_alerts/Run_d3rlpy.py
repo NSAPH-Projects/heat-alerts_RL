@@ -31,10 +31,10 @@ def main(params):
     ## For now:
     params = dict(
         outcome = "other_hosps", n_hidden = 256,
-        n_gpus=1, b_size=2048, n_epochs=1000,
+        n_gpus=1, b_size=2048, n_epochs=500,
         lr=0.003, gamma=1.0, sync_rate = 3,
-        modeled_r = True, random_effects = False,
-        model_name="vanilla_DQN_modeled-R"
+        modeled_r = True, random_effects = True,
+        model_name="vanilla_DQN_modeled-R_rand-effs"
         )
 
     ## Prepare data:
