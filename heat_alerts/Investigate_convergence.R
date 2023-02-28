@@ -5,7 +5,8 @@ library(cowplot)
 setwd("/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL")
 
 #### Using d3rlpy:
-folder<- "d3rlpy_logs/vanilla_DQN_20230227173321"
+# folder<- "d3rlpy_logs/vanilla_DQN_20230227173321"
+folder<- "d3rlpy_logs/vanilla_DQN_modeled-R_20230228145703"
 Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
 DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
 

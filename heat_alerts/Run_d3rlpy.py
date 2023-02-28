@@ -51,7 +51,7 @@ def main(params):
     ## Set up algorithm:
 
     n_hidden = params["n_hidden"]
-    encoder_factory = VectorEncoderFactory(hidden_units=[n_hidden, n_hidden, n_hidden], activation='relu') # doesn't allow for 'elu'
+    encoder_factory = VectorEncoderFactory(hidden_units=[n_hidden]*3, activation='relu') # doesn't allow for 'elu'
 
     gpu = False
     if params["n_gpus"] > 0: gpu = True
