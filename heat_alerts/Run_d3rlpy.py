@@ -31,14 +31,18 @@ def main(params):
     ## For now:
     params = dict(
         outcome = "other_hosps", n_hidden = 256,
-        n_gpus=1, batch_size=2048, n_epochs=1000,
+        n_gpus=1, b_size=2048, n_epochs=1000,
         lr=0.003, gamma=1.0, sync_rate = 3,
+        modeled_r = True, random_effects = False,
         model_name="vanilla_DQN_modeled-R"
         )
 
     ## Prepare data:
 
-    dataset = make_data(outcome = params["outcome"], modeled_r = True, log_r = True, random_effects = False)
+    dataset = make_data(
+        outcome = params["outcome"], modeled_r = params["modeled_r"], 
+        log_r = True, random_effects = params["random_effects"]
+    )
     # dataset.episodes[0][0].observation
     # dataset.episodes[0][0].next_observation
 
@@ -54,10 +58,10 @@ def main(params):
     dqn = DQN( # DoubleDQN
         encoder_factory=encoder_factory,
         use_gpu=gpu, 
-        batch_size=params["batch_size"],
+        batch_size=params["b_size"],
         learning_rate=params["lr"],
         gamma=params["gamma"],
-        target_update_interval=params["batch_size"]*params["sync_rate"]
+        target_update_interval=params["b_size"]*params["sync_rate"]
         ) 
     
     dqn.build_with_dataset(dataset) # initialize neural networks
@@ -80,13 +84,13 @@ def main(params):
     dqn2 = DQN( # DoubleDQN
         encoder_factory=encoder_factory,
         use_gpu=gpu, 
-        batch_size=params["batch_size"],
+        batch_size=params["b_size"],
         learning_rate=params["lr"],
         gamma=params["gamma"],
-        target_update_interval=params["batch_size"]*params["sync_rate"]
+        target_update_interval=params["b_size"]*params["sync_rate"]
         )  
     dqn2.build_with_dataset(dataset)
-    steps_per_epoch=int(np.trunc(len(train_episodes)*len(dataset.episodes[0])/params["batch_size"]))
+    steps_per_epoch=int(np.trunc(len(train_episodes)*len(dataset.episodes[0])/params["b_size"]))
     Total_Alerts = []
     for i in range(0, params["n_epochs"]): # params["n_epochs"]
         dqn2.load_model(folder + "/model_" + str(steps_per_epoch*(i+1)) + ".pt")
@@ -110,21 +114,16 @@ def main(params):
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--outcome", type=str, default="deaths", help = "deaths or hosps")
-    parser.add_argument("--prob_constraint", type=bool, default=True, help="constrained by behavior model probablities?")
     parser.add_argument("--b_size", type=int, default=2048, help="size of the batches")
     parser.add_argument("--n_hidden", type=int, default=256, help="number of params in DQN hidden layers")
     parser.add_argument("--lr", type=float, default=0.003, help="learning rate")
-    parser.add_argument("--mtm", type=float, default=0.0, help="momentum")
     parser.add_argument("--gamma", type=float, default=1.0, help="discount factor")
     parser.add_argument("--sync_rate", type=int, default=3, help="how often (in epochs) to sync the target model")
     parser.add_argument("--n_gpus", type=int, default=1, help="number of gpus")
     parser.add_argument("--n_epochs", type=int, default=5000, help="number of epochs to run")
-    parser.add_argument("--xpt_name", type=str, default="test", help="name for the experiment log")
     parser.add_argument("--model_name", type=str, default="test", help="name to save model under")
-    parser.add_argument("--loss", type=str, default="mse", choices=("huber", "mse"))
-    parser.add_argument("--silent", default=False, action="store_true")
-    parser.add_argument("--optimizer", type=str, default="adam", choices=("sgd", "adam"))
-    parser.add_argument("--n_workers", type=int, default=0, help="number of workers in the data loader")
+    parser.add_argument("--modeled_r", type=bool, default=True, help="use modeled rewards?")
+    parser.add_argument("--random_effects", type=bool, default=False, help="use random effects from modeled rewards?")
 
     args = parser.parse_args()
     main(args)

@@ -5,17 +5,18 @@ library(viridis)
 
 load("data/Small_S-A-R_prepped.RData")
 
-val<- read.csv("data/Python_val_set.csv")[,2]
-Validation<- rep(1,length(A))
-Validation[val]<- 2
+val<- data.frame(Val = read.csv("data/Python_val_set_by-county.csv"))[,2]
+# Validation<- rep(1,length(A))
+# Validation[val]<- 2
 
 # ahat<- read.csv("Fall_results/Alerts_model_1-23.csv")[,2]
-ahat<- read.csv("Fall_results/Alerts_model_2-21.csv")[,2]
+# ahat<- read.csv("Fall_results/Alerts_model_2-21.csv")[,2]
+ahat<- read.csv("Fall_results/Alerts_model_2-27.csv")[,2]
 
 summary(ahat)
 
 # tab<- table(data.frame(Obs=A, Preds=round(ahat)))
-tab<- table(data.frame(Obs=A[-val], Preds=ahat[-val] >= 0.01))
+tab<- table(data.frame(Obs=A, Preds=ahat >= 0.01))
 tab
 # sensitivity:
 tab[2,2]/sum(tab[2,])

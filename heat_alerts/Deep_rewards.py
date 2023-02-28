@@ -206,10 +206,12 @@ def main(params):
     
     torch.save(model, "Fall_results/" + params['model_name'] + ".pt")
 
-    # model = torch.load("Fall_results/R_1-23_other-hosps.pt", map_location=torch.device('cpu'))
+    # model = torch.load("Fall_results/R_2-11_other-hosps.pt", map_location=torch.device('cpu'))
     
-    s = torch.FloatTensor(S.drop("index", axis = 1).to_numpy())
-    id = torch.LongTensor(pd.DataFrame(ID).to_numpy())
+    d = make_data(all_data=True)  
+    S_all,ID_all = [d[k] for k in ("S","ID")]
+    s = torch.FloatTensor(S_all.drop("index", axis = 1).to_numpy())
+    id = torch.LongTensor(pd.DataFrame(ID_all).to_numpy())
     model.eval() # turns off dropout for the predictions
     r_hat = model.net(s,id)
     random_slopes = F.softplus(model.net.lsigma_slopes)*model.net.randeff_slopes[id]
@@ -226,11 +228,11 @@ def main(params):
     # # n = final.detach().numpy()
     n = R_hat.detach().numpy()
     df = pd.DataFrame(n)
-    df.to_csv("Fall_results/" + params['model_name'] + ".csv")
+    df.to_csv("Fall_results/" + params['model_name'] + "_all.csv")
     RE_df = pd.DataFrame([random_intercepts.detach().numpy()[:,0], random_slopes.detach().numpy()[:,0]])
     RE_df = RE_df.transpose()
     RE_df.columns = ["Rand_Ints", "Rand_Slopes"]
-    RE_df.to_csv("Fall_results/" + params['model_name'] + "_random-effects.csv")
+    RE_df.to_csv("Fall_results/" + params['model_name'] + "_random-effects_all.csv")
 
 if __name__ == "__main__":
     set_seed(321)

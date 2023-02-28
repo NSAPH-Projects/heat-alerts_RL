@@ -37,11 +37,11 @@ def make_data(
         rewards = rewards.to_numpy()
     else:
         if outcome == "all_hosps":
-            rewards = pd.read_csv("Fall_results/R_1-23_all-hosps.csv")
+            rewards = pd.read_csv("Fall_results/R_2-11_all-hosps_all.csv") 
         elif outcome == "other_hosps":
-            rewards = pd.read_csv("Fall_results/R_2-11_other-hosps.csv")
+            rewards = pd.read_csv("Fall_results/R_2-11_other-hosps_all.csv")
         else:
-            rewards = pd.read_csv("Fall_results/R_2-11_deaths.csv")
+            rewards = pd.read_csv("Fall_results/R_1-23_deaths.csv") # would need to get deaths for d=153
     
     if log_r == True:
         rewards = -np.log(-rewards + 0.0000000001)
@@ -86,11 +86,11 @@ def make_data(
 
     if random_effects == True:
         if outcome == "all_hosps":
-            rand_effs = pd.read_csv("Fall_results/R_1-23_all-hosps_random-effects.csv")
+            rand_effs = pd.read_csv("Fall_results/R_2-11_all-hosps_random-effects_all.csv")
         elif outcome == "other_hosps":
-            rand_effs = pd.read_csv("Fall_results/R_2-11_other-hosps_random-effects.csv")
+            rand_effs = pd.read_csv("Fall_results/R_2-11_other-hosps_random-effects_all.csv")
         else:
-            rand_effs = pd.read_csv("Fall_results/R_2-11_deaths_random-effects.csv")
+            rand_effs = pd.read_csv("Fall_results/R_1-23_deaths_random-effects.csv") # would need to get deaths for d=153
         S["rand_ints"] = rand_effs["Rand_Ints"]
         S["rand_slopes"] = F.softplus(torch.FloatTensor(rand_effs["Rand_Slopes"].to_numpy()))
     

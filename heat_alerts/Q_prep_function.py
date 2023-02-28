@@ -15,7 +15,8 @@ def make_data(
     # budget_file="data/Over_budget_S_t3.csv",
     # prob_constraint="Fall_results/BART_preds_near-zero_11-20.csv",
     data_only=True,
-    outcome="deaths"
+    outcome="deaths",
+    all_data=False
 ):
     ## Read in data
     Train = pd.read_csv(filename)
@@ -25,7 +26,17 @@ def make_data(
     n_years = 11
     n_days = 153
 
-    n_seq_s = range(n_days-1, Train.shape[0], n_days)
+    ## Get county-year IDs:
+    # ID = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,int(S.shape[0]/(n_days-1)))]))
+    county_ids = range(0, n_counties)
+    # ids_over_years = list(itertools.chain(*itertools.repeat(county_ids, n_years)))
+
+    if all_data == False:
+        n_seq_s = range(n_days-1, Train.shape[0], n_days)
+        ID = list(itertools.chain(*[itertools.repeat(i, (n_days-1)*n_years) for i in county_ids]))
+    else:
+        n_seq_s = []
+        ID = list(itertools.chain(*[itertools.repeat(i, n_days*n_years) for i in county_ids]))
 
     A = Train["alert"].drop(n_seq_s)
     if outcome == "all_hosps":
@@ -95,12 +106,6 @@ def make_data(
     # near_zero = pd.read_csv(prob_constraint)
     behav_prob = pd.read_csv("Fall_results/Alerts_model_1-23.csv")
     near_zero = (np.array(behav_prob)[:,1] < 0.01).astype(int)
-
-    ## Get county-year IDs:
-    # ID = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,int(S.shape[0]/(n_days-1)))]))
-    county_ids = range(0, n_counties)
-    # ids_over_years = list(itertools.chain(*itertools.repeat(county_ids, n_years)))
-    ID = list(itertools.chain(*[itertools.repeat(i, (n_days-1)*n_years) for i in county_ids]))
 
     if data_only == True:
         output = dict(

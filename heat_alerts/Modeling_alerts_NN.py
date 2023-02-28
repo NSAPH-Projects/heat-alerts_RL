@@ -120,6 +120,7 @@ def main(params):
         val.extend([start + x for x in np.where(S["year"][start:end] == y_val[1])][0])
         print(i)
 
+    # pd.DataFrame(val).to_csv("data/Python_val_set_by-county.csv")
     train = list(set(list(range(0,N))) - set(val))
 
     # Make data loader, shuffled:
