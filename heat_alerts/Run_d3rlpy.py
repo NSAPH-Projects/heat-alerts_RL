@@ -55,6 +55,7 @@ def main(params):
 
     gpu = False
     if params["n_gpus"] > 0: gpu = True
+    
     dqn = DQN( # DoubleDQN
         encoder_factory=encoder_factory,
         use_gpu=gpu, 
