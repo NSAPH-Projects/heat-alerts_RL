@@ -24,9 +24,9 @@ Data<- DF
 pred_deaths<- read.csv("Fall_results/R_1-23_deaths.csv")#*1000
 Pred_deaths<- sapply(1:length(A), function(i) pred_deaths[i,A[i]+2])
 # Pred_deaths[which(Pred_deaths > 0)]<- 0
-pred_OH<- read.csv("Fall_results/R_2-11_other-hosps.csv")#*1000
+pred_OH<- read.csv("Fall_results/R_2-28_other-hosps.csv")#*1000
 Pred_OH<- sapply(1:length(A), function(i) pred_OH[i,A[i]+2])
-pred_hosps<- read.csv("Fall_results/R_2-11_all-hosps.csv")#*1000
+pred_hosps<- read.csv("Fall_results/R_2-28_all-hosps.csv")#*1000
 Pred_hosps<- sapply(1:length(A), function(i) pred_hosps[i,A[i]+2])
 
 #### Summary stats:

@@ -19,8 +19,8 @@ def make_data(
     ## Read in data:
     Train = pd.read_csv(filename)
 
-    n_counties = Train["fips"].nunique()
-    n_years = 11
+    # n_counties = Train["fips"].nunique()
+    # n_years = 11
     n_days = 153
 
     actions = Train["alert"]
@@ -42,13 +42,12 @@ def make_data(
             rewards = pd.read_csv("Fall_results/R_2-11_other-hosps_all.csv")
         else:
             rewards = pd.read_csv("Fall_results/R_1-23_deaths.csv") # would need to get deaths for d=153
-    
+        rewards = torch.gather(torch.FloatTensor(rewards.to_numpy()), 1, torch.LongTensor(actions).view(-1, 1) +1).view(-1).detach().numpy()
+
     if log_r == True:
         rewards = -np.log(-rewards + 0.0000000001)
 
-    rewards = 0.5 * (rewards - rewards.mean()) / np.max(np.abs(rewards))
-
-    rewards = torch.gather(torch.FloatTensor(rewards.to_numpy()), 1, torch.LongTensor(actions).view(-1, 1) +1).view(-1).detach().numpy()
+    rewards = (rewards - rewards.mean()) / np.max(np.abs(rewards)) # removed scaling by 0.5
     
     ## Prepare observations (S):
     budget = Train[Train["dos"] == n_days]["alert_sum"]
