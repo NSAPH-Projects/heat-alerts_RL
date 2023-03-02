@@ -37,9 +37,11 @@ def make_data(
         rewards = rewards.to_numpy()
     else:
         if outcome == "all_hosps":
-            rewards = pd.read_csv("Fall_results/R_2-28_all-hosps_all.csv") # don't use this one
+            # rewards = pd.read_csv("Fall_results/R_2-28_all-hosps_all.csv") # don't use this one
+            rewards = pd.read_csv("Fall_results/R_3-2_all-hosps_all.csv")
         elif outcome == "other_hosps":
-            rewards = pd.read_csv("Fall_results/R_2-28_other-hosps_all.csv")
+            # rewards = pd.read_csv("Fall_results/R_2-28_other-hosps_all.csv")
+            rewards = pd.read_csv("Fall_results/R_3-2_other-hosps_all.csv")
         else:
             rewards = pd.read_csv("Fall_results/R_1-23_deaths.csv") # would need to get deaths for d=153
         rewards = torch.gather(torch.FloatTensor(rewards.to_numpy()), 1, torch.LongTensor(actions).view(-1, 1) +1).view(-1).detach().numpy()

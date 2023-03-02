@@ -31,10 +31,10 @@ def main(params):
     ## For now:
     params = dict(
         outcome = "other_hosps", n_hidden = 256,
-        n_gpus=1, b_size=2048, n_epochs=500,
+        n_gpus=1, b_size=2048, n_epochs=1000,
         lr=0.003, gamma=1.0, sync_rate = 3,
         modeled_r = True, random_effects = True,
-        model_name="vanilla_DQN_modeled-R_rand-effs"
+        model_name="vanilla_DQN_modeled-R_rand-effs_not-forcing"
         )
 
     ## Prepare data:
@@ -55,7 +55,7 @@ def main(params):
 
     gpu = False
     if params["n_gpus"] > 0: gpu = True
-    
+
     dqn = DQN( # DoubleDQN
         encoder_factory=encoder_factory,
         use_gpu=gpu, 

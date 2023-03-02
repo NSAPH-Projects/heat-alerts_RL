@@ -21,6 +21,7 @@ for(z in unique(Train$BA_zone)){
 ## Cutoff by county
 
 fips<- unique(Train$fips)
+
 pct90<- c()
 for(i in fips){
   pos<- which(Train$fips == i)
@@ -32,12 +33,16 @@ summary(pct90)
 hist(pct90)
 
 county_alerts<- c()
+num_above_county<- c()
 for(i in fips){
   pos<- which(Train$fips == i & Train$alert == 1)
   if(length(pos) == 0){
     county_alerts<- append(county_alerts, NA)
   }else{
-    county_alerts<- append(county_alerts, min(Train$HImaxF_PopW[pos]))
+    m<- min(Train$HImaxF_PopW[pos])
+    county_alerts<- append(county_alerts, m)
+    num_above_county<- append(num_above_county, 
+                              sum(Train$HImaxF_PopW[Train$fips == i] >= m))
   }
   print(i)
 }
@@ -45,4 +50,5 @@ for(i in fips){
 summary(county_alerts)
 hist(county_alerts)
 
-
+summary(num_above_county)
+hist(num_above_county)

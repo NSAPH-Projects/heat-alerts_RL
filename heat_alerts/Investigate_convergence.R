@@ -7,20 +7,27 @@ setwd("/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL")
 #### Using d3rlpy:
 # folder<- "d3rlpy_logs/vanilla_DQN_20230227173321"
 folder<- "d3rlpy_logs/vanilla_DQN_modeled-R_20230228145703"
-folder<- "d3rlpy_logs/vanilla_DQN_modeled-R_rand-effs_20230228163559"
-Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
+folder<- "d3rlpy_logs/vanilla_DQN_modeled-R_rand-effs_20230302201726"
+Loss_a<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
+folder<- "d3rlpy_logs/vanilla_DQN_modeled-R_rand-effs_more-epochs_20230302220642"
+Loss_b<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
+Loss_b$V1<- Loss_b$V1 + nrow(Loss_a)
+# Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
+Loss<- rbind(Loss_a, Loss_b)
 DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
 
-ggplot(DF, aes(x=Epoch, y=Loss)) + geom_line() + 
-  xlab("Epochs") + ylab("Loss") + ggtitle("DQN Model")
+ggplot(DF, aes(x=Epoch, y=log(Loss))) + geom_line() + 
+  xlab("Epochs") + ylab("Log of Loss") + ggtitle("DQN Model")
 
-# Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN.csv")[,1]
-Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_modeled-R.csv")[,1]
-Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_modeled-R_rand-effs.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN.csv")[,1]
+# Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_modeled-R.csv")[,1]
+Alerts_a<- read.csv("Fall_results/Total_alerts_vanilla_DQN_modeled-R_rand-effs.csv")[,1]
+Alerts_b<- read.csv("Fall_results/Total_alerts_vanilla_DQN_modeled-R_rand-effs_more-epochs.csv")[,1]
+Alerts<- append(Alerts_a, Alerts_b)
 a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
 
 ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 
-  xlab("Epochs") + ylab("Alerts") + ggtitle("DQN Model")
+  xlab("Epochs") + ylab("Alerts") + ggtitle("DQN Model") + geom_smooth()
 
 #### Pytorch convergence in terms of loss:
 
@@ -66,8 +73,8 @@ ggplot(DQN, aes(x=epoch, y=log(n_alerts/Q1.Q0))) + geom_line() +
 ### Validation vs Training, Rewards and Alerts Models
 
 # DF<- read.csv("lightning_logs/R_no-past_deaths_adam_mse/version_0/metrics.csv")
-DF<- read.csv("lightning_logs/feb_R_hosps_adam_mse/version_3/metrics.csv")
-DF<- read.csv("lightning_logs/feb_R_other-hosps_adam_mse/version_3/metrics.csv")
+DF<- read.csv("lightning_logs/feb_R_hosps_adam_mse/version_4/metrics.csv")
+DF<- read.csv("lightning_logs/feb_R_other-hosps_adam_mse/version_4/metrics.csv")
 
 Val_Loss<- DF[seq(1,nrow(DF),2),1]
 Train_Loss<- DF[seq(2,nrow(DF),2),5]
