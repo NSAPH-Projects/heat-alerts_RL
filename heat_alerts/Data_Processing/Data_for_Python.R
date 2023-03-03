@@ -13,10 +13,42 @@ write_csv(data.frame(S_t3_inds), "data/S_t3_training_indices.csv")
 
 write_csv(Top3rd, "data/Train_smaller-for-Python.csv")
 
+#### Select "eligible" days based on heat index:
+
+data<- data.frame(Top3rd)
+
+fips<- unique(data$fips)
+
+pct90<- c()
+for(i in fips){
+  pos<- which(data$fips == i)
+  pct90<- append(pct90, quantile(data$HImaxF_PopW[pos], 0.9))
+}
+Pct_90<- rep(pct90, each = 153*11)
+Pct_90_eligible<- data$HImaxF_PopW >= Pct_90
+
+write_csv(data.frame(Pct_90_eligible), "data/Pct_90_eligible.csv")
+
+county_min<- c()
+for(i in fips){
+  pos<- which(data$fips == i & data$alert == 1)
+  if(length(pos) == 0){
+    county_min<- append(county_min, NA)
+  }else{
+    m<- min(data$HImaxF_PopW[pos])
+    county_min<- append(county_min, m)
+  }
+}
+County_min<- rep(county_min, each = 153*11)
+County_min_eligible<- data$HImaxF_PopW >= County_min
+
+write_csv(data.frame(County_min_eligible), "data/County_min_eligible.csv")
+
+# Both_eligible<- Pct_90_eligible & County_min_eligible
 
 ################ Also create set for R modeling:
 
-data<- data.frame(Top3rd)
+
 
 budget<- data[which(data$dos == 153), "alert_sum"]
 Budget<- rep(budget, each = n_days)

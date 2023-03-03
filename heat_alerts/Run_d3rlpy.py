@@ -34,7 +34,7 @@ def main(params):
         n_gpus=1, b_size=2048, n_epochs=1000,
         lr=0.003, gamma=1.0, sync_rate = 3,
         modeled_r = True, random_effects = True,
-        model_name="vanilla_DQN_modeled-R_rand-effs_not-forcing"
+        model_name="vanilla_DQN_modeled-R_rand-effs_not-forcing_more-epochs"
         )
 
     ## Prepare data:
@@ -70,6 +70,8 @@ def main(params):
     td_error = td_error_scorer(dqn, test_episodes) # calculate metrics
 
     ## Train:
+
+    # dqn.load_model("d3rlpy_logs/vanilla_DQN_modeled-R_rand-effs_not-forcing_20230302233318" + "/model_" + str(391000) + ".pt")
 
     dqn.fit(train_episodes,
         eval_episodes=test_episodes,
