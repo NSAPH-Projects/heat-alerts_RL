@@ -78,7 +78,8 @@ class DQN_Lightning(pl.LightningModule):
         preds = self.net(s, id)
         random_slopes = F.softplus(self.net.lsigma_slopes)*self.net.randeff_slopes[id]
         # Preds = torch.where(a == 0, preds[:,0], preds[:,0] - F.softplus(preds[:,1]) - F.softplus(random_slopes))
-        Preds = torch.where(a == 0, preds[:,0], preds[:,0] + preds[:,1] + random_slopes)
+        # Preds = torch.where(a == 0, preds[:,0], preds[:,0] + preds[:,1] + random_slopes)
+        Preds = torch.where(a == 0, preds[:,0], preds[:,1] + random_slopes)
         Preds = Preds + F.softplus(self.net.lsigma)*self.net.randeff[id]
         Preds = -torch.exp(Preds) 
         return Preds, r
@@ -236,7 +237,8 @@ def main(params):
     random_slopes = F.softplus(model.net.lsigma_slopes)*model.net.randeff_slopes[id]
     R_hat = r_hat
     # R_hat[:,1] = R_hat[:,0] - F.softplus(R_hat[:,1]) - F.softplus(random_slopes[:,0])
-    R_hat[:,1] = R_hat[:,0] + R_hat[:,1] + random_slopes[:,0]
+    # R_hat[:,1] = R_hat[:,0] + R_hat[:,1] + random_slopes[:,0]
+    R_hat[:,1] = R_hat[:,1] + random_slopes[:,0]
     random_intercepts = F.softplus(model.net.lsigma)*model.net.randeff[id]
     R_hat = R_hat + random_intercepts
     R_hat = -torch.exp(R_hat)
