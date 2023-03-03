@@ -125,7 +125,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_gpus", type=int, default=1, help="number of gpus")
     parser.add_argument("--n_epochs", type=int, default=5000, help="number of epochs to run")
     parser.add_argument("--model_name", type=str, default="test", help="name to save model under")
-    parser.add_argument("--modeled_r", type=bool, default=True, help="use modeled rewards?")
+    parser.add_argument("--modeled_r", type=bool, default=False, help="use modeled rewards?")
     parser.add_argument("--random_effects", type=bool, default=False, help="use random effects from modeled rewards?")
 
     args = parser.parse_args()
