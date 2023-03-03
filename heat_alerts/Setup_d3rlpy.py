@@ -11,10 +11,11 @@ from torch.nn import functional as F
 
 def make_data(
     filename="data/Train_smaller-for-Python.csv", 
-    outcome="deaths", 
+    outcome="other_hosps", 
     modeled_r = False, 
     log_r = True,
-    random_effects = False
+    random_effects = False,
+    eligible = "all"
 ):
     ## Read in data:
     Train = pd.read_csv(filename)
@@ -98,11 +99,22 @@ def make_data(
     observations = pd.concat([S.reset_index(), S_OHE.reset_index()], axis = 1)
     observations.drop("index", axis=1)
 
+
     ## Put everything together:
-    dataset = MDPDataset(
-        observations.to_numpy(), actions.to_numpy(), 
-        rewards, terminals.to_numpy()
-    )
+
+    if eligible == "all":
+        dataset = MDPDataset(
+            observations.to_numpy(), actions.to_numpy(), 
+            rewards, terminals.to_numpy()
+        )
+    else: 
+        elig = pd.read_csv("data/Pct_90_eligible.csv") # could include other options too
+        Elig = elig.index[elig["Pct_90_eligible"]]
+        terminals = pd.read_csv("data/Pct_90_eligible_terminals.csv")
+        dataset = MDPDataset(
+            observations.iloc[Elig].to_numpy(), actions[Elig].to_numpy(), 
+            rewards[Elig], terminals.to_numpy()
+        )
 
     return dataset
 

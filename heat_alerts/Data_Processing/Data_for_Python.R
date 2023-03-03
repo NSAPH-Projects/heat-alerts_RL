@@ -29,6 +29,18 @@ Pct_90_eligible<- data$HImaxF_PopW >= Pct_90
 
 write_csv(data.frame(Pct_90_eligible), "data/Pct_90_eligible.csv")
 
+New_terminals<- c()
+episodes<- seq(153, length(Pct_90), 153)
+for(s in 1:length(episodes)){
+  el<- sum(Pct_90_eligible[(153*(s-1)+1):(153*s)])
+  if(el > 0){
+    New_terminals<- append(New_terminals, 
+                           c(rep(0, el-1),1))
+  }
+}
+
+write_csv(data.frame(New_terminals), "data/Pct_90_eligible_terminals.csv")
+
 county_min<- c()
 for(i in fips){
   pos<- which(data$fips == i & data$alert == 1)
