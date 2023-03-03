@@ -1,0 +1,1 @@
+python heat_alerts/Run_d3rlpy.py  --outcome other_hosps --modeled_r True --random_effects True --n_epochs 2000 --model_name vanilla_DQN_modeled-R_rand-effs_plainest
