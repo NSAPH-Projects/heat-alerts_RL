@@ -16,4 +16,4 @@ source ~/.bashrc
 mymodules
 cd heat-alerts_mortality_RL
 source activate pt1.12_cuda11.6
-python Run_jobs/pylauncher.py --job_file="./Run_jobs/DQN_tests" --i $SLURM_ARRAY_TASK_ID
+python Run_jobs/pylauncher.py --job_file="./Run_jobs/Old_DQN_tests" --i $SLURM_ARRAY_TASK_ID
