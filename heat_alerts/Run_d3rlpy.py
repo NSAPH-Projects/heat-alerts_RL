@@ -24,24 +24,31 @@ def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
+def get_steps_per_epoch(folder):
+    models = sorted(glob.glob(folder + "/model_*"))
+    m1 = int(models[0].split("model_")[1].split(".pt")[0])
+    m2 = int(models[1].split("model_")[1].split(".pt")[0])
+    return(m2 - m1)
+
 def main(params):
     set_seed(321)
     params = vars(params)
 
     # ## For now:
-    # params = dict(
-    #     outcome = "other_hosps", n_hidden = 256,
-    #     n_gpus=1, b_size=2048, n_epochs=1000,
-    #     lr=0.003, gamma=1.0, sync_rate = 3,
-    #     modeled_r = True, random_effects = True,
-    #     model_name="vanilla_DQN_modeled-R_rand-effs_not-forcing_more-epochs"
-    #     )
+    params = dict(
+        outcome = "other_hosps", n_hidden = 256,
+        n_gpus=1, b_size=2048, n_epochs=2000,
+        lr=0.003, gamma=1.0, sync_rate = 3,
+        modeled_r = False, random_effects = False,
+        model_name="vanilla_DQN_constrained_90pct",
+        eligible = "90th"
+        )
 
     ## Prepare data:
 
     dataset = make_data(
         outcome = params["outcome"], modeled_r = params["modeled_r"], 
-        log_r = True, random_effects = params["random_effects"], eligible = "90th"
+        log_r = True, random_effects = params["random_effects"], eligible = params["eligible"]
     )
     # dataset.episodes[0][0].observation
     # dataset.episodes[0][0].next_observation
@@ -93,7 +100,8 @@ def main(params):
         target_update_interval=params["b_size"]*params["sync_rate"]
         )  
     dqn2.build_with_dataset(dataset)
-    steps_per_epoch=int(np.trunc(len(train_episodes)*len(dataset.episodes[0])/params["b_size"]))
+    steps_per_epoch = get_steps_per_epoch(folder)
+    # steps_per_epoch=int(np.trunc(len(train_episodes)*len(dataset.episodes[0])/params["b_size"]))
     Total_Alerts = []
     for i in range(0, params["n_epochs"]): # params["n_epochs"]
         dqn2.load_model(folder + "/model_" + str(steps_per_epoch*(i+1)) + ".pt")
@@ -127,6 +135,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_name", type=str, default="test", help="name to save model under")
     parser.add_argument("--modeled_r", type=bool, default=False, help="use modeled rewards?")
     parser.add_argument("--random_effects", type=bool, default=False, help="use random effects from modeled rewards?")
+    parser.add_argument("--eligible", type=str, default="all", help="days to include in RL")
 
     args = parser.parse_args()
     main(args)
