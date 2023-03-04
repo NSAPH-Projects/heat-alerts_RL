@@ -39,12 +39,14 @@ def main(params):
     #     outcome = "other_hosps", n_hidden = 256,
     #     n_gpus=1, b_size=2048, n_epochs=2000,
     #     lr=0.003, gamma=1.0, sync_rate = 3,
-    #     modeled_r = False, random_effects = False,
-    #     model_name="vanilla_DQN_constrained_90pct",
-    #     eligible = "90th"
+    #     modeled_r = True, random_effects = True,
+    #     model_name="vanilla_DQN_modeled-R_rand-effs_not-forcing",
+    #     eligible = "all"
     #     )
 
     ## Prepare data:
+    print(params["modeled_r"])
+    print(params["random_effects"])
 
     dataset = make_data(
         outcome = params["outcome"], modeled_r = params["modeled_r"], 
@@ -90,7 +92,7 @@ def main(params):
         })
 
     ## Check how many alerts are being sent:
-    folder = glob.glob("d3rlpy_logs/" + params["model_name"] + "*")[0]
+    folder = glob.glob("d3rlpy_logs/" + params["model_name"] + "_2*")[0]
     dqn2 = DQN( # DoubleDQN
         encoder_factory=encoder_factory,
         use_gpu=gpu, 
