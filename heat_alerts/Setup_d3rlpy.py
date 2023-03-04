@@ -88,9 +88,9 @@ def make_data(
 
     if random_effects == True:
         if outcome == "all_hosps":
-            rand_effs = pd.read_csv("Fall_results/R_2-11_all-hosps_random-effects_all.csv")
+            rand_effs = pd.read_csv("Fall_results/R_3-2_all-hosps_random-effects_all.csv")
         elif outcome == "other_hosps":
-            rand_effs = pd.read_csv("Fall_results/R_2-11_other-hosps_random-effects_all.csv")
+            rand_effs = pd.read_csv("Fall_results/R_3-2_other-hosps_random-effects_all.csv")
         else:
             rand_effs = pd.read_csv("Fall_results/R_1-23_deaths_random-effects.csv") # would need to get deaths for d=153
         S["rand_ints"] = rand_effs["Rand_Ints"]
