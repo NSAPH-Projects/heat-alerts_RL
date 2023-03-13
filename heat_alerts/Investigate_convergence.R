@@ -7,14 +7,14 @@ setwd("/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL")
 #### Using d3rlpy:
 folder<- "d3rlpy_logs/vanilla_DQN_20230227173321"
 folder<- "d3rlpy_logs/vanilla_DQN_modeled-R_20230228145703"
-folder<- "d3rlpy_logs/vanilla_DQN_modeled-R_rand-effs_not-forcing_20230302233318"
+folder<- "d3rlpy_logs/vanilla_DQN_modeled-R_rand-effs_not-forcing_20230304153017"
 Loss_a<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
 folder<- "d3rlpy_logs/vanilla_DQN_modeled-R_rand-effs_not-forcing_more-epochs_20230303122304"
 Loss_b<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
 Loss_b$V1<- Loss_b$V1 + nrow(Loss_a)
 Loss<- rbind(Loss_a, Loss_b)
 
-folder<- "d3rlpy_logs/vanilla_DQN_constrained_90pct_20230303213102" 
+folder<- "d3rlpy_logs/vanilla_DQN_modeled-R_rand-effs_not-forcing_constrained_90pct_20230304224723" 
 Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
 
 DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
@@ -28,7 +28,7 @@ Alerts_a<- read.csv("Fall_results/Total_alerts_vanilla_DQN_modeled-R_rand-effs_n
 Alerts_b<- read.csv("Fall_results/Total_alerts_vanilla_DQN_modeled-R_rand-effs_not-forcing_more-epochs.csv")[,1]
 Alerts<- append(Alerts_a, Alerts_b)
 
-Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_constrained_90pct.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_modeled-R_rand-effs_not-forcing_constrained_90pct.csv")[,1]
 a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
 
 ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 

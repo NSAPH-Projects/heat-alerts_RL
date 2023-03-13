@@ -134,6 +134,29 @@ Final_DF<- left_join(Full_DF, all_AQ, by = c("fips","year"))
 saveRDS(Final_DF, "data/Final_data_for_HARL_w-hosps_confounders.rds")
 
 
+
+#### *Inspect* alert time deltas:
+
+deltas<- read.csv("data/heat_wave_time_delta.csv")
+
+my_split<- str_split(deltas$time_delta_issue_start, " days ")
+days<- as.numeric(unlist(lapply(my_split, function(x) x[1])))
+hours.0<- unlist(lapply(my_split, function(x) x[2]))
+hours.1<- str_split(hours.0, ":")
+hours<- as.numeric(unlist(lapply(hours.1, function(x) x[1])))
+mins<- as.numeric(unlist(lapply(hours.1, function(x) x[2])))
+secs<- as.numeric(unlist(lapply(hours.1, function(x) x[3])))
+
+Deltas<- data.frame(Date = deltas$day, fips = deltas$geoid10, 
+                    delta = days*24 + hours + mins/60 + secs/3600)
+Deltas$fips<- str_pad(Deltas$fips, 5, pad="0")
+Deltas$Date<- as.Date(Deltas$Date)
+
+FINAL<- left_join(Final_DF, Deltas) # a lot of missingness
+
+
+# saveRDS(FINAL, "data/Final_data_for_HARL_w-hosps_confounders.rds")
+
 # ## Out of curiosity:
 # 
 # test<- distinct(Full_DF[,c("Population", "Pop_density", "Med.HH.Income", "broadband.usage", "Democrat", "Republican")])
