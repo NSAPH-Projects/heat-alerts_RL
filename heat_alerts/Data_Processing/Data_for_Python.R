@@ -25,7 +25,7 @@ for(i in fips){
   pct90<- append(pct90, quantile(data$HImaxF_PopW[pos], 0.9))
 }
 Pct_90<- rep(pct90, each = 153*11)
-Pct_90_eligible<- data$HImaxF_PopW >= Pct_90
+Pct_90_eligible<- data$HImaxF_PopW >= Pct_90 # oops, actually could have gotten this from the data$quant_HI_county variable
 
 write_csv(data.frame(Pct_90_eligible), "data/Pct_90_eligible.csv")
 

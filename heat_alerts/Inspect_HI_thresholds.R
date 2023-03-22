@@ -32,6 +32,8 @@ for(i in fips){
 summary(pct90)
 hist(pct90)
 
+## file with eligible days ^^ in Data_for_Python.R
+
 county_alerts<- c()
 num_above_county<- c()
 for(i in fips){

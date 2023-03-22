@@ -8,7 +8,7 @@ DF$alert<- A
 # DF$R<- R_deaths[,1]
 # DF$R<- R_all_hosps[,1]
 # DF$R<- R_heat_hosps[,1]
-# DF$R<- R_other_hosps[,1]
+DF$R<- - R_other_hosps[,1]*1000
 
 myControl<- trainControl(method = "none", savePredictions = "final",
                          verboseIter = TRUE, allowParallel = FALSE)
@@ -20,16 +20,16 @@ tgrid<- expand.grid( .mtry = 15, .splitrule = "extratrees",
 ## Run model:
 
 # outcomes<- c("deaths", "all_hosps", "heat_hosps", "other_hosps")
-outcomes<- c("deaths", "other_hosps")
+# outcomes<- c("deaths", "other_hosps")
+# 
+# i<- 2
 
-i<- 2
-
-sink("Fall_results/Rewards_VarImp.txt")
+sink("Fall_results/Rewards_VarImp_3-13-23.txt")
 
 # for(o in list(R_deaths, R_all_hosps, R_heat_hosps, R_other_hosps)){
-for(o in list(R_deaths, R_other_hosps)){
+# for(o in list(R_deaths, R_other_hosps)){
   
-  DF$R<- o[,1]
+  # DF$R<- o[,1]
   
   s<- Sys.time()
   
@@ -42,18 +42,18 @@ for(o in list(R_deaths, R_other_hosps)){
   e-s
   
   # saveRDS(ranger_model, paste0("Fall_results/Rewards_", outcomes[i], ".rds"))
-  print(outcomes[i])
-  print(varImp(ranger_model))
+  # print(outcomes[i])
+  # print(varImp(ranger_model))
   
-  i<- i+1
+  # i<- i+1
   
-}
-
-sink()
+# }
 
 VI<- varImp(ranger_model)
 VI_df<- data.frame(Variable=row.names(VI$importance), Importance=VI$importance$Overall)
 VI_df[order(VI_df$Importance, decreasing = TRUE),]
+
+sink()
 
 ## Make marginal plots
 

@@ -15,24 +15,59 @@ Loss_b$V1<- Loss_b$V1 + nrow(Loss_a)
 Loss<- rbind(Loss_a, Loss_b)
 
 folder<- "d3rlpy_logs/vanilla_DQN_modeled-R_rand-effs_not-forcing_constrained_90pct_20230304224723" 
-Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
+folder<- "d3rlpy_logs/vanilla_DQN_default-params_20230320163928"
+folder<- "d3rlpy_logs/vanilla_DQN_default-params_modeled-R_rand-effs_not-forcing_20230321143836"
+folder<- "d3rlpy_logs/vanilla_DQN_default-params_constrained_90pct_20230321175057"
+folder<- "d3rlpy_logs/vanilla_DQN_default-params_modeled-R_rand-effs_not-forcing_constrained_90pct_20230321192541"
+folder<- "d3rlpy_logs/vanilla_DQN_lr-003_20230322190102"
+folder<- "d3rlpy_logs/vanilla_DQN_lr-0005_20230322192458"
+folder<- "d3rlpy_logs/vanilla_DQN_lr-0001_20230322195401"
 
+Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
 DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
 
 ggplot(DF, aes(x=Epoch, y=log(Loss))) + geom_line() + 
   xlab("Epochs") + ylab("Log of Loss") + ggtitle("DQN Model")
 
-Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN.csv")[,1]
-Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_modeled-R.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_default-params.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_default-params_modeled-R_rand-effs_not-forcing.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_default-params_constrained_90pct.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_default-params_modeled-R_rand-effs_not-forcing_constrained_90pct.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr-003.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr-0005.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr-0001.csv")[,1]
+a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
+ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 
+  xlab("Epochs") + ylab("Days with Alerts") + ggtitle("Vanilla DQN") + geom_smooth()
+
+## Make figure for "F31" proposal:
+
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN.csv")[,1]/(153*11*596)
+a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
+p1<- ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 
+  xlab("Epochs") + ylab("Days with Alerts") + ggtitle("Vanilla DQN") + geom_smooth()
+
 Alerts_a<- read.csv("Fall_results/Total_alerts_vanilla_DQN_modeled-R_rand-effs_not-forcing.csv")[,1]
 Alerts_b<- read.csv("Fall_results/Total_alerts_vanilla_DQN_modeled-R_rand-effs_not-forcing_more-epochs.csv")[,1]
-Alerts<- append(Alerts_a, Alerts_b)
-
-Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_modeled-R_rand-effs_not-forcing_constrained_90pct.csv")[,1]
+Alerts<- append(Alerts_a, Alerts_b)/(153*11*596)
 a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
+p2<- ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 
+  xlab("Epochs") + ylab("Days with Alerts") + ggtitle("DQN with Modeled Rewards (MR)") + geom_smooth() +
+  ylim(0,1)
 
-ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 
-  xlab("Epochs") + ylab("Alerts") + ggtitle("DQN Model") + geom_smooth()
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_constrained_90pct.csv")[,1]/sum(read.csv("data/Pct_90_eligible.csv"))
+a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
+p3<- ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 
+  xlab("Epochs") + ylab("Days with Alerts") + ggtitle("DQN with Eligibility Constraint (EC)") + geom_smooth() +
+  ylim(0,1)
+
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_modeled-R_rand-effs_not-forcing_constrained_90pct.csv")[,1]/sum(read.csv("data/Pct_90_eligible.csv"))
+a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
+p4<- ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 
+  xlab("Epochs") + ylab("Days with Alerts") + ggtitle("DQN with EC + MR") + geom_smooth() +
+  ylim(0,1)
+
+plot_grid(p1,p2,p3,p4, nrow=2)
 
 #### Pytorch convergence in terms of loss:
 
