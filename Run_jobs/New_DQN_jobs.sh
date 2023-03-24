@@ -16,4 +16,4 @@ source ~/.bashrc
 mymodules
 cd heat-alerts_mortality_RL
 source activate pt1.12_cuda11.6
-singularity exec --bind /n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/ --nv d3rlpy_latest.sif --num_gpus=4 python Run_jobs/pylauncher.py --job_file="./Run_jobs/New_DQN_tests" --i $SLURM_ARRAY_TASK_ID
+singularity exec --bind /n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/ --nv /n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/d3rlpy_latest.sif --num_gpus=4 python Run_jobs/pylauncher.py --job_file="./Run_jobs/New_DQN_tests" --i $SLURM_ARRAY_TASK_ID
