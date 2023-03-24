@@ -32,6 +32,7 @@ def get_steps_per_epoch(folder):
 
 def main(params):
     set_seed(321)
+    d3rlpy.seed(321)
     params = vars(params)
 
     # ## For now:
