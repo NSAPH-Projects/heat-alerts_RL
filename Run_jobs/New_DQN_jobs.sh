@@ -3,8 +3,8 @@
 #SBATCH -N 1
 #SBATCH -n 4
 #SBATCH -p fasse_gpu
-#SBATCH -t 0-40:00
-#SBATCH --mem 50G
+#SBATCH -t 0-50:00
+#SBATCH --mem 90G
 #SBATCH --gres gpu:1
 #SBATCH --array 0-3 # 0-1
 #SBATCH -o ./Run_jobs/slurm/dqn.%a.out
