@@ -1,4 +1,4 @@
-python heat_alerts/Run_d3rlpy.py --n_epochs 5000 --model_name vanilla_DQN_default-params_long-run
-python heat_alerts/Run_d3rlpy.py --modeled_r True --random_effects True --n_epochs 5000 --model_name vanilla_DQN_default-params_long-run_modeled-R_rand-effs_not-forcing
-python heat_alerts/Run_d3rlpy.py --eligible "90pct" --n_epochs 5000 --model_name vanilla_DQN_default-params_long-run_constrained_90pct
-python heat_alerts/Run_d3rlpy.py --modeled_r True --random_effects True --eligible "90pct" --n_epochs 5000 --model_name vanilla_DQN_default-params_long-run_modeled-R_rand-effs_not-forcing_constrained_90pct
+python heat_alerts/Run_d3rlpy.py --n_epochs 10000 --model_name vanilla_DQN_default-params_long-run
+python heat_alerts/Run_d3rlpy.py --modeled_r True --random_effects True --n_epochs 10000 --model_name vanilla_DQN_default-params_long-run_modeled-R_rand-effs_not-forcing
+python heat_alerts/Run_d3rlpy.py --eligible "90pct" --n_epochs 10000 --model_name vanilla_DQN_default-params_long-run_constrained_90pct
+python heat_alerts/Run_d3rlpy.py --modeled_r True --random_effects True --eligible "90pct" --n_epochs 10000 --model_name vanilla_DQN_default-params_long-run_modeled-R_rand-effs_not-forcing_constrained_90pct
