@@ -69,7 +69,7 @@ def main(params):
         encoder_factory=encoder_factory,
         use_gpu=gpu, 
         batch_size=params["b_size"],
-        # learning_rate=params["lr"],
+        learning_rate=params["lr"],
         gamma=params["gamma"],
         target_update_interval=params["b_size"]*params["sync_rate"]
         ) 
@@ -97,7 +97,7 @@ def main(params):
         encoder_factory=encoder_factory,
         use_gpu=gpu, 
         batch_size=params["b_size"],
-        # learning_rate=params["lr"],
+        learning_rate=params["lr"],
         gamma=params["gamma"],
         target_update_interval=params["b_size"]*params["sync_rate"]
         )  
