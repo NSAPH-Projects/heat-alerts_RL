@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J my_DQN
 #SBATCH -N 1
-#SBATCH -n 4
+#SBATCH -n 8
 #SBATCH -p fasse_gpu
 #SBATCH -t 0-50:00
 #SBATCH --mem 90G
