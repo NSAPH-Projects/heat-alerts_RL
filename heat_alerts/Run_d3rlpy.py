@@ -35,7 +35,7 @@ def main(params):
     d3rlpy.seed(321)
     params = vars(params)
 
-    # ## For now:
+    ## For now:
     # params = dict(
     #     outcome = "other_hosps", n_hidden = 256,
     #     n_gpus=1, b_size=2048, n_epochs=2000,

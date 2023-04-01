@@ -23,6 +23,16 @@ folder<- "d3rlpy_logs/vanilla_DQN_lr-003_20230322190102"
 folder<- "d3rlpy_logs/vanilla_DQN_lr-0005_20230322192458"
 folder<- "d3rlpy_logs/vanilla_DQN_lr-0001_20230322195401"
 
+folder<- "d3rlpy_logs/vanilla_DQN_lr-0001_long-run_20230324140132"
+folder<- "d3rlpy_logs/vanilla_DQN_lr-0001_long-run_constrained_90pct_20230324140128"
+folder<- "d3rlpy_logs/vanilla_DQN_lr-0001_long-run_modeled-R_rand-effs_not-forcing_20230324140130"
+folder<- "d3rlpy_logs/vanilla_DQN_lr-0001_long-run_modeled-R_rand-effs_not-forcing_constrained_90pct_20230324140126"
+
+folder<- "d3rlpy_logs/vanilla_DQN_lr-0001_long-run_20230325095107"
+folder<- "d3rlpy_logs/vanilla_DQN_lr-0001_long-run_modeled-R_rand-effs_not-forcing_20230325095126"
+folder<- "d3rlpy_logs/vanilla_DQN_lr-0001_long-run_constrained_90pct_20230326055014"
+folder<- "d3rlpy_logs/vanilla_DQN_lr-0001_long-run_modeled-R_rand-effs_not-forcing_constrained_90pct_20230326055944"
+
 Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
 DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
 
@@ -36,6 +46,11 @@ Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_default-params_modeled-
 Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr-003.csv")[,1]
 Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr-0005.csv")[,1]
 Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr-0001.csv")[,1]
+
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr-0001_long-run.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr-0001_long-run_modeled-R_rand-effs_not-forcing.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr-0001_long-run_constrained_90pct.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr-0001_long-run_modeled-R_rand-effs_not-forcing_constrained_90pct.csv")[,1]
 a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
 ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 
   xlab("Epochs") + ylab("Days with Alerts") + ggtitle("Vanilla DQN") + geom_smooth()
