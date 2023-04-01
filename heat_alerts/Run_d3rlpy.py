@@ -38,14 +38,15 @@ def main(params):
     params = vars(params)
 
     ## For now:
-    # params = dict(
-    #     outcome = "other_hosps", n_hidden = 256,
-    #     n_gpus=1, b_size=2048, n_epochs=2000,
-    #     lr=0.003, gamma=1.0, sync_rate = 3,
-    #     modeled_r = True, random_effects = True,
-    #     model_name="vanilla_DQN_modeled-R_rand-effs_not-forcing",
-    #     eligible = "all"
-    #     )
+    params = dict(
+        outcome = "other_hosps", n_hidden = 256,
+        n_gpus=1, b_size=2048, n_epochs=2,
+        lr=0.0001, gamma=1.0, sync_rate = 3,
+        modeled_r = False, random_effects = False,
+        model_name = "test_cpq",
+        eligible = "90pct",
+        algo = "CPQ"
+        )
 
     ## Prepare data:
     print(params["modeled_r"])
@@ -55,6 +56,7 @@ def main(params):
         outcome = params["outcome"], modeled_r = params["modeled_r"], 
         log_r = True, random_effects = params["random_effects"], eligible = params["eligible"]
     )
+
     # dataset.episodes[0][0].observation
     # dataset.episodes[0][0].next_observation
 
@@ -83,8 +85,6 @@ def main(params):
         ) 
     
     dqn.build_with_dataset(dataset) # initialize neural networks
-
-    td_error = td_error_scorer(dqn, test_episodes) # calculate metrics
 
     ## Train:
 

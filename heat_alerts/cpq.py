@@ -5,6 +5,7 @@ from d3rlpy.algos.torch.dqn_impl import DQNImpl
 from d3rlpy.algos.dqn import DQN
 
 import torch
+import numpy as np
 # from torch_utility import TorchMiniBatch
 
 class CPQImpl(DQNImpl):
@@ -18,7 +19,13 @@ class CPQImpl(DQNImpl):
                 action,
                 reduction="min",
             )
-            constrained_targets = torch.where(action == 1 & batch.observations["More_alerts"] == 0, 0.0, original_targets)
+            flipped_targets = self._targ_q_func.compute_target(
+                batch.next_observations,
+                action,
+                reduction="max",
+            )
+            more_alerts = torch.tensor([b[13] for b in batch.next_observations]).to("cuda") # column of S with index 13 = "More_alerts"
+            constrained_targets = torch.where(torch.logical_and(action, more_alerts == 0), flipped_targets, original_targets) 
             return constrained_targets
 
 
