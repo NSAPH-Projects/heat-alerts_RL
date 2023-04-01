@@ -1,0 +1,44 @@
+
+from typing import Optional, Sequence
+
+from d3rlpy.algos.torch.dqn_impl import DQNImpl
+from d3rlpy.algos.dqn import DQN
+
+import torch
+# from torch_utility import TorchMiniBatch
+
+class CPQImpl(DQNImpl):
+    def compute_target(self, batch) -> torch.Tensor:
+    # def compute_target(self, batch: TorchMiniBatch) -> torch.Tensor:
+        assert self._targ_q_func is not None
+        with torch.no_grad():
+            action = self._predict_best_action(batch.next_observations)
+            original_targets = self._targ_q_func.compute_target(
+                batch.next_observations,
+                action,
+                reduction="min",
+            )
+            constrained_targets = torch.where(action == 1 & batch.observations["More_alerts"] == 0, 0.0, original_targets)
+            return constrained_targets
+
+
+class CPQ(DQN):
+    _impl: Optional[CPQImpl] 
+
+    def _create_impl(
+        self, observation_shape: Sequence[int], action_size: int
+    ) -> None:
+        self._impl = CPQImpl(
+            observation_shape=observation_shape,
+            action_size=action_size,
+            learning_rate=self._learning_rate,
+            optim_factory=self._optim_factory,
+            encoder_factory=self._encoder_factory,
+            q_func_factory=self._q_func_factory,
+            gamma=self._gamma,
+            n_critics=self._n_critics,
+            use_gpu=self._use_gpu,
+            scaler=self._scaler,
+            reward_scaler=self._reward_scaler,
+        )
+        self._impl.build()

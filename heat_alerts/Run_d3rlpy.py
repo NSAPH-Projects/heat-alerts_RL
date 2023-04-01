@@ -10,12 +10,14 @@ import torch
 import torch.nn as nn
 import d3rlpy
 from d3rlpy.models.encoders import VectorEncoderFactory
-from d3rlpy.algos import DQN
+from d3rlpy.algos import DQN, DoubleDQN
 from d3rlpy.metrics.scorer import td_error_scorer
 from d3rlpy.metrics.scorer import average_value_estimation_scorer
 
 # from heat_alerts.Setup_d3rlpy import make_data
 from Setup_d3rlpy import make_data
+# from heat_alerts.cpq import CPQ
+from cpq import CPQ
 
 def set_seed(seed):
     np.random.seed(seed) 
@@ -66,7 +68,12 @@ def main(params):
     gpu = False
     if params["n_gpus"] > 0: gpu = True
 
-    dqn = DQN( # DoubleDQN
+    functions = [DQN, DoubleDQN, CPQ]
+    func_names = ["DQN", "DoubleDQN", "CPQ"]
+    algos = dict(zip(func_names, functions))
+    algo = algos[params["algo"]] # DQN, DoubleDQN, CPQ
+
+    dqn = algo(
         encoder_factory=encoder_factory,
         use_gpu=gpu, 
         batch_size=params["b_size"],
@@ -94,7 +101,7 @@ def main(params):
 
     ## Check how many alerts are being sent:
     folder = glob.glob("d3rlpy_logs/" + params["model_name"] + "_2*")[0]
-    dqn2 = DQN( # DoubleDQN
+    dqn2 = algo(
         encoder_factory=encoder_factory,
         use_gpu=gpu, 
         batch_size=params["b_size"],
@@ -139,6 +146,7 @@ if __name__ == "__main__":
     parser.add_argument("--modeled_r", type=bool, default=False, help="use modeled rewards?")
     parser.add_argument("--random_effects", type=bool, default=False, help="use random effects from modeled rewards?")
     parser.add_argument("--eligible", type=str, default="all", help="days to include in RL")
+    parser.add_argument("--algo", type=str, default="DQN", help="RL algorithm")
 
     args = parser.parse_args()
     main(args)
