@@ -21,7 +21,7 @@ class CPQImpl(DQNImpl):
             )
             opposite_targets = self._targ_q_func.compute_target(
                 batch.next_observations,
-                ! action.bool(), 
+                torch.where(action, 0, 1), 
                 # torch.zeros(len(action).to(torch.int64)).to("cuda"), # can't do this because the function does one hot encoding and needs more than one action
                 reduction="min", # reducing over an ensemble of Q functions
             )
