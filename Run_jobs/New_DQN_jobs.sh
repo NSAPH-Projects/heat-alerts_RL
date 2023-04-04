@@ -7,7 +7,7 @@
 #SBATCH --mem 300G
 #SBATCH --gres gpu:1
 #SBATCH --array 0 # 0-1
-#SBATCH -o ./Run_jobs/slurm/dqn.%a.out
+#SBATCH -o ./Run_jobs/slurm/new_dqn.%a.out
 #SBATCH --mail-user=ellen_considine@g.harvard.edu
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
