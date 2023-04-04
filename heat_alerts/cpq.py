@@ -21,12 +21,12 @@ class CPQImpl(DQNImpl):
             )
             opposite_targets = self._targ_q_func.compute_target(
                 batch.next_observations,
-                torch.where(action, 0, 1), 
+                torch.where(action==1, 0, 1), 
                 # torch.zeros(len(action).to(torch.int64)).to("cuda"), # can't do this because the function does one hot encoding and needs more than one action
                 reduction="min", # reducing over an ensemble of Q functions
             )
             more_alerts = torch.tensor([b[13] for b in batch.next_observations]).to("cuda") # column of S with index 13 = "More_alerts"
-            constrained_targets = torch.where(torch.logical_and(action, more_alerts == 0), opposite_targets, original_targets) 
+            constrained_targets = torch.where(torch.logical_and(action==1, more_alerts == 0), opposite_targets, original_targets) 
             return constrained_targets
 
 
