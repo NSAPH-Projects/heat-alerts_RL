@@ -17,15 +17,15 @@ class CPQImpl(DQNImpl):
             original_targets = self._targ_q_func.compute_target(
                 batch.next_observations,
                 action,
-                reduction="min",
+                reduction="min", # reducing over an ensemble of Q functions
             )
-            flipped_targets = self._targ_q_func.compute_target(
+            no_alert_targets = self._targ_q_func.compute_target(
                 batch.next_observations,
-                action,
-                reduction="max",
+                torch.zeros(len(action).to("cuda"),
+                reduction="min", # reducing over an ensemble of Q functions
             )
             more_alerts = torch.tensor([b[13] for b in batch.next_observations]).to("cuda") # column of S with index 13 = "More_alerts"
-            constrained_targets = torch.where(torch.logical_and(action, more_alerts == 0), flipped_targets, original_targets) 
+            constrained_targets = torch.where(torch.logical_and(action, more_alerts == 0), no_alert_targets, original_targets) 
             return constrained_targets
 
 
