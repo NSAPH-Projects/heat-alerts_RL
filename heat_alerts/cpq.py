@@ -21,7 +21,7 @@ class CPQImpl(DQNImpl):
             )
             no_alert_targets = self._targ_q_func.compute_target(
                 batch.next_observations,
-                torch.zeros(len(action)).to("cuda"),
+                torch.zeros(len(action).to(torch.int64)).to("cuda"),
                 reduction="min", # reducing over an ensemble of Q functions
             )
             more_alerts = torch.tensor([b[13] for b in batch.next_observations]).to("cuda") # column of S with index 13 = "More_alerts"
