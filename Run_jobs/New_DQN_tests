@@ -2,5 +2,6 @@
 # python heat_alerts/Run_d3rlpy.py --lr 0.0001 --modeled_r True --random_effects True --n_epochs 10000 --model_name vanilla_DQN_lr-0001_long-run_modeled-R_rand-effs_not-forcing
 # python heat_alerts/Run_d3rlpy.py --lr 0.0001 --eligible "90pct" --n_epochs 10000 --model_name vanilla_DQN_lr-0001_long-run_constrained_90pct
 # python heat_alerts/Run_d3rlpy.py --lr 0.0001 --modeled_r True --random_effects True --eligible "90pct" --n_epochs 10000 --model_name vanilla_DQN_lr-0001_long-run_modeled-R_rand-effs_not-forcing_constrained_90pct
-python heat_alerts/Run_d3rlpy.py --lr 0.0001 --eligible "90pct" --algo DoubleDQN --n_epochs 10000 --model_name Double_DQN
+python heat_alerts/Run_d3rlpy.py --lr 0.0001 --eligible "90pct" --algo DQN --n_epochs 10000 --model_name vanilla_DQN_nonnegative-R
+# python heat_alerts/Run_d3rlpy.py --lr 0.0001 --eligible "90pct" --algo DoubleDQN --n_epochs 10000 --model_name Double_DQN
 python heat_alerts/Run_d3rlpy.py --lr 0.0001 --eligible "90pct" --algo CPQ --n_epochs 10000 --model_name CPQ_observed-alerts
