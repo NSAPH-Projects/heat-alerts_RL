@@ -50,8 +50,8 @@ def make_data(
     if log_r == True:
         rewards = -np.log(-rewards + 0.0000000001)
 
-    rewards = (rewards - rewards.mean()) / np.max(np.abs(rewards))
-    # rewards = rewards / np.max(np.abs(rewards)) # include scaling by 0.5?
+    # rewards = (rewards - rewards.mean()) / np.max(np.abs(rewards))
+    rewards = rewards / np.max(np.abs(rewards)) # include scaling by 0.5?
 
     ## Prepare observations (S):
     budget = Train[Train["dos"] == n_days]["alert_sum"]
@@ -98,7 +98,7 @@ def make_data(
         S["rand_slopes"] = F.softplus(torch.FloatTensor(rand_effs["Rand_Slopes"].to_numpy()))
     
     observations = pd.concat([S.reset_index(), S_OHE.reset_index()], axis = 1)
-    observations = observations.drop("index", axis=1)
+    # observations = observations.drop("index", axis=1)
 
 
     ## Put everything together:
