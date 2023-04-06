@@ -98,7 +98,8 @@ def make_data(
         S["rand_slopes"] = F.softplus(torch.FloatTensor(rand_effs["Rand_Slopes"].to_numpy()))
     
     observations = pd.concat([S.reset_index(), S_OHE.reset_index()], axis = 1)
-    # observations = observations.drop("index", axis=1)
+    observations = observations.drop("index", axis=1)
+    print(observations.columns)
 
 
     ## Put everything together:
