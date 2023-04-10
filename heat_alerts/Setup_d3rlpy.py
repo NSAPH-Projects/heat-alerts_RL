@@ -65,13 +65,13 @@ def make_data(
                         "alert_lag1", "alert_lag2", "alerts_2wks", "T_since_alert",
                         "alert_sum", "More_alerts",
                         "death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate",
-                        "broadband.usage", "Democrat", "Republican", "pm25", "STNAME"]]
+                        "broadband.usage", "Democrat", "Republican", "pm25"]] #, "STNAME"
 
     ## One-hot encode non-numeric variables
     S_enc = skprep.OneHotEncoder(drop = "first")
-    S_enc.fit(States[["BA_zone", "holiday", "dow", "alert_lag1", "alert_lag2", "STNAME"]])
-    S_ohe = S_enc.transform(States[["BA_zone", "holiday", "dow", "alert_lag1", "alert_lag2", "STNAME"]]).toarray()
-    S_names = S_enc.get_feature_names_out(["BA_zone", "holiday", "dow", "alert_lag1", "alert_lag2", "STNAME"])
+    S_enc.fit(States[["BA_zone", "holiday", "dow", "alert_lag1", "alert_lag2"]]) #, "STNAME"
+    S_ohe = S_enc.transform(States[["BA_zone", "holiday", "dow", "alert_lag1", "alert_lag2"]]).toarray() #, "STNAME"
+    S_names = S_enc.get_feature_names_out(["BA_zone", "holiday", "dow", "alert_lag1", "alert_lag2"]) #, "STNAME"
     S_OHE = pd.DataFrame(S_ohe, columns=S_names)
 
     ## Standardize numeric variables
