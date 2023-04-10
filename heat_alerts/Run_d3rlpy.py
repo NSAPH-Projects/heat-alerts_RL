@@ -88,7 +88,7 @@ def main(params):
 
     ## Train:
 
-    # dqn.load_model("d3rlpy_logs/vanilla_DQN_modeled-R_rand-effs_not-forcing_20230302233318" + "/model_" + str(391000) + ".pt")
+    dqn.load_model("d3rlpy_logs/vanilla_DQN_lr1e-3sr10_modeled-R_20230408124037" + "/model_" + str(39*20000) + ".pt")
 
     dqn.fit(train_episodes,
         eval_episodes=test_episodes,
