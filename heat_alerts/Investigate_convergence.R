@@ -33,6 +33,38 @@ folder<- "d3rlpy_logs/vanilla_DQN_lr-0001_long-run_modeled-R_rand-effs_not-forci
 folder<- "d3rlpy_logs/vanilla_DQN_lr-0001_long-run_constrained_90pct_20230326055014"
 folder<- "d3rlpy_logs/vanilla_DQN_lr-0001_long-run_modeled-R_rand-effs_not-forcing_constrained_90pct_20230326055944"
 
+folder<- "d3rlpy_logs/vanilla_DQN_nonnegative-R_20230404170322/"
+folder<- "d3rlpy_logs/Double_DQN_20230401143034/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_20230404173637"
+
+folder<- "d3rlpy_logs/vanilla_DQN_centered-R_20230405112316/"
+folder<- "d3rlpy_logs/Double_DQN_centered-R_20230405112316/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_centered-R_20230405112316/"
+
+folder<- "d3rlpy_logs/Double_DQN_w-index_20230405172205/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_w-index_20230405172205/"
+
+folder<- "d3rlpy_logs/vanilla_DQN_sync-10_20230406123838/"
+folder<- "d3rlpy_logs/Double_DQN_sync-10_20230406123836/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_sync-10_20230406231919/"
+
+folder<- "d3rlpy_logs/vanilla_DQN_lr3e-3sr3_20230407163616/"
+folder<- "d3rlpy_logs/Double_DQN_lr3e-3sr3_20230407163612/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_lr3e-3sr3_20230408030457/"
+
+folder<- "d3rlpy_logs/vanilla_DQN_lr1e-3sr10_20230408094450/" # intentionally cut off early 
+
+folder<- "d3rlpy_logs/vanilla_DQN_lr1e-3sr15_modeled-R_20230408160515/"
+folder<- "d3rlpy_logs/vanilla_DQN_lr1e-3sr10_modeled-R_20230408124037/"
+Loss_a<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
+folder<- "d3rlpy_logs/vanilla_DQN_lr1e-3sr10_modeled-R_part-2_20230410085922/"
+Loss_b<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
+Loss_b$V1<- Loss_b$V1 + nrow(Loss_a)
+Loss<- rbind(Loss_a, Loss_b)
+
+folder<- "d3rlpy_logs/vanilla_DQN_lr1e-3sr10_w-state_20230409102256/" 
+folder<- "d3rlpy_logs/CPQ_observed-alerts_lr1e-3sr10_w-state_20230409232657/"
+
 Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
 DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
 
@@ -51,6 +83,32 @@ Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr-0001_long-run.csv")[
 Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr-0001_long-run_modeled-R_rand-effs_not-forcing.csv")[,1]
 Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr-0001_long-run_constrained_90pct.csv")[,1]
 Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr-0001_long-run_modeled-R_rand-effs_not-forcing_constrained_90pct.csv")[,1]
+
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_nonnegative-R.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_Double_DQN.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_CPQ_observed-alerts.csv")[,1]
+
+Alerts<- read.csv("Fall_results/Total_alerts_Double_DQN_w-index.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_CPQ_observed-alerts_w-index.csv")[,1]
+
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_sync-10.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_Double_DQN_sync-10.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_CPQ_observed-alerts_sync-10.csv")[,1]
+
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr3e-3sr3.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_Double_DQN_lr3e-3sr3.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_CPQ_observed-alerts_lr3e-3sr3.csv")[,1]
+
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr1e-3sr10_modeled-R.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr1e-3sr15_modeled-R.csv")[,1]
+
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr1e-3sr10_w-state.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_CPQ_observed-alerts_lr1e-3sr10_w-state.csv")[,1]
+
+Alerts_a<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr1e-3sr10_modeled-R.csv")[,1]
+Alerts_b<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr1e-3sr10_modeled-R_part-2.csv")[,1]
+Alerts<- append(Alerts_a, Alerts_b)
+
 a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
 ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 
   xlab("Epochs") + ylab("Days with Alerts") + ggtitle("Vanilla DQN") + geom_smooth()

@@ -38,15 +38,15 @@ def main(params):
     params = vars(params)
 
     ## For now:
-#     params = dict(
-#         outcome = "other_hosps", n_hidden = 256,
-#         n_gpus=1, b_size=2048, n_epochs=2,
-#         lr=0.0001, gamma=1.0, sync_rate = 3,
-#         modeled_r = False, random_effects = False,
-#         model_name = "test_cpq",
-#         eligible = "90pct",
-#         algo = "CPQ"
-#         )
+    # params = dict(
+    #     outcome = "other_hosps", n_hidden = 256,
+    #     n_gpus=1, b_size=2048, n_epochs=2,
+    #     lr=0.0001, gamma=1.0, sync_rate = 3,
+    #     modeled_r = False, random_effects = False,
+    #     model_name = "test_cpq",
+    #     eligible = "90pct",
+    #     algo = "CPQ"
+    #     )
 
     ## Prepare data:
     print(params["modeled_r"])
@@ -88,7 +88,7 @@ def main(params):
 
     ## Train:
 
-    dqn.load_model("d3rlpy_logs/vanilla_DQN_lr1e-3sr10_modeled-R_20230408124037" + "/model_" + str(39*20000) + ".pt")
+    # dqn.load_model("d3rlpy_logs/vanilla_DQN_lr1e-3sr10_modeled-R_20230408124037" + "/model_" + str(39*20000) + ".pt")
 
     dqn.fit(train_episodes,
         eval_episodes=test_episodes,

@@ -29,6 +29,8 @@ Pct_90_eligible<- data$HImaxF_PopW >= Pct_90 # oops, actually could have gotten 
 
 write_csv(data.frame(Pct_90_eligible), "data/Pct_90_eligible.csv")
 
+sums<- unname(tapply(Pct_90_eligible, (seq_along(Pct_90_eligible)-1) %/% n_days, sum))
+
 New_terminals<- c()
 episodes<- seq(153, length(Pct_90), 153)
 for(s in 1:length(episodes)){

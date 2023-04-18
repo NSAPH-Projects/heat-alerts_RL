@@ -12,6 +12,7 @@ class CPQImpl(DQNImpl):
     def compute_target(self, batch) -> torch.Tensor:
     # def compute_target(self, batch: TorchMiniBatch) -> torch.Tensor:
         assert self._targ_q_func is not None
+        # print(batch.observations[0:3])
         with torch.no_grad():
             action = self._predict_best_action(batch.next_observations)
             original_targets = self._targ_q_func.compute_target(
@@ -32,7 +33,6 @@ class CPQImpl(DQNImpl):
 
 class CPQ(DQN):
     _impl: Optional[CPQImpl] 
-
     def _create_impl(
         self, observation_shape: Sequence[int], action_size: int
     ) -> None:
