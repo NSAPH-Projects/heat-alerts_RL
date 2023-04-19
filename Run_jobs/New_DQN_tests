@@ -7,5 +7,7 @@
 # python heat_alerts/Run_d3rlpy.py --lr 0.001 --sync_rate 10 --eligible "90pct" --algo DoubleDQN --n_epochs 20000 --model_name Double_DQN_lr1e-3sr10
 # python heat_alerts/Run_d3rlpy.py --lr 0.001 --sync_rate 10 --eligible "90pct" --algo CPQ --n_epochs 20000 --model_name CPQ_observed-alerts_lr1e-3sr10_w-state
 # python heat_alerts/Run_d3rlpy.py --lr 0.001 --sync_rate 10 --eligible "90pct" --modeled_r True --random_effects True --algo DQN --n_epochs 30000 --model_name vanilla_DQN_lr1e-3sr10_modeled-R_part-2
-python heat_alerts/Run_d3rlpy.py --lr 0.001 --sync_rate 10 --gamma 0.99 --eligible "90pct" --algo DQN --n_epochs 10000 --model_name vanilla_DQN_lr1e-3sr10_gamma-99
-python heat_alerts/Run_d3rlpy.py --lr 0.01 --eligible "90pct" --algo DQN --n_epochs 5000 --model_name vanilla_DQN_lr1e-2
+# python heat_alerts/Run_d3rlpy.py --lr 0.001 --sync_rate 10 --gamma 0.99 --eligible "90pct" --algo DQN --n_epochs 10000 --model_name vanilla_DQN_lr1e-3sr10_gamma-99
+# python heat_alerts/Run_d3rlpy.py --lr 0.01 --eligible "90pct" --algo DQN --n_epochs 5000 --model_name vanilla_DQN_lr1e-2
+python heat_alerts/Run_d3rlpy.py --lr 0.003 --eligible "90pct" --algo DQN --n_epochs 10000 --model_name vanilla_DQN_tiny-S
+python heat_alerts/Run_d3rlpy.py --lr 0.003 --eligible "90pct" --algo CPQ --n_epochs 10000 --model_name CPQ_observed-alerts_tiny-S
