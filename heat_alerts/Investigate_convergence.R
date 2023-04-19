@@ -65,11 +65,19 @@ Loss<- rbind(Loss_a, Loss_b)
 folder<- "d3rlpy_logs/vanilla_DQN_lr1e-3sr10_w-state_20230409102256/" 
 folder<- "d3rlpy_logs/CPQ_observed-alerts_lr1e-3sr10_w-state_20230409232657/"
 
+folder<- "d3rlpy_logs/vanilla_DQN_lr1e-3sr10_gamma-99_20230418110923/"
+folder<- "d3rlpy_logs/vanilla_DQN_lr1e-2_20230418110922/"
+
 Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
-DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
+Loss_compare<- read.csv(paste0("d3rlpy_logs/vanilla_DQN_lr1e-3sr10_20230408094450/","/loss.csv"), header = FALSE)
+Loss_compare<- read.csv(paste0("d3rlpy_logs/vanilla_DQN_lr3e-3sr3_20230407163616/","/loss.csv"), header = FALSE)
+n<- min(nrow(Loss), nrow(Loss_compare))
+DF<- data.frame(Epoch=Loss$V1[1:n], Loss=Loss$V3[1:n], Loss_compare=Loss_compare$V3[1:n])
 
 ggplot(DF, aes(x=Epoch, y=log(Loss))) + geom_line() + 
-  xlab("Epochs") + ylab("Log of Loss") + ggtitle("DQN Model")
+  xlab("Epochs") + ylab("Log of Loss") + ggtitle("DQN Model") +
+  geom_line(aes(y=log(Loss_compare), col="orange"))
+
 
 Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_default-params.csv")[,1]
 Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_default-params_modeled-R_rand-effs_not-forcing.csv")[,1]
