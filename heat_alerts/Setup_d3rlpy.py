@@ -107,8 +107,7 @@ def make_data(
     
     observations = pd.concat([S.reset_index(), S_OHE.reset_index()], axis = 1)
     observations = observations.drop("index", axis=1)
-
-    observations = observations[["quant_HI_county","More_alerts"]]
+    # observations = observations[["quant_HI_county","More_alerts"]]
     print(observations.columns)
 
 
