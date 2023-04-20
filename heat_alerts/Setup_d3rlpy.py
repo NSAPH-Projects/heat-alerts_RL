@@ -57,8 +57,9 @@ def make_data(
      # if log_r == True:
     #     rewards = -np.log(-rewards + 0.0000000001)
 
-    rewards = (rewards - rewards.mean()) / np.max(np.abs(rewards))
+    # rewards = (rewards - rewards.mean()) / np.max(np.abs(rewards))
     # rewards = rewards / np.max(np.abs(rewards)) # include scaling by 0.5?
+    
     rewards = rewards.apply(symlog, shift=0.01)
 
     ## Prepare observations (S):
