@@ -79,6 +79,26 @@ ggplot(DF, aes(x=Epoch, y=log(Loss))) + geom_line() +
   geom_line(aes(y=log(Loss_compare), col="orange"))
 
 
+folder<- "d3rlpy_logs/vanilla_DQN_tiny-S_20230419090929/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_tiny-S_20230419090923/"
+
+Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
+DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
+ggplot(DF[5:nrow(Loss),], aes(x=Epoch, y=log(Loss))) + geom_line() + 
+  xlab("Epochs") + ylab("Log of Loss") # + ggtitle("DQN Model")
+
+TDE<- read.csv(paste0(folder,"/td_error.csv"), header = FALSE)
+DF_tde<- data.frame(Epoch=TDE$V1, TD_Error=TDE$V3)
+ggplot(DF_tde, aes(x=Epoch, y=TD_Error)) + geom_line() + 
+  xlab("Epochs") + ylab("TD Error") # + ggtitle("DQN Model")
+
+AVS<- read.csv(paste0(folder,"/value_scale.csv"), header = FALSE)
+DF_avs<- data.frame(Epoch=AVS$V1, Value_Scale=AVS$V3)
+ggplot(DF_avs, aes(x=Epoch, y=Value_Scale)) + geom_line() + 
+  xlab("Epochs") + ylab("Average Value Scale") # + ggtitle("DQN Model")
+
+###########################################################
+
 Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_default-params.csv")[,1]
 Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_default-params_modeled-R_rand-effs_not-forcing.csv")[,1]
 Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_default-params_constrained_90pct.csv")[,1]
@@ -116,6 +136,12 @@ Alerts<- read.csv("Fall_results/Total_alerts_CPQ_observed-alerts_lr1e-3sr10_w-st
 Alerts_a<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr1e-3sr10_modeled-R.csv")[,1]
 Alerts_b<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr1e-3sr10_modeled-R_part-2.csv")[,1]
 Alerts<- append(Alerts_a, Alerts_b)
+
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr1e-3sr10_gamma-99.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr1e-2.csv")[,1]
+
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_tiny-S.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_CPQ_observed-alerts_tiny-S.csv")[,1]
 
 a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
 ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 
