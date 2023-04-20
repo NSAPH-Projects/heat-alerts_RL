@@ -26,8 +26,8 @@ class CPQImpl(DQNImpl):
                 # torch.zeros(len(action).to(torch.int64)).to("cuda"), # can't do this because the function does one hot encoding and needs more than one action
                 reduction="min", # reducing over an ensemble of Q functions
             )
-            # more_alerts = torch.tensor([b[13] for b in batch.next_observations]).to("cuda") # column of S with index 13 = "More_alerts"
-            more_alerts = torch.tensor([b[1] for b in batch.next_observations]).to("cuda")
+            more_alerts = torch.tensor([b[13] for b in batch.next_observations]).to("cuda") # column of S with index 13 = "More_alerts"
+            # more_alerts = torch.tensor([b[1] for b in batch.next_observations]).to("cuda") # when using tiny S
             constrained_targets = torch.where(torch.logical_and(action==1, more_alerts == 0), opposite_targets, original_targets) 
             return constrained_targets
 
