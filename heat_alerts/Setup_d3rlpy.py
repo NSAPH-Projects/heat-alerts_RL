@@ -42,7 +42,6 @@ def make_data(
             rewards = -1*(Train["other_hosps"]/Train["total_count"])
         else:
             rewards = -1*(Train["N"]/Train["Pop.65"])
-        rewards = rewards.to_numpy()
     else:
         if outcome == "all_hosps":
             # rewards = pd.read_csv("Fall_results/R_2-28_all-hosps_all.csv") # don't use this one
@@ -61,6 +60,7 @@ def make_data(
     # rewards = rewards / np.max(np.abs(rewards)) # include scaling by 0.5?
     
     rewards = rewards.apply(symlog, shift=0.01)
+    rewards = rewards.to_numpy()
 
     ## Prepare observations (S):
     budget = Train[Train["dos"] == n_days]["alert_sum"]
