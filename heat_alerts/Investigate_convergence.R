@@ -88,6 +88,9 @@ folder<- "d3rlpy_logs/vanilla_DQN_symlog-R_lr1e-2_20230420095231/"
 folder<- "d3rlpy_logs/vanilla_DQN_pca-1_20230423115829/"
 folder<- "d3rlpy_logs/vanilla_DQN_pca-05_20230423115833/"
 
+folder<- "d3rlpy_logs/vanilla_DQN_small-S_20230423140350/"
+folder<- "d3rlpy_logs/vanilla_DQN_medium-S_20230423140352/"
+
 Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
 DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
 ggplot(DF[5:nrow(Loss),], aes(x=Epoch, y=log(Loss))) + geom_line() + 
