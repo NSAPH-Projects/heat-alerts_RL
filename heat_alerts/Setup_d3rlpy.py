@@ -24,7 +24,8 @@ def make_data(
     log_r = True,
     random_effects = False,
     eligible = "all",
-    pca = False, pca_var_thresh = 0.5
+    pca = False, pca_var_thresh = 0.5, 
+    manual_S_size = "medium"
 ):
     ## Read in data:
     Train = pd.read_csv(filename)
@@ -119,6 +120,26 @@ def make_data(
         pca_fit = PCA().fit(observations)
         n_large = np.sum(pca_fit.explained_variance_ > pca_var_thresh)
         observations = np.matmul(pca_fit.components_[0:n_large, :], observations.transpose()).transpose() # each component is a row 
+
+    if manual_S_size == "medium":
+        observations["weekend"] = observations["dow_Saturday"] + observations["dow_Sunday"]
+        observations = observations[[
+            "quant_HI_county", "HI_mean", "l.Pop_density", "l.Med.HH.Income",
+            "year", "dos", "T_since_alert", "alert_sum", "More_alerts", "all_hosp_mean_rate", 
+            "Republican", "pm25", "weekend", 'BA_zone_Hot-Dry',
+            'BA_zone_Hot-Humid', 'BA_zone_Marine', 'BA_zone_Mixed-Dry',
+            'BA_zone_Mixed-Humid', 'BA_zone_Very Cold'
+        ]
+        ]
+    elif manual_S_size == "small":
+        observations["weekend"] = observations["dow_Saturday"] + observations["dow_Sunday"]
+        observations = observations[[
+            "quant_HI_county", "HI_mean", "l.Pop_density", "l.Med.HH.Income",
+            "year", "dos", "T_since_alert", "alert_sum", "More_alerts", "all_hosp_mean_rate", 
+            "weekend"
+        ]
+        ]
+
 
     ## Put everything together:
 

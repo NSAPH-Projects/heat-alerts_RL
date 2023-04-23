@@ -55,7 +55,7 @@ def main(params):
     dataset = make_data(
         outcome = params["outcome"], modeled_r = params["modeled_r"], 
         log_r = True, random_effects = params["random_effects"], eligible = params["eligible"],
-        pca = params["pca"], pca_var_thresh = params["pca_var_thresh"]
+        pca = params["pca"], pca_var_thresh = params["pca_var_thresh"], manual_S_size = params["S_size"]
     )
 
     # dataset.episodes[0][0].observation
@@ -149,6 +149,7 @@ if __name__ == "__main__":
     parser.add_argument("--eligible", type=str, default="all", help="days to include in RL")
     parser.add_argument("--pca", type=bool, default=False, help="perform PCA?")
     parser.add_argument("--pca_var_thresh", type=float, default=0.5, help="PCA variance threshold")
+    parser.add_argument("--S_size", type=str, default="medium", help="Manual size of state matrix")
     parser.add_argument("--algo", type=str, default="DQN", help="RL algorithm")
 
     args = parser.parse_args()
