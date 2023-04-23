@@ -13,5 +13,7 @@
 # python heat_alerts/Run_d3rlpy.py --lr 0.003 --eligible "90pct" --algo CPQ --n_epochs 10000 --model_name CPQ_observed-alerts_tiny-S
 # python heat_alerts/Run_d3rlpy.py --lr 0.01 --eligible "90pct" --algo DQN --n_epochs 10000 --model_name vanilla_DQN_symlog-R_lr1e-2
 # python heat_alerts/Run_d3rlpy.py --lr 0.003 --eligible "90pct" --algo DQN --n_epochs 10000 --model_name vanilla_DQN_symlog-R
-python heat_alerts/Run_d3rlpy.py --lr 0.003 --eligible "90pct" --algo DQN --n_epochs 10000 --pca True --pca_var_thresh 1 --model_name vanilla_DQN_pca-1
-python heat_alerts/Run_d3rlpy.py --lr 0.003 --eligible "90pct" --algo DQN --n_epochs 10000 --pca True --pca_var_thresh 0.5 --model_name vanilla_DQN_pca-05
+# python heat_alerts/Run_d3rlpy.py --lr 0.003 --eligible "90pct" --algo DQN --n_epochs 10000 --pca True --pca_var_thresh 1 --model_name vanilla_DQN_pca-1
+# python heat_alerts/Run_d3rlpy.py --lr 0.003 --eligible "90pct" --algo DQN --n_epochs 10000 --pca True --pca_var_thresh 0.5 --model_name vanilla_DQN_pca-05
+python heat_alerts/Run_d3rlpy.py --lr 0.003 --eligible "90pct" --algo DQN --n_epochs 10000 --S_size "small" --model_name vanilla_DQN_small-S
+python heat_alerts/Run_d3rlpy.py --lr 0.003 --eligible "90pct" --algo DQN --n_epochs 10000 --S_size "medium" --model_name vanilla_DQN_medium-S
