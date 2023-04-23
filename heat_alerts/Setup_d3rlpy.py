@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import itertools
 from sklearn import preprocessing as skprep
+from sklearn.decomposition import PCA
 
 import torch
 from torch.nn import functional as F
@@ -22,7 +23,8 @@ def make_data(
     modeled_r = False, 
     log_r = True,
     random_effects = False,
-    eligible = "all"
+    eligible = "all",
+    pca = False, pca_var_thresh = 0.5
 ):
     ## Read in data:
     Train = pd.read_csv(filename)
@@ -56,10 +58,12 @@ def make_data(
      # if log_r == True:
     #     rewards = -np.log(-rewards + 0.0000000001)
 
+    rewards = (rewards - rewards.mean())/rewards.std()
     # rewards = (rewards - rewards.mean()) / np.max(np.abs(rewards))
     # rewards = rewards / np.max(np.abs(rewards)) # include scaling by 0.5?
     
-    rewards = rewards.apply(symlog, shift=0.01)
+    rewards = rewards.apply(symlog,shift=1)
+    # rewards = rewards.apply(symlog, shift=0.01)
     rewards = rewards.to_numpy()
 
     ## Prepare observations (S):
@@ -111,6 +115,10 @@ def make_data(
     # observations = observations[["quant_HI_county","More_alerts"]]
     print(observations.columns)
 
+    if pca == True:
+        pca_fit = PCA().fit(observations)
+        n_large = np.sum(pca_fit.explained_variance_ > pca_var_thresh)
+        observations = np.matmul(pca_fit.components_[0:n_large, :], observations.transpose()).transpose() # each component is a row 
 
     ## Put everything together:
 

@@ -82,6 +82,9 @@ ggplot(DF, aes(x=Epoch, y=log(Loss))) + geom_line() +
 folder<- "d3rlpy_logs/vanilla_DQN_tiny-S_20230419090929/"
 folder<- "d3rlpy_logs/CPQ_observed-alerts_tiny-S_20230419090923/"
 
+folder<- "d3rlpy_logs/vanilla_DQN_symlog-R_20230420095217/"
+folder<- "d3rlpy_logs/vanilla_DQN_symlog-R_lr1e-2_20230420095231/"
+
 Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
 DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
 ggplot(DF[5:nrow(Loss),], aes(x=Epoch, y=log(Loss))) + geom_line() + 
@@ -142,6 +145,9 @@ Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_lr1e-2.csv")[,1]
 
 Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_tiny-S.csv")[,1]
 Alerts<- read.csv("Fall_results/Total_alerts_CPQ_observed-alerts_tiny-S.csv")[,1]
+
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_symlog-R.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_symlog-R_lr1e-2.csv")[,1]
 
 a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
 ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 
