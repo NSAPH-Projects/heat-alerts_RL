@@ -139,6 +139,11 @@ def make_data(
             "weekend"
         ]
         ]
+    elif manual_S_size == "tiny":
+        observations = observations[[
+            "quant_HI_county", "More_alerts", "dos", "T_since_alert", "all_hosp_mean_rate"
+        ]
+        ]
 
 
     ## Put everything together:
