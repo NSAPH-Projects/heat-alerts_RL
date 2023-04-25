@@ -19,5 +19,8 @@
 # python heat_alerts/Run_d3rlpy.py --lr 0.003 --eligible "90pct" --algo DQN --n_epochs 10000 --S_size "medium" --model_name vanilla_DQN_medium-S
 # python heat_alerts/Run_d3rlpy.py --lr 0.003 --eligible "90pct" --algo DQN --n_epochs 10000 --S_size "tiny" --model_name vanilla_DQN_tiny-S_b
 # python heat_alerts/Run_d3rlpy.py --lr 0.003 --gamma 0.999 --eligible "all" --algo DQN --n_epochs 10000 --S_size "small" --model_name vanilla_DQN_small-S_all-data
-python heat_alerts/Run_d3rlpy.py --lr 0.01 --gamma 0.999 --eligible "90pct" --algo DQN --n_epochs 10000 --S_size "small" --model_name vanilla_DQN_small-S_lr1e-2
-python heat_alerts/Run_d3rlpy.py --lr 0.001 --gamma 0.999 --eligible "90pct" --algo DQN --n_epochs 10000 --S_size "small" --model_name vanilla_DQN_small-S_lr1e-3
+# python heat_alerts/Run_d3rlpy.py --lr 0.01 --gamma 0.999 --eligible "90pct" --algo DQN --n_epochs 10000 --S_size "small" --model_name vanilla_DQN_small-S_lr1e-2
+# python heat_alerts/Run_d3rlpy.py --lr 0.001 --gamma 0.999 --eligible "90pct" --algo DQN --n_epochs 10000 --S_size "small" --model_name vanilla_DQN_small-S_lr1e-3
+python heat_alerts/Run_d3rlpy.py --lr 0.01 --gamma 0.999 --eligible "90pct" --algo DoubleDQN --n_epochs 10000 --S_size "small" --model_name Double_DQN_small-S_lr1e-2
+python heat_alerts/Run_d3rlpy.py --lr 0.01 --gamma 0.999 --eligible "90pct" --algo CPQ --n_epochs 10000 --S_size "small" --model_name CPQ_observed-alerts_small-S_lr1e-2
+python heat_alerts/Run_d3rlpy.py --lr 0.05 --gamma 0.999 --eligible "90pct" --algo DQN --n_epochs 10000 --S_size "small" --model_name vanilla_DQN_small-S_lr5e-2
