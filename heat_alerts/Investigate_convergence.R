@@ -91,6 +91,13 @@ folder<- "d3rlpy_logs/vanilla_DQN_pca-05_20230423115833/"
 folder<- "d3rlpy_logs/vanilla_DQN_small-S_20230423140350/"
 folder<- "d3rlpy_logs/vanilla_DQN_medium-S_20230423140352/"
 
+folder<- "d3rlpy_logs/vanilla_DQN_tiny-S_b_20230423165905/"
+folder<- "d3rlpy_logs/vanilla_DQN_pca-0_/" # not sure what happened to this?
+
+folder<- "d3rlpy_logs/vanilla_DQN_small-S_all-data_20230424085551/"
+folder<- "d3rlpy_logs/vanilla_DQN_small-S_lr1e-2_20230424085551/"
+# folder<- "d3rlpy_logs/vanilla_DQN_small-S_lr1e-3_20230424085558/"
+
 Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
 DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
 ggplot(DF[5:nrow(Loss),], aes(x=Epoch, y=log(Loss))) + geom_line() + 
@@ -154,6 +161,12 @@ Alerts<- read.csv("Fall_results/Total_alerts_CPQ_observed-alerts_tiny-S.csv")[,1
 
 Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_symlog-R.csv")[,1]
 Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_symlog-R_lr1e-2.csv")[,1]
+
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_small-S.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_medium-S.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_tiny-S_b.csv")[,1]
+
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_small-S_lr1e-2.csv")[,1]
 
 a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
 ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 

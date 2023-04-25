@@ -40,4 +40,14 @@ Test<- over_10k[which(over_10k$fips %in% test_fips),]
 save(Train, Test, file="data/Train-Test.RData")
 
 
+### Save dataset without health info for Falco:
+
+vars<- c("fips", "Date", "year", "month", "dos", "dow", "holiday",
+         "BA_zone", "Population", "Pop_density", "Med.HH.Income",
+         "HImaxF_PopW", "quant_HI_county", "warn", "adv", "alert")
+
+data<- summer[,vars]
+
+saveRDS(data, "data/Heat-alerts-data-without-health.rds")
+
 
