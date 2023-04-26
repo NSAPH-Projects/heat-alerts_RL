@@ -88,8 +88,10 @@ def main(params):
     dqn.build_with_dataset(dataset) # initialize neural networks
 
     ## Train:
-
-    # dqn.load_model("d3rlpy_logs/vanilla_DQN_lr1e-3sr10_modeled-R_20230408124037" + "/model_" + str(39*20000) + ".pt")
+    
+    if params["continue"] != "false":
+        dqn.load_model("d3rlpy_logs/" + params["continue"])
+        # dqn.load_model("d3rlpy_logs/vanilla_DQN_lr1e-3sr10_modeled-R_20230408124037" + "/model_" + str(39*20000) + ".pt")
 
     dqn.fit(train_episodes,
         eval_episodes=test_episodes,
@@ -151,6 +153,7 @@ if __name__ == "__main__":
     parser.add_argument("--pca_var_thresh", type=float, default=0.5, help="PCA variance threshold")
     parser.add_argument("--S_size", type=str, default="medium", help="Manual size of state matrix")
     parser.add_argument("--algo", type=str, default="DQN", help="RL algorithm")
+    parser.add_argument("--continue", type=str, default="false", help="continue fitting an existing model")
 
     args = parser.parse_args()
     main(args)
