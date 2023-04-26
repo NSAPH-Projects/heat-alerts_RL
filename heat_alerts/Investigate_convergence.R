@@ -98,9 +98,13 @@ folder<- "d3rlpy_logs/vanilla_DQN_small-S_all-data_20230424085551/"
 folder<- "d3rlpy_logs/vanilla_DQN_small-S_lr1e-2_20230424085551/"
 # folder<- "d3rlpy_logs/vanilla_DQN_small-S_lr1e-3_20230424085558/"
 
+folder<- "d3rlpy_logs/vanilla_DQN_small-S_lr5e-2_20230425180555/"
+folder<- "d3rlpy_logs/Double_DQN_small-S_lr1e-2_20230425180552/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr1e-2_20230425180553/"
+
 Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
 DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
-ggplot(DF[5:nrow(Loss),], aes(x=Epoch, y=log(Loss))) + geom_line() + 
+ggplot(DF[5:nrow(DF),], aes(x=Epoch, y=log(Loss))) + geom_line() + 
   xlab("Epochs") + ylab("Log of Loss") # + ggtitle("DQN Model")
 
 TDE<- read.csv(paste0(folder,"/td_error.csv"), header = FALSE)
@@ -168,9 +172,13 @@ Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_tiny-S_b.csv")[,1]
 
 Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_small-S_lr1e-2.csv")[,1]
 
+Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_small-S_lr5e-2.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_Double_DQN_small-S_lr1e-2.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_CPQ_observed-alerts_small-S_lr1e-2.csv")[,1]
+
 a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
 ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 
-  xlab("Epochs") + ylab("Days with Alerts") + ggtitle("Vanilla DQN") + geom_smooth()
+  xlab("Epochs") + ylab("Days with Alerts") + geom_smooth() # + ggtitle("Vanilla DQN")
 
 ## Make figure for "F31" proposal:
 
