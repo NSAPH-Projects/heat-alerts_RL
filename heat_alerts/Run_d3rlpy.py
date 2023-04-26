@@ -90,7 +90,7 @@ def main(params):
     ## Train:
     
     if params["continue"] != "false":
-        dqn.load_model(params["continue"])
+        dqn.load_model("d3rlpy_logs/" + params["continue"])
         # dqn.load_model("d3rlpy_logs/vanilla_DQN_lr1e-3sr10_modeled-R_20230408124037" + "/model_" + str(39*20000) + ".pt")
 
     dqn.fit(train_episodes,
