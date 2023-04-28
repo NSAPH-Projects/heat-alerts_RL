@@ -102,6 +102,20 @@ folder<- "d3rlpy_logs/vanilla_DQN_small-S_lr5e-2_20230425180555/"
 folder<- "d3rlpy_logs/Double_DQN_small-S_lr1e-2_20230425180552/"
 folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr1e-2_20230425180553/"
 
+folder<- "d3rlpy_logs/vanilla_DQN_small-S_lr1e-2_20230424085551/"
+Loss_a<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
+TDE_a<- read.csv(paste0(folder,"/td_error.csv"), header = FALSE)
+folder<- "d3rlpy_logs/vanilla_DQN_small-S_lr1e-2_B_20230426131736/"
+Loss_b<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
+TDE_b<- read.csv(paste0(folder,"/td_error.csv"), header = FALSE)
+Loss_b$V1<- Loss_b$V1 + nrow(Loss_a)
+TDE_b$V1<- TDE_b$V1 + nrow(TDE_a)
+Loss<- rbind(Loss_a, Loss_b)
+TDE<- rbind(TDE_a, TDE_b)
+
+folder<- "d3rlpy_logs/Double_DQN_small-S_lr5e-3_20230426131739/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_20230426131737/"
+
 Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
 DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
 ggplot(DF[5:nrow(DF),], aes(x=Epoch, y=log(Loss))) + geom_line() + 
@@ -170,11 +184,16 @@ Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_small-S.csv")[,1]
 Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_medium-S.csv")[,1]
 Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_tiny-S_b.csv")[,1]
 
-Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_small-S_lr1e-2.csv")[,1]
+Alerts_a<- read.csv("Fall_results/Total_alerts_vanilla_DQN_small-S_lr1e-2.csv")[,1]
+Alerts_b<- read.csv("Fall_results/Total_alerts_vanilla_DQN_small-S_lr1e-2_B.csv")[,1]
+Alerts<- append(Alerts_a, Alerts_b)
 
 Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_small-S_lr5e-2.csv")[,1]
 Alerts<- read.csv("Fall_results/Total_alerts_Double_DQN_small-S_lr1e-2.csv")[,1]
 Alerts<- read.csv("Fall_results/Total_alerts_CPQ_observed-alerts_small-S_lr1e-2.csv")[,1]
+
+Alerts<- read.csv("Fall_results/Total_alerts_Double_DQN_small-S_lr5e-3.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_CPQ_observed-alerts_small-S_lr5e-3.csv")[,1]
 
 a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
 ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 
