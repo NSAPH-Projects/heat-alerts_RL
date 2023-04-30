@@ -21,12 +21,11 @@ def make_data(
     filename="data/Train_smaller-for-Python.csv", 
     outcome="other_hosps", 
     modeled_r = False, 
-    log_r = True,
+    # log_r = True,
     random_effects = False,
     eligible = "all",
     pca = False, pca_var_thresh = 0.5, 
-    manual_S_size = "medium",
-    get_policy = False
+    manual_S_size = "medium"
 ):
     ## Read in data:
     Train = pd.read_csv(filename)
@@ -115,7 +114,7 @@ def make_data(
     observations = pd.concat([S.reset_index(), S_OHE.reset_index()], axis = 1)
     observations = observations.drop("index", axis=1)
     # observations = observations[["quant_HI_county","More_alerts"]]
-    print(observations.columns)
+    # print(observations.columns)
 
     if pca == True:
         pca_fit = PCA().fit(observations)
@@ -148,6 +147,8 @@ def make_data(
 
 
     ## Put everything together:
+    # summer = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,int(observations.shape[0]/(n_days-1)))]))
+
     if eligible == "all":
         dataset = MDPDataset(
             observations.to_numpy(), actions.to_numpy(), 
@@ -161,7 +162,8 @@ def make_data(
             observations.iloc[Elig].to_numpy(), actions[Elig].to_numpy(), 
             rewards[Elig], terminals.to_numpy()
         )
-    return [dataset, s_means, s_stds]
+        # summer = summer[Elig]
+    return [dataset, s_means, s_stds] # , summer
 
 
     
