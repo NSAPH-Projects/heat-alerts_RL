@@ -116,6 +116,10 @@ TDE<- rbind(TDE_a, TDE_b)
 folder<- "d3rlpy_logs/Double_DQN_small-S_lr5e-3_20230426131739/"
 folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_20230426131737/"
 
+folder<- "d3rlpy_logs/Double_DQN_small-S_lr1e-3_20230428091612/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr1e-3_20230428091615/"
+folder<- "d3rlpy_logs/Double_DQN_medium-S_lr5e-3_20230428091614/"
+
 Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
 DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
 ggplot(DF[5:nrow(DF),], aes(x=Epoch, y=log(Loss))) + geom_line() + 
@@ -194,6 +198,10 @@ Alerts<- read.csv("Fall_results/Total_alerts_CPQ_observed-alerts_small-S_lr1e-2.
 
 Alerts<- read.csv("Fall_results/Total_alerts_Double_DQN_small-S_lr5e-3.csv")[,1]
 Alerts<- read.csv("Fall_results/Total_alerts_CPQ_observed-alerts_small-S_lr5e-3.csv")[,1]
+
+Alerts<- read.csv("Fall_results/Total_alerts_Double_DQN_medium-S_lr5e-3.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_Double_DQN_small-S_lr1e-3.csv")[,1]
+Alerts<- read.csv("Fall_results/Total_alerts_CPQ_observed-alerts_small-S_lr1e-3.csv")[,1]
 
 a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
 ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 

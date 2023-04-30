@@ -25,7 +25,8 @@ def make_data(
     random_effects = False,
     eligible = "all",
     pca = False, pca_var_thresh = 0.5, 
-    manual_S_size = "medium"
+    manual_S_size = "medium",
+    get_policy = False
 ):
     ## Read in data:
     Train = pd.read_csv(filename)
@@ -147,7 +148,6 @@ def make_data(
 
 
     ## Put everything together:
-
     if eligible == "all":
         dataset = MDPDataset(
             observations.to_numpy(), actions.to_numpy(), 
@@ -161,8 +161,10 @@ def make_data(
             observations.iloc[Elig].to_numpy(), actions[Elig].to_numpy(), 
             rewards[Elig], terminals.to_numpy()
         )
+    return [dataset, s_means, s_stds]
 
-    return dataset
+
+    
 
 
 if __name__ == "__main__":

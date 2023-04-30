@@ -52,12 +52,12 @@ def main(params):
     print(params["modeled_r"])
     print(params["random_effects"])
 
-    dataset = make_data(
+    data = make_data(
         outcome = params["outcome"], modeled_r = params["modeled_r"], 
         log_r = True, random_effects = params["random_effects"], eligible = params["eligible"],
         pca = params["pca"], pca_var_thresh = params["pca_var_thresh"], manual_S_size = params["S_size"]
     )
-
+    dataset = data[0]
     # dataset.episodes[0][0].observation
     # dataset.episodes[0][0].next_observation
 
