@@ -94,7 +94,7 @@ def main(params):
                 output = dqn.predict(dataset.observations[p:(p+1)])
                 if output == 1:
                     if params["algo"] == "CPQ" and alert_sum >= budget:
-                        pass
+                        action = 0
                     else:
                         Policy[p] = 1
                         action = 1
