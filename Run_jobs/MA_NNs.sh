@@ -15,4 +15,4 @@ source ~/.bashrc
 mymodules
 cd heat-alerts_mortality_RL
 source activate pt1.12_cuda11.6
-singularity exec d3rlpy_latest.sif python Run_jobs/pylauncher.py --job_file="./Run_jobs/MA_NNs" --i $SLURM_ARRAY_TASK_ID
+singularity exec d3rlpy_latest.sif python Run_jobs/pylauncher.py --job_file="./Run_jobs/MA_NNs_policy" --i $SLURM_ARRAY_TASK_ID
