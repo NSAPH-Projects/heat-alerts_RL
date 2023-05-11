@@ -35,8 +35,13 @@ def main(params):
     d3rlpy.seed(321)
     params = vars(params)
 
+#     data = make_data(
+#         eligible = "90pct", manual_S_size = "small"
+#         )
     data = make_data(
-        eligible = "90pct", manual_S_size = "small"
+        outcome = params["outcome"], modeled_r = params["modeled_r"], # log_r = True,
+        random_effects = params["random_effects"], eligible = params["eligible"],
+        pca = params["pca"], pca_var_thresh = params["pca_var_thresh"], manual_S_size = params["S_size"]
         )
     dataset = data[0]
     # dataset.next_observations = np.expand_dims(dataset.episodes[0][0].next_observation, axis=0)
