@@ -38,7 +38,7 @@ def main(params):
     data = make_data(
         eligible = "90pct", manual_S_size = "small"
         )
-
+    dataset = data[0]
     # dataset.next_observations = np.expand_dims(dataset.episodes[0][0].next_observation, axis=0)
     # for e in dataset.episodes[1:]:
     #     for d in range(0, len(e)):
