@@ -50,6 +50,10 @@ def main(params):
     encoder_factory = VectorEncoderFactory(hidden_units=[n_hidden]*3, activation='relu') # doesn't allow for 'elu'
 
     gpu = False
+    device = "cpu"
+    if params["n_gpus"] > 0: 
+        gpu = True
+        device = "cuda"
 
     functions = [DQN, DoubleDQN, CPQ]
     func_names = ["DQN", "DoubleDQN", "CPQ"]
@@ -70,12 +74,12 @@ def main(params):
     folder = glob.glob("d3rlpy_logs/" + params["model_name"] + "_2*")[0]
     steps_per_epoch = get_steps_per_epoch(folder)
     Total_Alerts = []
-    NN_sum = torch.load(folder + "/model_" + str(steps_per_epoch) + ".pt", map_location=torch.device('cpu'))
+    NN_sum = torch.load(folder + "/model_" + str(steps_per_epoch) + ".pt", map_location=torch.device(device))
     NN_list = []
     NN_list.append(NN_sum)
     n_models = 1
     for i in range(1, params["n_epochs"]): # params["n_epochs"]
-        new = torch.load(folder + "/model_" + str(steps_per_epoch*(i+1)) + ".pt", map_location=torch.device('cpu'))
+        new = torch.load(folder + "/model_" + str(steps_per_epoch*(i+1)) + ".pt", map_location=torch.device(device))
         NN_list.append(new)
         n_models += 1
         for key in NN_sum["_q_func"]:
