@@ -110,7 +110,7 @@ def main(params):
         print(i)
 
     if params["policy_type"] != "NWS":
-        pd.DataFrame(Policy).to_csv("Policies/Policy_" + params["final_model"] + ".csv")
+        pd.DataFrame(Policy).to_csv("Policies/Policy_" + name + ".csv")
 
 
 if __name__ == "__main__":

@@ -13,9 +13,42 @@ write_csv(data.frame(S_t3_inds), "data/S_t3_training_indices.csv")
 
 write_csv(Top3rd, "data/Train_smaller-for-Python.csv")
 
-#### Select "eligible" days based on heat index:
+#### Get summary stats for paper:
 
 data<- data.frame(Top3rd)
+eps<- rep(1:(11*596), each=153)
+
+DF<- data.frame(nohr=data$other_hosps, eps)
+ep_nohr<- aggregate(nohr ~ eps, DF, sum)
+dens<- data$total_count[seq(1, nrow(data), 153)]
+
+ep_NOHR<- ep_nohr$nohr/dens
+round(summary(ep_NOHR*1000),1)
+
+sum_alerts<- data$alert_sum[seq(153, nrow(data), 153)]
+round(summary(sum_alerts), 1)
+
+alert_dos<- data$dos[which(data$alert == 1)]
+round(summary(alert_dos), 1)
+
+pct_90<- data$quant_HI_county >= 0.9
+ep_90th<- aggregate(pct_90~eps, data.frame(pct_90, eps), sum)
+round(summary(ep_90th$pct_90), 1)
+
+pct90_dos<- data$dos[pct_90]
+round(summary(pct90_dos), 1)
+
+alert_HI<- data$HImaxF_PopW[which(data$alert == 1)]
+round(summary(alert_HI), 1)
+
+alert_HI_quant<- data$quant_HI_county[which(data$alert == 1)]
+round(summary(alert_HI_quant)*100, 1)
+
+sum(data$alert == 0 & pct_90)/sum(pct_90)
+
+sum(data$alert == 1 & !pct_90)/sum(data$alert)
+
+#### Select "eligible" days based on heat index:
 
 fips<- unique(data$fips)
 
