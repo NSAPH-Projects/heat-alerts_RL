@@ -116,6 +116,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_hidden", type=int, default=256, help="number of params in DQN hidden layers")
     parser.add_argument("--lr", type=float, default=0.003, help="learning rate")
     parser.add_argument("--gamma", type=float, default=1.0, help="discount factor")
+    parser.add_argument("--n_epochs", type=int, default=5000, help="number of epochs to run")
     parser.add_argument("--sync_rate", type=int, default=3, help="how often (in epochs) to sync the target model")
     parser.add_argument("--n_gpus", type=int, default=1, help="number of gpus")
     parser.add_argument("--model_name", type=str, default="test", help="name to save model under")
