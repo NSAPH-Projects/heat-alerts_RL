@@ -126,6 +126,7 @@ if __name__ == "__main__":
     parser.add_argument("--eligible", type=str, default="all", help="days to include in RL")
     parser.add_argument("--S_size", type=str, default="medium", help="Manual size of state matrix")
     parser.add_argument("--algo", type=str, default="DQN", help="RL algorithm")
+    parser.add_argument("--policy_type", type=str, default="DQN", help="DQN, NWS, or random")
     parser.add_argument("--final_model", type=str, default="CPQ_observed-alerts_small-S_lr5e-3_20230426131737/model_390000.pt", help="file path of model to get policy from")
 
     args = parser.parse_args()
