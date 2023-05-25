@@ -33,9 +33,12 @@ def get_steps_per_epoch(folder):
     return(m2 - m1)
 
 def main(params):
-    set_seed(321)
-    d3rlpy.seed(321)
     params = vars(params)
+    seed = params["seed"]
+    # seed = 321
+    set_seed(seed)
+    d3rlpy.seed(seed)
+    
 
     ## For now:
     # params = dict(
@@ -154,6 +157,7 @@ if __name__ == "__main__":
     parser.add_argument("--S_size", type=str, default="medium", help="Manual size of state matrix")
     parser.add_argument("--algo", type=str, default="DQN", help="RL algorithm")
     parser.add_argument("--continue", type=str, default="false", help="continue fitting an existing model")
+    parser.add_argument("--seed", type=int, default=321, help="set seed")
 
     args = parser.parse_args()
     main(args)
