@@ -57,7 +57,8 @@ def main(params):
 
     data = make_data(
         outcome = params["outcome"], modeled_r = params["modeled_r"], 
-        log_r = True, random_effects = params["random_effects"], eligible = params["eligible"],
+        # log_r = True, 
+        random_effects = params["random_effects"], eligible = params["eligible"],
         pca = params["pca"], pca_var_thresh = params["pca_var_thresh"], manual_S_size = params["S_size"]
     )
     dataset = data[0]
