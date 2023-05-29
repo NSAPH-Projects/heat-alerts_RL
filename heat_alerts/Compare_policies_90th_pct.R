@@ -14,6 +14,17 @@ behavior<- pct_90$alert # sum = 26,317
 new_pol<- read.csv("Policies/Policy_Double_DQN_small-S_lr5e-3.csv")[,2] # sum = 7,251
 new_pol<- read.csv("Policies/Policy_CPQ_observed-alerts_small-S_lr5e-3.csv")[,2] # sum = 15,401
 
+models<- c("Double_DQN", "CPQ_observed-alerts")
+seeds<- c(1,2,4:10)
+
+for(m in models){
+  for(s in seeds){
+    new_pol<- read.csv(paste0("Policies/Policy_", m, "_small-S_lr5e-3_seed-", s, ".csv"))[,2]
+    print(paste(m,s,sum(new_pol)))
+  }
+}
+
+
 sum(new_pol)
 
 ep_alerts<- aggregate(alert ~ index, data=pct_90, sum)$alert
