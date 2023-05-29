@@ -2,10 +2,10 @@
 #SBATCH -J MA_NN
 #SBATCH -N 1
 #SBATCH -n 4
-#SBATCH -p test
-#SBATCH -t 0-7:00
+#SBATCH -p fasse # test
+#SBATCH -t 0-10:00
 #SBATCH --mem 90G
-#SBATCH --array 0-2
+#SBATCH --array 0-35 # 0-2
 #SBATCH -o ./Run_jobs/slurm/ma_nn.%a.out
 #SBATCH --mail-user=ellen_considine@g.harvard.edu
 #SBATCH --mail-type=BEGIN
