@@ -30,9 +30,8 @@ class CPQImpl(DQNImpl):
             )
             more_alerts = np.array([b[8]*s_stds["More_alerts"] + s_means["More_alerts"] for b in batch.next_observations]) # column of small S
             if her:
-                p = np.round(1/(more_alerts + 1), 6)
-                at_budget = np.random.binomial(1,p)
-                more_alerts = np.where(at_budget == 1, 0, 1)
+                p = np.round(1/(more_alerts + 1), 6) # prob of being at budget already after uniform sampling
+                more_alerts = np.random.binomial(1, 1-p)
             more_alerts = torch.tensor(more_alerts).to("cuda")
             constrained_targets = torch.where(torch.logical_and(action==1, more_alerts > 0), opposite_targets, original_targets) 
             return constrained_targets
