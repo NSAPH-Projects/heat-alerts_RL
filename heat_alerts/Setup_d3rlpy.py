@@ -59,6 +59,13 @@ def make_data(
      # if log_r == True:
     #     rewards = -np.log(-rewards + 0.0000000001)
 
+    ## Add constant to rewards on alert days:
+    inds = np.nonzero(actions.to_numpy())
+    a = np.min(rewards.iloc[inds])
+    b = np.max(np.delete(rewards.to_numpy(), inds))
+    const = np.where(actions.to_numpy() == 1, b-a + 1e-10, 0)
+    rewards += const
+
     rewards = (rewards - rewards.mean())/rewards.std()
     # rewards = (rewards - rewards.mean()) / np.max(np.abs(rewards))
     # rewards = rewards / np.max(np.abs(rewards)) # include scaling by 0.5?

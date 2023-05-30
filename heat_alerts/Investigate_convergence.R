@@ -135,6 +135,22 @@ DF_avs<- data.frame(Epoch=AVS$V1, Value_Scale=AVS$V3)
 ggplot(DF_avs, aes(x=Epoch, y=Value_Scale)) + geom_line() + 
   xlab("Epochs") + ylab("Average Value Scale") # + ggtitle("DQN Model")
 
+## With different seeds:
+models<- c("Double_DQN", "CPQ_observed-alerts")
+seeds<- c(1,2,4:10)
+
+for(m in models){
+  for(s in seeds){
+    folder<- list.files(path = "d3rlpy_logs/", pattern = paste0(m, "_small-S_lr5e-3_seed-", s, "_"))
+    Loss<- read.csv(paste0("d3rlpy_logs/", folder,"/loss.csv"), header = FALSE)
+    DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
+    p<- ggplot(DF[5:nrow(DF),], aes(x=Epoch, y=log(Loss))) + geom_line() + 
+      xlab("Epochs") + ylab("Log of Loss") + ggtitle(m)
+    plot(p)
+  }
+}
+
+
 ###########################################################
 
 Alerts<- read.csv("Fall_results/Total_alerts_vanilla_DQN_default-params.csv")[,1]
