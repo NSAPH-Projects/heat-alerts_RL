@@ -48,7 +48,7 @@ def main(params):
     #     modeled_r = False, random_effects = False,
     #     model_name = "test_cpq",
     #     eligible = "90pct",
-    #     algo = "CPQ"
+    #     algo = "CPQ", std_budget = 0, pca = False, pca_var_thresh = 0, S_size = "small"
     #     )
 
     ## Prepare data:
@@ -56,7 +56,7 @@ def main(params):
     print(params["random_effects"])
 
     data = make_data(
-        outcome = params["outcome"], modeled_r = params["modeled_r"], 
+        outcome = params["outcome"], modeled_r = params["modeled_r"], std_budget = params["std_budget"],
         # log_r = True, 
         random_effects = params["random_effects"], eligible = params["eligible"],
         pca = params["pca"], pca_var_thresh = params["pca_var_thresh"], manual_S_size = params["S_size"]
@@ -66,6 +66,7 @@ def main(params):
     # dataset.episodes[0][0].next_observation
 
     train_episodes, test_episodes = train_test_split(dataset, test_size=0.2) # uses np.random.seed
+    iters_per_epoch = round(len(dataset.observations)*0.8/params["b_size"])
 
     ## Set up algorithm:
 
@@ -86,7 +87,7 @@ def main(params):
         batch_size=params["b_size"],
         learning_rate=params["lr"],
         gamma=params["gamma"],
-        target_update_interval=params["b_size"]*params["sync_rate"]
+        target_update_interval=iters_per_epoch*params["sync_rate"]
         ) 
     
     dqn.build_with_dataset(dataset) # initialize neural networks
@@ -114,7 +115,7 @@ def main(params):
         batch_size=params["b_size"],
         learning_rate=params["lr"],
         gamma=params["gamma"],
-        target_update_interval=params["b_size"]*params["sync_rate"]
+        target_update_interval=iters_per_epoch*params["sync_rate"]
         )  
     dqn2.build_with_dataset(dataset)
     steps_per_epoch = get_steps_per_epoch(folder)
@@ -152,6 +153,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_name", type=str, default="test", help="name to save model under")
     parser.add_argument("--modeled_r", type=bool, default=False, help="use modeled rewards?")
     parser.add_argument("--random_effects", type=bool, default=False, help="use random effects from modeled rewards?")
+    parser.add_argument("--std_budget", type=int, default=0, help="same budget for all episodes?")
     parser.add_argument("--eligible", type=str, default="all", help="days to include in RL")
     parser.add_argument("--pca", type=bool, default=False, help="perform PCA?")
     parser.add_argument("--pca_var_thresh", type=float, default=0.5, help="PCA variance threshold")

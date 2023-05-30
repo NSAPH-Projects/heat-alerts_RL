@@ -23,6 +23,7 @@ def make_data(
     modeled_r = False, 
     # log_r = True,
     random_effects = False,
+    std_budget = 0,
     eligible = "all",
     pca = False, pca_var_thresh = 0.5, 
     manual_S_size = "medium"
@@ -75,8 +76,11 @@ def make_data(
     rewards = rewards.to_numpy()
 
     ## Prepare observations (S):
-    budget = Train[Train["dos"] == n_days]["alert_sum"]
-    Budget = list(itertools.chain(*[itertools.repeat(b, n_days) for b in budget]))
+    if std_budget == 0:
+        budget = Train[Train["dos"] == n_days]["alert_sum"]
+        Budget = list(itertools.chain(*[itertools.repeat(b, n_days) for b in budget]))
+    else: 
+        Budget = std_budget
     Train["More_alerts"] = Budget - Train["alert_sum"]
 
     States = Train[["HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
