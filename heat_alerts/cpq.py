@@ -33,7 +33,7 @@ class CPQImpl(DQNImpl):
                 p = np.round(1/(more_alerts + 1), 6)
                 at_budget = np.random.binomial(1,p)
                 more_alerts = np.where(at_budget == 1, 0, 1)
-            more_alerts = torch.tensor(np.round(more_alerts)).to("cuda")
+            more_alerts = torch.tensor(more_alerts).to("cuda")
             constrained_targets = torch.where(torch.logical_and(action==1, more_alerts > 0), opposite_targets, original_targets) 
             return constrained_targets
 
