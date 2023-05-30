@@ -64,6 +64,8 @@ def main(params):
     dataset = data[0]
     # dataset.episodes[0][0].observation
     # dataset.episodes[0][0].next_observation
+    s_means = data[1]
+    s_stds = data[2]
 
     train_episodes, test_episodes = train_test_split(dataset, test_size=0.2) # uses np.random.seed
     iters_per_epoch = round(len(dataset.observations)*0.8/params["b_size"])
@@ -91,6 +93,14 @@ def main(params):
         ) 
     
     dqn.build_with_dataset(dataset) # initialize neural networks
+
+    if params["algo"] == "CPQ":
+        if params["HER"]:
+            with open('/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/cpq_global.py', 'w') as f:
+                f.write('her = True \n')
+        else:
+            with open('/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/cpq_global.py', 'w') as f:
+                f.write('her = False \n')
 
     ## Train:
     
@@ -159,6 +169,7 @@ if __name__ == "__main__":
     parser.add_argument("--pca_var_thresh", type=float, default=0.5, help="PCA variance threshold")
     parser.add_argument("--S_size", type=str, default="medium", help="Manual size of state matrix")
     parser.add_argument("--algo", type=str, default="DQN", help="RL algorithm")
+    parser.add_argument("--HER", type=bool, default=False, help="Use hindsight experience replay for CPQ?")
     parser.add_argument("--continue", type=str, default="false", help="continue fitting an existing model")
     parser.add_argument("--seed", type=int, default=321, help="set seed")
 

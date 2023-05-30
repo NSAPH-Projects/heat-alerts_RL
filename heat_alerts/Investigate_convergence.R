@@ -120,10 +120,10 @@ folder<- "d3rlpy_logs/Double_DQN_small-S_lr1e-3_20230428091612/"
 folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr1e-3_20230428091615/"
 folder<- "d3rlpy_logs/Double_DQN_medium-S_lr5e-3_20230428091614/"
 
-folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-1_20230530171756/"
-folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-2_20230530171756/"
-folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-3_20230530171759/"
-folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-4_20230530171756/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-1_20230530175959/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-2_20230530180000/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-3_20230530180003/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-4_20230530180000/"
 folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-5"
 
 

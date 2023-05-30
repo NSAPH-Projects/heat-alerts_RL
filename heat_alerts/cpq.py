@@ -8,6 +8,8 @@ import torch
 import numpy as np
 # from torch_utility import TorchMiniBatch
 
+from cpq_global import her
+
 class CPQImpl(DQNImpl):
     def compute_target(self, batch) -> torch.Tensor:
     # def compute_target(self, batch: TorchMiniBatch) -> torch.Tensor:
@@ -26,9 +28,13 @@ class CPQImpl(DQNImpl):
                 # torch.zeros(len(action).to(torch.int64)).to("cuda"), # can't do this because the function does one hot encoding and needs more than one action
                 reduction="min", # reducing over an ensemble of Q functions
             )
-            more_alerts = torch.tensor([b[8] for b in batch.next_observations]).to("cuda") # column of S with index 13 = "More_alerts"
-            # more_alerts = torch.tensor([b[1] for b in batch.next_observations]).to("cuda") # when using tiny S
-            constrained_targets = torch.where(torch.logical_and(action==1, more_alerts == 0), opposite_targets, original_targets) 
+            more_alerts = np.array([b[8]*s_stds["More_alerts"] + s_means["More_alerts"] for b in batch.next_observations]) # column of small S
+            if her:
+                p = np.round(1/(more_alerts + 1), 6)
+                at_budget = np.random.binomial(1,p)
+                more_alerts = np.where(at_budget == 1, 0, 1)
+            more_alerts = torch.tensor(np.round(more_alerts)).to("cuda")
+            constrained_targets = torch.where(torch.logical_and(action==1, more_alerts > 0), opposite_targets, original_targets) 
             return constrained_targets
 
 
