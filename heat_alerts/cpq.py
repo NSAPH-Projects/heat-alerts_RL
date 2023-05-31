@@ -8,7 +8,7 @@ import torch
 import numpy as np
 # from torch_utility import TorchMiniBatch
 
-from cpq_global import her
+from cpq_global import her, boost, penalty, MA_mean, MA_sd, SA_mean, SA_sd
 
 class CPQImpl(DQNImpl):
     def compute_target(self, batch) -> torch.Tensor:
@@ -28,12 +28,19 @@ class CPQImpl(DQNImpl):
                 # torch.zeros(len(action).to(torch.int64)).to("cuda"), # can't do this because the function does one hot encoding and needs more than one action
                 reduction="min", # reducing over an ensemble of Q functions
             )
-            more_alerts = np.array([b[8]*s_stds["More_alerts"] + s_means["More_alerts"] for b in batch.next_observations]) # column of small S
+            more_alerts = np.array([b[8]*MA_sd + MA_mean for b in batch.next_observations]) # column of small S
+            # if her:
+            #     p = np.round(1/(more_alerts + 1), 6) # prob of being at budget already after uniform sampling
+            #     more_alerts = np.random.binomial(1, 1-p)
             if her:
-                p = np.round(1/(more_alerts + 1), 6) # prob of being at budget already after uniform sampling
-                more_alerts = np.random.binomial(1, 1-p)
+                already_issued = np.array([b[7]*SA_sd + SA_mean for b in batch.next_observations])
+                new_budgets = np.random.randint(0, already_issued + more_alerts + 1) # upper end is round bracket
+                more_alerts = int(already_issued < new_budgets)
             more_alerts = torch.tensor(more_alerts).to("cuda")
-            constrained_targets = torch.where(torch.logical_and(action==1, more_alerts > 0), opposite_targets, original_targets) 
+            # constrained_targets = torch.where(torch.logical_and(action==1, more_alerts > 0), opposite_targets, original_targets) 
+            penalized_targets = torch.where(torch.logical_and(action==1, more_alerts < 0.5), original_targets - penalty, original_targets)
+            boosted_targets = torch.where(torch.logical_and(action==1, more_alerts > 0.5), original_targets + boost, original_targets)
+            constrained_targets = torch.where(more_alerts > 0.5, boosted_targets, penalized_targets)
             return constrained_targets
 
 

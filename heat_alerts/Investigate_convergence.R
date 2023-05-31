@@ -124,12 +124,11 @@ folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-1_20230
 folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-2_20230530180000/"
 folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-3_20230530180003/"
 folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-4_20230530180000/"
-folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-5"
 
 
 Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
 DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
-ggplot(DF[5:nrow(DF),], aes(x=Epoch, y=log(Loss))) + geom_line() + 
+ggplot(DF, aes(x=Epoch, y=log(Loss))) + geom_line() + 
   xlab("Epochs") + ylab("Log of Loss") # + ggtitle("DQN Model")
 
 TDE<- read.csv(paste0(folder,"/td_error.csv"), header = FALSE)

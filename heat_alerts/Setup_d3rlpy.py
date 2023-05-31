@@ -60,13 +60,6 @@ def make_data(
      # if log_r == True:
     #     rewards = -np.log(-rewards + 0.0000000001)
 
-    ## Add constant to rewards on alert days:
-    inds = np.nonzero(actions.to_numpy())
-    a = np.min(rewards.iloc[inds])
-    b = np.max(np.delete(rewards.to_numpy(), inds))
-    const = np.where(actions.to_numpy() == 1, b-a + 1e-10, 0)
-    rewards += const
-
     rewards = (rewards - rewards.mean())/rewards.std()
     # rewards = (rewards - rewards.mean()) / np.max(np.abs(rewards))
     # rewards = rewards / np.max(np.abs(rewards)) # include scaling by 0.5?
@@ -165,6 +158,12 @@ def make_data(
             observations.to_numpy(), actions.to_numpy(), 
             rewards, terminals.to_numpy()
         )
+        ## Calculate constants (+-) for alerts and budget violations:
+        inds = np.nonzero(actions.to_numpy())
+        a = np.min(rewards[inds])
+        b = np.max(np.delete(rewards, inds))
+        c = np.max(rewards[inds])
+        d = np.min(np.delete(rewards, inds))
     else: 
         elig = pd.read_csv("data/Pct_90_eligible.csv") # could include other options too
         Elig = elig.index[elig["Pct_90_eligible"]]
@@ -174,7 +173,16 @@ def make_data(
             rewards[Elig], terminals.to_numpy()
         )
         # summer = summer[Elig]
-    return [dataset, s_means, s_stds] # , summer
+        ## Calculate constants (+-) for alerts and budget violations:
+        inds = np.nonzero(actions[Elig].to_numpy())
+        a = np.min(rewards[Elig][inds])
+        b = np.max(np.delete(rewards[Elig], inds))
+        c = np.max(rewards[Elig][inds])
+        d = np.min(np.delete(rewards[Elig], inds))
+
+    boost = b - a + 1e-10 # to be added when alert is issued (not in violation of budget)  
+    penalty = c - d + 1e-10 # to be subtracted when budget is violated (in CPQ)
+    return [dataset, boost, penalty, s_means, s_stds] # , summer
 
 
     
