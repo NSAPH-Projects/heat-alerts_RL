@@ -35,7 +35,7 @@ class CPQImpl(DQNImpl):
             if her:
                 already_issued = np.array([b[7]*SA_sd + SA_mean for b in batch.next_observations])
                 new_budgets = np.random.randint(0, already_issued + more_alerts + 1) # upper end is round bracket
-                more_alerts = int(already_issued < new_budgets)
+                more_alerts = (already_issued < new_budgets).astype(int)
             more_alerts = torch.tensor(more_alerts).to("cuda")
             # constrained_targets = torch.where(torch.logical_and(action==1, more_alerts > 0), opposite_targets, original_targets) 
             penalized_targets = torch.where(torch.logical_and(action==1, more_alerts < 0.5), original_targets - penalty, original_targets)
