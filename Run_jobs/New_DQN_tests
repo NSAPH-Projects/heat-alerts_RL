@@ -50,9 +50,10 @@
 # python heat_alerts/Run_d3rlpy.py --lr 0.005 --gamma 0.999 --eligible "90pct" --algo DoubleDQN --n_epochs 10000 --S_size "small" --seed 1021 --model_name Double_DQN_small-S_lr5e-3_seed-10
 # python heat_alerts/Run_d3rlpy.py --lr 0.005 --gamma 0.999 --eligible "90pct" --algo CPQ --n_epochs 10000 --S_size "small" --seed 1021 --model_name CPQ_observed-alerts_small-S_lr5e-3_seed-10
 #### Fixed sync rate for d3rlpy below...
-python heat_alerts/Run_d3rlpy.py --lr 0.005 --sync_rate 20 --gamma 0.999 --eligible "90pct" --algo CPQ --n_epochs 10000 --S_size "small" --seed 121 --model_name CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-1
-python heat_alerts/Run_d3rlpy.py --lr 0.005 --sync_rate 20 --gamma 0.999 --eligible "90pct" --algo CPQ --n_epochs 10000 --S_size "small" --seed 221 --model_name CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-2
-python heat_alerts/Run_d3rlpy.py --lr 0.005 --sync_rate 20 --gamma 0.999 --eligible "90pct" --algo CPQ --n_epochs 10000 --S_size "small" --seed 321 --model_name CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-3
-python heat_alerts/Run_d3rlpy.py --lr 0.005 --sync_rate 20 --gamma 0.999 --eligible "90pct" --algo CPQ --n_epochs 10000 --S_size "small" --seed 421 --model_name CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-4
-python heat_alerts/Run_d3rlpy.py --lr 0.005 --sync_rate 20 --gamma 0.999 --eligible "90pct" --algo CPQ --n_epochs 10000 --S_size "small" --seed 521 --model_name CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-5
-
+python heat_alerts/Run_d3rlpy.py --lr 0.005 --sync_rate 20 --gamma 0.999 --eligible "90pct" --algo CPQ --n_epochs 10000 --S_size "small" --seed 121 --model_name CPQ_observed-alerts_small-S_lr5e-3_BP_seed-1 # BP for boost-penalty
+# python heat_alerts/Run_d3rlpy.py --lr 0.005 --sync_rate 20 --gamma 0.999 --eligible "90pct" --algo CPQ --n_epochs 10000 --S_size "small" --seed 221 --model_name CPQ_observed-alerts_small-S_lr5e-3_BP_seed-2
+# python heat_alerts/Run_d3rlpy.py --lr 0.005 --sync_rate 20 --gamma 0.999 --eligible "90pct" --algo CPQ --n_epochs 10000 --S_size "small" --seed 321 --model_name CPQ_observed-alerts_small-S_lr5e-3_BP_seed-3
+# python heat_alerts/Run_d3rlpy.py --lr 0.005 --sync_rate 20 --gamma 0.999 --eligible "90pct" --algo CPQ --n_epochs 10000 --S_size "small" --seed 421 --model_name CPQ_observed-alerts_small-S_lr5e-3_BP_seed-4
+# python heat_alerts/Run_d3rlpy.py --lr 0.005 --sync_rate 20 --gamma 0.999 --eligible "90pct" --algo CPQ --n_epochs 10000 --S_size "small" --seed 521 --model_name CPQ_observed-alerts_small-S_lr5e-3_BP_seed-5
+python heat_alerts/Run_d3rlpy.py --lr 0.005 --sync_rate 20 --gamma 0.999 --eligible "90pct" --algo CPQ --std_budget 5 --n_epochs 10000 --S_size "small" --seed 121 --model_name CPQ_SB-5_small-S_lr5e-3_BP_seed-1 # SB for std_budget
+python heat_alerts/Run_d3rlpy.py --lr 0.005 --sync_rate 20 --gamma 0.999 --eligible "90pct" --algo CPQ -- HER True --n_epochs 10000 --S_size "small" --seed 121 --model_name CPQ_HER_small-S_lr5e-3_BP_seed-1
