@@ -28,12 +28,12 @@ class CPQImpl(DQNImpl):
                 # torch.zeros(len(action).to(torch.int64)).to("cuda"), # can't do this because the function does one hot encoding and needs more than one action
                 reduction="min", # reducing over an ensemble of Q functions
             )
-            more_alerts = np.array([b[8]*MA_sd + MA_mean for b in batch.next_observations]) # column of small S
+            more_alerts = np.array([b[8]*MA_sd + MA_mean for b in batch.next_observations.cpu()]) # column of small S
             # if her:
             #     p = np.round(1/(more_alerts + 1), 6) # prob of being at budget already after uniform sampling
             #     more_alerts = np.random.binomial(1, 1-p)
             if her:
-                already_issued = np.array([b[7]*SA_sd + SA_mean for b in batch.next_observations])
+                already_issued = np.array([b[7]*SA_sd + SA_mean for b in batch.next_observations.cpu()])
                 new_budgets = np.random.randint(0, already_issued + more_alerts + 1) # upper end is round bracket
                 more_alerts = (already_issued < new_budgets).astype(int)
             more_alerts = torch.tensor(more_alerts).to("cuda")

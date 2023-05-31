@@ -17,7 +17,7 @@ from d3rlpy.metrics.scorer import average_value_estimation_scorer
 # from heat_alerts.Setup_d3rlpy import make_data
 from Setup_d3rlpy import make_data
 # from heat_alerts.cpq import CPQ
-from cpq import CPQ
+# from cpq import CPQ
 
 def set_seed(seed):
     np.random.seed(seed) 
@@ -80,22 +80,6 @@ def main(params):
     gpu = False
     if params["n_gpus"] > 0: gpu = True
 
-    functions = [DQN, DoubleDQN, CPQ]
-    func_names = ["DQN", "DoubleDQN", "CPQ"]
-    algos = dict(zip(func_names, functions))
-    algo = algos[params["algo"]] # DQN, DoubleDQN, CPQ
-
-    dqn = algo(
-        encoder_factory=encoder_factory,
-        use_gpu=gpu, 
-        batch_size=params["b_size"],
-        learning_rate=params["lr"],
-        gamma=params["gamma"],
-        target_update_interval=iters_per_epoch*params["sync_rate"]
-        ) 
-    
-    dqn.build_with_dataset(dataset) # initialize neural networks
-
     if params["algo"] == "CPQ":
         with open('/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/heat_alerts/cpq_global.py', 'w') as f:
             if params["HER"]:
@@ -112,7 +96,25 @@ def main(params):
             f.write('SA_mean = ' + str(SA_mean) + ' \n')
             SA_sd = s_stds["alert_sum"]
             f.write('SA_sd = ' + str(SA_sd) + ' \n')
-        
+    
+    from cpq import CPQ # putting this here so it includes the correct global variables
+
+    functions = [DQN, DoubleDQN, CPQ]
+    func_names = ["DQN", "DoubleDQN", "CPQ"]
+    algos = dict(zip(func_names, functions))
+    algo = algos[params["algo"]] # DQN, DoubleDQN, CPQ
+
+    dqn = algo(
+        encoder_factory=encoder_factory,
+        use_gpu=gpu, 
+        batch_size=params["b_size"],
+        learning_rate=params["lr"],
+        gamma=params["gamma"],
+        target_update_interval=iters_per_epoch*params["sync_rate"]
+        ) 
+    
+    dqn.build_with_dataset(dataset) # initialize neural networks
+
     ## Train:
     
     if params["continue"] != "false":
