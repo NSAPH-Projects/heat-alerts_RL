@@ -152,6 +152,11 @@ def make_data(
 
     ## Put everything together:
     # summer = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,int(observations.shape[0]/(n_days-1)))]))
+    fips = Train.fips.unique()
+    a = []
+    b = []
+    c = []
+    d = []
 
     if eligible == "all":
         dataset = MDPDataset(
@@ -159,11 +164,19 @@ def make_data(
             rewards, terminals.to_numpy()
         )
         ## Calculate constants (+-) for alerts and budget violations:
-        inds = np.nonzero(actions.to_numpy())
-        a = np.min(rewards[inds])
-        b = np.max(np.delete(rewards, inds))
-        c = np.max(rewards[inds])
-        d = np.min(np.delete(rewards, inds))
+        for f in fips:
+            pos = np.where(Train["fips"] == f)
+            n = len(pos[0])
+            inds = np.nonzero(actions.to_numpy()[pos])
+            a.extend([np.min(rewards[pos][inds])]*n)
+            b.extend([np.max(np.delete(rewards[pos], inds))]*n)
+            c.extend([np.max(rewards[pos][inds])]*n)
+            d.extend([np.min(np.delete(rewards[pos], inds))]*n)
+        # inds = np.nonzero(actions.to_numpy())
+        # a = np.min(rewards[inds])
+        # b = np.max(np.delete(rewards, inds))
+        # c = np.max(rewards[inds])
+        # d = np.min(np.delete(rewards, inds))
     else: 
         elig = pd.read_csv("data/Pct_90_eligible.csv") # could include other options too
         Elig = elig.index[elig["Pct_90_eligible"]]
@@ -174,14 +187,24 @@ def make_data(
         )
         # summer = summer[Elig]
         ## Calculate constants (+-) for alerts and budget violations:
-        inds = np.nonzero(actions[Elig].to_numpy())
-        a = np.min(rewards[Elig][inds])
-        b = np.max(np.delete(rewards[Elig], inds))
-        c = np.max(rewards[Elig][inds])
-        d = np.min(np.delete(rewards[Elig], inds))
+        for f in fips:
+            pos = np.where(Train.iloc[Elig]["fips"] == f)
+            n = len(pos[0])
+            try:
+                inds = np.nonzero(actions.to_numpy()[Elig][pos])
+                a.extend([np.min(rewards[Elig][pos][inds])]*n)
+                b.extend([np.max(np.delete(rewards[Elig][pos], inds))]*n)
+                c.extend([np.max(rewards[Elig][pos][inds])]*n)
+                d.extend([np.min(np.delete(rewards[Elig][pos], inds))]*n)
+            except:
+                a.extend([0]*n)
+                b.extend([0]*n)
+                c.extend([0]*n)
+                d.extend([0]*n)
+                # print(f)
 
-    boost = b - a + 1e-10 # to be added when alert is issued (not in violation of budget)  
-    penalty = c - d + 1e-10 # to be subtracted when budget is violated (in CPQ)
+    boost = np.array(b) - np.array(a) + 1e-10 # to be added when alert is issued (not in violation of budget)  
+    penalty = np.array(c) - np.array(d) + 1e-10 # to be subtracted when budget is violated (in CPQ)
     return [dataset, boost, penalty, s_means, s_stds] # , summer
 
 

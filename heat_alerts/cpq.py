@@ -8,7 +8,13 @@ import torch
 import numpy as np
 # from torch_utility import TorchMiniBatch
 
-from cpq_global import her, boost, penalty, MA_mean, MA_sd, SA_mean, SA_sd
+from cpq_global import her, MA_mean, MA_sd, SA_mean, SA_sd
+
+boost = np.loadtxt('/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/heat_alerts/cpq_boost.py')
+penalty = np.loadtxt('/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/heat_alerts/cpq_penalty.py')
+
+boost = torch.FloatTensor(boost).to("cuda")
+penalty = torch.FloatTensor(penalty).to("cuda")
 
 class CPQImpl(DQNImpl):
     def compute_target(self, batch) -> torch.Tensor:

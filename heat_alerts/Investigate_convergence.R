@@ -125,6 +125,9 @@ folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-2_20230
 folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-3_20230530180003/"
 folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_shifted-R1_seed-4_20230530180000/"
 
+folder<- "d3rlpy_logs/CPQ_observed-alerts_small-S_lr5e-3_BP_seed-1_20230531145252/"
+folder<- "d3rlpy_logs/CPQ_HER_small-S_lr5e-3_BP_seed-1_20230531145253/"
+folder<- "d3rlpy_logs/CPQ_SB-5_small-S_lr5e-3_BP_seed-1_20230531145252/"
 
 Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
 DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
