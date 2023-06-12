@@ -30,6 +30,15 @@ def main(params):
     
     est.fit(Y, T, X=X)
     treatment_effects = est.effect(X)
+    CATEs = np.stack([treatment_effects, T], axis=1)
+
+    est.fit(Y, T, X=X, inference = "bootstrap")
+    treatment_effects = est.effect(X)
+    lb, ub = est.effect_interval(X, alpha=0.05) # Bootstrap CIs
+    CATEs = np.stack([treatment_effects, lb, ub, T], axis=1)
+
+    np.savetxt("Summer_results/CATEs_6-11.csv", CATEs, delimiter=",")
+    np.savetxt("Summer_results/X_small.csv", X, delimiter=",")
 
     R1_adjust = np.where(T == 1, 0, treatment_effects)
     R0_adjust = np.where(T == 0, 0, -treatment_effects)
