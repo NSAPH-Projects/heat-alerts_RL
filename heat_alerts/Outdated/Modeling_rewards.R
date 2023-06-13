@@ -1,5 +1,6 @@
 
-library(caret)
+library(stringi, lib.loc = "~/apps/R_4.2.2")
+library(caret, lib.loc = "~/apps/R_4.2.2")
 
 load("data/Small_S-A-R_prepped.RData")
 
