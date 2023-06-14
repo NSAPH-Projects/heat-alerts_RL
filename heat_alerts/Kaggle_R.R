@@ -44,50 +44,52 @@ Small_S<- DF[,c("quant_HI_county", "HI_mean", "l.Pop_density", "l.Med.HH.Income"
 Train<- data.frame(Medium_S)
 Train$Y<- R_other_hosps[,1]
 
-N<- 10000
+N<- 100724 # size of top 90th perc. heat index days
 n_cv<- 5
 set.seed(321)
 
 algos<- c('ranger', 'cubist', 'mlpWeightDecayML') # 'xgbTree' -- takes a long time, has a lot of tuning params
 
-grids<- list(expand.grid( .mtry = 7, .splitrule = "variance", .min.node.size = 200 ),
-              # expand.grid( .mtry = seq(5, 10), 
-              #             .splitrule = "variance", .min.node.size = seq(10, 210, 50) ),
-             expand.grid( .committees = c(5), .neighbors = 0 ),
-             # expand.grid( .committees = c(5, 10, 20), .neighbors = 0 ),
-             # expand.grid(.layer1 = c(10,100), .layer2 = c(10,100),
-             #             .layer3 = c(10,100), .decay = c(0.0, 1e-4)),
-             expand.grid(.layer1 = c(100), .layer2 = c(100),
-                         .layer3 = c(100), .decay = c(0.0)))
+grids<- list(#expand.grid( .mtry = 7, .splitrule = "variance", .min.node.size = 200 ),
+              expand.grid( .mtry = seq(5, 10), .splitrule = "variance",
+                           .min.node.size = seq(100, 400, 100) ),
+             # expand.grid( .committees = c(5), .neighbors = 0 ),
+             expand.grid( .committees = c(3, 5, 7, 10, 20), .neighbors = 0 ),
+             # expand.grid(.layer1 = c(100), .layer2 = c(100),
+             #             .layer3 = c(100), .decay = c(0.0)),
+             expand.grid(.layer1 = c(10,55,100), .layer2 = c(10,55,100),
+                         .layer3 = c(10,55,100), .decay = c(0.0, 1e-4)))
 
 cluster<- makeCluster(detectCores() - 2) # cluster<- makeCluster(20)
 registerDoParallel(cluster)
 clusterEvalQ(cluster, .libPaths("~/apps/R_4.2.2"))
 
-sink("Summer_results/Kaggle_preliminaries.txt")
+sink("Summer_results/Kaggle_tuning_6-14.txt")
 for(a in 1:length(algos)){
   
   for(subset in c("all", "pct90")){ 
     
-    
-    dataset<- sample_n(Train, N)
+    if(subset == "all"){
+      dataset<- sample_n(Train, N)
+    }else{
+      dataset<- Train[which((Train$quant_HI_county*qhic_sd + qhic_mean) >= 0.9),]
+    }
     
     #Set up control object:
     myControl<- trainControl(method = "repeatedcv", number = n_cv, repeats = 3, search = "grid", 
                               index = createFolds(dataset$Y, n_cv),
                               verboseIter = FALSE, allowParallel = TRUE, savePredictions = FALSE)
     
-    PID<- Sys.getpid()
+    # PID<- Sys.getpid()
     model_start<- Sys.time()
     model<- caret::train(Y ~ ., data = dataset, method = algos[a], 
-                         trControl = myControl)
-                         # , tuneGrid = grids[[a]])
+                         trControl = myControl, tuneGrid = grids[[a]])
     model_end<- Sys.time()
+    print(paste0(algos[a], ", subset = ", subset, ": ", round(model_end - model_start,2), " minutes"))
     print(model$results)
     print(model$bestTune)
-    Mem_peak<- system(paste0('grep VmPeak /proc/', PID, '/status'), intern = TRUE)
-    print(paste0(algos[a], ": ", model_end - model_start, " minutes"))
-    print(paste("Process", PID, "memory peak =", Mem_peak))
+    # Mem_peak<- system(paste0('grep VmPeak /proc/', PID, '/status'), intern = TRUE)
+    # print(paste("Process", PID, "memory peak =", Mem_peak))
   }
   
 }

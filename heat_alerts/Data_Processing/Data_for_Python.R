@@ -103,6 +103,9 @@ data$More_alerts<- Budget - data$alert_sum
 Data<- data
 Data$broadband.usage<- as.numeric(Data$broadband.usage)
 
+qhic_mean<- mean(Data$quant_HI_county)
+qhic_sd<- sd(Data$quant_HI_county)
+
 DF<- data.frame(scale(Data[,vars<- c("HImaxF_PopW", "quant_HI_county",
                                      "quant_HI_yest_county",
                                      "quant_HI_3d_county",
@@ -138,7 +141,8 @@ R_other_hosps<- -1000*(Data["other_hosps"]/Data["total_count"])
 
 rm(list= ls()[!(ls() %in% c('DF','n_days', 'A', 'budget',
                             'R_deaths', 'R_all_hosps', 
-                            'R_heat_hosps', 'R_other_hosps'))])
+                            'R_heat_hosps', 'R_other_hosps', 
+                            'qhic_mean', 'qhic_sd'))])
 save.image("data/Small_S-A-R_prepped.RData")
 
 
