@@ -14,7 +14,7 @@ DF_list<- lapply(1:num_county, function(i){
 
   dat_fips_1<- subset(Data, fips == Fips[i])
   
-  dat_fips_1 <- dat_fips_1 %>%
+  dat_fips_1<- dat_fips_1 %>%
     group_by(id, year) %>%
     mutate(all_hosp_mean = cummean(ifelse(is.na(all_hosps), 0, all_hosps)),
            heat_hosp_mean = cummean(ifelse(is.na(heat_hosps), 0, heat_hosps)),
@@ -27,6 +27,20 @@ DF_list<- lapply(1:num_county, function(i){
   dat_fips_1$other_hosp_mean = c(rep(0, 1),
                                 dat_fips_1$other_hosp_mean[1:(nrow(dat_fips_1) - 1)])
   
+  dat_fips_1<- dat_fips_1 %>%
+    group_by(id, year) %>%
+    mutate(all_hosp_2wkMA = c(rep(0, 13), rollmean(ifelse(is.na(all_hosps), 0, all_hosps), 14, align="right")),
+           heat_hosp_2wkMA = c(rep(0, 13), rollmean(ifelse(is.na(heat_hosps), 0, heat_hosps), 14, align="right")),
+           other_hosp_2wkMA = c(rep(0, 13), rollmean(ifelse(is.na(other_hosps), 0, other_hosps), 14, align="right"))
+    )
+  
+  dat_fips_1<- dat_fips_1 %>%
+    group_by(id, year) %>%
+    mutate(all_hosp_3dMA = c(rep(0, 2), rollmean(ifelse(is.na(all_hosps), 0, all_hosps), 3, align="right")),
+           heat_hosp_3dMA = c(rep(0, 2), rollmean(ifelse(is.na(heat_hosps), 0, heat_hosps), 3, align="right")),
+           other_hosp_3dMA = c(rep(0, 2), rollmean(ifelse(is.na(other_hosps), 0, other_hosps), 3, align="right"))
+    )
+  
   return(dat_fips_1)
 })
 
@@ -37,15 +51,33 @@ DF$all_hosp_mean_rate<- DF$all_hosp_mean / DF$total_count
 DF$heat_hosp_mean_rate<- DF$heat_hosp_mean / DF$total_count
 DF$other_hosp_mean_rate<- DF$other_hosp_mean / DF$total_count
 
+DF$all_hosp_2wkMA_rate<- DF$all_hosp_2wkMA / DF$total_count
+DF$heat_hosp_2wkMA_rate<- DF$heat_hosp_2wkMA / DF$total_count
+DF$other_hosp_2wkMA_rate<- DF$other_hosp_2wkMA / DF$total_count
+
+DF$all_hosp_3dMA_rate<- DF$all_hosp_3dMA / DF$total_count
+DF$heat_hosp_3dMA_rate<- DF$heat_hosp_3dMA / DF$total_count
+DF$other_hosp_3dMA_rate<- DF$other_hosp_3dMA / DF$total_count
+
 sum(is.na(DF[,c("death_mean_rate", "all_hosp_mean_rate", 
                 "heat_hosp_mean_rate", "other_hosp_mean_rate")]))
+
+sum(is.na(DF[,c("all_hosp_2wkMA_rate", "heat_hosp_2wkMA_rate", "other_hosp_2wkMA_rate")]))
+sum(is.na(DF[,c("all_hosp_3dMA_rate", "heat_hosp_3dMA_rate", "other_hosp_3dMA_rate")]))
+
+DF$age_65_74_rate<- DF$age_65_74 / DF$total_count
+DF$age_75_84_rate<- DF$age_75_84 / DF$total_count
+DF$dual_rate<- DF$dual_count / DF$total_count
+
+sum(is.na(DF[,c("age_65_74_rate", "age_75_84_rate", "dual_rate")]))
+
 
 ## Incorporate a couple more non-Medicare datasets:
 hvi<- read.csv("data/HVI_county-level.csv")
 hvi$fips<- str_pad(hvi$fips, 5, pad="0")
 
 
-internet<- read.csv("data/broadband_data_2020October.csv", skip = 18)
+internet<- read.csv("/n/dominici_nsaph_l3/Lab/data/confounders/miscellaneous_US/broadband_data_2020October.csv", skip = 18)
 Internet<- data.frame(fips = str_pad(internet$COUNTY.ID, 5, pad="0"),
                       broadband.availability=internet$BROADBAND.AVAILABILITY.PER.FCC,
                       broadband.usage=internet$BROADBAND.USAGE)
@@ -118,12 +150,12 @@ Full_DF$T_since_alert<- T_since_alert
 
 ## Add in annual average air quality:
 
-all_AQ<- read.csv(paste0("/n/dominici_nsaph_l3/Lab/data/exposure/pm25/whole_us/annual/counties/county_rm/data/county_pm25_2006.csv"))
+all_AQ<- read.csv(paste0("/n/dominici_nsaph_l3/Lab/exposure/pm25/whole_us/annual/counties/county_rm/data/county_pm25_2006.csv"))
 all_AQ$fips<- str_pad(all_AQ$fips, 5, pad="0")
 
 years<- 2007:2016
 for(y in years){
-  AQ<- read.csv(paste0("/n/dominici_nsaph_l3/Lab/data/exposure/pm25/whole_us/annual/counties/county_rm/data/county_pm25_", y, ".csv"))
+  AQ<- read.csv(paste0("/n/dominici_nsaph_l3/Lab/exposure/pm25/whole_us/annual/counties/county_rm/data/county_pm25_", y, ".csv"))
   AQ$fips<- str_pad(AQ$fips, 5, pad="0")
   all_AQ<- rbind(all_AQ, AQ)
 }

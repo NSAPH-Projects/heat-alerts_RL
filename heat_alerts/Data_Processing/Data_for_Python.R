@@ -52,14 +52,14 @@ sum(data$alert == 1 & !pct_90)/sum(data$alert)
 
 fips<- unique(data$fips)
 
-pct90<- c()
-for(i in fips){
-  pos<- which(data$fips == i)
-  pct90<- append(pct90, quantile(data$HImaxF_PopW[pos], 0.9))
-}
-Pct_90<- rep(pct90, each = 153*11)
-Pct_90_eligible<- data$HImaxF_PopW >= Pct_90 # oops, actually could have gotten this from the data$quant_HI_county variable
-
+# pct90<- c()
+# for(i in fips){
+#   pos<- which(data$fips == i)
+#   pct90<- append(pct90, quantile(data$HImaxF_PopW[pos], 0.9))
+# }
+# Pct_90<- rep(pct90, each = 153*11)
+# Pct_90_eligible<- data$HImaxF_PopW >= Pct_90 # oops, actually could have gotten this from the data$quant_HI_county variable
+Pct_90_eligible<- data$quant_HI_county >= 0.9
 write_csv(data.frame(Pct_90_eligible), "data/Pct_90_eligible.csv")
 
 sums<- unname(tapply(Pct_90_eligible, (seq_along(Pct_90_eligible)-1) %/% n_days, sum))
@@ -96,7 +96,6 @@ write_csv(data.frame(County_min_eligible), "data/County_min_eligible.csv")
 ################ Also create set for R modeling:
 
 
-
 budget<- data[which(data$dos == 153), "alert_sum"]
 Budget<- rep(budget, each = n_days)
 data$More_alerts<- Budget - data$alert_sum
@@ -112,8 +111,11 @@ DF<- data.frame(scale(Data[,vars<- c("HImaxF_PopW", "quant_HI_county",
                                      "year", "dos",
                                      "alert_sum", "More_alerts",
                                      "death_mean_rate", "all_hosp_mean_rate",
-                                     "heat_hosp_mean_rate", "broadband.usage",
-                                     "Democrat", "Republican",
+                                     "heat_hosp_mean_rate", "all_hosp_2wkMA_rate",
+                                     "heat_hosp_2wkMA_rate", "all_hosp_3dMA_rate", 
+                                     "heat_hosp_3dMA_rate", "age_65_74_rate",
+                                     "age_75_84_rate", "dual_rate",
+                                     "Democrat", "Republican", "broadband.usage",
                                      "pm25", "T_since_alert", "alerts_2wks")]),
                 # alert = Data$alert,
                 alert_lag1 = Data$alert_lag1,
