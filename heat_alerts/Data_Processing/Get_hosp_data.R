@@ -8,9 +8,9 @@ library(dretools)
 library(foreign)
 library(fst, lib.loc="~/apps/R_4.2.2")
 library(stringr)
-library(fBasics)
+library(fBasics, lib.loc="~/apps/R_4.2.2")
 library(lubridate)
-library(data.table)
+library(data.table, lib.loc="~/apps/R_4.2.2")
 library(dplyr)
 
 ssa_fips<- read.csv("/n/dominici_nsaph_l3/Lab/data_processing/ssa_fips_state_county2016.csv")
@@ -46,7 +46,8 @@ f<- list.files("/n/dominici_nsaph_l3/data/ci3_health_data/medicare/heat_related/
                full.names = TRUE)
 cols<- read_colnames(f[1])
 
-vars<- c("fips", "day", "ccs_55", "ccs_157", "ccs_159", "ccs_2", "ccs_244", "ccs_114", "ccs_50", "total_count")
+vars<- c("fips", "day", "ccs_55", "ccs_157", "ccs_159", "ccs_2", "ccs_244", "ccs_114", "ccs_50", 
+         "total_count", "age_65_74", "age_75_84", "age_85", "dual_count")
 daily_fips_hosp <- rbindlist(lapply(f,
                                     read_fst,
                                     columns = vars,
@@ -65,6 +66,26 @@ Data$heat_hosps<- rowSums(Data[,c("ccs_244", "ccs_55")])
 Data$other_hosps<- rowSums(Data[,c("ccs_157", "ccs_159", "ccs_2", "ccs_114", "ccs_50")])
 
 saveRDS(Data, "data/Final_data_for_HARL_w-hosps.rds")
+
+# ## Add in ALL_hosp info -- never mind, there's a lot of missingness...
+# 
+# All_data<- readRDS("data/ALL_hosps_pre-merge.rds")
+# All_data$fips<- str_pad(All_data$fips, 5, pad = "0")
+# 
+# ALL_data<- All_data %>% group_by(fips, Date) %>% summarise(ALL_hosps = sum(ALL_hosps))
+# 
+# # Every_hosp<- distinct(left_join(Data, ALL_data, by=c("fips", "Date")))
+# Every_hosp<- distinct(inner_join(Data, ALL_data, by=c("fips", "Date")))
+# 
+# s<- sample(1:nrow(Every_hosp), 100000, replace = FALSE)
+# plot(Every_hosp[s,"all_hosps"], Every_hosp[s,"ALL_hosps"])
+# hosp.fit0<- lm(ALL_hosps ~ all_hosps, data = Every_hosp)
+# hosp.fit1<- lm(ALL_hosps ~ all_hosps + log(Pop_density) + log(Med.HH.Income) + 
+#                 BA_zone, data = Every_hosp)
+# abline(hosp.fit0)
+# plot(hosp.fit0$fitted.values[s], hosp.fit0$residuals[s])
+# plot(hosp.fit1$fitted.values[s], hosp.fit1$residuals[s])
+
 
 ## Compare total_count and Pop.65:
 
