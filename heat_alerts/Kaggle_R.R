@@ -18,6 +18,8 @@ Large_S<- DF[,c("HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
                 "year", "dos", "holiday", "weekend",
                 "alert_lag1", "alert_lag2", "alerts_2wks", "T_since_alert", "alert_sum",
                 "death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate",
+                "all_hosp_2wkMA_rate", "heat_hosp_2wkMA_rate", "all_hosp_3dMA_rate",     
+               "heat_hosp_3dMA_rate", "age_65_74_rate", "age_75_84_rate", "dual_rate",       
                 "broadband.usage", "Democrat", "Republican", "pm25",
                 "ZoneCold", "ZoneHot.Dry", "ZoneHot.Humid", "ZoneMarine",
                 "ZoneMixed.Dry", "ZoneMixed.Humid", "ZoneVery.Cold")]
@@ -26,18 +28,20 @@ Medium_S<- DF[,c("quant_HI_county", "quant_HI_yest_county", "quant_HI_3d_county"
                  "l.Pop_density", "l.Med.HH.Income",
                  "year", "dos", "weekend",
                  "T_since_alert", "alert_sum",
-                 "all_hosp_mean_rate", "Republican", "pm25",
+                 "all_hosp_mean_rate", "all_hosp_2wkMA_rate", "all_hosp_3dMA_rate",
+                 "Republican", "pm25", "age_65_74_rate", "age_75_84_rate", "dual_rate",
                  "ZoneCold", "ZoneHot.Dry", "ZoneHot.Humid", "ZoneMarine",
                  "ZoneMixed.Dry", "ZoneMixed.Humid", "ZoneVery.Cold")]
 
 Small_S<- DF[,c("quant_HI_county", "HI_mean", "l.Pop_density", "l.Med.HH.Income",
                 "year", "dos", "weekend", 
-                "T_since_alert", "alert_sum", "all_hosp_mean_rate")]
+                "T_since_alert", "alert_sum", "all_hosp_mean_rate", 
+                "all_hosp_2wkMA_rate", "all_hosp_3dMA_rate")]
 
 Train<- data.frame(Medium_S)
 Train$Y<- R_other_hosps[,1]
 
-N<- 100000
+N<- 10000
 n_cv<- 5
 
 algos<- c('ranger', 'xgboost', 'cubist', 'bagEarth', 'gamboost', 'mlpWeightDecayML')
@@ -69,12 +73,12 @@ for(a in 1:length(algos)){
     PID<- Sys.getpid()
     model_start<- Sys.time()
     model<- caret::train(Y ~ ., data = dataset, method = algos[a], 
-                         trControl = myControl, tuneGrid = grids[[a]])
+                         trControl = myControl, tuneGrid = grids[[a]], importance="permutation")
     model_end<- Sys.time()
     print(model$results)
     print(model$bestTune)
     Mem_peak<- system(paste0('grep VmPeak /proc/', PID, '/status'), intern = TRUE)
-    print(paste0(A, ": ", model_end - model_start, " minutes"))
+    print(paste0(algos[a], ": ", model_end - model_start, " minutes"))
     print(paste("Process", PID, "memory peak =", Mem_peak))
   }
   

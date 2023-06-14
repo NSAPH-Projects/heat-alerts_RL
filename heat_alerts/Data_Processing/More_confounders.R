@@ -20,6 +20,7 @@ DF_list<- lapply(1:num_county, function(i){
            heat_hosp_mean = cummean(ifelse(is.na(heat_hosps), 0, heat_hosps)),
            other_hosp_mean = cummean(ifelse(is.na(other_hosps), 0, other_hosps))
            )
+  ## Offset by one so we're not including the day-of health info:
   dat_fips_1$all_hosp_mean = c(rep(0, 1),
                            dat_fips_1$all_hosp_mean[1:(nrow(dat_fips_1) - 1)])
   dat_fips_1$heat_hosp_mean = c(rep(0, 1),
@@ -33,6 +34,12 @@ DF_list<- lapply(1:num_county, function(i){
            heat_hosp_2wkMA = c(rep(0, 13), rollmean(ifelse(is.na(heat_hosps), 0, heat_hosps), 14, align="right")),
            other_hosp_2wkMA = c(rep(0, 13), rollmean(ifelse(is.na(other_hosps), 0, other_hosps), 14, align="right"))
     )
+  dat_fips_1$all_hosp_2wkMA = c(rep(0, 1),
+                               dat_fips_1$all_hosp_2wkMA[1:(nrow(dat_fips_1) - 1)])
+  dat_fips_1$heat_hosp_2wkMA = c(rep(0, 1),
+                                dat_fips_1$heat_hosp_2wkMA[1:(nrow(dat_fips_1) - 1)])
+  dat_fips_1$other_hosp_2wkMA = c(rep(0, 1),
+                                 dat_fips_1$other_hosp_2wkMA[1:(nrow(dat_fips_1) - 1)])
   
   dat_fips_1<- dat_fips_1 %>%
     group_by(id, year) %>%
@@ -40,6 +47,12 @@ DF_list<- lapply(1:num_county, function(i){
            heat_hosp_3dMA = c(rep(0, 2), rollmean(ifelse(is.na(heat_hosps), 0, heat_hosps), 3, align="right")),
            other_hosp_3dMA = c(rep(0, 2), rollmean(ifelse(is.na(other_hosps), 0, other_hosps), 3, align="right"))
     )
+  dat_fips_1$all_hosp_3dMA = c(rep(0, 1),
+                                dat_fips_1$all_hosp_3dMA[1:(nrow(dat_fips_1) - 1)])
+  dat_fips_1$heat_hosp_3dMA = c(rep(0, 1),
+                                 dat_fips_1$heat_hosp_3dMA[1:(nrow(dat_fips_1) - 1)])
+  dat_fips_1$other_hosp_3dMA = c(rep(0, 1),
+                                  dat_fips_1$other_hosp_3dMA[1:(nrow(dat_fips_1) - 1)])
   
   return(dat_fips_1)
 })
