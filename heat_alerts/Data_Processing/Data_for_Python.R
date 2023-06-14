@@ -99,7 +99,8 @@ write_csv(data.frame(County_min_eligible), "data/County_min_eligible.csv")
 budget<- data[which(data$dos == 153), "alert_sum"]
 Budget<- rep(budget, each = n_days)
 data$More_alerts<- Budget - data$alert_sum
-Data<- data[-seq(n_days, nrow(data), n_days),]
+# Data<- data[-seq(n_days, nrow(data), n_days),] # Not using this for RL
+Data<- data
 Data$broadband.usage<- as.numeric(Data$broadband.usage)
 
 DF<- data.frame(scale(Data[,vars<- c("HImaxF_PopW", "quant_HI_county",

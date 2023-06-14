@@ -7,6 +7,9 @@ library(dplyr)
 
 library(ranger, lib.loc = "~/apps/R_4.2.2")
 library(RSNNS, lib.loc = "~/apps/R_4.2.2")
+# library(xgboost, lib.loc = "~/apps/R_4.2.2")
+library(Cubist, lib.loc = "~/apps/R_4.2.2")
+
 
 # Read in data:
 load("data/Small_S-A-R_prepped.RData")
@@ -43,13 +46,19 @@ Train$Y<- R_other_hosps[,1]
 
 N<- 10000
 n_cv<- 5
+set.seed(321)
 
-algos<- c('ranger', 'xgboost', 'cubist', 'bagEarth', 'gamboost', 'mlpWeightDecayML')
-algos<- c('ranger', 'mlpWeightDecayML')
-grids<- list(expand.grid( .mtry = seq(5, 10), 
-                          .splitrule = "variance", .min.node.size = seq(10, 210, 50) ),
-             expand.grid(.layer1 = c(1,10,100), .layer2 = c(1,10,100),
-                         .layer3 = c(1,10,100), .decay = c(0.0, 1e-04, 1e-01))) # 1e-02, 1e-03,
+algos<- c('ranger', 'cubist', 'mlpWeightDecayML') # 'xgbTree' -- takes a long time, has a lot of tuning params
+
+grids<- list(expand.grid( .mtry = 7, .splitrule = "variance", .min.node.size = 200 ),
+              # expand.grid( .mtry = seq(5, 10), 
+              #             .splitrule = "variance", .min.node.size = seq(10, 210, 50) ),
+             expand.grid( .committees = c(5), .neighbors = 0 ),
+             # expand.grid( .committees = c(5, 10, 20), .neighbors = 0 ),
+             # expand.grid(.layer1 = c(10,100), .layer2 = c(10,100),
+             #             .layer3 = c(10,100), .decay = c(0.0, 1e-4)),
+             expand.grid(.layer1 = c(100), .layer2 = c(100),
+                         .layer3 = c(100), .decay = c(0.0)))
 
 cluster<- makeCluster(detectCores() - 2) # cluster<- makeCluster(20)
 registerDoParallel(cluster)
@@ -58,11 +67,9 @@ clusterEvalQ(cluster, .libPaths("~/apps/R_4.2.2"))
 sink("Summer_results/Kaggle_preliminaries.txt")
 for(a in 1:length(algos)){
   
-  for(seed in c(321, 654, 987)){ # seed<- 321
+  for(subset in c("all", "pct90")){ 
     
-    print(paste("Seed =", seed))
-    # Sample data:
-    set.seed(seed)
+    
     dataset<- sample_n(Train, N)
     
     #Set up control object:
@@ -73,7 +80,8 @@ for(a in 1:length(algos)){
     PID<- Sys.getpid()
     model_start<- Sys.time()
     model<- caret::train(Y ~ ., data = dataset, method = algos[a], 
-                         trControl = myControl, tuneGrid = grids[[a]], importance="permutation")
+                         trControl = myControl)
+                         # , tuneGrid = grids[[a]])
     model_end<- Sys.time()
     print(model$results)
     print(model$bestTune)
