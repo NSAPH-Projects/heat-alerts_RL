@@ -122,7 +122,7 @@ stopCluster(cluster)
 n_cv<- 10
 set.seed(321)
 
-cluster<- makeCluster(10)
+cluster<- makeCluster(5) # 10?
 registerDoParallel(cluster)
 clusterEvalQ(cluster, .libPaths("~/apps/R_4.2.2"))
 
@@ -140,7 +140,7 @@ model.a<- caret::train(Y ~ ., data = Train.a, method = "cubist",
                      trControl = myControl.a, tuneGrid = 
                        expand.grid(.committees = 5, .neighbors = 0))
 
-preds.a<- model.a$pred$pred
+preds.a<- model.a$pred[,c("pred", "obs")]
 saveRDS(preds.a, "Summer_results/Kaggle_preds_a.rds")
 
 #### MLP + medium S + all:
@@ -157,7 +157,7 @@ model.b<- caret::train(Y ~ ., data = Train.b, method = "mlpWeightDecayML",
                          expand.grid(.layer1 = 55, .layer2 = 10,
                                                  .layer3 = 10, .decay = 0.0))
 
-preds.b<- model.b$pred$pred[which((Train.b$quant_HI_county*qhic_sd + qhic_mean) >= 0.9),]
+preds.b<- model.b$pred$pred[which((Train.b$quant_HI_county*qhic_sd + qhic_mean) >= 0.9)]
 saveRDS(preds.b, "Summer_results/Kaggle_preds_b.rds")
 
 #### MLP + large S + all:
@@ -174,7 +174,7 @@ model.c<- caret::train(Y ~ ., data = Train.c, method = "mlpWeightDecayML",
                          expand.grid(.layer1 = 100, .layer2 = 100,
                                      .layer3 = 100, .decay = 0.0))
 
-preds.c<- model.c$pred$pred[which((Train.c$quant_HI_county*qhic_sd + qhic_mean) >= 0.9),]
+preds.c<- model.c$pred$pred[which((Train.c$quant_HI_county*qhic_sd + qhic_mean) >= 0.9)]
 saveRDS(preds.c, "Summer_results/Kaggle_preds_c.rds")
 
 #### MLP + large S + 90pct:
