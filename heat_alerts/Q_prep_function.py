@@ -9,14 +9,20 @@ from scipy.special import expit, softmax
 
 #%%
 
+def symlog(x, shift=1):
+    if x >= 0:
+        return np.log(x+shift)-np.log(shift)
+    else:
+        return -np.log(-x+shift)+np.log(shift)
 
 def make_data(
     filename="data/Train_smaller-for-Python.csv", 
     # budget_file="data/Over_budget_S_t3.csv",
     # prob_constraint="Fall_results/BART_preds_near-zero_11-20.csv",
     data_only=True,
-    outcome="deaths",
-    all_data=False
+    outcome="other-hosps",
+    manual_S_size = "medium",
+    all_data=False # whether it's for RL or not
 ):
     ## Read in data
     Train = pd.read_csv(filename)
@@ -60,6 +66,8 @@ def make_data(
                         "alert_lag1", "alert_lag2", "alerts_2wks", "T_since_alert",
                         "alert_sum", "More_alerts",
                         "death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate",
+                        "all_hosp_2wkMA_rate", "heat_hosp_2wkMA_rate", "all_hosp_3dMA_rate",     
+                        "heat_hosp_3dMA_rate", "age_65_74_rate", "age_75_84_rate", "dual_rate",
                         "broadband.usage", "Democrat", "Republican", "pm25"]]
     States = States_1.drop(n_seq_s)
     States_1 = States_1.drop(range(0, Train.shape[0], n_days))
@@ -84,17 +92,62 @@ def make_data(
                         "year", "dos", "alerts_2wks", "T_since_alert",
                          "alert_sum", "More_alerts",
                          "death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate",
+                         "all_hosp_2wkMA_rate", "heat_hosp_2wkMA_rate", "all_hosp_3dMA_rate",     
+                        "heat_hosp_3dMA_rate", "age_65_74_rate", "age_75_84_rate", "dual_rate",
                          "broadband.usage", "Democrat", "Republican", "pm25"]
 
     s_means = States[num_vars].mean(0)
     s_stds = States[num_vars].std(0)
     S = (States[num_vars] - s_means)/s_stds
     S = pd.concat([S.reset_index(), S_OHE.reset_index()], axis = 1)
+    S = S.drop("index", axis=1)
 
     s_1_means = States_1[num_vars].mean(0)
     s_1_stds = States_1[num_vars].std(0)
     S_1 = (States_1[num_vars] - s_1_means)/s_1_stds
     S_1 = pd.concat([S_1.reset_index(), S1_OHE.reset_index()], axis = 1)
+    S_1 = S_1.drop("index", axis=1)
+
+    ## Get subsets:
+
+    if manual_S_size == "medium":
+        S["weekend"] = S["dow_Saturday"] + S["dow_Sunday"]
+        S = S[[
+            "quant_HI_county", "HI_mean", "l.Pop_density", "l.Med.HH.Income",
+            "year", "dos", "T_since_alert", "alert_sum", "More_alerts", "all_hosp_mean_rate",
+             "all_hosp_2wkMA_rate", "all_hosp_3dMA_rate", 
+             "age_65_74_rate", "age_75_84_rate", "dual_rate",
+            "Republican", "pm25", "weekend", 'BA_zone_Hot-Dry',
+            'BA_zone_Hot-Humid', 'BA_zone_Marine', 'BA_zone_Mixed-Dry',
+            'BA_zone_Mixed-Humid', 'BA_zone_Very Cold'
+        ]
+        ]
+        S_1["weekend"] = S_1["dow_Saturday"] + S_1["dow_Sunday"]
+        S_1 = S_1[[
+            "quant_HI_county", "HI_mean", "l.Pop_density", "l.Med.HH.Income",
+            "year", "dos", "T_since_alert", "alert_sum", "More_alerts", "all_hosp_mean_rate",
+             "all_hosp_2wkMA_rate", "all_hosp_3dMA_rate", 
+             "age_65_74_rate", "age_75_84_rate", "dual_rate",
+            "Republican", "pm25", "weekend", 'BA_zone_Hot-Dry',
+            'BA_zone_Hot-Humid', 'BA_zone_Marine', 'BA_zone_Mixed-Dry',
+            'BA_zone_Mixed-Humid', 'BA_zone_Very Cold'
+        ]
+        ]
+    elif manual_S_size == "small":
+        S["weekend"] = S["dow_Saturday"] + S["dow_Sunday"]
+        S = S[[
+            "quant_HI_county", "HI_mean", "l.Pop_density", "l.Med.HH.Income",
+            "year", "dos", "T_since_alert", "alert_sum", "More_alerts", "all_hosp_mean_rate", 
+            "weekend"
+        ]
+        ]
+        S_1["weekend"] = S_1["dow_Saturday"] + S_1["dow_Sunday"]
+        S_1 = S_1[[
+            "quant_HI_county", "HI_mean", "l.Pop_density", "l.Med.HH.Income",
+            "year", "dos", "T_since_alert", "alert_sum", "More_alerts", "all_hosp_mean_rate", 
+            "weekend"
+        ]
+        ]
 
     ## Get budget
     # over_budget = pd.read_csv(budget_file)

@@ -56,6 +56,8 @@ Morans<- function(x, D){
 }
 
 preds.a<- readRDS("Summer_results/Kaggle_preds_a.rds")
+preds.a<- readRDS("Summer_results/Kaggle_preds_a_transformed.rds")
+
 R<-preds.a$obs
 preds<- preds.a$pred
 resids<- R - preds

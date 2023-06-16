@@ -42,11 +42,35 @@ Small_S<- DF[,c("alert", "quant_HI_county", "HI_mean", "l.Pop_density", "l.Med.H
                 "T_since_alert", "alert_sum", "all_hosp_mean_rate", 
                 "all_hosp_2wkMA_rate", "all_hosp_3dMA_rate")]
 
+## Prepare outcome:
+
+symlog<- function(x, shift=1){
+  if(x >= 0){
+    return( log(x+shift) - log(shift) )
+  }else{
+    return( -log(-x+shift) + log(shift) )
+  }
+}
+
+Y<- R_other_hosps[,1]
+R<- sapply(scale(Y), symlog)
+types<- rep(1, length(Y))
+types[which(Y < 0)]<- -1
+
+inverse_transform<- function(y, type = 1){ # refers to positive vs negative original value
+  if(type == 1){
+    return(exp(y) - 1)
+  }else{
+    return(1 - exp(-y))
+  }
+}
+
+
 #### Tune several models:
 
 # Train<- data.frame(Medium_S)
 Train<- data.frame(Large_S)
-Train$Y<- R_other_hosps[,1]
+Train$Y<- R
 
 N<- 100724 # size of top 90th perc. heat index days
 n_cv<- 5
@@ -130,7 +154,7 @@ clusterEvalQ(cluster, .libPaths("~/apps/R_4.2.2"))
 #### Cubist + large S + 90pct:
 
 Train.a<- data.frame(Large_S)
-Train.a$Y<- R_other_hosps[,1]
+Train.a$Y<- R
 Train.a<- Train.a[which((Train.a$quant_HI_county*qhic_sd + qhic_mean) >= 0.9),]
 
 myControl.a<- trainControl(method = "repeatedcv", number = n_cv, repeats = 1, search = "grid", 
@@ -142,12 +166,18 @@ model.a<- caret::train(Y ~ ., data = Train.a, method = "cubist",
                        expand.grid(.committees = 5, .neighbors = 0))
 
 preds.a<- model.a$pred
-saveRDS(preds.a, "Summer_results/Kaggle_preds_a.rds") # this model's data didn't include A...
+preds.a$type<- types[which((Train.a$quant_HI_county*qhic_sd + qhic_mean) >= 0.9)][preds.a$rowIndex]
+Preds.a<- apply(preds.a[,c("pred", "type")], MARGIN=1, function(x){
+  inverse_transform(x[1], x[2])
+})
+Preds.A<- data.frame(pred = Preds.a, obs = preds.a$obs, rowIndex = preds.a$rowIndex)
+saveRDS(Preds.A, "Summer_results/Kaggle_preds_a_transformed.rds")
+# saveRDS(preds.a, "Summer_results/Kaggle_preds_a.rds") # this model's data didn't include A...
 
 #### Do a T-learner version of this ^^^:
 
 Train.1<- data.frame(Large_S)
-Train.1$Y<- R_other_hosps[,1]
+Train.1$Y<- R
 Train.1<- Train.1[which((Train.1$quant_HI_county*qhic_sd + qhic_mean) >= 0.9),]
 Train.1<- Train.1[which(Train.1$alert == 1),]
 Train.1$alert<- NULL
@@ -161,7 +191,7 @@ model.1<- caret::train(Y ~ ., data = Train.1, method = "cubist",
                          expand.grid(.committees = 5, .neighbors = 0))
 
 Train.0<- data.frame(Large_S)
-Train.0$Y<- R_other_hosps[,1]
+Train.0$Y<- R
 Train.0<- Train.0[which((Train.0$quant_HI_county*qhic_sd + qhic_mean) >= 0.9),]
 Train.0<- Train.0[which(Train.0$alert == 0),]
 Train.0$alert<- NULL
@@ -177,16 +207,25 @@ model.0<- caret::train(Y ~ ., data = Train.0, method = "cubist",
 preds.1<- predict(model.1, Train.a)
 preds.0<- predict(model.0, Train.a)
 preds01<- data.frame(obs = Train.a$Y, preds.0, preds.1)
-saveRDS(preds01, "Summer_results/Kaggle_preds_T01.rds")
+preds01$type<- types[which((Train.a$quant_HI_county*qhic_sd + qhic_mean) >= 0.9)]
+Preds.1<- apply(preds01[,c("preds.1", "type")], MARGIN=1, function(x){
+  inverse_transform(x[1], x[2])
+})
+Preds.0<- apply(preds01[,c("preds.0", "type")], MARGIN=1, function(x){
+  inverse_transform(x[1], x[2])
+})
+Preds01<- data.frame(obs = Train.a$Y, Preds.0, Preds.1)
+saveRDS(Preds01, "Summer_results/Kaggle_preds_T01_transformed.rds")
+# saveRDS(preds01, "Summer_results/Kaggle_preds_T01.rds")
 
-diffs<- preds.1 - preds.0
+diffs<- Preds.1 - Preds.0
 summary(diffs)
 hist(diffs)
 
 #### Cubist + large S + all:
 
 Train.b<- data.frame(Large_S)
-Train.b$Y<- R_other_hosps[,1]
+Train.b$Y<- R
 
 myControl.b<- trainControl(method = "repeatedcv", number = n_cv, repeats = 1, search = "grid", 
                            index = createFolds(Train.b$Y, n_cv, returnTrain = TRUE),
@@ -203,7 +242,7 @@ saveRDS(preds.b, "Summer_results/Kaggle_preds_b-cubist.rds")
 #### MLP + medium S + all:
 
 # Train.b<- data.frame(Medium_S)
-# Train.b$Y<- R_other_hosps[,1]
+# Train.b$Y<- R
 # 
 # myControl.b<- trainControl(method = "repeatedcv", number = n_cv, repeats = 3, search = "grid", 
 #                          index = createFolds(Train.b$Y, n_cv, returnTrain = TRUE),
@@ -220,7 +259,7 @@ saveRDS(preds.b, "Summer_results/Kaggle_preds_b-cubist.rds")
 #### MLP + medium S + all:
 
 # Train.b<- data.frame(Medium_S)
-# Train.b$Y<- R_other_hosps[,1]
+# Train.b$Y<- R
 # 
 # myControl.b<- trainControl(method = "repeatedcv", number = n_cv, repeats = 3, search = "grid", 
 #                          index = createFolds(Train.b$Y, n_cv, returnTrain = TRUE),
@@ -237,7 +276,7 @@ saveRDS(preds.b, "Summer_results/Kaggle_preds_b-cubist.rds")
 #### MLP + large S + all:
 
 Train.c<- data.frame(Large_S)
-Train.c$Y<- R_other_hosps[,1]
+Train.c$Y<- R
 
 myControl.c<- trainControl(method = "repeatedcv", number = n_cv, repeats = 3, search = "grid", 
                          index = createFolds(Train.c$Y, n_cv, returnTrain = TRUE),
@@ -254,7 +293,7 @@ saveRDS(preds.c, "Summer_results/Kaggle_preds_c.rds")
 #### MLP + large S + 90pct:
 
 Train.d<- data.frame(Large_S)
-Train.d$Y<- R_other_hosps[,1]
+Train.d$Y<- R
 Train.d<- Train.d[which((Train.d$quant_HI_county*qhic_sd + qhic_mean) >= 0.9),]
 
 myControl.d<- trainControl(method = "repeatedcv", number = n_cv, repeats = 3, search = "grid", 
