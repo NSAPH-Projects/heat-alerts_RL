@@ -140,25 +140,59 @@ model.a<- caret::train(Y ~ ., data = Train.a, method = "cubist",
                      trControl = myControl.a, tuneGrid = 
                        expand.grid(.committees = 5, .neighbors = 0))
 
-preds.a<- model.a$pred[,c("pred", "obs")]
+preds.a<- model.a$pred
 saveRDS(preds.a, "Summer_results/Kaggle_preds_a.rds")
+
+#### Cubist + large S + all:
+
+Train.b<- data.frame(Large_S)
+Train.b$Y<- R_other_hosps[,1]
+
+myControl.b<- trainControl(method = "repeatedcv", number = n_cv, repeats = 1, search = "grid", 
+                           index = createFolds(Train.b$Y, n_cv, returnTrain = TRUE),
+                           verboseIter = TRUE, allowParallel = TRUE, savePredictions = TRUE)
+
+model.b<- caret::train(Y ~ ., data = Train.b, method = "cubist", 
+                       trControl = myControl.b, tuneGrid = 
+                         expand.grid(.committees = 3, .neighbors = 0))
+
+preds.b<- model.b$pred
+saveRDS(preds.b, "Summer_results/Kaggle_preds_b-cubist.rds")
+
 
 #### MLP + medium S + all:
 
-Train.b<- data.frame(Medium_S)
-Train.b$Y<- R_other_hosps[,1]
+# Train.b<- data.frame(Medium_S)
+# Train.b$Y<- R_other_hosps[,1]
+# 
+# myControl.b<- trainControl(method = "repeatedcv", number = n_cv, repeats = 3, search = "grid", 
+#                          index = createFolds(Train.b$Y, n_cv, returnTrain = TRUE),
+#                          verboseIter = TRUE, allowParallel = TRUE, savePredictions = TRUE)
+#
+# model.b<- caret::train(Y ~ ., data = Train.b, method = "mlpWeightDecayML", 
+#                        trControl = myControl.b, tuneGrid = 
+#                          expand.grid(.layer1 = 55, .layer2 = 10,
+#                                                  .layer3 = 10, .decay = 0.0))
+# 
+# preds.b<- model.b$pred$pred[which((Train.b$quant_HI_county*qhic_sd + qhic_mean) >= 0.9)]
+# saveRDS(preds.b, "Summer_results/Kaggle_preds_b.rds")
 
-myControl.b<- trainControl(method = "repeatedcv", number = n_cv, repeats = 3, search = "grid", 
-                         index = createFolds(Train.b$Y, n_cv, returnTrain = TRUE),
-                         verboseIter = TRUE, allowParallel = TRUE, savePredictions = TRUE)
+#### MLP + medium S + all:
 
-model.b<- caret::train(Y ~ ., data = Train.b, method = "mlpWeightDecayML", 
-                       trControl = myControl.b, tuneGrid = 
-                         expand.grid(.layer1 = 55, .layer2 = 10,
-                                                 .layer3 = 10, .decay = 0.0))
-
-preds.b<- model.b$pred$pred[which((Train.b$quant_HI_county*qhic_sd + qhic_mean) >= 0.9)]
-saveRDS(preds.b, "Summer_results/Kaggle_preds_b.rds")
+# Train.b<- data.frame(Medium_S)
+# Train.b$Y<- R_other_hosps[,1]
+# 
+# myControl.b<- trainControl(method = "repeatedcv", number = n_cv, repeats = 3, search = "grid", 
+#                          index = createFolds(Train.b$Y, n_cv, returnTrain = TRUE),
+#                          verboseIter = TRUE, allowParallel = TRUE, savePredictions = TRUE)
+#
+# model.b<- caret::train(Y ~ ., data = Train.b, method = "mlpWeightDecayML", 
+#                        trControl = myControl.b, tuneGrid = 
+#                          expand.grid(.layer1 = 55, .layer2 = 10,
+#                                                  .layer3 = 10, .decay = 0.0))
+# 
+# preds.b<- model.b$pred$pred[which((Train.b$quant_HI_county*qhic_sd + qhic_mean) >= 0.9)]
+# saveRDS(preds.b, "Summer_results/Kaggle_preds_b.rds")
 
 #### MLP + large S + all:
 

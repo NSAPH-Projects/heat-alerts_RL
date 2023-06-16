@@ -51,17 +51,13 @@ Morans<- function(x, D){
   return(y$observed)
 }
 
-R<- readRDS("Summer_results/Kaggle_preds_a.rds")[,2]
-  
-preds<- readRDS("Summer_results/Kaggle_preds_a.rds")[,1]
-cor(R, preds)^2
-1 - (sum((R-preds)^2)/(((length(preds)-1)*var(R))))
-
-preds<- readRDS("Summer_results/Kaggle_preds_b.rds")
-cor(R, preds)^2
-1 - (sum((R-preds)^2)/(((length(preds)-1)*var(R))))
-
+preds.a<- readRDS("Summer_results/Kaggle_preds_a.rds")
+R<-preds.a$obs
+preds<- preds.a$pred
 resids<- R - preds
+
+fips<- fips[preds.a$rowIndex]
+dos<- dos[preds.a$rowIndex]
 
 ## Calculate for each day, then average across days:
 
@@ -108,6 +104,10 @@ pnorm(o, e, sqrt(v)) # can't do this bc v is negative
 e<- weighted.mean(-1/(n-1), w = n)
 o<- weighted.mean(MI, w = n)
 v<- (n_bar*weighted.mean(s4, w=n) - weighted.mean(s3, w=n)*weighted.mean(s5, w=n))/((n_bar - 1)*(n_bar-2)*(n_bar-3)*weighted.mean(w,w=n)^2) - e^2
+
+e
+o
+v
 pnorm(o, e, sqrt(v))
 
 
@@ -143,9 +143,11 @@ for(f in sort(unique(fips))){
 }
 
 AC1<- mean(Acl)
+AC1
 # AC1<- weighted.mean(Acl, w=n_days) # barely different
 
 ac1_se<- sqrt((1+2*AC1^2)/mean(n_days))
+ac1_se
 
 1 - pnorm(AC1, 0, ac1_se)
 
