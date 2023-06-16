@@ -157,13 +157,15 @@ def make_data(
     ## Get behavior policy probability constraint:
     # near_zero = pd.read_csv(prob_constraint).drop(n_seq_s)
     # near_zero = pd.read_csv(prob_constraint)
-    behav_prob = pd.read_csv("Fall_results/Alerts_model_1-23.csv")
-    near_zero = (np.array(behav_prob)[:,1] < 0.01).astype(int)
+    
+    # behav_prob = pd.read_csv("Fall_results/Alerts_model_1-23.csv")
+    # near_zero = (np.array(behav_prob)[:,1] < 0.01).astype(int)
 
     if data_only == True:
         output = dict(
             S = S, A = A, R = R, S_1 = S_1, 
-            ep_end = ep_end, over = over, near_zero = near_zero, ID = ID)
+            ep_end = ep_end, over = over, # near_zero = near_zero, ID = ID
+            )
     else:
         ## Get summary stats of all outcomes:
         R_deaths = -1*(Train["N"]/Train["Pop.65"]).drop(n_seq_s)
@@ -178,7 +180,7 @@ def make_data(
         ## Return:
         output = dict(
             S = S, A = A, R = R, S_1 = S_1, 
-            ep_end = ep_end, over = over, near_zero = near_zero, ID = ID,
+            ep_end = ep_end, over = over, # near_zero = near_zero, ID = ID,
             Budget = Budget, n_seq_s = n_seq_s,
             s_means = s_means, s_stds = s_stds,
             R_deaths = R_deaths, R_all_hosps = R_all_hosps, R_other_hosps = R_other_hosps,
