@@ -14,8 +14,9 @@ library(Cubist, lib.loc = "~/apps/R_4.2.2")
 # Read in data:
 load("data/Small_S-A-R_prepped.RData")
 DF$weekend<- DF$dowSaturday | DF$dowSunday
+DF$alert<- A
 
-Large_S<- DF[,c("HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
+Large_S<- DF[,c("alert", "HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
                 "quant_HI_3d_county", "HI_mean",
                 "l.Pop_density", "l.Med.HH.Income",
                 "year", "dos", "holiday", "weekend",
@@ -27,7 +28,7 @@ Large_S<- DF[,c("HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
                 "ZoneCold", "ZoneHot.Dry", "ZoneHot.Humid", "ZoneMarine",
                 "ZoneMixed.Dry", "ZoneMixed.Humid", "ZoneVery.Cold")]
 
-Medium_S<- DF[,c("quant_HI_county", "quant_HI_yest_county", "quant_HI_3d_county", "HI_mean",
+Medium_S<- DF[,c("alert", "quant_HI_county", "quant_HI_yest_county", "quant_HI_3d_county", "HI_mean",
                  "l.Pop_density", "l.Med.HH.Income",
                  "year", "dos", "weekend",
                  "T_since_alert", "alert_sum",
@@ -36,7 +37,7 @@ Medium_S<- DF[,c("quant_HI_county", "quant_HI_yest_county", "quant_HI_3d_county"
                  "ZoneCold", "ZoneHot.Dry", "ZoneHot.Humid", "ZoneMarine",
                  "ZoneMixed.Dry", "ZoneMixed.Humid", "ZoneVery.Cold")]
 
-Small_S<- DF[,c("quant_HI_county", "HI_mean", "l.Pop_density", "l.Med.HH.Income",
+Small_S<- DF[,c("alert", "quant_HI_county", "HI_mean", "l.Pop_density", "l.Med.HH.Income",
                 "year", "dos", "weekend", 
                 "T_since_alert", "alert_sum", "all_hosp_mean_rate", 
                 "all_hosp_2wkMA_rate", "all_hosp_3dMA_rate")]
@@ -141,7 +142,46 @@ model.a<- caret::train(Y ~ ., data = Train.a, method = "cubist",
                        expand.grid(.committees = 5, .neighbors = 0))
 
 preds.a<- model.a$pred
-saveRDS(preds.a, "Summer_results/Kaggle_preds_a.rds")
+saveRDS(preds.a, "Summer_results/Kaggle_preds_a.rds") # this model's data didn't include A...
+
+#### Do a T-learner version of this ^^^:
+
+Train.1<- data.frame(Large_S)
+Train.1$Y<- R_other_hosps[,1]
+Train.1<- Train.1[which((Train.1$quant_HI_county*qhic_sd + qhic_mean) >= 0.9),]
+Train.1<- Train.1[which(Train.1$alert == 1),]
+Train.1$alert<- NULL
+
+myControl.1<- trainControl(method = "repeatedcv", number = n_cv, repeats = 1, search = "grid", 
+                           index = createFolds(Train.1$Y, n_cv, returnTrain = TRUE),
+                           verboseIter = TRUE, allowParallel = TRUE, savePredictions = TRUE)
+
+model.1<- caret::train(Y ~ ., data = Train.1, method = "cubist", 
+                       trControl = myControl.1, tuneGrid = 
+                         expand.grid(.committees = 5, .neighbors = 0))
+
+Train.0<- data.frame(Large_S)
+Train.0$Y<- R_other_hosps[,1]
+Train.0<- Train.0[which((Train.0$quant_HI_county*qhic_sd + qhic_mean) >= 0.9),]
+Train.0<- Train.0[which(Train.0$alert == 0),]
+Train.0$alert<- NULL
+
+myControl.0<- trainControl(method = "repeatedcv", number = n_cv, repeats = 1, search = "grid", 
+                           index = createFolds(Train.0$Y, n_cv, returnTrain = TRUE),
+                           verboseIter = TRUE, allowParallel = TRUE, savePredictions = TRUE)
+
+model.0<- caret::train(Y ~ ., data = Train.0, method = "cubist", 
+                       trControl = myControl.0, tuneGrid = 
+                         expand.grid(.committees = 5, .neighbors = 0))
+
+preds.1<- predict(model.1, Train.a)
+preds.0<- predict(model.0, Train.a)
+preds01<- data.frame(obs = Train.a$Y, preds.0, preds.1)
+saveRDS(preds01, "Summer_results/Kaggle_preds_T01.rds")
+
+diffs<- preds.1 - preds.0
+summary(diffs)
+hist(diffs)
 
 #### Cubist + large S + all:
 
