@@ -123,6 +123,7 @@ set_seed(321)
 params = {
     "outcome": "other_hosps",
     "S_size": "medium",
+    "eligible": "90pct",
     "b_size": 2048,
     "n_hidden": 256,
     "lr": 0.003,
@@ -133,15 +134,18 @@ params = {
     "loss": "mse", # "huber",
     "silent": False,
     "optimizer": "adam",
-    "n_workers": 8 # 4
+    "n_workers": 4
 }
 
 if params["outcome"] == "all_hosps":
-    D = make_data(outcome="all_hosps", manual_S_size = params["S_size"])
+    D = make_data(outcome="all_hosps", manual_S_size = params["S_size"], 
+                  eligible = params["eligible"], all_data = True)
 elif params["outcome"] == "other_hosps":
-    D = make_data(outcome="other_hosps", manual_S_size = params["S_size"])
+    D = make_data(outcome="other_hosps", manual_S_size = params["S_size"], 
+                  eligible = params["eligible"], all_data = True)
 else:
-    D = make_data(manual_S_size = params["S_size"])
+    D = make_data(manual_S_size = params["S_size"], 
+                  eligible = params["eligible"], all_data = True)
 
 S,A,R = [D[k] for k in ("S","A","R")]
 

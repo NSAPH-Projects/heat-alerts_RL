@@ -22,6 +22,7 @@ def make_data(
     data_only=True,
     outcome="other-hosps",
     manual_S_size = "medium",
+    eligible = "all",
     all_data=False # whether it's for RL or not
 ):
     ## Read in data
@@ -39,9 +40,11 @@ def make_data(
 
     if all_data == False:
         n_seq_s = range(n_days-1, Train.shape[0], n_days)
+        n_seq_s1 = range(0, Train.shape[0], n_days)
         ID = list(itertools.chain(*[itertools.repeat(i, (n_days-1)*n_years) for i in county_ids]))
     else:
         n_seq_s = []
+        n_seq_s1 = []
         ID = list(itertools.chain(*[itertools.repeat(i, n_days*n_years) for i in county_ids]))
 
     A = Train["alert"].drop(n_seq_s)
@@ -70,7 +73,7 @@ def make_data(
                         "heat_hosp_3dMA_rate", "age_65_74_rate", "age_75_84_rate", "dual_rate",
                         "broadband.usage", "Democrat", "Republican", "pm25"]]
     States = States_1.drop(n_seq_s)
-    States_1 = States_1.drop(range(0, Train.shape[0], n_days))
+    States_1 = States_1.drop(n_seq_s1)
 
     ## One-hot encode non-numeric variables
     S_enc = skprep.OneHotEncoder(drop = "first")
@@ -161,34 +164,65 @@ def make_data(
     # behav_prob = pd.read_csv("Fall_results/Alerts_model_1-23.csv")
     # near_zero = (np.array(behav_prob)[:,1] < 0.01).astype(int)
 
-    if data_only == True:
-        output = dict(
-            S = S, A = A, R = R, S_1 = S_1, 
-            ep_end = ep_end, over = over, # near_zero = near_zero, ID = ID
-            )
-    else:
-        ## Get summary stats of all outcomes:
-        R_deaths = -1*(Train["N"]/Train["Pop.65"]).drop(n_seq_s)
-        R_all_hosps = -1*(Train["all_hosps"]/Train["total_count"]).drop(n_seq_s)
-        R_other_hosps = -1*(Train["other_hosps"]/Train["total_count"]).drop(n_seq_s)
-        deaths_shift = R_deaths.mean()
-        all_hosps_shift = R_all_hosps.mean()
-        other_hosps_shift = R_other_hosps.mean()
-        deaths_scale = np.max(np.abs(R_deaths))
-        all_hosps_scale = np.max(np.abs(R_all_hosps))
-        other_hosps_scale = np.max(np.abs(R_other_hosps))
-        ## Return:
-        output = dict(
-            S = S, A = A, R = R, S_1 = S_1, 
-            ep_end = ep_end, over = over, # near_zero = near_zero, ID = ID,
-            Budget = Budget, n_seq_s = n_seq_s,
-            s_means = s_means, s_stds = s_stds,
-            R_deaths = R_deaths, R_all_hosps = R_all_hosps, R_other_hosps = R_other_hosps,
-            deaths_shift = deaths_shift, deaths_scale = deaths_scale, 
-            all_hosps_shift = all_hosps_shift, all_hosps_scale = all_hosps_scale,
-            other_hosps_shift = other_hosps_shift, other_hosps_scale = other_hosps_scale
-            )
+    if eligible == "all":
+        if data_only == True:
+            output = dict(
+                S = S, A = A, R = R, S_1 = S_1, 
+                ep_end = ep_end, over = over, # near_zero = near_zero, ID = ID
+                )
+        else:
+            ## Get summary stats of all outcomes:
+            R_deaths = -1*(Train["N"]/Train["Pop.65"]).drop(n_seq_s)
+            R_all_hosps = -1*(Train["all_hosps"]/Train["total_count"]).drop(n_seq_s)
+            R_other_hosps = -1*(Train["other_hosps"]/Train["total_count"]).drop(n_seq_s)
+            deaths_shift = R_deaths.mean()
+            all_hosps_shift = R_all_hosps.mean()
+            other_hosps_shift = R_other_hosps.mean()
+            deaths_scale = np.max(np.abs(R_deaths))
+            all_hosps_scale = np.max(np.abs(R_all_hosps))
+            other_hosps_scale = np.max(np.abs(R_other_hosps))
+            ## Return:
+            output = dict(
+                S = S, A = A, R = R, S_1 = S_1, 
+                ep_end = ep_end, over = over, # near_zero = near_zero, ID = ID,
+                Budget = Budget, n_seq_s = n_seq_s,
+                s_means = s_means, s_stds = s_stds,
+                R_deaths = R_deaths, R_all_hosps = R_all_hosps, R_other_hosps = R_other_hosps,
+                deaths_shift = deaths_shift, deaths_scale = deaths_scale, 
+                all_hosps_shift = all_hosps_shift, all_hosps_scale = all_hosps_scale,
+                other_hosps_shift = other_hosps_shift, other_hosps_scale = other_hosps_scale
+                )
 
+    else:
+        elig = pd.read_csv("data/Pct_90_eligible.csv") # could include other options too
+        Elig = elig.index[elig["Pct_90_eligible"]]
+        if data_only == True:
+            output = dict(
+                S = S.iloc[Elig], A = A[Elig], R = R[Elig], S_1 = S_1.iloc[Elig], 
+                ep_end = ep_end[Elig], over = over[Elig] #, near_zero = near_zero, ID = ID
+                )
+        else:
+            ## Get summary stats of all outcomes:
+            R_deaths = -1*(Train["N"]/Train["Pop.65"]).drop(n_seq_s)
+            R_all_hosps = -1*(Train["all_hosps"]/Train["total_count"]).drop(n_seq_s)
+            R_other_hosps = -1*(Train["other_hosps"]/Train["total_count"]).drop(n_seq_s)
+            deaths_shift = R_deaths.mean()
+            all_hosps_shift = R_all_hosps.mean()
+            other_hosps_shift = R_other_hosps.mean()
+            deaths_scale = np.max(np.abs(R_deaths))
+            all_hosps_scale = np.max(np.abs(R_all_hosps))
+            other_hosps_scale = np.max(np.abs(R_other_hosps))
+            ## Return:
+            output = dict(
+                S = S.iloc[Elig], A = A[Elig], R = R[Elig], S_1 = S_1.iloc[Elig],  
+                ep_end = ep_end[Elig], over = over[Elig], # near_zero = near_zero, ID = ID,
+                Budget = Budget, n_seq_s = n_seq_s[Elig],
+                s_means = s_means, s_stds = s_stds,
+                R_deaths = R_deaths[Elig], R_all_hosps = R_all_hosps[Elig], R_other_hosps = R_other_hosps[Elig],
+                deaths_shift = deaths_shift, deaths_scale = deaths_scale, 
+                all_hosps_shift = all_hosps_shift, all_hosps_scale = all_hosps_scale,
+                other_hosps_shift = other_hosps_shift, other_hosps_scale = other_hosps_scale
+                )
     return output
 
 if __name__ == "__main__":
