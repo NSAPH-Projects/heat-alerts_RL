@@ -69,7 +69,7 @@ class Rewards_Lightning(pl.LightningModule):
     def make_pred_and_targets(self, batch):
         s, a, r = batch
         preds = self.net(s)
-        Preds = torch.where(a == 0, preds[:,0], preds[:,0] + preds[:,1])
+        Preds = torch.where(a == 0, preds[:,0], preds[:,0] + F.softplus(preds[:,1]))
         Preds = -torch.exp(Preds)
         return Preds, r
     def configure_optimizers(self):
