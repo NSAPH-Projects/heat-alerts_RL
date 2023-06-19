@@ -210,15 +210,26 @@ def main(params):
         logger = logger,
         accelerator="auto",
         # devices=params["n_gpus"],
-        enable_progress_bar=(not params['silent']),
+        enable_progress_bar=(not params['silent']) #,
         # auto_lr_find = True
         # precision=16, amp_backend="native"
-        callbacks=[FineTuneLearningRateFinder(milestones=(5, 10))]
+        # callbacks=[FineTuneLearningRateFinder(milestones=(5, 10))]
     )
     # trainer.tune(model, train_DL, val_DL)
     trainer.fit(model, train_DL, val_DL)
     
     torch.save(model, "Summer_results/" + params['model_name'] + ".pt")
+
+    ## Save modeled rewards:
+    s = torch.FloatTensor(S.to_numpy())
+    model.eval() # turns off dropout for the predictions
+    r_hat = model.net(s)
+    R_hat = r_hat
+    R_hat[:,1] = R_hat[:,0] + R_hat[:,1]
+    R_hat = -torch.exp(R_hat)
+    n = R_hat.detach().numpy()
+    df = pd.DataFrame(n)
+    df.to_csv("Summer_results/" + params['model_name'] + "_" + params["eligible"] + ".csv")
 
 
 if __name__ == "__main__":

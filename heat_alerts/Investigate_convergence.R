@@ -302,11 +302,11 @@ ggplot(DQN, aes(x=epoch, y=n_alerts)) + geom_line() +
 ggplot(DQN, aes(x=epoch, y=log(n_alerts/Q1.Q0))) + geom_line() + 
   xlab("Epochs") + ylab("Log of {Number of Alerts Issued / Number of Days Q1 > Q0}") + ggtitle("DQN Model")
 
-### Validation vs Training, Rewards and Alerts Models
+####### Validation vs Training, Rewards and Alerts Models
 
-# DF<- read.csv("lightning_logs/R_no-past_deaths_adam_mse/version_0/metrics.csv")
-DF<- read.csv("lightning_logs/feb_R_hosps_adam_mse/version_5/metrics.csv")
-DF<- read.csv("lightning_logs/feb_R_other-hosps_adam_mse/version_5/metrics.csv")
+DF<- read.csv("lightning_logs/R_no-REs_lr-00063/version_1/metrics.csv")
+DF<- read.csv("lightning_logs/R_no-REs_lr-001/version_1/metrics.csv")
+DF<- read.csv("lightning_logs/R_no-REs_lr-003/version_1/metrics.csv")
 
 Val_Loss<- DF[seq(1,nrow(DF),2),1]
 Train_Loss<- DF[seq(2,nrow(DF),2),5]
@@ -318,10 +318,9 @@ Epoch<- 1:length(Val_Loss)
 # Train_Loss<- DF[seq(2,nrow(DF),2),4]
 # Epoch<- 1:length(Val_Loss)
 
-
 Plot_df<- data.frame(Epoch, Train_Loss, Val_Loss)[-1,]
 
-ggplot(Plot_df[1:nrow(Plot_df),], aes(x=Epoch)) + geom_line(aes(y=Train_Loss)) + 
+ggplot(Plot_df[10:nrow(Plot_df),], aes(x=Epoch)) + geom_line(aes(y=Train_Loss)) + 
   geom_line(aes(y=Val_Loss), col = "blue") +
   ylab("Loss") + ggtitle("Model Convergence")
 

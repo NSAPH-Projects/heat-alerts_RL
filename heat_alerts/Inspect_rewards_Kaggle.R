@@ -7,8 +7,9 @@ library(cowplot, lib.loc = "~/apps/R_4.2.2")
 # Read in data:
 load("data/Small_S-A-R_prepped.RData")
 DF$weekend<- DF$dowSaturday | DF$dowSunday
+DF$alert<- A
 
-Large_S<- DF[,c("HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
+Large_S<- DF[,c("alert","HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
                 "quant_HI_3d_county", "HI_mean",
                 "l.Pop_density", "l.Med.HH.Income",
                 "year", "dos", "holiday", "weekend",
@@ -19,6 +20,31 @@ Large_S<- DF[,c("HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
                 "broadband.usage", "Democrat", "Republican", "pm25",
                 "ZoneCold", "ZoneHot.Dry", "ZoneHot.Humid", "ZoneMarine",
                 "ZoneMixed.Dry", "ZoneMixed.Humid", "ZoneVery.Cold")]
+
+Medium_S<- DF[,c("alert", "quant_HI_county", "quant_HI_yest_county", "quant_HI_3d_county", "HI_mean",
+                 "l.Pop_density", "l.Med.HH.Income",
+                 "year", "dos", "weekend",
+                 "T_since_alert", "alert_sum",
+                 "all_hosp_mean_rate", "all_hosp_2wkMA_rate", "all_hosp_3dMA_rate",
+                 "Republican", "pm25", "age_65_74_rate", "age_75_84_rate", "dual_rate",
+                 "ZoneCold", "ZoneHot.Dry", "ZoneHot.Humid", "ZoneMarine",
+                 "ZoneMixed.Dry", "ZoneMixed.Humid", "ZoneVery.Cold")]
+
+## Model NN:
+Train.nn<- data.frame(Medium_S)
+Train.nn$Y<- R_other_hosps[,1]
+Train.nn<- Train.nn[which((Train.nn$quant_HI_county*qhic_sd + qhic_mean) >= 0.9),]
+
+preds.nn<- read.csv("Summer_results/R_6-19_lr-00063_90pct.csv")
+
+DF.nn<- Train.nn
+DF.nn$pred_R0<- preds.nn[,"X0"]
+DF.nn$pred_R1<- preds.nn[,"X1"]
+DF.nn$pred_Y<- sapply(1:nrow(DF.nn), function(i){preds.nn[i,DF.nn[i,"alert"] + 2]})  
+
+summary(DF.nn$pred_R1 - DF.nn$pred_R0)
+
+#############
 
 ## Model a:
 
@@ -47,7 +73,7 @@ DF.b<- DF.b[which((DF.b$quant_HI_county*qhic_sd + qhic_mean) >= 0.9),]
 
 #### Summarize accuracy and Make plots:
 
-Data<- DF.b
+Data<- DF.nn
 N<- nrow(Data)
 
 cor(Data$Y, Data$pred_Y)^2
