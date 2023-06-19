@@ -35,7 +35,8 @@ Train.nn<- data.frame(Medium_S)
 Train.nn$Y<- R_other_hosps[,1]
 Train.nn<- Train.nn[which((Train.nn$quant_HI_county*qhic_sd + qhic_mean) >= 0.9),]
 
-preds.nn<- read.csv("Summer_results/R_6-19_lr-00063_90pct.csv")
+# preds.nn<- read.csv("Summer_results/R_6-19_lr-00063_90pct.csv")
+preds.nn<- read.csv("Summer_results/R_6-19_forced_lr-00063_90pct.csv")
 
 DF.nn<- Train.nn
 DF.nn$pred_R0<- preds.nn[,"X0"]

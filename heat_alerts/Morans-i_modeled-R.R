@@ -66,6 +66,12 @@ fips<- fips[preds.a$rowIndex]
 dos<- dos[preds.a$rowIndex]
 year<- year[preds.a$rowIndex]
 
+# Get DF.nn from Inspect_rewards_Kaggle.R
+
+R<- DF.nn$Y
+preds<- DF.nn$pred_Y
+resids<- R - preds
+
 ## Calculate for each day, then average across days:
 
 MI<- c()
