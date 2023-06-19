@@ -225,7 +225,7 @@ def main(params):
     model.eval() # turns off dropout for the predictions
     r_hat = model.net(s)
     R_hat = r_hat
-    R_hat[:,1] = R_hat[:,0] + R_hat[:,1]
+    R_hat[:,1] = R_hat[:,0] + F.softplus(R_hat[:,1])
     R_hat = -torch.exp(R_hat)
     n = R_hat.detach().numpy()
     df = pd.DataFrame(n)
