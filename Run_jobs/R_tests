@@ -1,3 +1,7 @@
 # python heat_alerts/Deep_rewards.py --loss mse --optimizer adam --xpt_name R_no-past_deaths_adam_mse --silent --n_workers 4 --n_epochs 500 --model_name R_2-1_deaths
-python heat_alerts/Deep_rewards.py --loss mse --optimizer adam --xpt_name feb_R_other-hosps_adam_mse --silent --n_workers 4 --outcome other_hosps --n_epochs 500 --model_name R_3-3_other-hosps
-python heat_alerts/Deep_rewards.py --loss mse --optimizer adam --xpt_name feb_R_hosps_adam_mse --silent --n_workers 4 --outcome all_hosps --n_epochs 500 --model_name R_3-3_all-hosps
+# python heat_alerts/Deep_rewards.py --loss mse --optimizer adam --xpt_name feb_R_other-hosps_adam_mse --silent --n_workers 4 --outcome other_hosps --n_epochs 500 --model_name R_3-3_other-hosps
+# python heat_alerts/Deep_rewards.py --loss mse --optimizer adam --xpt_name feb_R_hosps_adam_mse --silent --n_workers 4 --outcome all_hosps --n_epochs 500 --model_name R_3-3_all-hosps
+# 
+python heat_alerts/Deep_rewards_no-RE.py --loss mse --optimizer adam --lr 0.001 --xpt_name R_no-REs_lr-001 --silent --n_workers 10 --outcome other_hosps --n_epochs 500 --model_name R_6-19_lr-001
+python heat_alerts/Deep_rewards_no-RE.py --loss mse --optimizer adam --lr 0.00063 --xpt_name R_no-REs_lr-00063 --silent --n_workers 10 --outcome other_hosps --n_epochs 500 --model_name R_6-19_other-hosps_lr-00063
+python heat_alerts/Deep_rewards_no-RE.py --loss mse --optimizer adam --lr 0.003 --xpt_name R_no-REs_lr-003 --silent --n_workers 10 --outcome other_hosps --n_epochs 500 --model_name R_6-19_lr-003
