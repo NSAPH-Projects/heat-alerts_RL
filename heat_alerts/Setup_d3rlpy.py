@@ -48,11 +48,10 @@ def make_data(
             rewards = -1*(Train["N"]/Train["Pop.65"])
     else:
         if outcome == "all_hosps":
-            # rewards = pd.read_csv("Fall_results/R_2-28_all-hosps_all.csv") # don't use this one
-            rewards = pd.read_csv("Fall_results/R_3-2_all-hosps_all.csv")
+            rewards = pd.read_csv("Fall_results/R_3-2_all-hosps_all.csv") # outdated
         elif outcome == "other_hosps":
-            # rewards = pd.read_csv("Fall_results/R_2-28_other-hosps_all.csv")
-            rewards = pd.read_csv("Fall_results/R_3-2_other-hosps_all.csv")
+            # rewards = pd.read_csv("Fall_results/R_3-2_other-hosps_all.csv") # outdated
+            rewards = pd.read_csv("Summer_results/R_6-19_forced_lr-00063.csv")
         else:
             rewards = pd.read_csv("Fall_results/R_1-23_deaths.csv") # would need to get deaths for d=153
         rewards = torch.gather(torch.FloatTensor(rewards.to_numpy()), 1, torch.LongTensor(actions).view(-1, 1) +1).view(-1).detach().numpy()
@@ -83,6 +82,8 @@ def make_data(
                         "alert_lag1", "alert_lag2", "alerts_2wks", "T_since_alert",
                         "alert_sum", "More_alerts",
                         "death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate",
+                        "all_hosp_2wkMA_rate", "heat_hosp_2wkMA_rate", "all_hosp_3dMA_rate",     
+                        "heat_hosp_3dMA_rate", "age_65_74_rate", "age_75_84_rate", "dual_rate",
                         "broadband.usage", "Democrat", "Republican", "pm25"]] #, "STNAME"
 
     ## One-hot encode non-numeric variables
@@ -99,6 +100,8 @@ def make_data(
                         "year", "dos", "alerts_2wks", "T_since_alert",
                          "alert_sum", "More_alerts",
                          "death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate",
+                         "all_hosp_2wkMA_rate", "heat_hosp_2wkMA_rate", "all_hosp_3dMA_rate",     
+                        "heat_hosp_3dMA_rate", "age_65_74_rate", "age_75_84_rate", "dual_rate",
                          "broadband.usage", "Democrat", "Republican", "pm25"]
 
     s_means = States[num_vars].mean(0)
@@ -130,6 +133,8 @@ def make_data(
         observations = observations[[
             "quant_HI_county", "HI_mean", "l.Pop_density", "l.Med.HH.Income",
             "year", "dos", "T_since_alert", "alert_sum", "More_alerts", "all_hosp_mean_rate", 
+            "all_hosp_2wkMA_rate", "all_hosp_3dMA_rate", 
+             "age_65_74_rate", "age_75_84_rate", "dual_rate",
             "Republican", "pm25", "weekend", 'BA_zone_Hot-Dry',
             'BA_zone_Hot-Humid', 'BA_zone_Marine', 'BA_zone_Mixed-Dry',
             'BA_zone_Mixed-Humid', 'BA_zone_Very Cold'
@@ -163,15 +168,15 @@ def make_data(
             observations.to_numpy(), actions.to_numpy(), 
             rewards, terminals.to_numpy()
         )
-        ## Calculate constants (+-) for alerts and budget violations:
-        for f in fips:
-            pos = np.where(Train["fips"] == f)
-            n = len(pos[0])
-            inds = np.nonzero(actions.to_numpy()[pos])
-            a.extend([np.min(rewards[pos][inds])]*n)
-            b.extend([np.max(np.delete(rewards[pos], inds))]*n)
-            c.extend([np.max(rewards[pos][inds])]*n)
-            d.extend([np.min(np.delete(rewards[pos], inds))]*n)
+        # ## Calculate constants (+-) for alerts and budget violations:
+        # for f in fips:
+        #     pos = np.where(Train["fips"] == f)
+        #     n = len(pos[0])
+        #     inds = np.nonzero(actions.to_numpy()[pos])
+        #     a.extend([np.min(rewards[pos][inds])]*n)
+        #     b.extend([np.max(np.delete(rewards[pos], inds))]*n)
+        #     c.extend([np.max(rewards[pos][inds])]*n)
+        #     d.extend([np.min(np.delete(rewards[pos], inds))]*n)
         # inds = np.nonzero(actions.to_numpy())
         # a = np.min(rewards[inds])
         # b = np.max(np.delete(rewards, inds))
@@ -186,26 +191,28 @@ def make_data(
             rewards[Elig], terminals.to_numpy()
         )
         # summer = summer[Elig]
-        ## Calculate constants (+-) for alerts and budget violations:
-        for f in fips:
-            pos = np.where(Train.iloc[Elig]["fips"] == f)
-            n = len(pos[0])
-            try:
-                inds = np.nonzero(actions.to_numpy()[Elig][pos])
-                a.extend([np.min(rewards[Elig][pos][inds])]*n)
-                b.extend([np.max(np.delete(rewards[Elig][pos], inds))]*n)
-                c.extend([np.max(rewards[Elig][pos][inds])]*n)
-                d.extend([np.min(np.delete(rewards[Elig][pos], inds))]*n)
-            except:
-                a.extend([0]*n)
-                b.extend([0]*n)
-                c.extend([0]*n)
-                d.extend([0]*n)
-                # print(f)
+        # ## Calculate constants (+-) for alerts and budget violations:
+        # for f in fips:
+        #     pos = np.where(Train.iloc[Elig]["fips"] == f)
+        #     n = len(pos[0])
+        #     try:
+        #         inds = np.nonzero(actions.to_numpy()[Elig][pos])
+        #         a.extend([np.min(rewards[Elig][pos][inds])]*n)
+        #         b.extend([np.max(np.delete(rewards[Elig][pos], inds))]*n)
+        #         c.extend([np.max(rewards[Elig][pos][inds])]*n)
+        #         d.extend([np.min(np.delete(rewards[Elig][pos], inds))]*n)
+        #     except:
+        #         a.extend([0]*n)
+        #         b.extend([0]*n)
+        #         c.extend([0]*n)
+        #         d.extend([0]*n)
+        #         # print(f)
 
-    boost = np.array(b) - np.array(a) + 1e-10 # to be added when alert is issued (not in violation of budget)  
-    penalty = np.array(c) - np.array(d) + 1e-10 # to be subtracted when budget is violated (in CPQ)
-    return [dataset, boost, penalty, s_means, s_stds] # , summer
+    # boost = np.array(b) - np.array(a) + 1e-10 # to be added when alert is issued (not in violation of budget)  
+    # penalty = np.array(c) - np.array(d) + 1e-10 # to be subtracted when budget is violated (in CPQ)
+    return [dataset, 
+            #boost, penalty, 
+            s_means, s_stds] # , summer
 
 
     

@@ -64,8 +64,8 @@ def main(params):
     dataset = data[0]
     # dataset.episodes[0][0].observation
     # dataset.episodes[0][0].next_observation
-    boost = data[1]
-    penalty = data[2]
+    # boost = data[1]
+    # penalty = data[2]
     s_means = data[3]
     s_stds = data[4]
 
@@ -86,8 +86,8 @@ def main(params):
                 f.write('her = True \n')
             else: 
                 f.write('her = False \n')
-            # f.write('boost = ' + str(boost) + ' \n')
-            # f.write('penalty = ' + str(penalty) + ' \n')
+    #         # f.write('boost = ' + str(boost) + ' \n')
+    #         # f.write('penalty = ' + str(penalty) + ' \n')
             MA_mean = s_means["More_alerts"]
             f.write('MA_mean = ' + str(MA_mean) + ' \n')
             MA_sd = s_stds["More_alerts"]
@@ -96,8 +96,8 @@ def main(params):
             f.write('SA_mean = ' + str(SA_mean) + ' \n')
             SA_sd = s_stds["alert_sum"]
             f.write('SA_sd = ' + str(SA_sd) + ' \n')
-        np.savetxt('/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/heat_alerts/cpq_boost.py', boost)
-        np.savetxt('/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/heat_alerts/cpq_penalty.py', penalty)
+    #     np.savetxt('/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/heat_alerts/cpq_boost.py', boost)
+    #     np.savetxt('/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/heat_alerts/cpq_penalty.py', penalty)
 
     from cpq import CPQ # putting this here so it includes the correct global variables
 
@@ -153,7 +153,7 @@ def main(params):
         print(i)
     
     # pd.DataFrame(Total_Alerts).to_csv("Fall_results/Total_alerts_" + params['model_name'] + ".csv")
-    np.savetxt("Fall_results/Total_alerts_" + params['model_name'] + ".csv", Total_Alerts)
+    np.savetxt("Summer_results/Total_alerts_" + params['model_name'] + ".csv", Total_Alerts)
     
     # ## Save final results for easy access:
     # Action = dqn.predict(dataset.observations) # return actions based on the greedy-policy

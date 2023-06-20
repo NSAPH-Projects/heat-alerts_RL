@@ -36,16 +36,16 @@ Train.nn$Y<- R_other_hosps[,1]
 Train.nn<- Train.nn[which((Train.nn$quant_HI_county*qhic_sd + qhic_mean) >= 0.9),]
 
 # preds.nn<- read.csv("Summer_results/R_6-19_lr-00063_90pct.csv")
-preds_ZI<- read.csv("Summer_results/ZIP-0_6-20_lr-000759_90pct.csv")[,"X0"]
+# preds_ZI<- read.csv("Summer_results/ZIP-0_6-20_lr-000759_90pct.csv")[,"X0"]
 preds.nn<- read.csv("Summer_results/R_6-19_forced_lr-00063_90pct.csv")
 
-thresh<- 0.5
+# thresh<- 0.5
 
 DF.nn<- Train.nn
 DF.nn$pred_R0<- preds.nn[,"X0"]
 DF.nn$pred_R1<- preds.nn[,"X1"]
 DF.nn$pred_Y<- sapply(1:nrow(DF.nn), function(i){preds.nn[i,DF.nn[i,"alert"] + 2]})
-DF.nn$pred_Y[which(preds_ZI > thresh)]<- 0
+# DF.nn$pred_Y[which(preds_ZI > thresh)]<- 0
 
 Data<- DF.nn
 N<- nrow(Data)

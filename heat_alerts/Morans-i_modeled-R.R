@@ -81,7 +81,7 @@ MI<- c()
 # s4<- c()
 # s5<- c()
 # w<- c()
-# n<- c()
+n<- c()
 
 for(d in sort(unique(dos))){
   day_pos<- which(dos == d)
@@ -99,11 +99,11 @@ for(d in sort(unique(dos))){
     # s1<- append(s1, 0.5*sum((2*D)^2))
     # s2<- append(s2, sum((rowSums(D) + colSums(D))^2))
     # z<- x - mean(x)
-    # q<- length(x)
+    q<- length(x)
     # s3<- append(s3, (1/q)*sum(z^4)/((1/q)*sum(z^2))^2)
     # s4<- append(s4, (q^2 - 3*q + 3)*s1[length(s1)] - q*s2[length(s2)] + 3*sum(D)^2)
     # s5<- append(s5, (q^2 - q)*s1[length(s1)] - 2*q*s2[length(s2)] + 6*sum(D)^2)
-    # n<- append(n, q)
+    n<- append(n, q)
     # w<- append(w, sum(D))
   }
 }
