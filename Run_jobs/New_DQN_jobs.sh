@@ -5,7 +5,6 @@
 #SBATCH -p fasse # fasse_gpu
 #SBATCH -t 0-30:00
 #SBATCH --mem 100G
-#SBATCH --gres gpu:0 # gpu:1
 #SBATCH --array 0-1 # 0-17 # 0-2
 #SBATCH -o ./Run_jobs/slurm/new_dqn.%a.out
 #SBATCH --mail-user=ellen_considine@g.harvard.edu
