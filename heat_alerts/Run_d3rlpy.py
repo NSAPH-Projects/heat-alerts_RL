@@ -39,16 +39,16 @@ def main(params):
     set_seed(seed)
     d3rlpy.seed(seed)
     
-
     ## For now:
     # params = dict(
     #     outcome = "other_hosps", n_hidden = 256,
     #     n_gpus=1, b_size=2048, n_epochs=2,
-    #     lr=0.0001, gamma=1.0, sync_rate = 3,
-    #     modeled_r = False, random_effects = False,
+    #     lr=0.005, gamma=0.999, sync_rate = 3,
+    #     modeled_r = True, random_effects = False,
     #     model_name = "test_cpq",
-    #     eligible = "90pct",
-    #     algo = "CPQ", std_budget = 0, pca = False, pca_var_thresh = 0, S_size = "small"
+    #     eligible = "90pct", S_size = "medium",
+    #     algo = "CPQ", std_budget = 0, HER = "False",
+    #     pca = False, pca_var_thresh = 0
     #     )
 
     ## Prepare data:
@@ -66,8 +66,8 @@ def main(params):
     # dataset.episodes[0][0].next_observation
     # boost = data[1]
     # penalty = data[2]
-    s_means = data[3]
-    s_stds = data[4]
+    s_means = data[1]
+    s_stds = data[2]
 
     train_episodes, test_episodes = train_test_split(dataset, test_size=0.2) # uses np.random.seed
     iters_per_epoch = round(len(dataset.observations)*0.8/params["b_size"])

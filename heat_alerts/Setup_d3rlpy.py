@@ -46,26 +46,22 @@ def make_data(
             rewards = -1*(Train["other_hosps"]/Train["total_count"])
         else:
             rewards = -1*(Train["N"]/Train["Pop.65"])
+        rewards = (rewards - rewards.mean())/rewards.std()
+        rewards = rewards.apply(symlog,shift=1)
+        rewards = rewards.to_numpy()
     else:
         if outcome == "all_hosps":
             rewards = pd.read_csv("Fall_results/R_3-2_all-hosps_all.csv") # outdated
         elif outcome == "other_hosps":
             # rewards = pd.read_csv("Fall_results/R_3-2_other-hosps_all.csv") # outdated
-            rewards = pd.read_csv("Summer_results/R_6-19_forced_lr-00063.csv")
+            rewards = pd.read_csv("Summer_results/R_6-19_forced_lr-00063_90pct.csv")
         else:
             rewards = pd.read_csv("Fall_results/R_1-23_deaths.csv") # would need to get deaths for d=153
-        rewards = torch.gather(torch.FloatTensor(rewards.to_numpy()), 1, torch.LongTensor(actions).view(-1, 1) +1).view(-1).detach().numpy()
-
-     # if log_r == True:
-    #     rewards = -np.log(-rewards + 0.0000000001)
-
-    rewards = (rewards - rewards.mean())/rewards.std()
-    # rewards = (rewards - rewards.mean()) / np.max(np.abs(rewards))
-    # rewards = rewards / np.max(np.abs(rewards)) # include scaling by 0.5?
+        ## Since most recent round of modeling just focused on top 90th pct of heat index:
+        elig = pd.read_csv("data/Pct_90_eligible.csv") # could include other options too
+        Elig = elig.index[elig["Pct_90_eligible"]]
+        rewards = torch.gather(torch.FloatTensor(rewards.to_numpy()), 1, torch.LongTensor(actions[Elig].to_numpy()).view(-1, 1) +1).view(-1).detach().numpy()
     
-    rewards = rewards.apply(symlog,shift=1)
-    # rewards = rewards.apply(symlog, shift=0.01)
-    rewards = rewards.to_numpy()
 
     ## Prepare observations (S):
     if std_budget == 0:
@@ -188,7 +184,8 @@ def make_data(
         terminals = pd.read_csv("data/Pct_90_eligible_terminals.csv")
         dataset = MDPDataset(
             observations.iloc[Elig].to_numpy(), actions[Elig].to_numpy(), 
-            rewards[Elig], terminals.to_numpy()
+            rewards, # since most recent round of modeling just focused on top 90th pct of heat index
+            terminals.to_numpy()
         )
         # summer = summer[Elig]
         # ## Calculate constants (+-) for alerts and budget violations:
@@ -210,10 +207,8 @@ def make_data(
 
     # boost = np.array(b) - np.array(a) + 1e-10 # to be added when alert is issued (not in violation of budget)  
     # penalty = np.array(c) - np.array(d) + 1e-10 # to be subtracted when budget is violated (in CPQ)
-    return [dataset, 
-            #boost, penalty, 
-            s_means, s_stds] # , summer
-
+    #return [dataset, boost, penalty, s_means, s_stds] # , summer
+    return [dataset, s_means, s_stds]
 
     
 
