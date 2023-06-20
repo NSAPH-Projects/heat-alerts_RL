@@ -36,12 +36,22 @@ Train.nn$Y<- R_other_hosps[,1]
 Train.nn<- Train.nn[which((Train.nn$quant_HI_county*qhic_sd + qhic_mean) >= 0.9),]
 
 # preds.nn<- read.csv("Summer_results/R_6-19_lr-00063_90pct.csv")
+preds_ZI<- read.csv("Summer_results/ZIP-0_6-20_lr-000759_90pct.csv")[,"X0"]
 preds.nn<- read.csv("Summer_results/R_6-19_forced_lr-00063_90pct.csv")
+
+thresh<- 0.5
 
 DF.nn<- Train.nn
 DF.nn$pred_R0<- preds.nn[,"X0"]
 DF.nn$pred_R1<- preds.nn[,"X1"]
-DF.nn$pred_Y<- sapply(1:nrow(DF.nn), function(i){preds.nn[i,DF.nn[i,"alert"] + 2]})  
+DF.nn$pred_Y<- sapply(1:nrow(DF.nn), function(i){preds.nn[i,DF.nn[i,"alert"] + 2]})
+DF.nn$pred_Y[which(preds_ZI > thresh)]<- 0
+
+Data<- DF.nn
+N<- nrow(Data)
+
+cor(Data$Y, Data$pred_Y)^2
+1 - (sum((Data$Y-Data$pred_Y)^2)/(((N-1)*var(Data$Y))))
 
 summary(DF.nn$pred_R1 - DF.nn$pred_R0)
 
@@ -92,7 +102,7 @@ plot_DF<- Data[samp,]
 
 ggplot(plot_DF, 
        aes(x=quant_HI_county, y=pred_Y, col = as.factor(alert), alpha=0.5)) +
-  geom_point() + geom_smooth(data=subset(plot_DF, alert == 0), col = "purple")
+  geom_point() # + geom_smooth(data=subset(plot_DF, alert == 0), col = "purple")
 
 ggplot(plot_DF, 
        aes(x=quant_HI_county, y=pred_Y, col = all_hosp_mean_rate, alpha=0.5)) +
