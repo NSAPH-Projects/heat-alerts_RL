@@ -96,6 +96,10 @@ def main(params):
             f.write('SA_mean = ' + str(SA_mean) + ' \n')
             SA_sd = s_stds["alert_sum"]
             f.write('SA_sd = ' + str(SA_sd) + ' \n')
+            if gpu:
+                f.write('device = ' + "cuda" + ' \n')
+            else: 
+                f.write('device = ' + "cpu" + ' \n')
     #     np.savetxt('/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/heat_alerts/cpq_boost.py', boost)
     #     np.savetxt('/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/heat_alerts/cpq_penalty.py', penalty)
 
