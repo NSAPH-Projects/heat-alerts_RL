@@ -16,7 +16,7 @@ This is code for investigating applicability of RL to environmental health, spec
 ```bash
 conda install scikit-learn pytorch-lightning
 conda install -c conda-forge tqdm ray-tune
-conda install -c conda-forge d3rlpy 
+pip install d3rlpy # conda can't find it
 ```
 3. Might need to manually install pandas as well depending on the conda environment version...
 
