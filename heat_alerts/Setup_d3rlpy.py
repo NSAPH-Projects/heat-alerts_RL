@@ -54,7 +54,7 @@ def make_data(
             rewards = pd.read_csv("Fall_results/R_3-2_all-hosps_all.csv") # outdated
         elif outcome == "other_hosps":
             # rewards = pd.read_csv("Fall_results/R_3-2_other-hosps_all.csv") # outdated
-            rewards = pd.read_csv("Summer_results/R_6-19_forced_lr-00063_90pct.csv")
+            rewards = pd.read_csv("Summer_results/R_6-21_forced_small-S_90pct.csv")
         else:
             rewards = pd.read_csv("Fall_results/R_1-23_deaths.csv") # would need to get deaths for d=153
         ## Since most recent round of modeling just focused on top 90th pct of heat index:
