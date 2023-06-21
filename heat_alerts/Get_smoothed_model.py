@@ -102,7 +102,7 @@ def main(params):
         Total_Alerts.append(a)
         print(i)
 
-    np.savetxt("Fall_results/MA_" + str(params["ma"]) + "_total_alerts_" + params['model_name'] + ".csv", Total_Alerts)
+    np.savetxt("Summer_results/MA_" + str(params["ma"]) + "_total_alerts_" + params['model_name'] + ".csv", Total_Alerts)
 
 if __name__ == "__main__":
     parser = ArgumentParser()
