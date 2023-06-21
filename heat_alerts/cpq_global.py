@@ -1,6 +1,6 @@
-her = True 
+her = False 
 MA_mean = 2.6362001379766875 
 MA_sd = 5.077835642213096 
 SA_mean = 2.1841171286493037 
 SA_sd = 4.593323785938828 
-device = 'cuda' 
+device = 'cpu' 
