@@ -191,6 +191,7 @@ if __name__ == "__main__":
     parser.add_argument("--HER", type=bool, default=False, help="Use hindsight experience replay for CPQ?")
     parser.add_argument("--continue", type=str, default="false", help="continue fitting an existing model")
     parser.add_argument("--seed", type=int, default=321, help="set seed")
+    parser.add_argument("--ma", type=int, default=200, help="number of epochs in moving average")
 
     args = parser.parse_args()
     main(args)
