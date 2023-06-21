@@ -134,6 +134,7 @@ if __name__ == "__main__":
     parser.add_argument("--algo", type=str, default="DQN", help="RL algorithm")
     parser.add_argument("--policy_type", type=str, default="DQN", help="DQN, NWS, or random")
     parser.add_argument("--n_epochs", type=int, default=5000, help="number of epochs to run")
+    parser.add_argument("--ma", type=int, default=200, help="number of epochs in moving average")
     # parser.add_argument("--final_model", type=str, default="CPQ_observed-alerts_small-S_lr5e-3_20230426131737/model_390000.pt", help="file path of model to get policy from")
 
     args = parser.parse_args()
