@@ -60,8 +60,10 @@
 #### Using new modeled rewards below this point...
 # python heat_alerts/Run_d3rlpy.py --n_gpus 0 --lr 0.005 --gamma 0.999 --modeled_r True --eligible "90pct" --algo CPQ --n_epochs 10000 --S_size "small" --seed 321 --model_name CPQ_observed-alerts_MR_small-S_lr5e-3_seed-3
 # python heat_alerts/Run_d3rlpy.py --n_gpus 0 --lr 0.005 --gamma 0.999 --modeled_r True --eligible "90pct" --algo DoubleDQN --n_epochs 10000 --S_size "small" --seed 321 --model_name Double_DQN_MR_small-S_lr5e-3_seed-3 # MR = modeled R
-python heat_alerts/Run_d3rlpy.py --n_gpus 0 --lr 0.01 --gamma 0.999 --modeled_r True --eligible "90pct" --algo CPQ --n_epochs 10000 --S_size "small" --seed 321 --model_name CPQ_observed-alerts_MR_small-S_lr01_seed-3
-python heat_alerts/Run_d3rlpy.py --n_gpus 0 --lr 0.01 --gamma 0.999 --modeled_r True --eligible "90pct" --algo DoubleDQN --n_epochs 10000 --S_size "small" --seed 321 --model_name Double_DQN_MR_small-S_lr01_seed-3
+# python heat_alerts/Run_d3rlpy.py --n_gpus 0 --lr 0.01 --gamma 0.999 --modeled_r True --eligible "90pct" --algo CPQ --n_epochs 10000 --S_size "small" --seed 321 --model_name CPQ_observed-alerts_MR_small-S_lr01_seed-3
+# python heat_alerts/Run_d3rlpy.py --n_gpus 0 --lr 0.01 --gamma 0.999 --modeled_r True --eligible "90pct" --algo DoubleDQN --n_epochs 10000 --S_size "small" --seed 321 --model_name Double_DQN_MR_small-S_lr01_seed-3
+python heat_alerts/Run_d3rlpy.py --n_gpus 0 --lr 0.03 --gamma 0.999 --modeled_r True --eligible "90pct" --algo CPQ --n_epochs 10000 --S_size "small" --seed 321 --model_name CPQ_observed-alerts_MR_small-S_lr03_seed-3
+python heat_alerts/Run_d3rlpy.py --n_gpus 0 --lr 0.03 --gamma 0.999 --modeled_r True --eligible "90pct" --algo DoubleDQN --n_epochs 10000 --S_size "small" --seed 321 --model_name Double_DQN_MR_small-S_lr03_seed-3
 # python heat_alerts/Run_d3rlpy.py --lr 0.005 --gamma 0.999 --modeled_r True --eligible "90pct" --algo DoubleDQN --n_epochs 10000 --S_size "medium" --seed 121 --model_name Double_DQN_MR_medium-S_lr5e-3_seed-1
 # python heat_alerts/Run_d3rlpy.py --lr 0.005 --gamma 0.999 --modeled_r True --eligible "90pct" --algo CPQ --n_epochs 10000 --S_size "medium" --seed 121 --model_name CPQ_observed-alerts_MR_medium-S_lr5e-3_seed-1
 # python heat_alerts/Run_d3rlpy.py --lr 0.005 --gamma 0.999 --modeled_r True --eligible "90pct" --algo DoubleDQN --n_epochs 10000 --S_size "medium" --seed 221 --model_name Double_DQN_MR_medium-S_lr5e-3_seed-2
