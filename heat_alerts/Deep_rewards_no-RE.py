@@ -215,7 +215,7 @@ def main(params):
         # precision=16, amp_backend="native"
         callbacks=[FineTuneLearningRateFinder(milestones=(5, 10))]
     )
-    trainer.tune(model, train_DL, val_DL)
+    # trainer.tune(model, train_DL, val_DL)
     trainer.fit(model, train_DL, val_DL)
     
     torch.save(model, "Summer_results/" + params['model_name'] + ".pt")
