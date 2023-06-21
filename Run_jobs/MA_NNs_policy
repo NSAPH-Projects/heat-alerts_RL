@@ -44,8 +44,8 @@
 # python heat_alerts/Get_policy_d3rlpy.py --lr 0.005 --gamma 0.999 --eligible "90pct" --algo CPQ --policy_type "DQN" --n_gpus 0 --S_size "small" --model_name CPQ_observed-alerts_small-S_lr5e-3_seed-10 --final_model CPQ_observed-alerts_small-S_lr5e-3_seed-10_20230528060053/MA_9999.pt
 #
 # python heat_alerts/Get_smoothed_model.py --lr 0.03 --gamma 0.999 --eligible "90pct" --algo DoubleDQN --n_epochs 500 --n_gpus 0 --S_size "small" --model_name Double_DQN_MR_small-S_lr03_seed-3
-python heat_alerts/Get_smoothed_model.py --lr 0.03 --gamma 0.999 --eligible "90pct" --algo CPQ --n_epochs 500 --n_gpus 0 --S_size "small" --model_name CPQ_observed-alerts_MR_small-S_lr03_seed-3
+# python heat_alerts/Get_smoothed_model.py --lr 0.03 --gamma 0.999 --eligible "90pct" --algo CPQ --n_epochs 500 --n_gpus 0 --S_size "small" --model_name CPQ_observed-alerts_MR_small-S_lr03_seed-3
 # python heat_alerts/Get_policy_d3rlpy.py --lr 0.03 --gamma 0.999 --eligible "90pct" --algo DoubleDQN --policy_type "DQN" --n_gpus 0 --S_size "small" --model_name Double_DQN_MR_small-S_lr03_seed-3 --final_model Double_DQN_MR_small-S_lr03_seed-3_20230621112214/MA_499.pt
-# python heat_alerts/Get_policy_d3rlpy.py --lr 0.03 --gamma 0.999 --eligible "90pct" --algo CPQ --policy_type "DQN" --n_gpus 0 --S_size "small" --model_name CPQ_observed-alerts_MR_small-S_lr03_seed-3 --final_model CPQ_observed-alerts_MR_small-S_lr03_seed-3_20230621112213/MA_299.pt
+python heat_alerts/Get_policy_d3rlpy.py --lr 0.03 --gamma 0.999 --eligible "90pct" --algo CPQ --policy_type "DQN" --n_gpus 0 --S_size "small" --model_name CPQ_observed-alerts_MR_small-S_lr03_seed-3 --final_model CPQ_observed-alerts_MR_small-S_lr03_seed-3_20230621112213/MA_499.pt
 
 
