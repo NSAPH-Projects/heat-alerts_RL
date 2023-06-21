@@ -9,6 +9,7 @@ This is code for investigating applicability of RL to environmental health, spec
 4. Include hospitalizations: Get_hosp_data.R
 5. Add more covariates to address confounding: More_confounders.R
 6. Separate and finish cleaning the train and test sets: Make_train_test_sets.R
+7. Export to csv (for Python) and create standardized dataset for further analyses in R: Data_for_Python.R
 
 ### Installing Pytorch on FASRC/FASSE:
 1. Follow [these instructions](https://github.com/fasrc/User_Codes/tree/master/AI/PyTorch)
