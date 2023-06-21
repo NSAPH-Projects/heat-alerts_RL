@@ -37,8 +37,8 @@ def main(params):
     #     pca = params["pca"], pca_var_thresh = params["pca_var_thresh"], manual_S_size = params["S_size"]
     # )
     dataset = data[0]
-    s_means = data[3]
-    s_stds = data[4]
+    s_means = data[1]
+    s_stds = data[2]
     # summer = data[3] # index of episode (county-summer)
 
     if params["policy_type"] == "DQN":
