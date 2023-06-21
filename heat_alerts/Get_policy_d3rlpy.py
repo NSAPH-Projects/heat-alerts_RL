@@ -1,4 +1,5 @@
 
+import glob
 from argparse import ArgumentParser
 import numpy as np
 import random
@@ -66,7 +67,8 @@ def main(params):
             ) 
         
         dqn.build_with_dataset(dataset) 
-        dqn.load_model("d3rlpy_logs/" + params["final_model"])
+        final_model = glob.glob("d3rlpy_logs/" + params["model_name"] + "_2*")[0] + "/MA_" + str(params["n_epochs"]-1) + ".pt"
+        dqn.load_model(final_model)
     # elif params["policy_type"] == "random":
     #     name = params["model_name"] 
     elif params["policy_type"] == "NWS":
@@ -127,7 +129,8 @@ if __name__ == "__main__":
     parser.add_argument("--S_size", type=str, default="medium", help="Manual size of state matrix")
     parser.add_argument("--algo", type=str, default="DQN", help="RL algorithm")
     parser.add_argument("--policy_type", type=str, default="DQN", help="DQN, NWS, or random")
-    parser.add_argument("--final_model", type=str, default="CPQ_observed-alerts_small-S_lr5e-3_20230426131737/model_390000.pt", help="file path of model to get policy from")
+    parser.add_argument("--n_epochs", type=int, default=5000, help="number of epochs to run")
+    # parser.add_argument("--final_model", type=str, default="CPQ_observed-alerts_small-S_lr5e-3_20230426131737/model_390000.pt", help="file path of model to get policy from")
 
     args = parser.parse_args()
     main(args)

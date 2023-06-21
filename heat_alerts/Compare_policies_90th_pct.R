@@ -11,9 +11,9 @@ terminals_90pct<- read.csv("data/Pct_90_eligible_terminals.csv")
 behavior<- pct_90$alert # sum = 26,317
 
 # new_pol<- read.csv("Policies/Policy_vanilla_DQN_small-S_lr1e-2_B.csv")[,2] # sum = 0
-new_pol<- read.csv("Policies/Policy_Double_DQN_small-S_lr5e-3.csv")[,2] # sum = 7,251
+new_pol<- read.csv("Policies/Policy_Double_DQN_MR_small-S_lr03_seed-3.csv")[,2] # sum = 100,451
 sum_alerts_DD<- sum(new_pol)
-new_pol<- read.csv("Policies/Policy_CPQ_observed-alerts_small-S_lr5e-3.csv")[,2] # sum = 15,401
+new_pol<- read.csv("Policies/Policy_CPQ_observed-alerts_MR_small-S_lr03_seed-3.csv")[,2] # sum = 7,055
 sum_alerts_CPQ<- sum(new_pol)
 
 models<- c("Double_DQN", "CPQ_observed-alerts")

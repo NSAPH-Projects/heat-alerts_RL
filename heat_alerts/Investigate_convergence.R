@@ -132,6 +132,15 @@ folder<- "d3rlpy_logs/CPQ_SB-5_small-S_lr5e-3_BP_seed-1_20230531145252/"
 folder<- "d3rlpy_logs/CPQ_observed-alerts_MR_medium-S_lr5e-3_seed-3_20230620180800/"
 folder<- "d3rlpy_logs/Double_DQN_MR_medium-S_lr5e-3_seed-3_20230620180802/"
 
+folder<- "d3rlpy_logs/CPQ_observed-alerts_MR_small-S_lr5e-3_seed-3_20230621110552/"
+folder<- "d3rlpy_logs/Double_DQN_MR_small-S_lr5e-3_seed-3_20230621110443/"
+
+folder<- "d3rlpy_logs/CPQ_observed-alerts_MR_small-S_lr01_seed-3_20230621111458/"
+folder<- "d3rlpy_logs/Double_DQN_MR_small-S_lr01_seed-3_20230621111500/"
+
+folder<- "d3rlpy_logs/CPQ_observed-alerts_MR_small-S_lr03_seed-3_20230621112213/"
+folder<- "d3rlpy_logs/Double_DQN_MR_small-S_lr03_seed-3_20230621112214/"
+
 Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
 DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
 ggplot(DF, aes(x=Epoch, y=log(Loss))) + geom_line() + 
@@ -233,6 +242,9 @@ Alerts<- read.csv("Fall_results/Total_alerts_CPQ_observed-alerts_small-S_lr1e-3.
 
 Alerts<- read.csv("Summer_results/Total_alerts_Double_DQN_MR_medium-S_lr5e-3_seed-3.csv")[,1]
 Alerts<- read.csv("Summer_results/Total_alerts_CPQ_observed-alerts_MR_medium-S_lr5e-3_seed-3.csv")[,1]
+
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_Double_DQN_MR_small-S_lr03_seed-3.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_CPQ_observed-alerts_MR_small-S_lr03_seed-3.csv")[,1]
 
 a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
 ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 
