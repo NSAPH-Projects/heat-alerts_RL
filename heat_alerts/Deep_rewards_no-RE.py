@@ -210,12 +210,12 @@ def main(params):
         logger = logger,
         accelerator="auto",
         # devices=params["n_gpus"],
-        enable_progress_bar=(not params['silent']) #,
+        enable_progress_bar=(not params['silent']),
         # auto_lr_find = True
         # precision=16, amp_backend="native"
-        # callbacks=[FineTuneLearningRateFinder(milestones=(5, 10))]
+        callbacks=[FineTuneLearningRateFinder(milestones=(5, 10))]
     )
-    # trainer.tune(model, train_DL, val_DL)
+    trainer.tune(model, train_DL, val_DL)
     trainer.fit(model, train_DL, val_DL)
     
     torch.save(model, "Summer_results/" + params['model_name'] + ".pt")
