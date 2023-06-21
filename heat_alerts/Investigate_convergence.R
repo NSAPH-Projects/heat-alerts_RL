@@ -143,7 +143,7 @@ folder<- "d3rlpy_logs/Double_DQN_MR_small-S_lr03_seed-3_20230621112214/"
 
 Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
 DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
-ggplot(DF, aes(x=Epoch, y=log(Loss))) + geom_line() + 
+ggplot(DF[1:nrow(DF),], aes(x=Epoch, y=log(Loss))) + geom_line() + 
   xlab("Epochs") + ylab("Log of Loss") # + ggtitle("DQN Model")
 
 TDE<- read.csv(paste0(folder,"/td_error.csv"), header = FALSE)

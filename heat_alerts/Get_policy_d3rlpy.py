@@ -15,6 +15,7 @@ from d3rlpy.algos import DQN, DoubleDQN
 from Setup_d3rlpy import make_data
 # from heat_alerts.cpq import CPQ
 from cpq import CPQ
+from Get_smoothed_model import MA_models, get_steps_per_epoch
 
 def set_seed(seed):
     np.random.seed(seed) 
@@ -27,6 +28,9 @@ def main(params):
 
     d3rlpy.seed(321)
     params = vars(params)
+
+    MA_models(params)
+    print("Finished smoothing models")
 
     data = make_data(
         eligible = "90pct", manual_S_size = "small"

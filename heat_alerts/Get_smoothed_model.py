@@ -30,7 +30,7 @@ def get_steps_per_epoch(folder):
     m2 = int(models[1].split("model_")[1].split(".pt")[0])
     return(m2 - m1)
 
-def main(params):
+def MA_models(params):
 
     d3rlpy.seed(321)
     params = vars(params)
@@ -104,21 +104,21 @@ def main(params):
 
     np.savetxt("Summer_results/MA_" + str(params["ma"]) + "_total_alerts_" + params['model_name'] + ".csv", Total_Alerts)
 
-if __name__ == "__main__":
-    parser = ArgumentParser()
-    parser.add_argument("--outcome", type=str, default="other_hosps", help = "deaths or hosps")
-    parser.add_argument("--b_size", type=int, default=2048, help="size of the batches")
-    parser.add_argument("--n_hidden", type=int, default=256, help="number of params in DQN hidden layers")
-    parser.add_argument("--lr", type=float, default=0.003, help="learning rate")
-    parser.add_argument("--gamma", type=float, default=1.0, help="discount factor")
-    parser.add_argument("--n_epochs", type=int, default=5000, help="number of epochs to run")
-    parser.add_argument("--sync_rate", type=int, default=3, help="how often (in epochs) to sync the target model")
-    parser.add_argument("--n_gpus", type=int, default=1, help="number of gpus")
-    parser.add_argument("--model_name", type=str, default="test", help="name to save model under")
-    parser.add_argument("--eligible", type=str, default="all", help="days to include in RL")
-    parser.add_argument("--S_size", type=str, default="medium", help="Manual size of state matrix")
-    parser.add_argument("--algo", type=str, default="DQN", help="RL algorithm")
-    parser.add_argument("--ma", type=int, default=200, help="number of epochs in moving average")
+# if __name__ == "__main__":
+#     parser = ArgumentParser()
+#     parser.add_argument("--outcome", type=str, default="other_hosps", help = "deaths or hosps")
+#     parser.add_argument("--b_size", type=int, default=2048, help="size of the batches")
+#     parser.add_argument("--n_hidden", type=int, default=256, help="number of params in DQN hidden layers")
+#     parser.add_argument("--lr", type=float, default=0.003, help="learning rate")
+#     parser.add_argument("--gamma", type=float, default=1.0, help="discount factor")
+#     parser.add_argument("--n_epochs", type=int, default=5000, help="number of epochs to run")
+#     parser.add_argument("--sync_rate", type=int, default=3, help="how often (in epochs) to sync the target model")
+#     parser.add_argument("--n_gpus", type=int, default=1, help="number of gpus")
+#     parser.add_argument("--model_name", type=str, default="test", help="name to save model under")
+#     parser.add_argument("--eligible", type=str, default="all", help="days to include in RL")
+#     parser.add_argument("--S_size", type=str, default="medium", help="Manual size of state matrix")
+#     parser.add_argument("--algo", type=str, default="DQN", help="RL algorithm")
+#     parser.add_argument("--ma", type=int, default=200, help="number of epochs in moving average")
 
-    args = parser.parse_args()
-    main(args)
+#     args = parser.parse_args()
+#     main(args)
