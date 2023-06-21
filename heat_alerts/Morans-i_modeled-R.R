@@ -123,6 +123,9 @@ for(d in sort(unique(dos))){
 summary(MI)
 hist(MI)
 
+pos<- which(MI > 3)
+n[pos]
+(1:152)[pos]
 
 ## Calculate autocorrelation across days for each location, then average across locations:
 

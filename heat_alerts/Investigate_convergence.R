@@ -314,22 +314,24 @@ DF<- read.csv("lightning_logs/R_no-REs_lr-00063/version_3/metrics.csv")
 DF<- read.csv("lightning_logs/R_no-REs_lr-001/version_3/metrics.csv")
 DF<- read.csv("lightning_logs/R_no-REs_lr-003/version_3/metrics.csv")
 
+DF<- read.csv("lightning_logs/R_no-REs_lr-tuned/version_0/metrics.csv")
+
 Val_Loss<- DF[seq(1,nrow(DF),2),1]
 Train_Loss<- DF[seq(2,nrow(DF),2),5]
 Epoch<- 1:length(Val_Loss)
 
-DF<- read.csv("lightning_logs/ZIP-0_lr-000759/version_4/metrics.csv") 
-# version 1 reduced NH, version 2 increased DP, version 3 increased WD
-# version 4 reduced NH again (but reduced WD back to original)
+# DF<- read.csv("lightning_logs/ZIP-0_lr-000759/version_4/metrics.csv") 
+# # version 1 reduced NH, version 2 increased DP, version 3 increased WD
+# # version 4 reduced NH again (but reduced WD back to original)
+# # 
 # 
-
-Val_Loss<- DF[seq(1,nrow(DF),2),1]
-Train_Loss<- DF[seq(2,nrow(DF),2),4]
-Epoch<- 1:length(Val_Loss)
+# Val_Loss<- DF[seq(1,nrow(DF),2),1]
+# Train_Loss<- DF[seq(2,nrow(DF),2),4]
+# Epoch<- 1:length(Val_Loss)
 
 Plot_df<- data.frame(Epoch, Train_Loss, Val_Loss)[-1,]
 
-ggplot(Plot_df[1:nrow(Plot_df),], aes(x=Epoch)) + geom_line(aes(y=Train_Loss)) + 
+ggplot(Plot_df[10:nrow(Plot_df),], aes(x=Epoch)) + geom_line(aes(y=Train_Loss)) + 
   geom_line(aes(y=Val_Loss), col = "blue") +
   ylab("Loss") + ggtitle("Model Convergence")
 

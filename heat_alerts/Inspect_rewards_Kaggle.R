@@ -30,14 +30,20 @@ Medium_S<- DF[,c("alert", "quant_HI_county", "quant_HI_yest_county", "quant_HI_3
                  "ZoneCold", "ZoneHot.Dry", "ZoneHot.Humid", "ZoneMarine",
                  "ZoneMixed.Dry", "ZoneMixed.Humid", "ZoneVery.Cold")]
 
+Small_S<- DF[,c("alert", "quant_HI_county", "HI_mean", "l.Pop_density", "l.Med.HH.Income",
+                "year", "dos", "weekend", "More_alerts",
+                "T_since_alert", "alert_sum", "all_hosp_mean_rate")]
+
 ## Model NN:
-Train.nn<- data.frame(Medium_S)
+# Train.nn<- data.frame(Medium_S)
+Train.nn<- data.frame(Small_S)
 Train.nn$Y<- R_other_hosps[,1]
 Train.nn<- Train.nn[which((Train.nn$quant_HI_county*qhic_sd + qhic_mean) >= 0.9),]
 
 # preds.nn<- read.csv("Summer_results/R_6-19_lr-00063_90pct.csv")
 # preds_ZI<- read.csv("Summer_results/ZIP-0_6-20_lr-000759_90pct.csv")[,"X0"]
-preds.nn<- read.csv("Summer_results/R_6-19_forced_lr-00063_90pct.csv")
+# preds.nn<- read.csv("Summer_results/R_6-19_forced_lr-00063_90pct.csv")
+preds.nn<- read.csv("Summer_results/R_6-21_forced_small-S_90pct.csv")
 
 # thresh<- 0.5
 
