@@ -38,8 +38,11 @@ def MA_models(params):
     d3rlpy.seed(seed)
 
     data = make_data(
-        eligible = "90pct", manual_S_size = "small"
-        )
+        outcome = params["outcome"], std_budget = params["std_budget"], 
+        eligible = params["eligible"],
+        manual_S_size = params["S_size"],
+        fips = [6085]
+    )
     dataset = data[0]
     # dataset.next_observations = np.expand_dims(dataset.episodes[0][0].next_observation, axis=0)
     # for e in dataset.episodes[1:]:

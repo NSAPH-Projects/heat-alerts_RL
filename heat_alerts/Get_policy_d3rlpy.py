@@ -35,7 +35,10 @@ def main(params):
     print("Finished smoothing models")
 
     data = make_data(
-        eligible = "90pct", manual_S_size = "small"
+        outcome = params["outcome"], std_budget = params["std_budget"], 
+        eligible = params["eligible"],
+        manual_S_size = params["S_size"],
+        fips = [6085]
     )
 
     # data = make_data(

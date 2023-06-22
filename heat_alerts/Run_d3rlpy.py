@@ -46,7 +46,7 @@ def main(params):
     #     lr=0.03, gamma=0.999, sync_rate = 3,
     #     modeled_r = False, random_effects = False,
     #     model_name = "test_1-fips",
-    #     eligible = "all", S_size = "small",
+    #     eligible = "90pct", S_size = "small",
     #     algo = "DoubleDQN", std_budget = 0, HER = "False",
     #     pca = False, pca_var_thresh = 0, 
     #     )
