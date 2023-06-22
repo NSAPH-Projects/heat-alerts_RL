@@ -38,7 +38,7 @@ def make_data(
         # for f in fips:
         #     county_pos.append(Train.index[Fips == f].tolist())
         # county_pos = [item for sublist in county_pos for item in sublist]
-        county_pos = Train.index[Fips == fips].tolist()
+        county_pos = Train.index[Fips == fips[0]].tolist()
         Train = Train.loc[county_pos]
 
     # n_counties = Train["fips"].nunique()
@@ -78,7 +78,7 @@ def make_data(
         Elig = elig.index[elig["Pct_90_eligible"]]
         if len(fips) > 0:
             Fips_elig = Fips.loc[Elig].reset_index()
-            fips_elig = Fips_elig.index[Fips_elig["fips"] == fips].tolist()
+            fips_elig = Fips_elig.index[Fips_elig["fips"] == fips[0]].tolist()
             rewards = rewards.loc[fips_elig]
             elig = elig.loc[county_pos]
             Elig = elig.index[elig["Pct_90_eligible"]]
