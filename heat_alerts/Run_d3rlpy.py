@@ -59,7 +59,8 @@ def main(params):
         outcome = params["outcome"], modeled_r = params["modeled_r"], std_budget = params["std_budget"],
         # log_r = True, 
         random_effects = params["random_effects"], eligible = params["eligible"],
-        pca = params["pca"], pca_var_thresh = params["pca_var_thresh"], manual_S_size = params["S_size"]
+        pca = params["pca"], pca_var_thresh = params["pca_var_thresh"], manual_S_size = params["S_size"],
+        fips = [6085]
     )
     dataset = data[0]
     # dataset.episodes[0][0].observation

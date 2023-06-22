@@ -11,20 +11,21 @@ terminals_90pct<- read.csv("data/Pct_90_eligible_terminals.csv")
 behavior<- pct_90$alert # sum = 26,317
 
 # new_pol<- read.csv("Policies/Policy_vanilla_DQN_small-S_lr1e-2_B.csv")[,2] # sum = 0
-new_pol<- read.csv("Policies/Policy_Double_DQN_MR_small-S_lr03_seed-3.csv")[,2] # sum = 77,906
+new_pol<- read.csv("Policies/Policy_Double_DQN_logMR_small-S_lr03_seed-3.csv")[,2] 
 sum_alerts_DD<- sum(new_pol)
 sum(new_pol)
-new_pol<- read.csv("Policies/Policy_CPQ_observed-alerts_MR_small-S_lr03_seed-3.csv")[,2] # sum = 22,025
+new_pol<- read.csv("Policies/Policy_CPQ_observed-alerts_logMR_small-S_lr03_seed-3.csv")[,2] 
 sum_alerts_CPQ<- sum(new_pol)
 sum(new_pol)
 
 models<- c("Double_DQN", "CPQ_observed-alerts")
 # seeds<- c(1,2,4:10)
-seeds<- (1:5)[-3]
+# seeds<- (1:5)[-3]
+seeds<- c(1,2)
 
 for(m in models){
   for(s in seeds){
-    new_pol<- read.csv(paste0("Policies/Policy_", m, "_MR_small-S_lr03_seed-", s, ".csv"))[,2]
+    new_pol<- read.csv(paste0("Policies/Policy_", m, "_logMR_small-S_lr03_seed-", s, ".csv"))[,2]
     # print(paste(m,s,sum(new_pol)))
     if(m == "Double_DQN"){
       sum_alerts_DD<- append(sum_alerts_DD, sum(new_pol))
