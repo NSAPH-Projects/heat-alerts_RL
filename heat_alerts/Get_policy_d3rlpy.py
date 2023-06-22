@@ -26,8 +26,10 @@ def set_seed(seed):
 
 def main(params):
 
-    d3rlpy.seed(321)
     params = vars(params)
+    seed = params["seed"]
+    set_seed(seed)
+    d3rlpy.seed(seed)
 
     MA_models(params)
     print("Finished smoothing models")
@@ -135,6 +137,7 @@ if __name__ == "__main__":
     parser.add_argument("--policy_type", type=str, default="DQN", help="DQN, NWS, or random")
     parser.add_argument("--n_epochs", type=int, default=5000, help="number of epochs to run")
     parser.add_argument("--ma", type=int, default=200, help="number of epochs in moving average")
+    parser.add_argument("--seed", type=int, default=321, help="set seed")
     # parser.add_argument("--final_model", type=str, default="CPQ_observed-alerts_small-S_lr5e-3_20230426131737/model_390000.pt", help="file path of model to get policy from")
 
     args = parser.parse_args()
