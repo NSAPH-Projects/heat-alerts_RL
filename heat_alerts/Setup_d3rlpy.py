@@ -221,7 +221,7 @@ def make_data(
     else: 
         elig = pd.read_csv("data/Pct_90_eligible.csv") # could include other options too
         if len(fips) > 0:
-            elig = elig.loc[county_pos]#.reset_index()
+            elig = elig.loc[county_pos].reset_index()
         Elig = elig.index[elig["Pct_90_eligible"]]
         terminals = pd.read_csv("data/Pct_90_eligible_terminals.csv")
         dataset = MDPDataset(
