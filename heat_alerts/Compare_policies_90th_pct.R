@@ -19,11 +19,12 @@ sum_alerts_CPQ<- sum(new_pol)
 sum(new_pol)
 
 models<- c("Double_DQN", "CPQ_observed-alerts")
-seeds<- c(1,2,4:10)
+# seeds<- c(1,2,4:10)
+seeds<- (1:5)[-3]
 
 for(m in models){
   for(s in seeds){
-    new_pol<- read.csv(paste0("Policies/Policy_", m, "_small-S_lr5e-3_seed-", s, ".csv"))[,2]
+    new_pol<- read.csv(paste0("Policies/Policy_", m, "_MR_small-S_lr03_seed-", s, ".csv"))[,2]
     # print(paste(m,s,sum(new_pol)))
     if(m == "Double_DQN"){
       sum_alerts_DD<- append(sum_alerts_DD, sum(new_pol))

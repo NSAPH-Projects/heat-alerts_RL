@@ -1,6 +1,6 @@
 library(dplyr)
 library(ggplot2)
-library(cowplot)
+library(cowplot, lib.loc = "~/apps/R_4.2.2")
 
 setwd("/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL")
 
@@ -141,6 +141,15 @@ folder<- "d3rlpy_logs/Double_DQN_MR_small-S_lr01_seed-3_20230621111500/"
 folder<- "d3rlpy_logs/CPQ_observed-alerts_MR_small-S_lr03_seed-3_20230621112213/"
 folder<- "d3rlpy_logs/Double_DQN_MR_small-S_lr03_seed-3_20230621112214/"
 
+folder<- "d3rlpy_logs/CPQ_observed-alerts_MR_small-S_lr03_seed-1_20230621135159/"
+folder<- "d3rlpy_logs/Double_DQN_MR_small-S_lr03_seed-1_20230621135200/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_MR_small-S_lr03_seed-2_20230621135207/"
+folder<- "d3rlpy_logs/Double_DQN_MR_small-S_lr03_seed-2_20230621135201/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_MR_small-S_lr03_seed-4_20230621135208/"
+folder<- "d3rlpy_logs/Double_DQN_MR_small-S_lr03_seed-4_20230621135206/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_MR_small-S_lr03_seed-5_20230621135206/"
+folder<- "d3rlpy_logs/Double_DQN_MR_small-S_lr03_seed-5_20230621135207/"
+
 Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
 DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
 ggplot(DF[1:nrow(DF),], aes(x=Epoch, y=log(Loss))) + geom_line() + 
@@ -245,6 +254,14 @@ Alerts<- read.csv("Summer_results/Total_alerts_CPQ_observed-alerts_MR_medium-S_l
 
 Alerts<- read.csv("Summer_results/MA_200_total_alerts_Double_DQN_MR_small-S_lr03_seed-3.csv")[,1]
 Alerts<- read.csv("Summer_results/MA_200_total_alerts_CPQ_observed-alerts_MR_small-S_lr03_seed-3.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_Double_DQN_MR_small-S_lr03_seed-1.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_CPQ_observed-alerts_MR_small-S_lr03_seed-1.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_Double_DQN_MR_small-S_lr03_seed-2.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_CPQ_observed-alerts_MR_small-S_lr03_seed-2.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_Double_DQN_MR_small-S_lr03_seed-4.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_CPQ_observed-alerts_MR_small-S_lr03_seed-4.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_Double_DQN_MR_small-S_lr03_seed-5.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_CPQ_observed-alerts_MR_small-S_lr03_seed-5.csv")[,1]
 
 a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
 ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 

@@ -60,9 +60,10 @@ def make_data(
         ## Since most recent round of modeling just focused on top 90th pct of heat index:
         elig = pd.read_csv("data/Pct_90_eligible.csv") # could include other options too
         Elig = elig.index[elig["Pct_90_eligible"]]
-        rewards = torch.gather(torch.FloatTensor(rewards.to_numpy()), 1, torch.LongTensor(actions[Elig].to_numpy()).view(-1, 1) +1).view(-1).detach().numpy()
-    
-
+        rewards = torch.gather(torch.FloatTensor(rewards.to_numpy()), 1, torch.LongTensor(actions[Elig].to_numpy()).view(-1, 1) +1).view(-1)
+        rewards = -torch.log(-rewards).detach().numpy()
+        rewards = 0.5 * (rewards - rewards.mean()) / np.max(np.abs(rewards))
+        
     ## Prepare observations (S):
     if std_budget == 0:
         budget = Train[Train["dos"] == n_days]["alert_sum"]
