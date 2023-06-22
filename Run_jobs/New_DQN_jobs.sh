@@ -5,7 +5,7 @@
 #SBATCH -p fasse # fasse_gpu
 #SBATCH -t 0-10:00
 #SBATCH --mem 184G
-#SBATCH --array 0-23
+#SBATCH --array 0-17
 #SBATCH -o ./Run_jobs/slurm/new_dqn.%a.out
 #SBATCH --mail-user=ellen_considine@g.harvard.edu
 #SBATCH --mail-type=BEGIN
