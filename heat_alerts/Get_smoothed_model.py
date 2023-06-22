@@ -38,7 +38,7 @@ def MA_models(params):
     d3rlpy.seed(seed)
 
     data = make_data(
-        outcome = params["outcome"], std_budget = params["std_budget"], 
+        outcome = params["outcome"], 
         eligible = params["eligible"],
         manual_S_size = params["S_size"],
         fips = [6085]
