@@ -42,13 +42,13 @@ def main(params):
     ## For now:
     # params = dict(
     #     outcome = "other_hosps", n_hidden = 256,
-    #     n_gpus=1, b_size=2048, n_epochs=2,
-    #     lr=0.005, gamma=0.999, sync_rate = 3,
-    #     modeled_r = True, random_effects = False,
-    #     model_name = "test_cpq",
-    #     eligible = "90pct", S_size = "medium",
-    #     algo = "CPQ", std_budget = 0, HER = "False",
-    #     pca = False, pca_var_thresh = 0
+    #     n_gpus=0, b_size=256, n_epochs=2,
+    #     lr=0.03, gamma=0.999, sync_rate = 3,
+    #     modeled_r = False, random_effects = False,
+    #     model_name = "test_1-fips",
+    #     eligible = "all", S_size = "small",
+    #     algo = "DoubleDQN", std_budget = 0, HER = "False",
+    #     pca = False, pca_var_thresh = 0, 
     #     )
 
     ## Prepare data:

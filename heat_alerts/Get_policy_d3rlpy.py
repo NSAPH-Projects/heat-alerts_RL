@@ -86,16 +86,16 @@ def main(params):
     p = 0
     for i in range(0, len(dataset)): # test with i=1 for nonzero constraint
         alert_sum = 0
-        t_since_alert = dataset.episodes[i].observations[0][6]*s_stds["T_since_alert"] + s_means["T_since_alert"] - (dataset.episodes[i].observations[0][5]*s_stds["dos"] + s_means["dos"])
-        budget = dataset.episodes[i].observations[0][8]*s_stds["More_alerts"] + s_means["More_alerts"]
+        t_since_alert = dataset.episodes[i].observations[0][4]*s_stds["T_since_alert"] + s_means["T_since_alert"] - (dataset.episodes[i].observations[0][5]*s_stds["dos"] + s_means["dos"])
+        budget = dataset.episodes[i].observations[0][6]*s_stds["More_alerts"] + s_means["More_alerts"]
         d = 0
         dos_alert = -t_since_alert
         while d < len(dataset.episodes[i].observations):
             new_s = dataset.observations[p]
-            new_s[7] = (alert_sum - s_means["alert_sum"])/s_stds["alert_sum"]
-            new_s[8] = (budget - alert_sum - s_means["More_alerts"])/s_stds["More_alerts"]
-            dos = new_s[5]*s_stds["dos"] + s_means["dos"]
-            new_s[6] = (dos - dos_alert - s_means["T_since_alert"])/s_stds["T_since_alert"]
+            new_s[5] = (alert_sum - s_means["alert_sum"])/s_stds["alert_sum"]
+            new_s[6] = (budget - alert_sum - s_means["More_alerts"])/s_stds["More_alerts"]
+            dos = new_s[3]*s_stds["dos"] + s_means["dos"]
+            new_s[4] = (dos - dos_alert - s_means["T_since_alert"])/s_stds["T_since_alert"]
             dataset.observations[p] = new_s
             ## Get new policy:
             if params["policy_type"] == "DQN":

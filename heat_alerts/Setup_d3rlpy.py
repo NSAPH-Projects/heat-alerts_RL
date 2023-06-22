@@ -159,8 +159,9 @@ def make_data(
             ]
         else:
             observations = observations[[
-                "quant_HI_county", "HI_mean", "l.Pop_density", "l.Med.HH.Income",
-                "year", "dos", "T_since_alert", "alert_sum", "More_alerts", "all_hosp_mean_rate", 
+                "quant_HI_county", "HI_mean", 
+                "year", "dos", "T_since_alert", "alert_sum", "More_alerts", 
+                "l.Pop_density", "l.Med.HH.Income", "all_hosp_mean_rate", 
                 "all_hosp_2wkMA_rate", "all_hosp_3dMA_rate", 
                 "age_65_74_rate", "age_75_84_rate", "dual_rate",
                 "Republican", "pm25", "weekend", 'BA_zone_Hot-Dry',
@@ -179,8 +180,9 @@ def make_data(
             ]
         else: 
             observations = observations[[
-                "quant_HI_county", "HI_mean", "l.Pop_density", "l.Med.HH.Income",
-                "year", "dos", "T_since_alert", "alert_sum", "More_alerts", "all_hosp_mean_rate", 
+                "quant_HI_county", "HI_mean", 
+                "year", "dos", "T_since_alert", "alert_sum", "More_alerts", 
+                "l.Pop_density", "l.Med.HH.Income", "all_hosp_mean_rate", 
                 "weekend"
             ]
             ]
@@ -220,12 +222,16 @@ def make_data(
         # d = np.min(np.delete(rewards, inds))
     else: 
         elig = pd.read_csv("data/Pct_90_eligible.csv") # could include other options too
-        if len(fips) > 0:
-            elig = elig.loc[county_pos].reset_index()
         Elig = elig.index[elig["Pct_90_eligible"]]
         terminals = pd.read_csv("data/Pct_90_eligible_terminals.csv")
+        if len(fips) > 0:
+            elig = elig.loc[county_pos].reset_index()
+            Fips_elig = Fips.loc[Elig].reset_index()
+            fips_elig = Fips_elig.index[Fips_elig["fips"] == fips[0]].tolist()
+            terminals = terminals.iloc[fips_elig]
+            Elig = elig.index[elig["Pct_90_eligible"]]
         dataset = MDPDataset(
-            observations.iloc[Elig].to_numpy(), actions[Elig].to_numpy(), 
+            observations.iloc[Elig].to_numpy(), actions.iloc[Elig].to_numpy(), 
             rewards, # since most recent round of modeling just focused on top 90th pct of heat index
             terminals.to_numpy()
         )

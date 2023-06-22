@@ -20,8 +20,8 @@ sum(new_pol)
 
 models<- c("Double_DQN", "CPQ_observed-alerts")
 # seeds<- c(1,2,4:10)
-# seeds<- (1:5)[-3]
-seeds<- c(1,2)
+seeds<- (1:5)[-3]
+# seeds<- c(1,2)
 
 for(m in models){
   for(s in seeds){
