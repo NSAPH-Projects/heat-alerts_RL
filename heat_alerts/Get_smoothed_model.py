@@ -32,8 +32,10 @@ def get_steps_per_epoch(folder):
 
 def MA_models(params):
 
-    d3rlpy.seed(321)
     # params = vars(params)
+    seed = params["seed"]
+    set_seed(seed)
+    d3rlpy.seed(seed)
 
     data = make_data(
         eligible = "90pct", manual_S_size = "small"
