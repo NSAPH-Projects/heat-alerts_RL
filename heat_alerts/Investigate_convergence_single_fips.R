@@ -2,8 +2,8 @@ library(dplyr)
 library(ggplot2)
 library(cowplot, lib.loc = "~/apps/R_4.2.2")
 
-CPQ_folders<- list.files("d3rlpy_logs", pattern = "CPQ_observed-alerts_fips-6085_lr05")
-DD_folders<- list.files("d3rlpy_logs", pattern = "Double_DQN_fips-6085_lr05")
+CPQ_folders<- list.files("d3rlpy_logs", pattern = "CPQ_observed-alerts_fips-6085")
+DD_folders<- list.files("d3rlpy_logs", pattern = "Double_DQN_fips-6085")
 
 for(f in c(CPQ_folders, DD_folders)){
   Loss<- read.csv(paste0("d3rlpy_logs/",f,"/loss.csv"), header = FALSE)
@@ -13,8 +13,8 @@ for(f in c(CPQ_folders, DD_folders)){
   print(p)
 }
 
-alerts_CPQ_folders<- list.files("Summer_results", pattern = "total_alerts_CPQ_observed-alerts_fips-6085_lr03")
-alerts_DD_folders<- list.files("Summer_results", pattern = "total_alerts_Double_DQN_fips-6085_lr03")
+alerts_CPQ_folders<- list.files("Summer_results", pattern = "total_alerts_CPQ_observed-alerts_fips-6085")
+alerts_DD_folders<- list.files("Summer_results", pattern = "total_alerts_Double_DQN_fips-6085")
 
 for(f in c(alerts_CPQ_folders, alerts_DD_folders)){
   Alerts<- read.csv(paste0("Summer_results/",f))[,1]
