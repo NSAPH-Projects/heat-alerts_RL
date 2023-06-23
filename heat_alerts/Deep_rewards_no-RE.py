@@ -221,7 +221,9 @@ def main(params):
     torch.save(model, "Summer_results/" + params['model_name'] + ".pt")
 
     ## Save modeled rewards:
-    s = torch.FloatTensor(S.to_numpy())
+    d = make_data(filename="data/Summer23_Train_smaller-for-Python.csv", 
+                  manual_S_size = params["S_size"], all_data = True)
+    s = torch.FloatTensor(d["S"].to_numpy())
     model.eval() # turns off dropout for the predictions
     r_hat = model.net(s)
     R_hat = r_hat
