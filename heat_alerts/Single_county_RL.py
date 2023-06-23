@@ -53,8 +53,7 @@ def main(params):
     ## Prepare data:
     data = make_data(
         params["fips"], modeled_r = params["modeled_r"], 
-        eligible = params["eligible"], manual_S_size = params["S_size"],
-        std_budget = params["std_budget"]
+        eligible = params["eligible"], std_budget = params["std_budget"]
     )
     dataset = data[0]
     s_means = data[1]
@@ -204,13 +203,13 @@ def main(params):
 
     pd.DataFrame(Policy).to_csv("Policies/Policy_" + name + ".csv")
 
-    
+
 
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--fips", type=int, default=4013, help="fips code of the county")
     parser.add_argument("--eligible", type=str, default="all", help="days to include in RL")
-    parser.add_argument("--S_size", type=str, default="medium", help="Manual size of state matrix")
+    # parser.add_argument("--S_size", type=str, default="medium", help="Manual size of state matrix")
     parser.add_argument("--modeled_r", type=bool, default=False, help="use modeled rewards?")
     parser.add_argument("--algo", type=str, default="DQN", help="RL algorithm")
     parser.add_argument("--seed", type=int, default=321, help="set seed")
