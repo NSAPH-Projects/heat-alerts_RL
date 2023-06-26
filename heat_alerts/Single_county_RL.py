@@ -34,15 +34,15 @@ def main(params):
     d3rlpy.seed(seed)
     
     ## For now:
-    params = dict(
-        fips = 4013, n_hidden = 256, n_layers = 3,
-        n_gpus=0, b_size=32, n_epochs=3000,
-        lr=0.001, gamma=0.999, sync_rate = 3,
-        modeled_r = "F", random_effects = False,
-        model_name = "test_1-fips",
-        eligible = "90pct", S_size = "small",
-        algo = "CPQ", std_budget = 0,
-        )
+    # params = dict(
+    #     fips = 4013, n_hidden = 256, n_layers = 3,
+    #     n_gpus=0, b_size=32, n_epochs=3000,
+    #     lr=0.001, gamma=0.999, sync_rate = 3,
+    #     modeled_r = "F", random_effects = False,
+    #     model_name = "test_1-fips",
+    #     eligible = "90pct", S_size = "small",
+    #     algo = "CPQ", std_budget = 0,
+    #     )
 
     ## Prepare data:
     data = make_data(
