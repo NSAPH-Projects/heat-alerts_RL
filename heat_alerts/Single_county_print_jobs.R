@@ -26,15 +26,15 @@ b_size<- c(32)
 ma<- c(20)
 
 tests<- expand.grid(algos, MR, seed, fips, NHU, NHL, LR, SR, b_size, ma)
-colnames(tests)<- c("algo", "modeled_R", "seed", "fips", "NHU", "NHL", "LR",
+colnames(tests)<- c("algo", "modeled_r", "seed", "fips", "NHU", "NHL", "LR",
                     "SR", "b_size", "ma")
 
-sink("Run_jobs/Single_county_rl_tests")
+sink("Run_jobs/Single_county_dqn_tests")
 for(i in 1:nrow(tests)){
   cat(paste("python heat_alerts/Single_county_RL.py",
                 "--n_gpus", 0,
                 "--lr", tests[i, "LR"],
-                "--modeled_R", tests[i, "modeled_R"],
+                "--modeled_r", tests[i, "modeled_r"],
                 "--eligible '90pct'",
                 "--algo", tests[i, "algo"],
                 "--n_epochs", 1000,
@@ -43,7 +43,7 @@ for(i in 1:nrow(tests)){
                 "--fips", tests[i, "fips"],
                 "--model_name", paste0("SC_", tests[i, "algo"],
                                        "_Elig-", "90pct",
-                                       "_MR-", tests[i, "modeled_R"],
+                                       "_MR-", tests[i, "modeled_r"],
                                        "_LR-", tests[i, "LR"],
                                        "_NH-", tests[i, "NHL"],
                                        "-", tests[i, "NHU"],
