@@ -15,7 +15,7 @@ ma<- c(20, 50, 100, 200)
 
 ## Preliminary:
 algos<- c("DoubleDQN", "CPQ")
-MR<- c("True", "False")
+MR<- c("T", "F")
 seed<- c("321")
 fips<- c("4013")
 NHU<- c(16, 32, 64, 128)
@@ -37,6 +37,8 @@ for(i in 1:nrow(tests)){
                 "--modeled_r", tests[i, "modeled_r"],
                 "--eligible '90pct'",
                 "--algo", tests[i, "algo"],
+                "--n_layers", tests[i, "NHL"],
+                "--n_hidden", tests[i, "NHU"],
                 "--n_epochs", 1000,
                 "--b_size", tests[i, "b_size"],
                 "--seed", tests[i, "seed"],

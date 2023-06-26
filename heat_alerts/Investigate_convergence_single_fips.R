@@ -2,6 +2,61 @@ library(dplyr)
 library(ggplot2)
 library(cowplot, lib.loc = "~/apps/R_4.2.2")
 
+folder<- "d3rlpy_logs/SC_DoubleDQN_Elig-90pct_MR-True_LR-1e-04_NH-2-16_B-32_fips-4013_seed-321_20230626113643/"
+
+Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
+DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
+ggplot(DF[1:nrow(DF),], aes(x=Epoch, y=log(Loss))) + geom_line() + 
+  xlab("Epochs") + ylab("Log of Loss") 
+
+f<- "Summer_results/SC_DoubleDQN_Elig-90pct_MR-True_LR-1e-04_NH-2-16_B-32_fips-4013_seed-321_MA_50_total_alerts_.csv"
+Alerts<- read.csv(f)[,1]
+a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
+ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 
+  xlab("Epochs") + ylab("Days with Alerts") + geom_smooth()
+
+##########
+
+CPQ_MR<- list.files("d3rlpy_logs", pattern = "SC_CPQ_Elig-90pct_MR-True")
+CPQ_OR<- list.files("d3rlpy_logs", pattern = "SC_CPQ_Elig-90pct_MR-False")
+DD_MR<- list.files("d3rlpy_logs", pattern = "SC_DoubleDQN_Elig-90pct_MR-True")
+DD_OR<- list.files("d3rlpy_logs", pattern = "SC_DoubleDQN_Elig-90pct_MR-False")
+
+for(f in CPQ_MR){
+  Loss<- read.csv(paste0("d3rlpy_logs/",f,"/loss.csv"), header = FALSE)
+  DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
+  p<- ggplot(DF[1:nrow(DF),], aes(x=Epoch, y=log(Loss))) + geom_line() + 
+    xlab("Epochs") + ylab("Log of Loss") + ggtitle(f)
+  print(p)
+}
+
+CPQ_MR_alerts<- list.files("Summer_results/", pattern = "SC_CPQ_Elig-90pct_MR-True")
+CPQ_OR_alerts<- list.files("Summer_results/", pattern = "SC_CPQ_Elig-90pct_MR-False")
+DD_MR_alerts<- list.files("Summer_results/", pattern = "SC_DoubleDQN_Elig-90pct_MR-True")
+DD_OR_alerts<- list.files("Summer_results/", pattern = "SC_DoubleDQN_Elig-90pct_MR-False")
+
+CPQ_MR_pol<- list.files("Policies/", pattern = "Policy_SC_CPQ_Elig-90pct_MR-True")
+CPQ_OR_pol<- list.files("Policies/", pattern = "Policy_SC_CPQ_Elig-90pct_MR-False")
+DD_MR_pol<- list.files("Policies/", pattern = "Policy_SC_DoubleDQN_Elig-90pct_MR-True")
+DD_OR_pol<- list.files("Policies/", pattern = "Policy_SC_DoubleDQN_Elig-90pct_MR-False")
+
+alerts<- c()
+for(i in 1:length(CPQ_MR_alerts)){
+  # Alerts<- read.csv(paste0("Summer_results/", CPQ_OR_alerts[i]))[,1]
+  # a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
+  # p<- ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() +
+  #   xlab("Epochs") + ylab("Days with Alerts") + geom_smooth() +
+  #   ggtitle(CPQ_OR_alerts[i])
+  # print(p)
+  alerts<- append(alerts, sum(read.csv(paste0("Policies/", CPQ_MR_pol[i]))[,2]))
+}
+NH<- rep(c(128, 16, 32, 64), 6)
+NL<- rep(c(2,2,2,2,3,3,3,3),3)
+LR<- rep(c(0.001, 0.01, 0.0001), each = 8)
+plot(NH[which(NL==2)], alerts[which(NL==2)])
+
+##########
+
 CPQ_folders<- list.files("d3rlpy_logs", pattern = "CPQ_observed-alerts_fips-6085")
 DD_folders<- list.files("d3rlpy_logs", pattern = "Double_DQN_fips-6085")
 
