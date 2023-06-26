@@ -3,9 +3,9 @@
 #SBATCH -N 1
 #SBATCH -n 4
 #SBATCH -p fasse # test
-#SBATCH -t 0-2:00
-#SBATCH --mem 90G
-#SBATCH --array 0 # 0-17 
+#SBATCH -t 0-1:00
+#SBATCH --mem 5G
+#SBATCH --array 0-95 # 0-17 
 #SBATCH -o ./Run_jobs/slurm/scrl.%a.out
 #SBATCH --mail-user=ellen_considine@g.harvard.edu
 #SBATCH --mail-type=BEGIN
