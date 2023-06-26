@@ -20,7 +20,7 @@ def symlog(x, shift=1):
 def make_data(
     filename="data/Summer23_Train_smaller-for-Python.csv", 
     fips = 4013,
-    modeled_r = False, 
+    modeled_r = "F", 
     eligible = "all",
     std_budget = 0
 ):
@@ -37,7 +37,7 @@ def make_data(
         Budget = std_budget
     elig["More_alerts"] = Budget - elig["alert_sum"]
 
-    if modeled_r == False:
+    if modeled_r == "F":
         rewards = -1*(elig["other_hosps"]/elig["total_count"])
         rewards = (rewards - rewards.mean())/rewards.std()
         # rewards = rewards.apply(symlog,shift=1)
