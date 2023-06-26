@@ -43,7 +43,7 @@ def main(params):
     #     fips = 4013, n_hidden = 32,
     #     n_gpus=0, b_size=256, n_epochs=2,
     #     lr=0.03, gamma=0.999, sync_rate = 3,
-    #     modeled_r = False, random_effects = False,
+    #     modeled_r = "F", random_effects = False,
     #     model_name = "test_1-fips",
     #     eligible = "90pct", S_size = "small",
     #     algo = "DoubleDQN", std_budget = 0,
@@ -209,7 +209,7 @@ if __name__ == "__main__":
     parser.add_argument("--fips", type=int, default=4013, help="fips code of the county")
     parser.add_argument("--eligible", type=str, default="all", help="days to include in RL")
     # parser.add_argument("--S_size", type=str, default="medium", help="Manual size of state matrix")
-    parser.add_argument("--modeled_r", type=bool, default=False, help="use modeled rewards?")
+    parser.add_argument("--modeled_r", type=str, default="F", help="use modeled rewards? T or F")
     parser.add_argument("--algo", type=str, default="DQN", help="RL algorithm")
     parser.add_argument("--seed", type=int, default=321, help="set seed")
     parser.add_argument("--model_name", type=str, default="test", help="name to save model under")
