@@ -13,8 +13,8 @@ from d3rlpy.algos import DQN, DoubleDQN
 from d3rlpy.metrics.scorer import td_error_scorer
 from d3rlpy.metrics.scorer import average_value_estimation_scorer
 
-# from heat_alerts.Setup_d3rlpy import make_data
-from Setup_d3rlpy import make_data
+# from heat_alerts.Single_county_setup import make_data
+from Single_county_setup import make_data
 # from heat_alerts.cpq import CPQ
 # from cpq import CPQ
 
@@ -46,13 +46,12 @@ def main(params):
     #     modeled_r = False, random_effects = False,
     #     model_name = "test_1-fips",
     #     eligible = "90pct", S_size = "small",
-    #     algo = "DoubleDQN", std_budget = 0, HER = "False",
-    #     pca = False, pca_var_thresh = 0, 
+    #     algo = "DoubleDQN", std_budget = 0,
     #     )
 
     ## Prepare data:
     data = make_data(
-        params["fips"], modeled_r = params["modeled_r"], 
+        fips = params["fips"], modeled_r = params["modeled_r"], 
         eligible = params["eligible"], std_budget = params["std_budget"]
     )
     dataset = data[0]
@@ -116,7 +115,7 @@ def main(params):
 
     ## Train:
 
-    name = "fips_" + str(params["fips"]) + "_" + params["model_name"]
+    name = params["model_name"]
 
     dqn.fit(train_episodes,
         eval_episodes=test_episodes,
