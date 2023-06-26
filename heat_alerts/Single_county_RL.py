@@ -19,6 +19,12 @@ from Single_county_setup import make_data
 # from heat_alerts.cpq import CPQ
 # from cpq import CPQ
 
+def get_steps_per_epoch(folder):
+    models = sorted(glob.glob(folder + "/model_*"))
+    m1 = int(models[0].split("model_")[1].split(".pt")[0])
+    m2 = int(models[1].split("model_")[1].split(".pt")[0])
+    return(m2 - m1)
+
 def set_seed(seed):
     np.random.seed(seed) 
     random.seed(seed)
@@ -57,7 +63,7 @@ def main(params):
     ####### Q-LEARNING:
 
     train_episodes, test_episodes = train_test_split(dataset, test_size=0.2) # uses np.random.seed
-    iters_per_epoch = math.ceil(len(dataset.observations)*0.8/params["b_size"])
+    iters_per_epoch = round(len(dataset.observations)*0.8/params["b_size"])
 
     ## Set up algorithm and NN:
     n_hidden = params["n_hidden"]
@@ -113,25 +119,27 @@ def main(params):
 
     name = params["model_name"]
 
-    dqn.fit(train_episodes,
-        eval_episodes=test_episodes,
-        n_epochs=params["n_epochs"],
-        experiment_name=name,
-        scorers={
-            'td_error': td_error_scorer,
-            'value_scale': average_value_estimation_scorer
-        })
+    # dqn.fit(train_episodes,
+    #     eval_episodes=test_episodes,
+    #     n_epochs=params["n_epochs"],
+    #     experiment_name=name,
+    #     scorers={
+    #         'td_error': td_error_scorer,
+    #         'value_scale': average_value_estimation_scorer
+    #     })
 
     ####### MODEL AVERAGING:
 
+    steps_per_epoch = get_steps_per_epoch(folder)
+
     folder = glob.glob("d3rlpy_logs/" + name + "_2*")[0]
     Total_Alerts = []
-    NN_sum = torch.load(folder + "/model_" + str(iters_per_epoch) + ".pt", map_location=torch.device(device))
+    NN_sum = torch.load(folder + "/model_" + str(steps_per_epoch) + ".pt", map_location=torch.device(device))
     NN_list = []
     NN_list.append(NN_sum)
     n_models = 1
     for i in range(1, params["n_epochs"]): 
-        new = torch.load(folder + "/model_" + str(iters_per_epoch*(i+1)) + ".pt", map_location=torch.device(device))
+        new = torch.load(folder + "/model_" + str(steps_per_epoch*(i+1)) + ".pt", map_location=torch.device(device))
         NN_list.append(new)
         n_models += 1
         for key in NN_sum["_q_func"]:
