@@ -25,11 +25,6 @@ def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
-def get_steps_per_epoch(folder):
-    models = sorted(glob.glob(folder + "/model_*"))
-    m1 = int(models[0].split("model_")[1].split(".pt")[0])
-    m2 = int(models[1].split("model_")[1].split(".pt")[0])
-    return(m2 - m1)
 
 def main(params):
     params = vars(params)
@@ -39,15 +34,15 @@ def main(params):
     d3rlpy.seed(seed)
     
     ## For now:
-    # params = dict(
-    #     fips = 4013, n_hidden = 32,
-    #     n_gpus=0, b_size=256, n_epochs=2,
-    #     lr=0.03, gamma=0.999, sync_rate = 3,
-    #     modeled_r = "F", random_effects = False,
-    #     model_name = "test_1-fips",
-    #     eligible = "90pct", S_size = "small",
-    #     algo = "DoubleDQN", std_budget = 0,
-    #     )
+    params = dict(
+        fips = 4013, n_hidden = 256, n_layers = 3,
+        n_gpus=0, b_size=32, n_epochs=3000,
+        lr=0.001, gamma=0.999, sync_rate = 3,
+        modeled_r = "F", random_effects = False,
+        model_name = "test_1-fips",
+        eligible = "90pct", S_size = "small",
+        algo = "CPQ", std_budget = 0,
+        )
 
     ## Prepare data:
     data = make_data(
@@ -129,14 +124,13 @@ def main(params):
     ####### MODEL AVERAGING:
 
     folder = glob.glob("d3rlpy_logs/" + name + "_2*")[0]
-    steps_per_epoch = get_steps_per_epoch(folder)
     Total_Alerts = []
-    NN_sum = torch.load(folder + "/model_" + str(steps_per_epoch) + ".pt", map_location=torch.device(device))
+    NN_sum = torch.load(folder + "/model_" + str(iters_per_epoch) + ".pt", map_location=torch.device(device))
     NN_list = []
     NN_list.append(NN_sum)
     n_models = 1
     for i in range(1, params["n_epochs"]): 
-        new = torch.load(folder + "/model_" + str(steps_per_epoch*(i+1)) + ".pt", map_location=torch.device(device))
+        new = torch.load(folder + "/model_" + str(iters_per_epoch*(i+1)) + ".pt", map_location=torch.device(device))
         NN_list.append(new)
         n_models += 1
         for key in NN_sum["_q_func"]:
