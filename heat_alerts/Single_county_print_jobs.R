@@ -25,9 +25,21 @@ SR<- c(3)
 b_size<- c(32)
 ma<- c(20)
 
-tests<- expand.grid(algos, MR, seed, fips, NHU, NHL, LR, SR, b_size, ma)
+## Next:
+algos<- c("DoubleDQN", "CPQ")
+MR<- c("T")
+seed<- c("321", "221", "121")
+fips<- c("4013")
+NHU<- c(128, 256)
+NHL<- c(3)
+LR<- c(0.001)
+SR<- c(3)
+b_size<- c(32)
+
+
+tests<- expand.grid(algos, MR, seed, fips, NHU, NHL, LR, SR, b_size)
 colnames(tests)<- c("algo", "modeled_r", "seed", "fips", "NHU", "NHL", "LR",
-                    "SR", "b_size", "ma")
+                    "SR", "b_size")
 
 sink("Run_jobs/Single_county_dqn_tests")
 for(i in 1:nrow(tests)){
@@ -39,11 +51,11 @@ for(i in 1:nrow(tests)){
                 "--algo", tests[i, "algo"],
                 "--n_layers", tests[i, "NHL"],
                 "--n_hidden", tests[i, "NHU"],
-                "--n_epochs", 1000,
+                "--n_epochs", 3000,
                 "--b_size", tests[i, "b_size"],
                 "--seed", tests[i, "seed"],
                 "--fips", tests[i, "fips"],
-                "--model_name", paste0("SC_", tests[i, "algo"],
+                "--model_name", paste0("Try-2_SC_", tests[i, "algo"],
                                        "_Elig-", "90pct",
                                        "_MR-", tests[i, "modeled_r"],
                                        "_LR-", tests[i, "LR"],
