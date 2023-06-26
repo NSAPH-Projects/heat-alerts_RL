@@ -4,6 +4,7 @@ import numpy as np
 import random
 import pandas as pd
 from sklearn.model_selection import train_test_split
+import math
 
 import torch
 import torch.nn as nn
@@ -56,7 +57,7 @@ def main(params):
     ####### Q-LEARNING:
 
     train_episodes, test_episodes = train_test_split(dataset, test_size=0.2) # uses np.random.seed
-    iters_per_epoch = round(len(dataset.observations)*0.8/params["b_size"])
+    iters_per_epoch = math.ceil(len(dataset.observations)*0.8/params["b_size"])
 
     ## Set up algorithm and NN:
     n_hidden = params["n_hidden"]
