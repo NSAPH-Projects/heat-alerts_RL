@@ -1,0 +1,1 @@
+python heat_alerts/Single_county_RL.py --n_gpus 0 --lr 1e-04 --modeled_R True --eligible '90pct' --algo DoubleDQN --n_epochs 1000 --b_size 32 --seed 321 --fips 4013 --model_name SC_DoubleDQN_Elig-90pct_MR-True_LR-1e-04_NH-2-16_B-32_fips-4013_seed-321
