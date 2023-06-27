@@ -43,12 +43,12 @@ def main(params):
     ## For now:
     # params = dict(
     #     fips = 4013, n_hidden = 256, n_layers = 3,
-    #     n_gpus=0, b_size=32, n_epochs=3000,
-    #     lr=0.001, gamma=0.999, sync_rate = 3,
-    #     modeled_r = "F", random_effects = False,
+    #     n_gpus=0, b_size=128, n_epochs=5000,
+    #     lr=0.01, gamma=0.999, sync_rate = 3,
+    #     modeled_r = "T", random_effects = False,
     #     model_name = "test_1-fips",
     #     eligible = "90pct", S_size = "small",
-    #     algo = "CPQ", std_budget = 0,
+    #     algo = "CPQ", std_budget = 0, HER = False,
     #     )
 
     ## Prepare data:

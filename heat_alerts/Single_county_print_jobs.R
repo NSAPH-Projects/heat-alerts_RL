@@ -32,8 +32,8 @@ seed<- c("321", "221", "121")
 fips<- c("4013", "6085")
 NHU<- c(256)
 NHL<- c(3)
-LR<- c(0.01) # 0.001
-SR<- c(1,2)
+LR<- c(0.01, 0.005) # 0.001
+SR<- c(3)
 b_size<- c(128) # 32
 
 
@@ -51,12 +51,12 @@ for(i in 1:nrow(tests)){
                 "--algo", tests[i, "algo"],
                 "--n_layers", tests[i, "NHL"],
                 "--n_hidden", tests[i, "NHU"],
-                "--n_epochs", 5000,
+                "--n_epochs", 10000,
                 "--b_size", tests[i, "b_size"],
                 "--sync_rate", tests[i, "SR"],
                 "--seed", tests[i, "seed"],
                 "--fips", tests[i, "fips"],
-                "--model_name", paste0("B-128_SC_", tests[i, "algo"],
+                "--model_name", paste0("Long_SC_", tests[i, "algo"],
                                        "_Elig-", "90pct",
                                        "_MR-", tests[i, "modeled_r"],
                                        "_LR-", tests[i, "LR"],
