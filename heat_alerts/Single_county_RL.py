@@ -62,12 +62,13 @@ def main(params):
 
     ####### Q-LEARNING:
 
-    train_episodes, test_episodes = train_test_split(dataset, test_size=0.2) # uses np.random.seed
-    # iters_per_epoch = round(len(dataset.observations)*0.8/params["b_size"])
-    obs = 0
-    for t in train_episodes:
-        obs += len(t.observations)
-    iters_per_epoch = math.floor(obs/params["b_size"])
+    # train_episodes, test_episodes = train_test_split(dataset, test_size=0.2) # uses np.random.seed
+    # # iters_per_epoch = round(len(dataset.observations)*0.8/params["b_size"])
+    # obs = 0
+    # for t in train_episodes:
+    #     obs += len(t.observations)
+    # iters_per_epoch = math.floor(obs/params["b_size"])
+    iters_per_epoch = math.floor(len(dataset.observations)/params["b_size"])
 
     ## Set up algorithm and NN:
     n_hidden = params["n_hidden"]
@@ -123,8 +124,9 @@ def main(params):
 
     name = params["model_name"]
 
-    dqn.fit(train_episodes,
-        eval_episodes=test_episodes,
+    dqn.fit(dataset.episodes,
+        # train_episodes,
+        # eval_episodes=test_episodes,
         n_epochs=params["n_epochs"],
         experiment_name=name,
         scorers={
