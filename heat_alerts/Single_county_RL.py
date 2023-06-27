@@ -68,7 +68,9 @@ def main(params):
     # for t in train_episodes:
     #     obs += len(t.observations)
     # iters_per_epoch = math.floor(obs/params["b_size"])
-    iters_per_epoch = math.floor(len(dataset.observations)/params["b_size"])
+    # iters_per_epoch = math.floor(len(dataset.observations)/params["b_size"])
+    params["b_size"] = len(dataset.observations)
+    iters_per_epoch = 1
 
     ## Set up algorithm and NN:
     n_hidden = params["n_hidden"]
