@@ -123,14 +123,14 @@ def main(params):
 
     name = params["model_name"]
 
-    # dqn.fit(train_episodes,
-    #     eval_episodes=test_episodes,
-    #     n_epochs=params["n_epochs"],
-    #     experiment_name=name,
-    #     scorers={
-    #         'td_error': td_error_scorer,
-    #         'value_scale': average_value_estimation_scorer
-    #     })
+    dqn.fit(train_episodes,
+        eval_episodes=test_episodes,
+        n_epochs=params["n_epochs"],
+        experiment_name=name,
+        scorers={
+            'td_error': td_error_scorer,
+            'value_scale': average_value_estimation_scorer
+        })
 
     ####### MODEL AVERAGING:
 
