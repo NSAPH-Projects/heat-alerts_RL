@@ -49,7 +49,7 @@ for(i in 1:length(plot_files)){
   a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
   p<- ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() +
     xlab("Epochs") + ylab("Days with Alerts") + geom_smooth() +
-    ggtitle(plot_files[i])
+    ggtitle(plot_files[i]) + ylim(0,200)
   print(p)
   alerts<- append(alerts, sum(read.csv(paste0("Policies/",pol_files[i]))[,2]))
 }

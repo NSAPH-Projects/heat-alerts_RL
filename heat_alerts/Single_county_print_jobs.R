@@ -30,11 +30,11 @@ algos<- c("DoubleDQN", "CPQ")
 MR<- c("T")
 seed<- c("321", "221", "121")
 fips<- c("4013")
-NHU<- c(128, 256)
+NHU<- c(256)
 NHL<- c(3)
 LR<- c(0.001)
-SR<- c(3)
-b_size<- c(32)
+SR<- c(3,5)
+b_size<- c(128) # 32
 
 
 tests<- expand.grid(algos, MR, seed, fips, NHU, NHL, LR, SR, b_size)
@@ -55,7 +55,7 @@ for(i in 1:nrow(tests)){
                 "--b_size", tests[i, "b_size"],
                 "--seed", tests[i, "seed"],
                 "--fips", tests[i, "fips"],
-                "--model_name", paste0("Try-2_SC_", tests[i, "algo"],
+                "--model_name", paste0("B-128_SC_", tests[i, "algo"],
                                        "_Elig-", "90pct",
                                        "_MR-", tests[i, "modeled_r"],
                                        "_LR-", tests[i, "LR"],
