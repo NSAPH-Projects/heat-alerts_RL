@@ -26,14 +26,14 @@ b_size<- c(32)
 ma<- c(20)
 
 ## Next:
-algos<- c("DoubleDQN", "CPQ")
+algos<- c("CPQ") # "DoubleDQN", 
 MR<- c("T")
 seed<- c("321", "221", "121")
-fips<- c("4013")
+fips<- c("4013", "6085")
 NHU<- c(256)
 NHL<- c(3)
-LR<- c(0.001)
-SR<- c(3,5)
+LR<- c(0.01) # 0.001
+SR<- c(1,2)
 b_size<- c(128) # 32
 
 
@@ -51,17 +51,19 @@ for(i in 1:nrow(tests)){
                 "--algo", tests[i, "algo"],
                 "--n_layers", tests[i, "NHL"],
                 "--n_hidden", tests[i, "NHU"],
-                "--n_epochs", 3000,
+                "--n_epochs", 5000,
                 "--b_size", tests[i, "b_size"],
+                "--sync_rate", tests[i, "SR"],
                 "--seed", tests[i, "seed"],
                 "--fips", tests[i, "fips"],
                 "--model_name", paste0("B-128_SC_", tests[i, "algo"],
                                        "_Elig-", "90pct",
                                        "_MR-", tests[i, "modeled_r"],
                                        "_LR-", tests[i, "LR"],
-                                       "_NH-", tests[i, "NHL"],
-                                       "-", tests[i, "NHU"],
+                                       # "_NH-", tests[i, "NHL"],
+                                       # "-", tests[i, "NHU"],
                                        "_B-", tests[i, "b_size"],
+                                       "_SR-", tests[i, "SR"],
                                        "_fips-", tests[i, "fips"],
                                        "_seed-", tests[i, "seed"],
                                        "\n"
