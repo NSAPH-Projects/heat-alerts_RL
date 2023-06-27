@@ -17,12 +17,12 @@ ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() +
 
 ##########
 
-CPQ_MR<- list.files("d3rlpy_logs", pattern = "B-128_SC_CPQ_Elig-90pct_MR-T_LR-0.01")
-CPQ_OR<- list.files("d3rlpy_logs", pattern = "B-128_SC_CPQ_Elig-90pct_MR-F_LR-0.01")
-DD_MR<- list.files("d3rlpy_logs", pattern = "B-128_SC_DoubleDQN_Elig-90pct_MR-T_LR-0.01")
-DD_OR<- list.files("d3rlpy_logs", pattern = "B-128_SC_DoubleDQN_Elig-90pct_MR-F_LR-0.01")
+CPQ_MR<- list.files("d3rlpy_logs", pattern = "Long_SC_CPQ_Elig-90pct_MR-F")
+# CPQ_OR<- list.files("d3rlpy_logs", pattern = "B-128_SC_CPQ_Elig-90pct_MR-F_LR-0.01")
+# DD_MR<- list.files("d3rlpy_logs", pattern = "B-128_SC_DoubleDQN_Elig-90pct_MR-T_LR-0.01")
+# DD_OR<- list.files("d3rlpy_logs", pattern = "B-128_SC_DoubleDQN_Elig-90pct_MR-F_LR-0.01")
 
-loss_files<- CPQ_MR[1:12] # c(CPQ_MR, DD_MR, CPQ_OR, DD_OR)
+loss_files<- CPQ_MR # c(CPQ_MR, DD_MR, CPQ_OR, DD_OR)
 
 for(f in loss_files){
   Loss<- read.csv(paste0("d3rlpy_logs/",f,"/loss.csv"), header = FALSE)
@@ -32,20 +32,20 @@ for(f in loss_files){
   print(p)
 }
 
-CPQ_MR_alerts<- list.files("Summer_results/", pattern = "B-128_SC_CPQ_Elig-90pct_MR-T_LR-0.01")
-CPQ_OR_alerts<- list.files("Summer_results/", pattern = "B-128_SC_CPQ_Elig-90pct_MR-F_LR-0.01")
-DD_MR_alerts<- list.files("Summer_results/", pattern = "B-128_SC_DoubleDQN_Elig-90pct_MR-T_LR-0.01")
-DD_OR_alerts<- list.files("Summer_results/", pattern = "B-128_SC_DoubleDQN_Elig-90pct_MR-F_LR-0.01")
+CPQ_MR_alerts<- list.files("Summer_results/", pattern = "Long_SC_CPQ_Elig-90pct_MR-F")
+# CPQ_OR_alerts<- list.files("Summer_results/", pattern = "B-128_SC_CPQ_Elig-90pct_MR-F_LR-0.01")
+# DD_MR_alerts<- list.files("Summer_results/", pattern = "B-128_SC_DoubleDQN_Elig-90pct_MR-T_LR-0.01")
+# DD_OR_alerts<- list.files("Summer_results/", pattern = "B-128_SC_DoubleDQN_Elig-90pct_MR-F_LR-0.01")
 
-CPQ_MR_pol<- list.files("Policies/", pattern = "Policy_B-128_SC_CPQ_Elig-90pct_MR-T_LR-0.01")
-CPQ_OR_pol<- list.files("Policies/", pattern = "Policy_B-128_SC_CPQ_Elig-90pct_MR-F_LR-0.01")
-DD_MR_pol<- list.files("Policies/", pattern = "Policy_B-128_SC_DoubleDQN_Elig-90pct_MR-T_LR-0.01")
-DD_OR_pol<- list.files("Policies/", pattern = "Policy_B-128_SC_DoubleDQN_Elig-90pct_MR-F_LR-0.01")
+CPQ_MR_pol<- list.files("Policies/", pattern = "Policy_Long_SC_CPQ_Elig-90pct_MR-F")
+# CPQ_OR_pol<- list.files("Policies/", pattern = "Policy_B-128_SC_CPQ_Elig-90pct_MR-F_LR-0.01")
+# DD_MR_pol<- list.files("Policies/", pattern = "Policy_B-128_SC_DoubleDQN_Elig-90pct_MR-T_LR-0.01")
+# DD_OR_pol<- list.files("Policies/", pattern = "Policy_B-128_SC_DoubleDQN_Elig-90pct_MR-F_LR-0.01")
 
 # plot_files<- c(CPQ_MR_alerts, DD_MR_alerts, CPQ_OR_alerts, DD_OR_alerts)
 # pol_files<- c(CPQ_MR_pol, DD_MR_pol, CPQ_OR_pol, DD_OR_pol)
-plot_files<- CPQ_MR_alerts[1:12]
-pol_files<- CPQ_MR_pol[1:12]
+plot_files<- CPQ_MR_alerts[1:6]
+pol_files<- CPQ_MR_pol[1:6]
 
 
 alerts<- c()
