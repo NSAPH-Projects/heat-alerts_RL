@@ -209,7 +209,7 @@ def main(params):
         max_epochs = params["n_epochs"], # n_epochs
         logger = logger,
         accelerator="auto",
-        # devices=params["n_gpus"],
+        devices=params["n_gpus"],
         enable_progress_bar=(not params['silent']),
         # auto_lr_find = True
         # precision=16, amp_backend="native"
