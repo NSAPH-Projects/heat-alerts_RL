@@ -38,7 +38,7 @@ class CPQImpl(DQNImpl):
             #     more_alerts = np.random.binomial(1, 1-p)
             if her:
                 already_issued = np.round(np.array([b[5]*SA_sd + SA_mean for b in batch.next_observations.cpu()]) + 1e-5) # column of medium and small Ss
-                new_budgets = np.random.randint(0, already_issued + more_alerts + 1) # upper end is round bracket
+                new_budgets = np.random.randint(0, np.max(np.array([1, already_issued + more_alerts + 1]))) # upper end is round bracket
                 more_alerts = (already_issued < new_budgets).astype(int)
             more_alerts = torch.tensor(more_alerts).to(device)
             constrained_targets = torch.where(torch.logical_and(action==1, more_alerts > 0), opposite_targets, original_targets) 
