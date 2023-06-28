@@ -1,13 +1,15 @@
 
+library(readr)
 library(ggplot2)
 # install.packages("viridis")
 library(viridis)
 library(cowplot, lib.loc = "~/apps/R_4.2.2")
 
 # Read in data:
-load("data/Small_S-A-R_prepped.RData")
-DF$weekend<- DF$dowSaturday | DF$dowSunday
-DF$alert<- A
+DF<- read_csv("data/Summer23_Train_smaller-for-Python.csv")
+# load("data/Small_S-A-R_prepped.RData")
+# DF$weekend<- DF$dowSaturday | DF$dowSunday
+# DF$alert<- A
 
 Large_S<- DF[,c("alert","HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
                 "quant_HI_3d_county", "HI_mean",
@@ -36,21 +38,25 @@ Small_S<- DF[,c("alert", "quant_HI_county", "HI_mean", "l.Pop_density", "l.Med.H
 
 ## Model NN:
 # Train.nn<- data.frame(Medium_S)
-Train.nn<- data.frame(Small_S)
-Train.nn$Y<- R_other_hosps[,1]
-Train.nn<- Train.nn[which((Train.nn$quant_HI_county*qhic_sd + qhic_mean) >= 0.9),]
+# Train.nn<- data.frame(Small_S)
+# Train.nn$Y<- R_other_hosps[,1]
+# Train.nn<- Train.nn[which((Train.nn$quant_HI_county*qhic_sd + qhic_mean) >= 0.9),]
+Train.nn<- DF
+Train.nn$Y<- -1000*DF$other_hosps/DF$total_count
 
 # preds.nn<- read.csv("Summer_results/R_6-19_lr-00063_90pct.csv")
 # preds_ZI<- read.csv("Summer_results/ZIP-0_6-20_lr-000759_90pct.csv")[,"X0"]
 # preds.nn<- read.csv("Summer_results/R_6-19_forced_lr-00063_90pct.csv")
-preds.nn<- read.csv("Summer_results/R_6-21_forced_small-S_90pct.csv")
+# preds.nn<- read.csv("Summer_results/R_6-21_forced_small-S_90pct.csv")
+preds.nn<- data.frame(read.csv("Summer_results/R_6-28_forced_small-S_all.csv"))
 
 # thresh<- 0.5
 
 DF.nn<- Train.nn
 DF.nn$pred_R0<- preds.nn[,"X0"]
 DF.nn$pred_R1<- preds.nn[,"X1"]
-DF.nn$pred_Y<- sapply(1:nrow(DF.nn), function(i){preds.nn[i,DF.nn[i,"alert"] + 2]})
+A<- unlist(DF.nn$alert)
+DF.nn$pred_Y<- sapply(1:nrow(DF.nn), function(i){preds.nn[i,A[i] + 2]})
 # DF.nn$pred_Y[which(preds_ZI > thresh)]<- 0
 
 Data<- DF.nn

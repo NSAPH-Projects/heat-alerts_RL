@@ -368,7 +368,7 @@ DF<- read.csv("lightning_logs/R_no-REs_lr-003/version_3/metrics.csv")
 
 DF<- read.csv("lightning_logs/R_no-REs_lr-tuned/version_0/metrics.csv")
 
-DF<- read.csv("lightning_logs/R_no-REs_lr-tuned/version_3/metrics.csv")
+DF<- read.csv("lightning_logs/R_no-REs_lr-tuned/version_4/metrics.csv")
 
 Val_Loss<- DF[seq(1,nrow(DF),2),1]
 Train_Loss<- DF[seq(2,nrow(DF),2),5]

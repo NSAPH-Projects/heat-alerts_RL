@@ -4,7 +4,7 @@ library(ggplot2)
 
 data<- read_csv("data/Summer23_Train_smaller-for-Python.csv")
 
-pred_R<- read.csv("Summer_results/R_6-21_forced_small-S_all.csv")
+pred_R<- read.csv("Summer_results/R_6-28_forced_small-S_all.csv")
 
 #### First, for a few key counties:
 
@@ -25,19 +25,22 @@ for(f in fips){
   county<- data[which(data$fips %in% f),]
   county$Day<- 1:nrow(county)
   
-  # ggplot(county, aes(x=Day)) + 
+  # ggplot(county, aes(x=Day)) +
   #   geom_point(aes(y=quant_HI_county, color = as.factor(1-alert)),
   #              show.legend = FALSE) +
   #   geom_line(aes(y=1000*other_hosps / total_count)) +
-  #   ylab("Quantile of HI (col=alert); NOHR/1,000") + 
+  #   ylab("Quantile of HI (col=alert); NOHR/1,000") +
   #   ggtitle(paste("County", fips))
   
   budgets<- county$alert_sum[which(county$dos == 153)]
   pred_R_county<- pred_R[which(data$fips %in% f),]
   diffs_county<- pred_R_county$X1 - pred_R_county$X0
   
-  # plot(county$dos, diffs_county, main = paste("County", fips),
+  # plot(county$dos, diffs_county, main = paste("County", f),
   #      xlab = "Day of Summer", ylab = "Modeled R1-R0")
+  
+  # ggplot(data.frame(county, diffs_county),
+  #        aes(x=dos, y = diffs_county, color = ""))
   
   ## All days:
   
@@ -52,12 +55,15 @@ for(f in fips){
   for(y in 1:n_years){
     y_pos<- which(county$year == years[y])
     b<- budgets[y]
-    a<- match(1:b, order(diffs_county[y_pos]))
+    a<- order(diffs_county[y_pos], decreasing = TRUE)[1:b]
     t<- pred_R_county$X0[y_pos]
     if(b > 0){
       t[a]<- pred_R_county$X1[y_pos][a]
     }
     topK<- append(topK, t)
+    # print(years[y])
+    # print(sum(t))
+    # print(sum(NWS[y_pos]))
   }
   
   # summary(topK - NWS)
