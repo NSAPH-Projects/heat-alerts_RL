@@ -115,7 +115,9 @@ def main(params):
         batch_size=params["b_size"],
         learning_rate=params["lr"],
         gamma=params["gamma"],
-        target_update_interval=iters_per_epoch*params["sync_rate"]
+        target_update_interval=iters_per_epoch*params["sync_rate"],
+        scaler = None,
+        reward_scaler = None
         ) 
     
     dqn.build_with_dataset(dataset) # initialize neural networks
