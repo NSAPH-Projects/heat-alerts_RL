@@ -68,9 +68,9 @@ def main(params):
     # for t in train_episodes:
     #     obs += len(t.observations)
     # iters_per_epoch = math.floor(obs/params["b_size"])
-    # iters_per_epoch = math.floor(len(dataset.observations)/params["b_size"])
-    params["b_size"] = len(dataset.observations)
-    iters_per_epoch = 1
+    iters_per_epoch = math.floor(len(dataset.observations)/params["b_size"])
+    # params["b_size"] = len(dataset.observations)
+    # iters_per_epoch = 1
 
     ## Set up algorithm and NN:
     n_hidden = params["n_hidden"]
@@ -224,7 +224,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_name", type=str, default="test", help="name to save model under")
     parser.add_argument("--std_budget", type=int, default=0, help="same budget for all episodes?")
     parser.add_argument("--HER", type=bool, default=False, help="Use hindsight experience replay for CPQ?")
-    parser.add_argument("--b_size", type=int, default=32, help="size of the batches")
+    parser.add_argument("--b_size", type=int, default=500, help="size of the batches")
     parser.add_argument("--n_layers", type=int, default=2, help="how many hidden layers in DQN")
     parser.add_argument("--n_hidden", type=int, default=32, help="number of params in DQN hidden layers")
     parser.add_argument("--lr", type=float, default=0.01, help="learning rate")
