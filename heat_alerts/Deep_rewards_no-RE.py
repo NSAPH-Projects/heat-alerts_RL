@@ -196,7 +196,7 @@ def main(params):
     config = { # results from tuning
         "n_hidden": 256,
         "dropout_prob": 0.0,
-        "w_decay": 1e-4
+        "w_decay": 1e-3
     }
 
     model = Rewards_Lightning(state_dim, config, N = N, **params)
