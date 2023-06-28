@@ -103,18 +103,23 @@ cor(Data$Y, Data$pred_Y)^2
 1 - (sum((Data$Y-Data$pred_Y)^2)/(((N-1)*var(Data$Y))))
 
 set.seed(321)
-samp<- sample(1:N, round(0.1*N))
+samp<- sample(1:N, 10000)
+
+Data<- data.frame(Data)
 
 plot(Data[samp,"Y"], Data[samp,"pred_Y"], 
      col = alpha(Data$alert + 1, 0.5), pch=16,
      main = "NOHR")
 abline(0,1)
 
+ggplot(DF.nn[samp,], aes(x=dos, y = pred_R1-pred_R0)) +
+  geom_point() + geom_smooth()
+
 plot_DF<- Data[samp,]
 
 ggplot(plot_DF, 
        aes(x=quant_HI_county, y=pred_Y, col = as.factor(alert), alpha=0.5)) +
-  geom_point() # + geom_smooth(data=subset(plot_DF, alert == 0), col = "purple")
+  geom_point() + geom_smooth(data=subset(plot_DF, alert == 0), col = "purple")
 
 ggplot(plot_DF, 
        aes(x=quant_HI_county, y=pred_Y, col = all_hosp_mean_rate, alpha=0.5)) +
