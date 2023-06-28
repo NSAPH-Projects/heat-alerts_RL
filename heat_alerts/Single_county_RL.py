@@ -85,7 +85,7 @@ def main(params):
 
     if params["algo"] == "CPQ":
         with open('/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/heat_alerts/cpq_global.py', 'w') as f:
-            if params["HER"]:
+            if params["HER"] == "T":
                 f.write('her = True \n')
             else: 
                 f.write('her = False \n')
@@ -224,7 +224,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=321, help="set seed")
     parser.add_argument("--model_name", type=str, default="test", help="name to save model under")
     parser.add_argument("--std_budget", type=int, default=0, help="same budget for all episodes?")
-    parser.add_argument("--HER", type=bool, default=False, help="Use hindsight experience replay for CPQ?")
+    parser.add_argument("--HER", type=str, default="F", help="Use hindsight experience replay for CPQ? T or F")
     parser.add_argument("--b_size", type=int, default=500, help="size of the batches")
     parser.add_argument("--n_layers", type=int, default=2, help="how many hidden layers in DQN")
     parser.add_argument("--n_hidden", type=int, default=32, help="number of params in DQN hidden layers")
