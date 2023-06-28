@@ -29,12 +29,12 @@ ma<- c(20)
 algos<- c("CPQ") # "DoubleDQN", 
 MR<- c("T")
 seed<- c("321", "221", "121")
-fips<- c("4013", "6085")
+fips<- c("4013", "36047")
 NHU<- c(256)
 NHL<- c(3)
-LR<- c(0.01, 0.005) # 0.001
+LR<- c(0.1, 0.5) # 0.001
 SR<- c(3)
-b_size<- c(128) # 32
+b_size<- c(1200) # 32
 
 
 tests<- expand.grid(algos, MR, seed, fips, NHU, NHL, LR, SR, b_size)
@@ -47,17 +47,17 @@ for(i in 1:nrow(tests)){
                 "--n_gpus", 0,
                 "--lr", tests[i, "LR"],
                 "--modeled_r", tests[i, "modeled_r"],
-                "--eligible '90pct'",
+                "--eligible 'all'",
                 "--algo", tests[i, "algo"],
                 "--n_layers", tests[i, "NHL"],
                 "--n_hidden", tests[i, "NHU"],
                 "--n_epochs", 10000,
-                # "--b_size", tests[i, "b_size"],
+                "--b_size", tests[i, "b_size"],
                 "--sync_rate", tests[i, "SR"],
                 "--seed", tests[i, "seed"],
                 "--fips", tests[i, "fips"],
-                "--model_name", paste0("NB_SC_", tests[i, "algo"],
-                                       "_Elig-", "90pct",
+                "--model_name", paste0("B-1200_SC_", tests[i, "algo"],
+                                       "_Elig-", "all",
                                        "_MR-", tests[i, "modeled_r"],
                                        "_LR-", tests[i, "LR"],
                                        # "_NH-", tests[i, "NHL"],

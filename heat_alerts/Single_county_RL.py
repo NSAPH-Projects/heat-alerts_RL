@@ -43,13 +43,14 @@ def main(params):
     ## For now:
     # params = dict(
     #     fips = 4013, n_hidden = 256, n_layers = 3,
-    #     n_gpus=0, b_size=128, n_epochs=5000,
-    #     lr=0.01, gamma=0.999, sync_rate = 3,
+    #     n_gpus=0, b_size=1200, n_epochs=10000,
+    #     lr=0.1, gamma=0.999, sync_rate = 3,
     #     modeled_r = "T", random_effects = False,
     #     model_name = "test_1-fips",
-    #     eligible = "90pct", S_size = "small",
-    #     algo = "CPQ", std_budget = 0, HER = False,
+    #     eligible = "all", S_size = "small",
+    #     algo = "CPQ", std_budget = 0, HER = False, ma = 50
     #     )
+    # params["model_name"] = "B-1200_SC_CPQ_Elig-all_MR-T_LR-0.1_SR-3_fips-4013_seed-321"
 
     ## Prepare data:
     data = make_data(
@@ -126,15 +127,15 @@ def main(params):
 
     name = params["model_name"]
 
-    # dqn.fit(dataset.episodes,
-    #     # train_episodes,
-    #     # eval_episodes=test_episodes,
-    #     n_epochs=params["n_epochs"],
-    #     experiment_name=name,
-    #     scorers={
-    #         'td_error': td_error_scorer,
-    #         'value_scale': average_value_estimation_scorer
-    #     })
+    dqn.fit(dataset.episodes,
+        # train_episodes,
+        # eval_episodes=test_episodes,
+        n_epochs=params["n_epochs"],
+        experiment_name=name,
+        scorers={
+            'td_error': td_error_scorer,
+            'value_scale': average_value_estimation_scorer
+        })
 
     ####### MODEL AVERAGING:
 
