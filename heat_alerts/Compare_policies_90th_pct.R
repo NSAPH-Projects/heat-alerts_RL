@@ -1,6 +1,6 @@
 library(ggplot2)
 
-data<- read.csv("data/Train_smaller-for-Python.csv")
+data<- read.csv("data/Summ23_Train_smaller-for-Python.csv")
 n_counties<- nrow(data)/(153*11)
 data$index<- rep(1:(n_counties*11), each = 153)
 data$weekend<- data$dow %in% c("Saturday", "Sunday")

@@ -17,7 +17,7 @@ ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() +
 
 ##########
 
-CPQ_MR<- list.files("d3rlpy_logs", pattern = "Long_SC_CPQ_Elig-90pct_MR-F")
+CPQ_MR<- list.files("d3rlpy_logs", pattern = "NB_SC_CPQ_Elig-90pct_MR-T")
 # CPQ_OR<- list.files("d3rlpy_logs", pattern = "B-128_SC_CPQ_Elig-90pct_MR-F_LR-0.01")
 # DD_MR<- list.files("d3rlpy_logs", pattern = "B-128_SC_DoubleDQN_Elig-90pct_MR-T_LR-0.01")
 # DD_OR<- list.files("d3rlpy_logs", pattern = "B-128_SC_DoubleDQN_Elig-90pct_MR-F_LR-0.01")
@@ -32,20 +32,20 @@ for(f in loss_files){
   print(p)
 }
 
-CPQ_MR_alerts<- list.files("Summer_results/", pattern = "Long_SC_CPQ_Elig-90pct_MR-F")
+CPQ_MR_alerts<- list.files("Summer_results/", pattern = "NB_SC_CPQ_Elig-90pct_MR-T")
 # CPQ_OR_alerts<- list.files("Summer_results/", pattern = "B-128_SC_CPQ_Elig-90pct_MR-F_LR-0.01")
 # DD_MR_alerts<- list.files("Summer_results/", pattern = "B-128_SC_DoubleDQN_Elig-90pct_MR-T_LR-0.01")
 # DD_OR_alerts<- list.files("Summer_results/", pattern = "B-128_SC_DoubleDQN_Elig-90pct_MR-F_LR-0.01")
 
-CPQ_MR_pol<- list.files("Policies/", pattern = "Policy_Long_SC_CPQ_Elig-90pct_MR-F")
+CPQ_MR_pol<- list.files("Policies/", pattern = "Policy_NB_SC_CPQ_Elig-90pct_MR-T")
 # CPQ_OR_pol<- list.files("Policies/", pattern = "Policy_B-128_SC_CPQ_Elig-90pct_MR-F_LR-0.01")
 # DD_MR_pol<- list.files("Policies/", pattern = "Policy_B-128_SC_DoubleDQN_Elig-90pct_MR-T_LR-0.01")
 # DD_OR_pol<- list.files("Policies/", pattern = "Policy_B-128_SC_DoubleDQN_Elig-90pct_MR-F_LR-0.01")
 
 # plot_files<- c(CPQ_MR_alerts, DD_MR_alerts, CPQ_OR_alerts, DD_OR_alerts)
 # pol_files<- c(CPQ_MR_pol, DD_MR_pol, CPQ_OR_pol, DD_OR_pol)
-plot_files<- CPQ_MR_alerts[1:6]
-pol_files<- CPQ_MR_pol[1:6]
+plot_files<- CPQ_MR_alerts
+pol_files<- CPQ_MR_pol
 
 
 alerts<- c()
@@ -88,4 +88,3 @@ for(f in c(alerts_CPQ_folders, alerts_DD_folders)){
     xlab("Epochs") + ylab("Days with Alerts") + geom_smooth() + ggtitle(f)
   print(p)
 }
-
