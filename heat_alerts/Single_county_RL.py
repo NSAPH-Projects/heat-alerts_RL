@@ -4,19 +4,17 @@ import numpy as np
 import random
 import pandas as pd
 from sklearn.model_selection import train_test_split
-# import math
+import math
 
 import torch
 import torch.nn as nn
 import d3rlpy
 from d3rlpy.models.encoders import VectorEncoderFactory
-from d3rlpy.algos import DQN, DoubleDQN
+# from d3rlpy.algos import DQN, DoubleDQN
 from d3rlpy.metrics.scorer import td_error_scorer, average_value_estimation_scorer
 
 # from heat_alerts.Single_county_setup import make_data
 from Single_county_setup import make_data
-# from heat_alerts.cpq import CPQ
-# from cpq import CPQ
 
 def get_steps_per_epoch(folder):
     models = sorted(glob.glob(folder + "/model_*"))
@@ -68,13 +66,13 @@ def main(params):
     # for t in train_episodes:
     #     obs += len(t.observations)
     # iters_per_epoch = math.floor(obs/params["b_size"])
-    # iters_per_epoch = math.floor(len(dataset.observations)/params["b_size"])
-    params["b_size"] = len(dataset.observations)
+    iters_per_epoch = math.floor(len(dataset.observations)/params["b_size"])
+    # params["b_size"] = len(dataset.observations)
     # n_obs=0
     # for e in dataset.episodes:
     #     n_obs += len(e.observations)
     # params["b_size"] = n_obs
-    iters_per_epoch = 1
+    # iters_per_epoch = 1
 
     ## Set up algorithm and NN:
     n_hidden = params["n_hidden"]
@@ -85,6 +83,23 @@ def main(params):
     if params["n_gpus"] > 0: 
         gpu = True
         device = "cuda"
+
+    with open('/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/heat_alerts/dqn_global.py', 'w') as f:
+        if params["Pct90"] == "T":
+            f.write('Pct90 = True \n')
+        else:
+            f.write('Pct90 = False \n')
+        HI_mean = s_means["quant_HI_county"]
+        f.write('HI_mean = ' + str(HI_mean) + ' \n')
+        HI_sd = s_stds["quant_HI_county"]
+        f.write('HI_sd = ' + str(HI_sd) + ' \n')
+        if gpu:
+            f.write('device = ' + "'cuda'" + ' \n')
+        else: 
+            f.write('device = ' + "'cpu'" + ' \n')
+    
+    from dqn_2 import DQN_2, DoubleDQN_2 # putting this here so it includes the correct global variables
+    # from heat_alerts.dqn_2 import DQN_2, DoubleDQN_2
 
     if params["algo"] == "CPQ":
         with open('/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/heat_alerts/cpq_global.py', 'w') as f:
@@ -108,7 +123,7 @@ def main(params):
     from cpq import CPQ # putting this here so it includes the correct global variables
     # from heat_alerts.cpq import CPQ
 
-    functions = [DQN, DoubleDQN, CPQ]
+    functions = [DQN_2, DoubleDQN_2, CPQ]
     func_names = ["DQN", "DoubleDQN", "CPQ"]
     algos = dict(zip(func_names, functions))
     algo = algos[params["algo"]]
@@ -224,6 +239,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--fips", type=int, default=4013, help="fips code of the county")
     parser.add_argument("--eligible", type=str, default="all", help="days to include in RL")
+    parser.add_argument("--Pct90", type=str, default="F", help="only allow alerts on hot days? T or F")
     # parser.add_argument("--S_size", type=str, default="medium", help="Manual size of state matrix")
     parser.add_argument("--modeled_r", type=str, default="F", help="use modeled rewards? T or F")
     parser.add_argument("--algo", type=str, default="DQN", help="RL algorithm")
@@ -244,3 +260,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     main(args)
+
