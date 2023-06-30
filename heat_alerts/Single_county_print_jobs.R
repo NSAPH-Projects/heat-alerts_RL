@@ -26,7 +26,7 @@ b_size<- c(32)
 ma<- c(20)
 
 ## Next:
-algos<- c("CPQ", "DoubleDQN")
+algos<- c("CPQ") # , "DoubleDQN"
 MR<- c("T")
 seed<- c("321", "221", "121")
 fips<- c("4013", "36061")
@@ -36,7 +36,7 @@ LR<- c(0.1) # 0.001
 SR<- c(3)
 b_size<- c(1200) # 32
 HER<- c("F", "T")
-Pct90<- c("F", "T")
+Pct90<- c("F") # , "T"
 
 
 tests<- expand.grid(algos, Pct90, HER, MR, seed, fips, NHU, NHL, LR, SR, b_size)
@@ -63,7 +63,7 @@ for(i in 1:nrow(tests)){
                 "--sync_rate", tests[i, "SR"],
                 "--seed", tests[i, "seed"],
                 "--fips", tests[i, "fips"],
-                "--model_name", paste0("June_SC_", tests[i, "algo"],
+                "--model_name", paste0("J_SC_", tests[i, "algo"],
                                        "_Pct90-", tests[i, "Pct90"],
                                        "_HER-", tests[i, "HER"],
                                        "_MR-", tests[i, "modeled_r"],

@@ -216,11 +216,14 @@ def main(params):
             ## Get new policy:
             output = dqn.predict(dataset.observations[p:(p+1)])
             if output == 1:
-                if params["algo"] == "CPQ" and alert_sum >= budget:
+                if params["Pct90"] == "T" and (new_s[0]*s_stds["quant_HI_county"] + s_means["quant_HI_county"]) < 0.9:
                     action = 0
                 else:
-                    Policy[p] = 1
-                    action = 1
+                    if params["algo"] == "CPQ" and alert_sum >= budget:
+                        action = 0
+                    else:
+                        Policy[p] = 1
+                        action = 1
             else: 
                 action = 0
             
