@@ -4,15 +4,14 @@ import numpy as np
 import random
 import pandas as pd
 from sklearn.model_selection import train_test_split
-import math
+# import math
 
 import torch
 import torch.nn as nn
 import d3rlpy
 from d3rlpy.models.encoders import VectorEncoderFactory
 from d3rlpy.algos import DQN, DoubleDQN
-from d3rlpy.metrics.scorer import td_error_scorer
-from d3rlpy.metrics.scorer import average_value_estimation_scorer
+from d3rlpy.metrics.scorer import td_error_scorer, average_value_estimation_scorer
 
 # from heat_alerts.Single_county_setup import make_data
 from Single_county_setup import make_data
@@ -43,12 +42,12 @@ def main(params):
     ## For now:
     # params = dict(
     #     fips = 4013, n_hidden = 256, n_layers = 3,
-    #     n_gpus=0, b_size=1200, n_epochs=10000,
+    #     n_gpus=0, b_size=1200, n_epochs=3,#10000
     #     lr=0.1, gamma=0.999, sync_rate = 3,
     #     modeled_r = "T", random_effects = False,
-    #     model_name = "test_1-fips",
+    #     model_name = "test_her",
     #     eligible = "all", S_size = "small",
-    #     algo = "CPQ", std_budget = 0, HER = False, ma = 50
+    #     algo = "CPQ", std_budget = 0, HER = "T", ma = 50
     #     )
     # params["model_name"] = "B-1200_SC_CPQ_Elig-all_MR-T_LR-0.1_SR-3_fips-4013_seed-321"
 
@@ -69,9 +68,13 @@ def main(params):
     # for t in train_episodes:
     #     obs += len(t.observations)
     # iters_per_epoch = math.floor(obs/params["b_size"])
-    iters_per_epoch = math.floor(len(dataset.observations)/params["b_size"])
-    # params["b_size"] = len(dataset.observations)
-    # iters_per_epoch = 1
+    # iters_per_epoch = math.floor(len(dataset.observations)/params["b_size"])
+    params["b_size"] = len(dataset.observations)
+    # n_obs=0
+    # for e in dataset.episodes:
+    #     n_obs += len(e.observations)
+    # params["b_size"] = n_obs
+    iters_per_epoch = 1
 
     ## Set up algorithm and NN:
     n_hidden = params["n_hidden"]
@@ -103,6 +106,7 @@ def main(params):
                 f.write('device = ' + "'cpu'" + ' \n')
 
     from cpq import CPQ # putting this here so it includes the correct global variables
+    # from heat_alerts.cpq import CPQ
 
     functions = [DQN, DoubleDQN, CPQ]
     func_names = ["DQN", "DoubleDQN", "CPQ"]

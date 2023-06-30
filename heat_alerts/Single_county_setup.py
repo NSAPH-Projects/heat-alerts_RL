@@ -74,6 +74,11 @@ def make_data(
     s_means = States.mean(0)
     s_stds = States.std(0)
     S = (States - s_means)/s_stds
+    # print(sum(States["More_alerts"] == 0))
+    # print(np.min(S["More_alerts"]))
+    # print(np.max(S["More_alerts"]))
+    # print(np.mean(S["More_alerts"]))
+    # print(np.std(S["More_alerts"]))
 
     observations = S.reset_index().drop("index", axis=1)
 
@@ -84,6 +89,7 @@ def make_data(
     S_OHE = pd.DataFrame(S_ohe, columns=S_names)
 
     observations["weekend"] = S_OHE["dow_Saturday"] + S_OHE["dow_Sunday"]
+    print(observations.columns)
 
     dataset = MDPDataset(
         observations.to_numpy(), elig["alert"].to_numpy(),
