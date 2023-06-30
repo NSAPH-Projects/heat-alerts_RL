@@ -1,5 +1,7 @@
 ## Adapted from https://github.com/takuseno/d3rlpy/blob/master/d3rlpy/dataset.pyi, dataset.pyx on 6/30/23
 
+## Note: to use this with d3rlpy, you'll also need to comment out the trace_back_and_clear function in buffers.py
+
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Union
 import warnings
 
