@@ -35,12 +35,13 @@ NHL<- c(3)
 LR<- c(0.1) # 0.001
 SR<- c(3)
 b_size<- c(1200) # 32
-HER<- c("F", "T")
+HER<- c("F")
 Pct90<- c("F") # , "T"
+std_b<- c(5, 10)
 
 
-tests<- expand.grid(algos, Pct90, HER, MR, seed, fips, NHU, NHL, LR, SR, b_size)
-colnames(tests)<- c("algo", "Pct90", "HER", "modeled_r", "seed", "fips", "NHU", "NHL", "LR",
+tests<- expand.grid(algos, std_b, Pct90, HER, MR, seed, fips, NHU, NHL, LR, SR, b_size)
+colnames(tests)<- c("algo", "Std_B", "Pct90", "HER", "modeled_r", "seed", "fips", "NHU", "NHL", "LR",
                     "SR", "b_size")
 
 rm_pos<- which(tests$algo == "DoubleDQN" & tests$HER == "T")
@@ -53,6 +54,7 @@ for(i in 1:nrow(tests)){
                 "--lr", tests[i, "LR"],
                 "--modeled_r", tests[i, "modeled_r"],
                 "--eligible 'all'",
+                "--std_budget", tests[i, "Std_B"],
                 "--Pct90", tests[i, "Pct90"],
                 "--algo", tests[i, "algo"],
                 "--HER", tests[i, "HER"],
@@ -63,8 +65,9 @@ for(i in 1:nrow(tests)){
                 "--sync_rate", tests[i, "SR"],
                 "--seed", tests[i, "seed"],
                 "--fips", tests[i, "fips"],
-                "--model_name", paste0("J_SC_", tests[i, "algo"],
+                "--model_name", paste0("Jlr_SC_", tests[i, "algo"],
                                        "_Pct90-", tests[i, "Pct90"],
+                                       "_Std_B-", tests[i, "Std_B"],
                                        "_HER-", tests[i, "HER"],
                                        "_MR-", tests[i, "modeled_r"],
                                        "_LR-", tests[i, "LR"],
