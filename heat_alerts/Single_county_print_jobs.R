@@ -27,7 +27,7 @@ ma<- c(20)
 
 ## Next:
 algos<- c("CPQ") # , "DoubleDQN"
-MR<- c("F")
+MR<- c("T")
 seed<- c("321", "221", "121")
 fips<- c("4013", "36061")
 NHU<- c(256)
@@ -35,8 +35,8 @@ NHL<- c(3)
 LR<- c(0.1) # 0.001
 SR<- c(3)
 b_size<- c(1200) # 32
-HER<- c("T", "F")
-Pct90<- c("F") # , "T"
+HER<- c("T")
+Pct90<- c("T", "F") # , "T"
 std_b<- c(0)
 
 
@@ -65,7 +65,7 @@ for(i in 1:nrow(tests)){
                 "--sync_rate", tests[i, "SR"],
                 "--seed", tests[i, "seed"],
                 "--fips", tests[i, "fips"],
-                "--model_name", paste0("SC_", tests[i, "algo"],
+                "--model_name", paste0("Unforced_SC_", tests[i, "algo"],
                                        "_MR-", tests[i, "modeled_r"],
                                        "_Pct90-", tests[i, "Pct90"],
                                        "_Std_B-", tests[i, "Std_B"],
