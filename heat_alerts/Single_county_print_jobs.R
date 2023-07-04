@@ -65,7 +65,7 @@ for(i in 1:nrow(tests)){
                 "--sync_rate", tests[i, "SR"],
                 "--seed", tests[i, "seed"],
                 "--fips", tests[i, "fips"],
-                "--model_name", paste0("Unforced_SC_", tests[i, "algo"],
+                "--model_name", paste0("Unstructured_SC_", tests[i, "algo"],
                                        "_MR-", tests[i, "modeled_r"],
                                        "_Pct90-", tests[i, "Pct90"],
                                        "_Std_B-", tests[i, "Std_B"],
