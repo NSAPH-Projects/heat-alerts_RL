@@ -24,3 +24,6 @@ RUN micromamba install -n base -f /tmp/env.yaml
 # Add default CRAN repo to https://cran.rstudio.com/ in .Rprofile
 RUN echo 'options(repos = c(CRAN = "https://cran.rstudio.com/"))' >> ~/.Rprofile
 RUN Rscript -e 'install.packages("sf")'
+RUN Rscript -e 'remotes::install_github("ManuelHentschel/vscDebugger")'
+RUN Rscript -e 'install.packages("httpgd")'
+RUN Rscript -e 'install.packages("tidycensus")'
