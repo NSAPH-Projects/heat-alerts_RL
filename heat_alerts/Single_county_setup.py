@@ -43,7 +43,7 @@ def make_data(
         # rewards = rewards.apply(symlog,shift=1)
         rewards = rewards.to_numpy()
     else:
-        rewards = pd.read_csv("Summer_results/R_6-28_forced_small-S_all.csv")
+        rewards = pd.read_csv("Summer_results/R_7-4_small-S_all.csv")
         rewards = rewards.loc[county_pos]
         rewards = torch.gather(torch.FloatTensor(rewards.to_numpy()), 1, torch.LongTensor(elig["alert"].to_numpy()).view(-1, 1) +1).view(-1)
         rewards = -torch.log(-rewards).detach().numpy()
