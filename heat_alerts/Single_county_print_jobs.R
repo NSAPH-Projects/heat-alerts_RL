@@ -27,7 +27,7 @@ ma<- c(20)
 
 ## Next:
 algos<- c("CPQ") # , "DoubleDQN"
-MR<- c("T")
+MR<- c("F")
 seed<- c("321", "221", "121")
 fips<- c("4013", "36061")
 NHU<- c(256)
@@ -35,17 +35,17 @@ NHL<- c(3)
 LR<- c(0.1) # 0.001
 SR<- c(3)
 b_size<- c(1200) # 32
-HER<- c("F")
+HER<- c("T", "F")
 Pct90<- c("F") # , "T"
-std_b<- c(5, 10)
+std_b<- c(0)
 
 
 tests<- expand.grid(algos, std_b, Pct90, HER, MR, seed, fips, NHU, NHL, LR, SR, b_size)
 colnames(tests)<- c("algo", "Std_B", "Pct90", "HER", "modeled_r", "seed", "fips", "NHU", "NHL", "LR",
                     "SR", "b_size")
 
-rm_pos<- which(tests$algo == "DoubleDQN" & tests$HER == "T")
-tests<- tests[-rm_pos,]
+# rm_pos<- which(tests$algo == "DoubleDQN" & tests$HER == "T")
+# tests<- tests[-rm_pos,]
 
 sink("Run_jobs/Single_county_dqn_tests")
 for(i in 1:nrow(tests)){
@@ -65,11 +65,11 @@ for(i in 1:nrow(tests)){
                 "--sync_rate", tests[i, "SR"],
                 "--seed", tests[i, "seed"],
                 "--fips", tests[i, "fips"],
-                "--model_name", paste0("Jlr_SC_", tests[i, "algo"],
+                "--model_name", paste0("SC_", tests[i, "algo"],
+                                       "_MR-", tests[i, "modeled_r"],
                                        "_Pct90-", tests[i, "Pct90"],
                                        "_Std_B-", tests[i, "Std_B"],
                                        "_HER-", tests[i, "HER"],
-                                       "_MR-", tests[i, "modeled_r"],
                                        "_LR-", tests[i, "LR"],
                                        # "_NH-", tests[i, "NHL"],
                                        # "-", tests[i, "NHU"],
