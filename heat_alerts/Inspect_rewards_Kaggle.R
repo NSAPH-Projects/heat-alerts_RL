@@ -1,13 +1,15 @@
 
+library(readr)
 library(ggplot2)
 # install.packages("viridis")
 library(viridis)
 library(cowplot, lib.loc = "~/apps/R_4.2.2")
 
 # Read in data:
-load("data/Small_S-A-R_prepped.RData")
-DF$weekend<- DF$dowSaturday | DF$dowSunday
-DF$alert<- A
+DF<- read_csv("data/Summer23_Train_smaller-for-Python.csv")
+# load("data/Small_S-A-R_prepped.RData")
+# DF$weekend<- DF$dowSaturday | DF$dowSunday
+# DF$alert<- A
 
 Large_S<- DF[,c("alert","HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
                 "quant_HI_3d_county", "HI_mean",
@@ -36,21 +38,27 @@ Small_S<- DF[,c("alert", "quant_HI_county", "HI_mean", "l.Pop_density", "l.Med.H
 
 ## Model NN:
 # Train.nn<- data.frame(Medium_S)
-Train.nn<- data.frame(Small_S)
-Train.nn$Y<- R_other_hosps[,1]
-Train.nn<- Train.nn[which((Train.nn$quant_HI_county*qhic_sd + qhic_mean) >= 0.9),]
+# Train.nn<- data.frame(Small_S)
+# Train.nn$Y<- R_other_hosps[,1]
+# Train.nn<- Train.nn[which((Train.nn$quant_HI_county*qhic_sd + qhic_mean) >= 0.9),]
+Train.nn<- DF
+Train.nn$Y<- -1000*DF$other_hosps/DF$total_count
 
 # preds.nn<- read.csv("Summer_results/R_6-19_lr-00063_90pct.csv")
 # preds_ZI<- read.csv("Summer_results/ZIP-0_6-20_lr-000759_90pct.csv")[,"X0"]
 # preds.nn<- read.csv("Summer_results/R_6-19_forced_lr-00063_90pct.csv")
-preds.nn<- read.csv("Summer_results/R_6-21_forced_small-S_90pct.csv")
+# preds.nn<- read.csv("Summer_results/R_6-21_forced_small-S_90pct.csv")
+# preds.nn<- data.frame(read.csv("Summer_results/R_6-28_forced_small-S_all.csv"))
+# preds.nn<- data.frame(read.csv("Summer_results/R_7-4_small-S_all.csv"))
+preds.nn<- data.frame(read.csv("Summer_results/R_7-4_unstructured_small-S_all.csv"))
 
 # thresh<- 0.5
 
 DF.nn<- Train.nn
 DF.nn$pred_R0<- preds.nn[,"X0"]
 DF.nn$pred_R1<- preds.nn[,"X1"]
-DF.nn$pred_Y<- sapply(1:nrow(DF.nn), function(i){preds.nn[i,DF.nn[i,"alert"] + 2]})
+A<- unlist(DF.nn$alert)
+DF.nn$pred_Y<- sapply(1:nrow(DF.nn), function(i){preds.nn[i,A[i] + 2]})
 # DF.nn$pred_Y[which(preds_ZI > thresh)]<- 0
 
 Data<- DF.nn
@@ -97,18 +105,23 @@ cor(Data$Y, Data$pred_Y)^2
 1 - (sum((Data$Y-Data$pred_Y)^2)/(((N-1)*var(Data$Y))))
 
 set.seed(321)
-samp<- sample(1:N, round(0.1*N))
+samp<- sample(1:N, 10000)
+
+Data<- data.frame(Data)
 
 plot(Data[samp,"Y"], Data[samp,"pred_Y"], 
      col = alpha(Data$alert + 1, 0.5), pch=16,
      main = "NOHR")
 abline(0,1)
 
+ggplot(DF.nn[samp,], aes(x=dos, y = pred_R1-pred_R0)) +
+  geom_point() + geom_smooth()
+
 plot_DF<- Data[samp,]
 
 ggplot(plot_DF, 
        aes(x=quant_HI_county, y=pred_Y, col = as.factor(alert), alpha=0.5)) +
-  geom_point() # + geom_smooth(data=subset(plot_DF, alert == 0), col = "purple")
+  geom_point() + geom_smooth(data=subset(plot_DF, alert == 0), col = "purple")
 
 ggplot(plot_DF, 
        aes(x=quant_HI_county, y=pred_Y, col = all_hosp_mean_rate, alpha=0.5)) +

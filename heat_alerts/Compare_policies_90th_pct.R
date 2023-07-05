@@ -1,6 +1,6 @@
 library(ggplot2)
 
-data<- read.csv("data/Train_smaller-for-Python.csv")
+data<- read.csv("data/Summ23_Train_smaller-for-Python.csv")
 n_counties<- nrow(data)/(153*11)
 data$index<- rep(1:(n_counties*11), each = 153)
 data$weekend<- data$dow %in% c("Saturday", "Sunday")
@@ -11,21 +11,28 @@ terminals_90pct<- read.csv("data/Pct_90_eligible_terminals.csv")
 behavior<- pct_90$alert # sum = 26,317
 
 # new_pol<- read.csv("Policies/Policy_vanilla_DQN_small-S_lr1e-2_B.csv")[,2] # sum = 0
-new_pol<- read.csv("Policies/Policy_Double_DQN_logMR_small-S_lr03_seed-3.csv")[,2] 
+new_pol<- read.csv("Policies/Policy_Double_DQN_fips-6085_MR-90pct_seed-1.csv")[,2] 
 sum_alerts_DD<- sum(new_pol)
 sum(new_pol)
-new_pol<- read.csv("Policies/Policy_CPQ_observed-alerts_logMR_small-S_lr03_seed-3.csv")[,2] 
+new_pol<- read.csv("Policies/Policy_CPQ_observed-alerts_fips-6085_MR-90pct_seed-1.csv")[,2] 
 sum_alerts_CPQ<- sum(new_pol)
 sum(new_pol)
 
 models<- c("Double_DQN", "CPQ_observed-alerts")
 # seeds<- c(1,2,4:10)
-seeds<- (1:5)[-3]
-# seeds<- c(1,2)
+# seeds<- (1:5)[-3]
+seeds<- 1:3
 
 for(m in models){
   for(s in seeds){
-    new_pol<- read.csv(paste0("Policies/Policy_", m, "_logMR_small-S_lr03_seed-", s, ".csv"))[,2]
+    new_pol<- read.csv(paste0("Policies/Policy_", m, "_fips-6085_MR-90pct_seed-", s, ".csv"))[,2]
+    # print(paste(m,s,sum(new_pol)))
+    if(m == "Double_DQN"){
+      sum_alerts_DD<- append(sum_alerts_DD, sum(new_pol))
+    }else{
+      sum_alerts_CPQ<- append(sum_alerts_CPQ, sum(new_pol))
+    }
+    new_pol<- read.csv(paste0("Policies/Policy_", m, "_fips-6085_OR-90pct_seed-", s, ".csv"))[,2]
     # print(paste(m,s,sum(new_pol)))
     if(m == "Double_DQN"){
       sum_alerts_DD<- append(sum_alerts_DD, sum(new_pol))
@@ -35,6 +42,8 @@ for(m in models){
   }
 }
 
+sum_alerts_DD[-1]
+sum_alerts_CPQ[-1]
 
 ep_alerts<- aggregate(alert ~ index, data=pct_90, sum)$alert
 pct_90$new_pol<- new_pol

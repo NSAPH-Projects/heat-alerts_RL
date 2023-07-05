@@ -1,4 +1,3 @@
-
 import os
 from argparse import ArgumentParser
 from typing import Tuple
@@ -6,8 +5,8 @@ from collections import OrderedDict
 import numpy as np
 import random
 import pandas as pd
-from scipy.special import expit, softmax
 from random import sample
+from sklearn import preprocessing as skprep
 
 import torch 
 from torch import nn # creating modules
@@ -23,15 +22,18 @@ import multiprocessing as mp
 
 os.chdir("/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL")
 
-# from heat_alerts.Q_prep_function import make_data
-from Q_prep_function import make_data
-
 def set_seed(seed):
     np.random.seed(seed)
     random.seed(seed)
     torch.backends.cudnn.deterministic = True
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
+
+def symlog(x, shift=1):
+    if x >= 0:
+        return np.log(x+shift)-np.log(shift)
+    else:
+        return -np.log(-x+shift)+np.log(shift)
 
 ## Set up model:
 class my_NN(nn.Module):
@@ -45,14 +47,14 @@ class my_NN(nn.Module):
             nn.ELU(),
             nn.Linear(n_hidden, n_hidden),
             nn.ELU(),
-            nn.Linear(n_hidden, 2)
+            nn.Linear(n_hidden, 1)
         )
     def forward(self, x):
         step1 = self.net(x)
         return step1
 
 class Rewards_Lightning(pl.LightningModule):
-    def __init__(self, n_col, config, N, b_size, lr, loss="huber",  optimizer="adam", **kwargs) -> None:
+    def __init__(self, n_col, config, N, b_size, lr, loss="huber",  optimizer="adam") -> None:
         super().__init__()
         assert loss in ("huber", "mse")
         assert optimizer in ("adam", "sgd")
@@ -67,12 +69,9 @@ class Rewards_Lightning(pl.LightningModule):
         self.training_epochs = 0
         self.w_decay = config["w_decay"]
     def make_pred_and_targets(self, batch):
-        s, a, r = batch
+        s, r = batch
         preds = self.net(s)
-        # Preds = torch.where(a == 0, preds[:,0], preds[:,0] - F.softplus(preds[:,1]))
-        # Preds = torch.where(a == 0, preds[:,0], preds[:,0] + preds[:,1])
-        Preds = torch.where(a == 0, preds[:,0], preds[:,1])
-        Preds = -torch.exp(Preds)
+        Preds = -torch.exp(preds)
         return Preds, r
     def configure_optimizers(self):
         if self.optimizer_fn == "adam":
@@ -106,46 +105,65 @@ class FineTuneLearningRateFinder(LearningRateFinder):
         if trainer.current_epoch in self.milestones or trainer.current_epoch == 0:
             self.lr_find(trainer, pl_module)
 
-
 def main(params):
-    params = vars(params)
 
-    # params = {
-    #     "outcome": "other_hosps",
-    #     "S_size": "medium",
-    #     "eligible": "90pct",
-    #     "b_size": 2048,
-    #     "n_hidden": 256,
-    #     "lr": 0.003,
-    #     "n_gpus": 0, # 1
-    #     "n_epochs": 2, # 200,
-    #     "xpt_name": "testing_other-hosps",
-    #     "model_name": "Summer_R_hosps_003_medium",
-    #     "loss": "mse", # "huber",
-    #     "silent": False,
-    #     "optimizer": "adam",
-    #     "n_workers": 4
-    # }
+    set_seed(321)
 
-    if params["outcome"] == "all_hosps":
-        D = make_data(outcome="all_hosps", manual_S_size = params["S_size"], 
-                    eligible = params["eligible"], all_data = True)
-    elif params["outcome"] == "other_hosps":
-        D = make_data(outcome="other_hosps", manual_S_size = params["S_size"], 
-                    eligible = params["eligible"], all_data = True)
-    else:
-        D = make_data(manual_S_size = params["S_size"], 
-                    eligible = params["eligible"], all_data = True)
-        
-    S,A,R = [D[k] for k in ("S","A","R")]
+    ## Get dataset with only the days when A=0:
+    filename="data/Summer23_Train_smaller-for-Python.csv"
+    Train = pd.read_csv(filename)
+    
+    R = -1*(Train["other_hosps"]/Train["total_count"])
+    R = R.apply(symlog,shift=1)
+
+    States = Train[["HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
+                        "quant_HI_3d_county", "quant_HI_fwd_avg_county", "HI_mean",
+                        "BA_zone", "l.Pop_density", "l.Med.HH.Income",
+                        "year", "dos", "holiday", "dow", 
+                        "death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate",
+                        "all_hosp_2wkMA_rate", "heat_hosp_2wkMA_rate", "all_hosp_3dMA_rate",     
+                        "heat_hosp_3dMA_rate", "age_65_74_rate", "age_75_84_rate", "dual_rate",
+                        "broadband.usage", "Democrat", "Republican", "pm25"]]
+    
+    ## One-hot encode non-numeric variables
+    S_enc = skprep.OneHotEncoder(drop = "first")
+    S_enc.fit(States[["BA_zone", "holiday", "dow"]])
+    S_ohe = S_enc.transform(States[["BA_zone", "holiday", "dow"]]).toarray()
+    S_names = S_enc.get_feature_names_out(["BA_zone", "holiday", "dow"])
+    S_OHE = pd.DataFrame(S_ohe, columns=S_names)
+
+    num_vars = ["HImaxF_PopW", "quant_HI_county", "quant_HI_yest_county",
+                        "quant_HI_3d_county", "quant_HI_fwd_avg_county", "HI_mean",
+                        "l.Pop_density", "l.Med.HH.Income", "year", "dos",
+                         "death_mean_rate", "all_hosp_mean_rate", "heat_hosp_mean_rate",
+                         "all_hosp_2wkMA_rate", "heat_hosp_2wkMA_rate", "all_hosp_3dMA_rate",     
+                        "heat_hosp_3dMA_rate", "age_65_74_rate", "age_75_84_rate", "dual_rate",
+                         "broadband.usage", "Democrat", "Republican", "pm25"]
+    
+    s_means = States[num_vars].mean(0)
+    s_stds = States[num_vars].std(0)
+    S = (States[num_vars] - s_means)/s_stds
+    S = pd.concat([S.reset_index(), S_OHE.reset_index()], axis = 1)
+    S = S.drop("index", axis=1)
+
+    S["weekend"] = S["dow_Saturday"] + S["dow_Sunday"]
+    S = S[[
+            "quant_HI_county", "HI_mean", "quant_HI_3d_county",
+            "l.Pop_density", "l.Med.HH.Income",
+            "year", "dos", "all_hosp_mean_rate",
+             "all_hosp_2wkMA_rate", "all_hosp_3dMA_rate", 
+             "age_65_74_rate", "age_75_84_rate", "dual_rate",
+            "Republican", "pm25", "weekend", 'BA_zone_Hot-Dry',
+            'BA_zone_Hot-Humid', 'BA_zone_Marine', 'BA_zone_Mixed-Dry',
+            'BA_zone_Mixed-Humid', 'BA_zone_Very Cold'
+        ]]
+
     state_dim = S.shape[1]
-    R = R*1000
-    N = len(D['R'])
-    perm = np.random.permutation(N)  # for preshuffling
-    data = [S, A, R]
+    N = len(R)
+    data = [S,R]
 
     # Select validation set by episode, ensure equal representation by all counties
-    n_years = 11
+    n_years = 10
     n_days = 152
     all_days = n_years*n_days
     n_counties = int(N/all_days)
@@ -158,9 +176,7 @@ def main(params):
         end = (i+1)*all_days
         val.extend([start + x for x in np.where(S["year"][start:end] == y_val[0])][0])
         val.extend([start + x for x in np.where(S["year"][start:end] == y_val[1])][0])
-        # print(i)
 
-    # pd.DataFrame(val).to_csv("data/Python_val_set_by-county.csv")
     train = list(set(list(range(0,N))) - set(val))
 
     # Make data loader, shuffled:
@@ -169,30 +185,29 @@ def main(params):
     train_data = [v.to_numpy()[train][train_perm] for v in data]
     val_data = [v.to_numpy()[val][val_perm] for v in data]
 
-    train_tensors = train_data
-    val_tensors = val_data
-    for j in [0, 2]: train_tensors[j] = torch.FloatTensor(train_tensors[j])
+    A = (Train["alert"] == 1).to_numpy()
 
-    train_tensors[1] = torch.LongTensor(train_tensors[1])
-    for j in [0, 2]: val_tensors[j] = torch.FloatTensor(val_tensors[j])
+    train_tensors = [np.delete(v, A[train][train_perm], axis=0) for v in train_data]
+    val_tensors = [np.delete(v, A[val][val_perm], axis=0) for v in val_data]
+    for j in [0, 1]: train_tensors[j] = torch.FloatTensor(train_tensors[j])
 
-    val_tensors[1] = torch.LongTensor(val_tensors[1])
+    for j in [0, 1]: val_tensors[j] = torch.FloatTensor(val_tensors[j])
 
     train_DS = TensorDataset(*train_tensors)
     val_DS = TensorDataset(*val_tensors)
 
     train_DL = DataLoader(
         train_DS,
-        batch_size = params['b_size'],
-        num_workers=params['n_workers'],
-        persistent_workers=(params['n_workers'] > 0)
+        batch_size= 2048,
+        num_workers= 4,
+        persistent_workers= True
     )
 
     val_DL = DataLoader(
         val_DS,
-        batch_size = params['b_size'],
-        num_workers=params['n_workers'],
-        persistent_workers=(params['n_workers'] > 0)
+        batch_size= 2048,
+        num_workers= 4,
+        persistent_workers= True
     )
 
     config = { # results from tuning
@@ -201,60 +216,33 @@ def main(params):
         "w_decay": 1e-4
     }
 
-    model = Rewards_Lightning(state_dim, config, N = N, **params)
-    logger_name = params["xpt_name"]
+    model = Rewards_Lightning(state_dim, config, N = N, b_size = 2048, lr = 0.03)
+    logger_name = "R0_model_no_alerts"
     logger = CSVLogger("lightning_logs", name=logger_name)
     
     trainer = pl.Trainer(
-        # distributed_backend="dp",
-        # limit_train_batches=params["k_size"], # k_size
-        max_epochs = params["n_epochs"], # n_epochs
-        logger = logger,
-        accelerator="auto",
-        devices=params["n_gpus"],
-        enable_progress_bar=(not params['silent']),
-        # auto_lr_find = True
-        # precision=16, amp_backend="native"
+        max_epochs= 300,
+        logger= logger,
+        accelerator= "auto",
+        devices= 1,
+        enable_progress_bar= True,
         callbacks=[FineTuneLearningRateFinder(milestones=(5, 10))]
     )
     # trainer.tune(model, train_DL, val_DL)
     trainer.fit(model, train_DL, val_DL)
     
-    torch.save(model, "Summer_results/" + params['model_name'] + ".pt")
+    torch.save(model, "Summer_results/R0_model_no_alerts.pt")
 
     ## Save modeled rewards:
-    d = make_data(filename="data/Summer23_Train_smaller-for-Python.csv", 
-                  manual_S_size = params["S_size"], all_data = True)
-    s = torch.FloatTensor(d["S"].to_numpy())
     model.eval() # turns off dropout for the predictions
-    r_hat = model.net(s)
-    R_hat = r_hat
-    # R_hat[:,1] = R_hat[:,0] - F.softplus(R_hat[:,1])
-    # R_hat[:,1] = R_hat[:,0] + R_hat[:,1]
-    R_hat = -torch.exp(R_hat)
+    r_hat = model.net(torch.FloatTensor(S.to_numpy()))
+    R_hat = -torch.exp(r_hat)
     n = R_hat.detach().numpy()
     df = pd.DataFrame(n)
-    df.to_csv("Summer_results/" + params['model_name'] + "_" + params["eligible"] + ".csv")
+    df.to_csv("Summer_results/R0_model_no_alerts_7-5.csv")
+
 
 
 if __name__ == "__main__":
-    set_seed(321)
-    parser = ArgumentParser()
-    parser.add_argument("--outcome", type=str, default="deaths", help = "deaths or hosps")
-    parser.add_argument("--b_size", type=int, default=2048, help="size of the batches")
-    parser.add_argument("--n_hidden", type=int, default=256, help="number of params in DQN hidden layers")
-    parser.add_argument("--eligible", type=str, default="all", help="days to include in model")
-    parser.add_argument("--S_size", type=str, default="medium", help="Manual size of state matrix")
-    parser.add_argument("--lr", type=float, default=0.003, help="learning rate")
-    parser.add_argument("--n_gpus", type=int, default=1, help="number of gpus")
-    parser.add_argument("--n_epochs", type=int, default=5000, help="number of epochs to run")
-    parser.add_argument("--xpt_name", type=str, default="test", help="name for the experiment log")
-    parser.add_argument("--model_name", type=str, default="test", help="name to save model under")
-    parser.add_argument("--loss", type=str, default="mse", choices=("huber", "mse"))
-    parser.add_argument("--silent", default=False, action="store_true")
-    parser.add_argument("--optimizer", type=str, default="adam", choices=("sgd", "adam"))
-    parser.add_argument("--n_workers", type=int, default=0, help="number of workers in the data loader")
-
-    args = parser.parse_args()
-    # print(args)
-    main(args)
+    
+    main()
