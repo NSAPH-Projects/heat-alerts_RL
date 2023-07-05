@@ -221,7 +221,7 @@ def main(params):
     logger = CSVLogger("lightning_logs", name=logger_name)
     
     trainer = pl.Trainer(
-        max_epochs= 3,
+        max_epochs= 300,
         logger= logger,
         accelerator= "auto",
         devices= 1,
