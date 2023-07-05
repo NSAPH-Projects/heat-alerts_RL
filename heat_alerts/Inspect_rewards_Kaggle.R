@@ -49,7 +49,8 @@ Train.nn$Y<- -1000*DF$other_hosps/DF$total_count
 # preds.nn<- read.csv("Summer_results/R_6-19_forced_lr-00063_90pct.csv")
 # preds.nn<- read.csv("Summer_results/R_6-21_forced_small-S_90pct.csv")
 # preds.nn<- data.frame(read.csv("Summer_results/R_6-28_forced_small-S_all.csv"))
-preds.nn<- data.frame(read.csv("Summer_results/R_7-4_small-S_all.csv"))
+# preds.nn<- data.frame(read.csv("Summer_results/R_7-4_small-S_all.csv"))
+preds.nn<- data.frame(read.csv("Summer_results/R_7-4_unstructured_small-S_all.csv"))
 
 # thresh<- 0.5
 
