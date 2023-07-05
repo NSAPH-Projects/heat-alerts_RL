@@ -17,14 +17,15 @@ ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() +
 
 ##########
 
-CPQ_MR<- list.files("d3rlpy_logs", pattern = "SB_SC_")
-CPQ_MR<- list.files("d3rlpy_logs", pattern = "SC_CPQ_Pct90-T")
-CPQ_MR<- list.files("d3rlpy_logs", pattern = "SC_CPQ_MR-F_Pct90-T")
-CPQ_MR<- list.files("d3rlpy_logs", pattern = "SC_CPQ_MR-F_Pct90-F")
-CPQ_MR<- list.files("d3rlpy_logs", pattern = "Unforced")
-CPQ_MR<- list.files("d3rlpy_logs", pattern = "Unstructured")
+# CPQ_MR<- list.files("d3rlpy_logs", pattern = "SB_SC_")
+# CPQ_MR<- list.files("d3rlpy_logs", pattern = "SC_CPQ_Pct90-T")
+# CPQ_MR<- list.files("d3rlpy_logs", pattern = "SC_CPQ_MR-F_Pct90-T")
+# CPQ_MR<- list.files("d3rlpy_logs", pattern = "SC_CPQ_MR-F_Pct90-F")
+# CPQ_MR<- list.files("d3rlpy_logs", pattern = "Unforced")
+# CPQ_MR<- list.files("d3rlpy_logs", pattern = "Unstructured")
+CPQ_MR<- list.files("d3rlpy_logs", pattern = "Best")
 
-loss_files<- CPQ_MR # c(CPQ_MR, DD_MR, CPQ_OR, DD_OR)
+loss_files<- CPQ_MR 
 
 for(f in loss_files){
   Loss<- read.csv(paste0("d3rlpy_logs/",f,"/loss.csv"), header = FALSE)
@@ -34,29 +35,22 @@ for(f in loss_files){
   print(p)
 }
 
-CPQ_MR_alerts<- list.files("Summer_results/", pattern = "SB_")
-CPQ_MR_alerts<- list.files("Summer_results/", pattern = "SC_CPQ_Pct90-T")
-CPQ_MR_alerts<- list.files("Summer_results/", pattern = "SC_CPQ_MR-F_Pct90-T")
-CPQ_MR_alerts<- list.files("Summer_results/", pattern = "Unforced")
-CPQ_MR_alerts<- list.files("Summer_results/", pattern = "Unstructured")
-# CPQ_OR_alerts<- list.files("Summer_results/", pattern = "B-128_SC_CPQ_Elig-90pct_MR-F_LR-0.01")
-# DD_MR_alerts<- list.files("Summer_results/", pattern = "B-128_SC_DoubleDQN_Elig-90pct_MR-T_LR-0.01")
-# DD_OR_alerts<- list.files("Summer_results/", pattern = "B-128_SC_DoubleDQN_Elig-90pct_MR-F_LR-0.01")
+# CPQ_MR_alerts<- list.files("Summer_results/", pattern = "SB_")
+# CPQ_MR_alerts<- list.files("Summer_results/", pattern = "SC_CPQ_Pct90-T")
+# CPQ_MR_alerts<- list.files("Summer_results/", pattern = "SC_CPQ_MR-F_Pct90-T")
+# CPQ_MR_alerts<- list.files("Summer_results/", pattern = "Unforced")
+# CPQ_MR_alerts<- list.files("Summer_results/", pattern = "Unstructured")
+CPQ_MR_alerts<- list.files("Summer_results/", pattern = "Best")
 
-CPQ_MR_pol<- list.files("Policies/", pattern = "Policy_SB_")
-CPQ_MR_pol<- list.files("Policies/", pattern = "Policy_SC_CPQ_Pct90-T")
-CPQ_MR_pol<- list.files("Policies/", pattern = "Policy_SC_CPQ_MR-F_Pct90-T")
-CPQ_MR_pol<- list.files("Policies/", pattern = "Policy_Unforced")
-CPQ_MR_pol<- list.files("Policies/", pattern = "Policy_Unstructured")
-# CPQ_OR_pol<- list.files("Policies/", pattern = "Policy_B-128_SC_CPQ_Elig-90pct_MR-F_LR-0.01")
-# DD_MR_pol<- list.files("Policies/", pattern = "Policy_B-128_SC_DoubleDQN_Elig-90pct_MR-T_LR-0.01")
-# DD_OR_pol<- list.files("Policies/", pattern = "Policy_B-128_SC_DoubleDQN_Elig-90pct_MR-F_LR-0.01")
+# CPQ_MR_pol<- list.files("Policies/", pattern = "Policy_SB_")
+# CPQ_MR_pol<- list.files("Policies/", pattern = "Policy_SC_CPQ_Pct90-T")
+# CPQ_MR_pol<- list.files("Policies/", pattern = "Policy_SC_CPQ_MR-F_Pct90-T")
+# CPQ_MR_pol<- list.files("Policies/", pattern = "Policy_Unforced")
+# CPQ_MR_pol<- list.files("Policies/", pattern = "Policy_Unstructured")
+CPQ_MR_pol<- list.files("Policies/", pattern = "Policy_Best")
 
-# plot_files<- c(CPQ_MR_alerts, DD_MR_alerts, CPQ_OR_alerts, DD_OR_alerts)
-# pol_files<- c(CPQ_MR_pol, DD_MR_pol, CPQ_OR_pol, DD_OR_pol)
 plot_files<- CPQ_MR_alerts
 pol_files<- CPQ_MR_pol
-
 
 alerts<- c()
 for(i in 1:length(plot_files)){
