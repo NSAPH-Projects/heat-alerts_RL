@@ -67,8 +67,12 @@ model {
         target += icar_normal_lpdf(gamma_spatial[, d] | S, node1, node2);
     }
     for (s in 1:S) {
-        beta_unstruct[s, ] ~ multi_normal(rep_vector(0, DX), quad_form_diag(Sigma_beta, omega_beta));
-        gamma_unstruct[s, ] ~ multi_normal(rep_vector(0, DX), quad_form_diag(Sigma_gamma, omega_gamma));
+        beta_unstruct[s, ] ~ multi_normal(rep_vector(0, DX), Sigma_beta);
+        gamma_unstruct[s, ] ~ multi_normal(rep_vector(0, DX), Sigma_gamma);
+    }
+    for (d in 1:DW) {
+        delta_beta[, d] ~ normal(0, 1);
+        delta_gamma[, d] ~ normal(0, 1);
     }
 
     rho_beta ~ beta(2, 2);

@@ -16,10 +16,14 @@ dependencies:
   - typing-extensions
   - click
   - tensorboardX
+  - ipykernel
+  - cmdstan
   - tqdm
   - pip:
     - pytorch-lightning
+    - torch-tb-profiler
     - gym==0.17.2
+    - cmdstanpy
     - stable-baselines3>=0.10.0
     # - pip install git+https://github.com/rail-berkeley/d4rl
     # - git+https://github.com/takuseno/d4rl-pybullet

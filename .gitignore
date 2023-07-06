@@ -152,3 +152,6 @@ dmypy.json
 *.dbf
 *.prj
 packrat/lib*/
+
+# lightning
+lightning_logs

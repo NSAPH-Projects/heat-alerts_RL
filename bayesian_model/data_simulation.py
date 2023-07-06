@@ -58,12 +58,12 @@ np.mean(degrees)
 np.savetxt("bayesian_model/data/edge_list.csv", edge_list, delimiter=",", fmt="%d")
 
 # # %%
-model = CmdStanModel(stan_file="bayesian_model/model.stan")
+model = CmdStanModel(stan_file="bayesian_model/model_not_spatial.stan")
 print(model)
 
 # %% simulate a panel design
 S = len(counties)
-T = 10
+T = 100
 sind = np.repeat(np.arange(S), T)
 N = S * T
 node1 = edge_list[:, 0]
@@ -107,6 +107,7 @@ data = {
 init = {
     "omega_beta": 0.1 * np.ones((4,)),
     "omega_gamma": 0.1 * np.ones((4,)),
+    # "xi": 1.0
 }
 sample = model.sample(
     data=data,
@@ -131,11 +132,12 @@ for var in vars:
 # y ~ neg_bin2(mu, xi)
 # importantly, negbin needs to be parameterized by mean and overdispersion
 mu = data["mu"]
-xi = data["xi"]
-phi = 1 / xi  # overdispersion parameter, reciprocal of xi
-n = phi
-p = n / (n + mu)
-y = np.random.negative_binomial(n, p)
+# xi = data["xi"]
+# phi = 1 / xi  # overdispersion parameter, reciprocal of xi
+# n = phi
+# p = n / (n + mu)
+# y = np.random.negative_binomial(n, p)
+data["y"] = np.random.poisson(mu)
 
 # %%
 # serialize data as json.

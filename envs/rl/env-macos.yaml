@@ -16,8 +16,10 @@ dependencies:
   - click
   - tensorboardX
   - tqdm
+  - ipykernel
   - pip:
     - pytorch-lightning
+    - torch-tb-profiler
     - gym==0.17.2
     - stable-baselines3>=0.10.0
     # - pip install git+https://github.com/rail-berkeley/d4rl
