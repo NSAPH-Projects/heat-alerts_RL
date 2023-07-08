@@ -9,9 +9,9 @@ data {
     int<lower=0> S;  // number of spatial locations
     int<lower=0> DX;  // covariate dimension of time-vary feats
     int<lower=0> DW;  // covariate dimension of space-vary feats
-    array[N] int<lower=0> y;  // response variable
+    array[N] int<lower=0> Y;  // response variable
     vector<lower=0>[N] A;  // alerts
-    vector<lower=0>[S] P; // relevant population
+    vector<lower=0>[N] offset; // e.g. population
     matrix[N, DX] X;  // time-varying covariates
     matrix[S, DW] W;  // space-varying covariates
     array[N] int<lower=1,upper=S> sind; // spatial location index for each observation
@@ -33,13 +33,13 @@ transformed parameters {
     matrix[S, DX] beta;
     matrix[S, DX] gamma;
     for (s in 1:S) {
-        beta[s,] = W[s,] * delta_beta; #+ to_row_vector(omega_beta) .* beta_unstruct[s,];
-        gamma[s,] = W[s,] * delta_gamma;# + to_row_vector(omega_gamma) .* gamma_unstruct[s,];
+        beta[s,] = W[s,] * delta_beta + to_row_vector(omega_beta) .* beta_unstruct[s,];
+        gamma[s,] = W[s,] * delta_gamma + to_row_vector(omega_gamma) .* gamma_unstruct[s,];
     }
 
     vector[N] lam = exp(rowSums(X .* beta[sind,]));
-    vector[N] tau = inv_logit(rowSums(X .* gamma[sind,]));
-    vector[N] mu = P[sind] .* lam .* (1.0 - A .* tau);
+    vector[N] tau = inv_logit(-5 + rowSums(X .* gamma[sind,]));
+    vector[N] mu = offset .* lam .* (1.0 - A .* tau);
 }
 
 model {
@@ -64,6 +64,6 @@ model {
 
     // xi ~ gamma(2, 2)
 
-    y ~ poisson(mu + 1e-6);
+    Y ~ poisson(mu + 1e-6);
 }
 

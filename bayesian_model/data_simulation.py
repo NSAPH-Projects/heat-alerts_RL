@@ -122,7 +122,7 @@ sample = model.sample(
 
 # %%
 # print variable names in sample
-vars = list(sample._metadata.stan_vars_cols.keys())
+vars = list(sample.metadata.stan_vars_cols.keys())
 
 # add all vars to data
 for var in vars:
