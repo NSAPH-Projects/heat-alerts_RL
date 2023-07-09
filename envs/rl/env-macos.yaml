@@ -17,11 +17,15 @@ dependencies:
   - tensorboardX
   - tqdm
   - ipykernel
+  - pyarrow
+  - cmdstan
   - pip:
     - pytorch-lightning
     - torch-tb-profiler
     - gym==0.17.2
+    - pyro-ppl 
+    - cmdstanpy
     - stable-baselines3>=0.10.0
-    # - pip install git+https://github.com/rail-berkeley/d4rl
-    # - git+https://github.com/takuseno/d4rl-pybullet
+    - patsy
     - git+https://github.com/takuseno/d3rlpy@v1.1.1
+    - graphviz

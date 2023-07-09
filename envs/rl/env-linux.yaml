@@ -28,3 +28,4 @@ dependencies:
     - patsy
     - stable-baselines3>=0.10.0
     - git+https://github.com/takuseno/d3rlpy@v1.1.1
+    - graphviz
