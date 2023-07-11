@@ -15,7 +15,7 @@ Generate the required preprocessing
 python prepare_data.py
 ```
 
-This will create a bunch of files under the folder `bayesian_model/data/preprocessed`. They are not too big, only a few MBs.
+This will create a bunch of files under the folder `bayesian_model/data/preprocessed`. 
 
 The files will look like
 
@@ -39,7 +39,7 @@ There are three pyro models currently.
 * fit_data_pyro_simple.py
 * fit_data_pyro_nn.py
 
-I recommend only looking at the first one, the other two are a bit experimental.
+I recommend only looking at the first one, the other two are a bit experimental. The model used by this file is esentially the same as the one in `bayesian_model/model_not_spatial.stan`, which might be easier to read if more used to Stan notation.
 
 
 To run the models simply do
