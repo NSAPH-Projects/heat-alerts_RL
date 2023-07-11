@@ -96,8 +96,8 @@ data = {
     "node1": node1 + 1,
     "node2": node2 + 1,
     "A": np.random.binomial(1, 0.1, size=(N,)),
-    "y": np.random.poisson(10, size=(N,)),  # not used in fixed sampling
-    "P": P,
+    "Y": np.random.poisson(10, size=(N,)),  # not used in fixed sampling
+    "offset": P[sind],
     "X": X,
     "W": W,
     "sind": sind + 1,
@@ -137,7 +137,7 @@ mu = data["mu"]
 # n = phi
 # p = n / (n + mu)
 # y = np.random.negative_binomial(n, p)
-data["y"] = np.random.poisson(mu)
+data["Y"] = np.random.poisson(mu)
 
 # %%
 # serialize data as json.

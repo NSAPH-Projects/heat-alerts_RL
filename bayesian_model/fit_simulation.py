@@ -8,15 +8,12 @@ with open("bayesian_model/simulated_data/sim.json", "r") as f:
     sim_data = json.load(f)
 
 # load stan model
-model = CmdStanModel(stan_file="bayesian_model/model.stan")
+model = CmdStanModel(stan_file="bayesian_model/model_not_spatial.stan")
 
 # make fitting data
-keys = ["N", "S", "DX", "DW", "M", "node1", "node2",  "A", "P", "X", "W", "sind"]
+keys = ["N", "S", "DX", "DW", "M", "node1", "node2",  "A", "offset", "X", "W", "sind", "mu", "Y"]
 data = {key: sim_data[key] for key in keys}
 
-# simulate y from mu
-mu = sim_data["mu"]
-data["y"] = np.random.poisson(mu)
 
 # fit model, use variational inference
 fit = model.variational(
@@ -49,4 +46,5 @@ x = np.array(sim_data[var]).reshape(-1)
 plt.scatter(x, x_, alpha=0.02, c="blue", label="spatial")
 plt.xlabel("truth")
 plt.ylabel("estimated")
-plt.show()
+plt.savefig(f"bayesian_model/fit_simulation_{var}_cmdstan.png")
+plt.close()
