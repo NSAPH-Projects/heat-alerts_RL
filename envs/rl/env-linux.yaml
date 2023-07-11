@@ -19,6 +19,7 @@ dependencies:
   - ipykernel
   - cmdstan
   - tqdm
+  - graphviz
   - pyarrow
   - pip:
     - pytorch-lightning
@@ -26,6 +27,9 @@ dependencies:
     - gym==0.17.2
     - cmdstanpy
     - patsy
+    - pyro-ppl
     - stable-baselines3>=0.10.0
     - git+https://github.com/takuseno/d3rlpy@v1.1.1
     - graphviz
+    - seaborn
+    - statsmodels
