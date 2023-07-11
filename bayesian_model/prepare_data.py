@@ -9,7 +9,7 @@ from sklearn.preprocessing import StandardScaler
 
 
 # %%
-data_raw = pd.read_csv("../data/Train_smaller-for-Python.csv")
+data_raw = pd.read_csv("../data/Summer23_Train_smaller-for-Python.csv")
 data_raw.columns = [col.replace(".", "_") for col in data_raw.columns]
 data_raw.keys()
 
@@ -58,9 +58,11 @@ subfips = unique_fips[fips_ix]
 all_cols = [
     "fips",
     "Date",
+    "year",
     "quant_HI",
     "quant_HI_3d",
     "alert",
+    # "alert_lag1", # if doing online or hybrid RL
     "alerts_2wks",
     "other_hosps",
     "pm25",
@@ -90,6 +92,7 @@ space_keys = [
     "broadband_usage",
     "Democrat",
     "Population",
+    "pm25",
 ]
 W = (
     data[space_keys]
@@ -115,7 +118,7 @@ W = pd.concat([W, BA_zone], axis=1)
 
 # %% standardize W
 wscaler = StandardScaler()
-wscaler_cols = ["broadband_usage", "Democrat", "Lop_Pop_density", "Log_Med_HH_Income"]
+wscaler_cols = ["broadband_usage", "Democrat", "Lop_Pop_density", "Log_Med_HH_Income", "pm25"]
 W[wscaler_cols] = wscaler.fit_transform(W[wscaler_cols])
 W["intercept"] = 1.0
 
@@ -142,7 +145,6 @@ time_keys = [
     "quant_HI_3d",
     "alerts_2wks",
     "holiday",
-    "pm25",
 ]
 X = (
     data[time_keys].set_index(["fips", "Date"])
