@@ -32,13 +32,17 @@ parameters {
 transformed parameters {
     matrix[S, DX] beta;
     matrix[S, DX] gamma;
+    matrix[S, DX] Wdbeta = W * delta_beta;
+    matrix[S, DX] Wdgamma = W * delta_gamma;
     for (s in 1:S) {
-        beta[s,] = W[s,] * delta_beta + to_row_vector(omega_beta) .* beta_unstruct[s,];
-        gamma[s,] = W[s,] * delta_gamma + to_row_vector(omega_gamma) .* gamma_unstruct[s,];
+        beta[s,] = Wdbeta[s, ] + to_row_vector(omega_beta) .* beta_unstruct[s,];
+        gamma[s,] = Wdgamma[s, ] + to_row_vector(omega_gamma) .* gamma_unstruct[s,];
+        // gamma[s,] = to_row_vector(omega_gamma) .* gamma_unstruct[s,];
+        // beta[s,] = to_row_vector(omega_beta) .* beta_unstruct[s,];
     }
 
     vector[N] lam = exp(rowSums(X .* beta[sind,]));
-    vector[N] tau = inv_logit(-5 + rowSums(X .* gamma[sind,]));
+    vector[N] tau = inv_logit(rowSums(X .* gamma[sind,]));
     vector[N] mu = offset .* lam .* (1.0 - A .* tau);
 }
 
@@ -58,8 +62,8 @@ model {
         gamma_unstruct[, d] ~ normal(0, 1);
     }
     for (d in 1:DW) {
-        delta_beta[, d] ~ normal(0, 1);
-        delta_gamma[, d] ~ normal(0, 1);
+        delta_beta[, d] ~ normal(0, 1.0);
+        delta_gamma[, d] ~ normal(0, 1.0);
     }
 
     // xi ~ gamma(2, 2)

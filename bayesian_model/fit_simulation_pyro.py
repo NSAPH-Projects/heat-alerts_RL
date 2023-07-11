@@ -14,7 +14,7 @@ def train(model, guide, data, lr, n_steps):
     pyro.clear_param_store()
     adam_params = {"lr": lr}
     adam = pyro.optim.Adam(adam_params)
-    svi = SVI(model, guide, adam, loss=Trace_ELBO(num_particles=10, vectorize_particles=True))
+    svi = SVI(model, guide, adam, loss=Trace_ELBO(num_particles=10))
 
     for step in range(n_steps):
         loss = svi.step(*data)
@@ -25,7 +25,7 @@ def train(model, guide, data, lr, n_steps):
 def train2(model, guide, data, lr, n_epochs, batch_size):
     # initialize
     pyro.clear_param_store()
-    loss_fn = pyro.infer.Trace_ELBO()(model, guide)
+    loss_fn = pyro.infer.Trace_ELBO(num_particles=10)(model, guide)
     loss_fn(*data)  # initialize parameters
     opt = torch.optim.Adam(loss_fn.parameters(), lr=lr)
 
@@ -139,7 +139,7 @@ def main():
     # guide = pyro.infer.autoguide.AutoDelta(model)
     # guide = pyro.infer.autoguide.AutoDiagonalNormal(model)
     # guide = pyro.infer.autoguide.AutoMultivariateNormal(model)
-    guide = pyro.infer.autoguide.AutoLowRankMultivariateNormal(model, rank=500)
+    guide = pyro.infer.autoguide.AutoLowRankMultivariateNormal(model, rank=100)
     inputs = [A, X, offset, sind, Y]
 
     # train(model, guide, inputs, lr=0.003, n_steps=5000)
