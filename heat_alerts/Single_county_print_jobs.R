@@ -25,7 +25,7 @@ b_size<- c(32)
 ma<- c(20)
 
 ## Next:
-algos<- c("CPQ") # , "DoubleDQN"
+algos<- c("CPQ", "DoubleDQN") # , "DoubleDQN"
 seed<- c("321", "221", "121")
 fips<- c("4013", "36061")
 NHU<- c(256)
@@ -35,7 +35,7 @@ SR<- c(3)
 HER<- c("T")
 std_b<- c(0)
 mult_a<- c(0.9)
-mult_alag1<- c(0.95,0.99)
+mult_alag1<- c(0.95)
 b_size<- c(1200) # 2048*2
 
 
@@ -53,12 +53,12 @@ colnames(tests)<- c("algo", "Std_B", "HER", "seed", "LR",
 
 sink("Run_jobs/Single_county_dqn_tests")
 for(i in 1:nrow(tests)){
-  cat(paste("python heat_alerts/Simulated_RL.py",
+  cat(paste("python heat_alerts/Single_county_RL.py",
                 "--n_gpus", 0,
                 "--lr", tests[i, "LR"],
                 "--std_budget", tests[i, "Std_B"],
-                "--mult_a", tests[i, "mult_a"],
-                "--mult_alag1", tests[i, "mult_alag1"],
+                # "--mult_a", tests[i, "mult_a"],
+                # "--mult_alag1", tests[i, "mult_alag1"],
                 "--algo", tests[i, "algo"],
                 "--HER", tests[i, "HER"],
                 "--n_epochs", 10000,
@@ -67,7 +67,7 @@ for(i in 1:nrow(tests)){
                 "--fips", tests[i, "fips"],
                 "--seed", tests[i, "seed"],
                 "--b_size", tests[i, "b_size"],
-                "--model_name", paste0("SC_SimAR_trunc-2_", tests[i, "algo"],
+                "--model_name", paste0("SC_Pyro-0_", tests[i, "algo"],
                                        "_Std_B-", tests[i, "Std_B"],
                                        "_Mult-", 1-tests[i, "mult_a"],
                                        "_Mlag-", tests[i, "mult_alag1"],
