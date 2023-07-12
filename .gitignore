@@ -4,6 +4,7 @@ Run_jobs/slurm/*
 
 # Random folders to ignore:
 d3rlpy_logs/*
+Bayesian_models/*
 Summer_results/*
 Policies/*
 Sim_actions/*

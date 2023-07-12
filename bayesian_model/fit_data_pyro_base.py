@@ -264,8 +264,8 @@ def main(args):
     ax.set_title("Day of summer effect")
     fig.savefig("fit_data_pyro_splines_base.png", bbox_inches="tight")
 
-    torch.save(model, "Summer_results/Bayesian_model_7-11.pt")
-    torch.save(guide, "Summer_results/Bayesian_guide_7-11.pt")
+    torch.save(model, "../Bayesian_models/Pyro_model_7-11.pt")
+    torch.save(guide, "../Bayesian_models/Pyro_guide_7-11.pt")
 
 
 if __name__ == "__main__":

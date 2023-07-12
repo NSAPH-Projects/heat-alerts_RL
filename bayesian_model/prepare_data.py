@@ -59,8 +59,8 @@ all_cols = [
     "fips",
     "Date",
     "year",
-    "quant_HI",
-    "quant_HI_3d",
+    "quant_HI_county",
+    "quant_HI_3d_county",
     "alert",
     # "alert_lag1", # if doing online or hybrid RL
     "alerts_2wks",

@@ -41,7 +41,7 @@ class CPQImpl(DQNImpl):
                 new_budgets = np.random.randint(0, already_issued + more_alerts + 1) # upper end is round bracket
                 more_alerts = (already_issued < new_budgets).astype(int)
             more_alerts = torch.tensor(more_alerts).to(device)
-            constrained_targets = torch.where(torch.logical_and(action==1, more_alerts > 0), opposite_targets, original_targets) 
+            constrained_targets = torch.where(torch.logical_and(action==1, more_alerts < 1), opposite_targets, original_targets) 
             # penalized_targets = torch.where(torch.logical_and(action==1, more_alerts < 0.5), original_targets - penalty, original_targets)
             # boosted_targets = torch.where(torch.logical_and(action==1, more_alerts > 0.5), original_targets + boost, original_targets)
             # constrained_targets = torch.where(more_alerts > 0.5, boosted_targets, penalized_targets)
