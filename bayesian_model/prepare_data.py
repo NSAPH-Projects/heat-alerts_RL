@@ -141,8 +141,9 @@ Bdos.columns = [f"dos_{i}" for i in range(Bdos.shape[1])]
 time_keys = [
     "fips",
     "Date",
-    "quant_HI",
-    "quant_HI_3d",
+    "year",
+    "quant_HI_county",
+    "quant_HI_3d_county",
     "alerts_2wks",
     "holiday",
 ]
@@ -151,11 +152,12 @@ X = (
     .assign(weekend=data.dow.isin(["Saturday", "Sunday"]).values.astype(int))
     # insert the square of quant_HI after quant_HI
     # make sure it is the third column
-    .assign(quant_HI_pow2=lambda x: (x["quant_HI"]  - 0.5)** 2)
-    .assign(quant_HI_3d_pow2=lambda x: (x["quant_HI_3d"]  - 0.5)** 2)
+    .assign(quant_HI_county_pow2=lambda x: (x["quant_HI_county"]  - 0.5)** 2)
+    .assign(quant_HI_3d_county_pow2=lambda x: (x["quant_HI_3d_county"]  - 0.5)** 2)
     .assign(intercept=1.0)
 )
-reorder = ["intercept", "quant_HI", "quant_HI_pow2", "quant_HI_3d", "quant_HI_3d_pow2"]
+reorder = ["intercept", "quant_HI_county", "quant_HI_county_pow2", "quant_HI_3d_county", "quant_HI_3d_county_pow2",
+           "year", "weekend", "alerts_2wks"]
 X = X[reorder]
 
 # paste splines onto X
