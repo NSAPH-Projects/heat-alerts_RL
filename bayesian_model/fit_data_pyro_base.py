@@ -97,12 +97,12 @@ class Model(pyro.nn.PyroModule):
         # linear coefficients of heat alert effectivness
         beta_prior_mean = W @ delta_beta
         beta = beta_prior_mean + omega_beta * unstruct_beta[sind]
-        tau = torch.sigmoid((gamma * X).sum(-1))  # heat alert effectiveness
+        lam = torch.exp((beta * X).sum(-1).clamp(-20, 10))  # baseline rate
 
         # linear coefficients of baseline rate
         gamma_prior_mean = W @ delta_gamma
         gamma = gamma_prior_mean + omega_gamma * unstruct_gamma[sind]
-        lam = torch.exp((beta * X).sum(-1).clamp(-20, 10))  # baseline rate
+        tau = torch.sigmoid((gamma * X).sum(-1))  # heat alert effectiveness
 
         # expected number of cases
         mu = offset * lam * (1.0 - A * tau) 
@@ -263,6 +263,9 @@ def main(args):
     ax.set_xlabel("Day of summer")
     ax.set_title("Day of summer effect")
     fig.savefig("fit_data_pyro_splines_base.png", bbox_inches="tight")
+
+    torch.save(model, "Summer_results/Bayesian_model_7-11.pt")
+    torch.save(guide, "Summer_results/Bayesian_guide_7-11.pt")
 
 
 if __name__ == "__main__":
