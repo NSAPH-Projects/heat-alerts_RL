@@ -173,6 +173,7 @@ X.head()
 # %% get alerts and outcome data
 A = data[["fips", "Date", "alert"]].set_index(["fips", "Date"])
 Y = data[["fips", "Date", "other_hosps"]].set_index(["fips", "Date"])
+year = data[["fips", "Date", "year"]].set_index(["fips", "Date"])
 
 # plot histograms of alerts and hospos in (1, 2) pane
 # fig, ax = plt.subplots(1, 2, figsize=(10, 5))
@@ -192,14 +193,14 @@ sind = pd.DataFrame({"sind": sind}, Y.index)
 P = data[["Population"]] / 1000 # better to work on thousands
 
 # %% offset = location means
-df = pd.DataFrame({"other_hosps": Y.values[:, 0], "sind": sind.values[:, 0]})
+df = pd.DataFrame({"other_hosps": Y.values[:, 0], "sind": sind.values[:, 0], "year": year.values[:, 0]})
 tmp = (
-    df.groupby("sind")
+    df.groupby(["sind","year"])
     .mean()
     .reset_index()
     .rename(columns={"other_hosps": "mean_other_hosps"})
 )
-offset = df.merge(tmp, on="sind", how="left")[["mean_other_hosps"]]
+offset = df.merge(tmp, on=["sind","year"], how="left")[["mean_other_hosps"]]
 
 
 # %% save time varying features, treatment, outcomes

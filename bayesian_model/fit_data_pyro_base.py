@@ -267,7 +267,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--n_epochs", type=int, default=25)
+    parser.add_argument("--n_epochs", type=int, default=30)
     parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument("--num_particles", type=int, default=10)
     args = parser.parse_args()
