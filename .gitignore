@@ -13,6 +13,8 @@ bin/*
 cpq_global.py
 .lr_find*
 random*
+*workspace*
+*cuda*
 
 # Pytorch models and other output from bayesian model:
 *.pt
