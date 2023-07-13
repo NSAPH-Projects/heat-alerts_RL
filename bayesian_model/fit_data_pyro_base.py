@@ -184,7 +184,7 @@ def main(args):
         "unstruct_beta",
         "unstruct_gamma"
     ]
-    params = Predictive(model, guide=guide, num_samples=50, return_sites=sites)(*inputs)
+    params = Predictive(model, guide=guide, num_samples=args.n_samples, return_sites=sites)(*inputs)
     params = {k: v[:, 0] for k, v in params.items()}
 
     # save a json of all samples on sites, make sure to save as float
@@ -197,7 +197,7 @@ def main(args):
     predictive_outputs = Predictive(
         model,
         guide=guide,
-        num_samples=50,
+        num_samples=args.n_samples,
         return_sites=["_RETURN"],
     )
     outputs = predictive_outputs(*inputs, return_all=True)["_RETURN"]
@@ -223,7 +223,7 @@ def main(args):
     W__ = torch.tensor(
         pd.read_parquet(f"{dir}/spatial_feats.parquet").values, dtype=torch.float32
     )
-    for i in range(50):
+    for i in range(args.n_samples):
         delta_beta = params["delta_beta"][i]
         delta_gamma = params["delta_gamma"][i]
         omega_beta = params["omega_beta"][i]
@@ -301,6 +301,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--n_epochs", type=int, default=10)
+    parser.add_argument("--n_samples", type=int, default=50)
     parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument("--num_particles", type=int, default=10)
     parser.add_argument("--name", type=str, default="test")
