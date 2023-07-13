@@ -5,6 +5,7 @@ Run_jobs/slurm/*
 # vscode projects
 devcontainer.json
 launch.json
+settings.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
