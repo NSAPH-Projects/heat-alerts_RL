@@ -9,7 +9,7 @@ from sklearn.preprocessing import StandardScaler
 
 
 # %%
-data_raw = pd.read_csv("../data/Train_smaller-for-Python.csv")
+data_raw = pd.read_csv("../data/Summer23_Train_smaller-for-Python.csv")
 data_raw.columns = [col.replace(".", "_") for col in data_raw.columns]
 data_raw.keys()
 
@@ -58,9 +58,11 @@ subfips = unique_fips[fips_ix]
 all_cols = [
     "fips",
     "Date",
-    "quant_HI",
-    "quant_HI_3d",
+    "year",
+    "quant_HI_county",
+    "quant_HI_3d_county",
     "alert",
+    # "alert_lag1", # if doing online or hybrid RL
     "alerts_2wks",
     "other_hosps",
     "pm25",
@@ -90,6 +92,7 @@ space_keys = [
     "broadband_usage",
     "Democrat",
     "Population",
+    "pm25",
 ]
 W = (
     data[space_keys]
@@ -115,7 +118,7 @@ W = pd.concat([W, BA_zone], axis=1)
 
 # %% standardize W
 wscaler = StandardScaler()
-wscaler_cols = ["broadband_usage", "Democrat", "Lop_Pop_density", "Log_Med_HH_Income"]
+wscaler_cols = ["broadband_usage", "Democrat", "Lop_Pop_density", "Log_Med_HH_Income", "pm25"]
 W[wscaler_cols] = wscaler.fit_transform(W[wscaler_cols])
 W["intercept"] = 1.0
 
@@ -138,22 +141,23 @@ Bdos.columns = [f"dos_{i}" for i in range(Bdos.shape[1])]
 time_keys = [
     "fips",
     "Date",
-    "quant_HI",
-    "quant_HI_3d",
+    # "year",
+    "quant_HI_county",
+    "quant_HI_3d_county",
     "alerts_2wks",
     "holiday",
-    "pm25",
 ]
 X = (
     data[time_keys].set_index(["fips", "Date"])
     .assign(weekend=data.dow.isin(["Saturday", "Sunday"]).values.astype(int))
     # insert the square of quant_HI after quant_HI
     # make sure it is the third column
-    .assign(quant_HI_pow2=lambda x: (x["quant_HI"]  - 0.5)** 2)
-    .assign(quant_HI_3d_pow2=lambda x: (x["quant_HI_3d"]  - 0.5)** 2)
+    .assign(quant_HI_county_pow2=lambda x: (x["quant_HI_county"]  - 0.5)** 2)
+    .assign(quant_HI_3d_county_pow2=lambda x: (x["quant_HI_3d_county"]  - 0.5)** 2)
     .assign(intercept=1.0)
 )
-reorder = ["intercept", "quant_HI", "quant_HI_pow2", "quant_HI_3d", "quant_HI_3d_pow2"]
+reorder = ["intercept", "quant_HI_county", "quant_HI_county_pow2", "quant_HI_3d_county", "quant_HI_3d_county_pow2",
+           "weekend", "alerts_2wks"] # "year", 
 X = X[reorder]
 
 # paste splines onto X
@@ -171,6 +175,7 @@ X.head()
 # %% get alerts and outcome data
 A = data[["fips", "Date", "alert"]].set_index(["fips", "Date"])
 Y = data[["fips", "Date", "other_hosps"]].set_index(["fips", "Date"])
+year = data[["fips", "Date", "year"]].set_index(["fips", "Date"])
 
 # plot histograms of alerts and hospos in (1, 2) pane
 # fig, ax = plt.subplots(1, 2, figsize=(10, 5))
@@ -190,14 +195,14 @@ sind = pd.DataFrame({"sind": sind}, Y.index)
 P = data[["Population"]] / 1000 # better to work on thousands
 
 # %% offset = location means
-df = pd.DataFrame({"other_hosps": Y.values[:, 0], "sind": sind.values[:, 0]})
+df = pd.DataFrame({"other_hosps": Y.values[:, 0], "sind": sind.values[:, 0], "year": year.values[:, 0]})
 tmp = (
-    df.groupby("sind")
+    df.groupby(["sind","year"])
     .mean()
     .reset_index()
     .rename(columns={"other_hosps": "mean_other_hosps"})
 )
-offset = df.merge(tmp, on="sind", how="left")[["mean_other_hosps"]]
+offset = df.merge(tmp, on=["sind","year"], how="left")[["mean_other_hosps"]]
 
 
 # %% save time varying features, treatment, outcomes
