@@ -7,9 +7,9 @@ import numpy as np
 import torch
 import itertools
 
-def main(name):
+def main(args):
 
-    with open("Plots_params/fit_data_pyro_base_" + name + ".json","r") as f:
+    with open("Plots_params/fit_data_pyro_base_" + args.name + ".json","r") as f:
         params = json.load(f)
 
     with open("data/processed/fips2idx.json","r") as f:
@@ -60,11 +60,11 @@ def main(name):
 
     # mu = lam * (1.0 - A_ * tau) 
     R0 = lam.detach().numpy()
-    R1 = lam * (1.0 - torch.ones(len(tau)) * tau).detach().numpy() 
+    R1 = R0 * (1.0 - torch.ones(len(tau)) * tau).detach().numpy() 
 
     df = pd.DataFrame(np.stack([Fips, R0, R1], axis = 1))
     df.columns = ["fips", "R0", "R1"]
-    df.to_csv("../Bayesian_models/Bayesian_R_" + name + ".csv")
+    df.to_csv("../Bayesian_models/Bayesian_R_" + args.name + ".csv")
 
 
 if __name__ == "__main__":
@@ -72,4 +72,4 @@ if __name__ == "__main__":
     parser.add_argument("--name", type=str, default="test")
     parser.add_argument("--n_samples", type=int, default=50)
     args = parser.parse_args()
-    main(args.name)
+    main(args)

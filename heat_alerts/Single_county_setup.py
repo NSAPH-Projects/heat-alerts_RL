@@ -44,7 +44,7 @@ def make_data(
         rewards = rewards.to_numpy()
     else:
         # rewards = pd.read_csv("Summer_results/R_6-28_forced_small-S_all.csv")
-        rewards = pd.read_csv("Summer_results/Bayesian_R_7-12.csv")
+        rewards = pd.read_csv("Bayesian_models/Bayesian_R_7-13.csv")
         rewards = rewards.loc[rewards["fips"] == fips]
         rewards = torch.gather(torch.FloatTensor(-rewards.to_numpy()), 1, torch.LongTensor(elig["alert"].to_numpy()).view(-1, 1) +2).view(-1)
         rewards = -torch.log(-rewards).detach().numpy()
@@ -73,7 +73,8 @@ def make_data(
     #                "T_since_alert", "alert_sum", "More_alerts", "all_hosp_mean_rate"]]
     States = elig[[
         # "quant_HI_county", "quant_HI_3d_county", "year", "weekend", "T_since_alert",
-        "quant_HI", "quant_HI_3d", "dos", "alert_sum", "More_alerts"
+        "quant_HI_county", "quant_HI_3d_county", "dos", "alert_sum", "More_alerts", 
+        "alerts_2wks", "year"
     ]]
 
     s_means = States.mean(0)
@@ -82,13 +83,13 @@ def make_data(
 
     observations = S.reset_index().drop("index", axis=1)
 
-    # S_enc = skprep.OneHotEncoder(drop = "first")
-    # S_enc.fit(elig[["dow"]])
-    # S_ohe = S_enc.transform(elig[["dow"]]).toarray()
-    # S_names = S_enc.get_feature_names_out(["dow"]) 
-    # S_OHE = pd.DataFrame(S_ohe, columns=S_names)
+    S_enc = skprep.OneHotEncoder(drop = "first")
+    S_enc.fit(elig[["dow"]])
+    S_ohe = S_enc.transform(elig[["dow"]]).toarray()
+    S_names = S_enc.get_feature_names_out(["dow"]) 
+    S_OHE = pd.DataFrame(S_ohe, columns=S_names)
 
-    # observations["weekend"] = S_OHE["dow_Saturday"] + S_OHE["dow_Sunday"]
+    observations["weekend"] = S_OHE["dow_Saturday"] + S_OHE["dow_Sunday"]
     print(observations.columns)
 
     dataset = MDPDataset(

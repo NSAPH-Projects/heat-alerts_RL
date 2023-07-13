@@ -67,7 +67,7 @@ for(i in 1:nrow(tests)){
                 "--fips", tests[i, "fips"],
                 "--seed", tests[i, "seed"],
                 "--b_size", tests[i, "b_size"],
-                "--model_name", paste0("SC_Pyro-0_", tests[i, "algo"],
+                "--model_name", paste0("SC_Pyro-1_", tests[i, "algo"],
                                        "_Std_B-", tests[i, "Std_B"],
                                        # "_Mult-", 1-tests[i, "mult_a"],
                                        # "_Mlag-", tests[i, "mult_alag1"],
