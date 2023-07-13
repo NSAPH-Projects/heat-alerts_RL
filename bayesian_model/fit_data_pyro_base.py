@@ -159,7 +159,7 @@ def main(args):
     #                 1881904.5424, 1881122.4806, 1880569.2459]
 
     plt.plot(np.log(np.array(Epoch_losses)))
-    plt.savefig("fit_data_pyro_base_" + args.name + "_log-Loss.png")
+    plt.savefig("Plots_params/fit_data_pyro_base_" + args.name + "_log-Loss.png")
     plt.clf()
 
     # extract tau
@@ -178,7 +178,7 @@ def main(args):
     results = {}
     for s in sites:
         results[s] = params[s].numpy().astype(float).tolist()
-    with open("fit_data_pyro_base_" + args.name + ".json", "w") as io:
+    with open("Plots_params/fit_data_pyro_base_" + args.name + ".json", "w") as io:
         json.dump(results, io)
 
     predictive_outputs = Predictive(
@@ -202,7 +202,7 @@ def main(args):
     ax[3].set_xlabel("mu")
     ax[3].set_ylabel("real obs")
 
-    fig.savefig("fit_data_pyro_base_" + args.name + ".png", bbox_inches="tight")
+    fig.savefig("Plots_params/fit_data_pyro_base_" + args.name + ".png", bbox_inches="tight")
 
     # make errorplot of gamma and beta coefficients
     betas = []
@@ -249,7 +249,7 @@ def main(args):
     ax[1].set_xticks(np.arange(len(colnames)))
     ax[1].set_xticklabels(colnames, rotation=45)
     ax[1].set_title("expected baseline hospitalizations")
-    fig.savefig("fit_data_pyro_coefficients_base_" + args.name + ".png", bbox_inches="tight")
+    fig.savefig("Plots_params/fit_data_pyro_coefficients_base_" + args.name + ".png", bbox_inches="tight")
 
     # load spline design matrix
     dos = pd.read_parquet("data/processed/Btdos.parquet").values # T x num feats
@@ -269,7 +269,7 @@ def main(args):
     ax.plot(np.nanmean(dos_eff,(0)), color="k", lw=2)
     ax.set_xlabel("Day of summer")
     ax.set_title("Day of summer effect")
-    fig.savefig("fit_data_pyro_splines_base_" + args.name + ".png", bbox_inches="tight")
+    fig.savefig("Plots_params/fit_data_pyro_splines_base_" + args.name + ".png", bbox_inches="tight")
 
     torch.save(model, "../Bayesian_models/Pyro_model_" + args.name + ".pt")
     torch.save(guide, "../Bayesian_models/Pyro_guide_" + args.name + ".pt")
