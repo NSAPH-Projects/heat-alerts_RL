@@ -22,7 +22,6 @@ def train(model, guide, data, lr, n_epochs, batch_size, num_particles=1):
     num_pars = [p.numel() for p in loss_fn.parameters() if p.requires_grad]
     print("Number of parameters: ", sum(num_pars))
     opt = torch.optim.Adam(loss_fn.parameters(), lr=lr)
-
     # # Create a dataloader.
     dataset = torch.utils.data.TensorDataset(*data)
     dataloader = torch.utils.data.DataLoader(
@@ -34,7 +33,6 @@ def train(model, guide, data, lr, n_epochs, batch_size, num_particles=1):
         prefetch_factor=8,
         persistent_workers=True,
     )
-
     epoch_loss = np.nan
     for epoch in range(n_epochs):
         epoch_losses = []
@@ -58,6 +56,7 @@ def train(model, guide, data, lr, n_epochs, batch_size, num_particles=1):
                     epoch + 1, n_epochs, epoch_loss
                 )
             )
+    return(epoch_loss)
 
 
 class Model(pyro.nn.PyroModule):
@@ -65,12 +64,10 @@ class Model(pyro.nn.PyroModule):
         super().__init__()
         self.S = S
         self.N = N
-
     def forward(self, A, X, W, offset, sind, Y=None, return_all=False):
         batch_size, DX = X.shape
         _, DW = W.shape
         S = self.S
-
         # spatial random effects and common variance
         unstruct_beta = pyro.sample(
             "unstruct_beta", dist.Normal(0, 1).expand([S, DX]).to_event(2)
@@ -84,7 +81,6 @@ class Model(pyro.nn.PyroModule):
         omega_gamma = pyro.sample(
             "omega_gamma", dist.HalfCauchy(1.0).expand([DX]).to_event(1)
         )
-
         # coefficients for the mean of the random effects as 
         # explained by the spatial features
         delta_beta = pyro.sample(
@@ -93,22 +89,18 @@ class Model(pyro.nn.PyroModule):
         delta_gamma = pyro.sample(
             "delta_gamma", dist.Normal(0, 1).expand([DW, DX]).to_event(2)
         )
-
         # linear coefficients of heat alert effectivness
         beta_prior_mean = W @ delta_beta
         beta = beta_prior_mean + omega_beta * unstruct_beta[sind]
-        tau = torch.sigmoid((gamma * X).sum(-1))  # heat alert effectiveness
-
+        lam = torch.exp((beta * X).sum(-1).clamp(-20, 10))  # baseline rate
         # linear coefficients of baseline rate
         gamma_prior_mean = W @ delta_gamma
         gamma = gamma_prior_mean + omega_gamma * unstruct_gamma[sind]
-        lam = torch.exp((beta * X).sum(-1).clamp(-20, 10))  # baseline rate
-
+        tau = torch.sigmoid((gamma * X).sum(-1))  # heat alert effectiveness
         # expected number of cases
         mu = offset * lam * (1.0 - A * tau) 
         with pyro.plate("obs_plate", self.N, batch_size):
             obs = pyro.sample("obs", dist.Poisson(mu + 1e-6), obs=Y)
-
         if not return_all:
             return obs
         else:
@@ -149,7 +141,7 @@ def main(args):
         model, init_loc_fn=init_fn
     )
 
-    train(
+    epoch_loss = train(
         model,
         guide,
         inputs,
@@ -158,6 +150,9 @@ def main(args):
         batch_size=X.shape[0] // S,
         num_particles=args.num_particles,
     )
+
+    loss_plot = plt.plot(np.log(np.array(epoch_loss)))
+    loss_plot.savefig("fit_data_pyro_base_" + args["name"] + "_log-Loss.png")
 
     # extract tau
     sites = [
@@ -175,7 +170,7 @@ def main(args):
     results = {}
     for s in sites:
         results[s] = params[s].numpy().astype(float).tolist()
-    with open("fit_data_pyro_base.json", "w") as io:
+    with open("fit_data_pyro_base_" + args["name"] + ".json", "w") as io:
         json.dump(results, io)
 
     predictive_outputs = Predictive(
@@ -264,11 +259,15 @@ def main(args):
     ax.set_title("Day of summer effect")
     fig.savefig("fit_data_pyro_splines_base.png", bbox_inches="tight")
 
+    torch.save(model, "../Bayesian_models/Pyro_model_" + args["name"] + ".pt")
+    torch.save(guide, "../Bayesian_models/Pyro_guide_" + args["name"] + ".pt")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--n_epochs", type=int, default=25)
+    parser.add_argument("--n_epochs", type=int, default=30)
     parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument("--num_particles", type=int, default=10)
+    parser.add_argument("--name", type=str, default="test")
     args = parser.parse_args()
     main(args)

@@ -2,6 +2,27 @@
 data/*
 Run_jobs/slurm/*
 
+# Random folders to ignore:
+d3rlpy_logs/*
+Bayesian_models/*
+Summer_results/*
+Policies/*
+Sim_actions/*
+Fall_results/*
+new_results/*
+bin/*
+cpq_global.py
+.lr_find*
+random*
+*workspace*
+*cuda*
+
+# Pytorch models and other output from bayesian model:
+*.pt
+*.parquet
+*.json
+*.png
+
 # vscode projects
 devcontainer.json
 launch.json
