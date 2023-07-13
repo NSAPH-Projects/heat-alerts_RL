@@ -39,8 +39,8 @@ for i in range(50):
     omega_gamma = torch.tensor(params["omega_gamma"][i])
     unstruct_beta = torch.tensor(params["unstruct_beta"][i])
     unstruct_gamma = torch.tensor(params["unstruct_gamma"][i])
-    beta = W_ @ delta_beta + omega_beta * unstruct_beta[sind_]
-    gamma = W_ @ delta_gamma + omega_gamma * unstruct_gamma[sind_]
+    beta = W_ @ delta_beta + omega_beta * unstruct_beta
+    gamma = W_ @ delta_gamma + omega_gamma * unstruct_gamma
     betas.append(beta.numpy())
     gammas.append(gamma.numpy())
 

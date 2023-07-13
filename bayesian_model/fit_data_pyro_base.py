@@ -33,6 +33,7 @@ def train(model, guide, data, lr, n_epochs, batch_size, num_particles=1):
         prefetch_factor=8,
         persistent_workers=True,
     )
+    Epoch_losses = []
     epoch_loss = np.nan
     for epoch in range(n_epochs):
         epoch_losses = []
@@ -50,13 +51,14 @@ def train(model, guide, data, lr, n_epochs, batch_size, num_particles=1):
             pbar_desc = f"[epoch {epoch + 1}/{n_epochs}, {loss:.4f}]"
             pbar.set_description(pbar_desc, refresh=False)
         epoch_loss = sum(epoch_losses) / len(epoch_losses)
+        Epoch_losses.append(epoch_loss)
         if epoch == 0 or ((epoch + 1) % (n_epochs // 10)) == 0:
             print(
                 "[epoch {}/{}]  av. loss: {:.4f}".format(
                     epoch + 1, n_epochs, epoch_loss
                 )
             )
-    return(epoch_loss)
+    return(Epoch_losses)
 
 
 class Model(pyro.nn.PyroModule):
@@ -141,7 +143,7 @@ def main(args):
         model, init_loc_fn=init_fn
     )
 
-    epoch_loss = train(
+    Epoch_losses = train(
         model,
         guide,
         inputs,
@@ -151,8 +153,14 @@ def main(args):
         num_particles=args.num_particles,
     )
 
-    loss_plot = plt.plot(np.log(np.array(epoch_loss)))
-    loss_plot.savefig("fit_data_pyro_base_" + args["name"] + "_log-Loss.png")
+    # Epoch_losses = [19508104.7326,2055036.1426,1945329.8471,
+    #                 1911139.4525, 1897020.1684, 1890630.5793,
+    #                 1887040.8233, 1884691.2122, 1883054.4575,
+    #                 1881904.5424, 1881122.4806, 1880569.2459]
+
+    plt.plot(np.log(np.array(Epoch_losses)))
+    plt.savefig("fit_data_pyro_base_" + args.name + "_log-Loss.png")
+    plt.clf()
 
     # extract tau
     sites = [
@@ -161,7 +169,7 @@ def main(args):
         "delta_beta",
         "delta_gamma",
         "unstruct_beta",
-        "unstruct_gamma",
+        "unstruct_gamma"
     ]
     params = Predictive(model, guide=guide, num_samples=50, return_sites=sites)(*inputs)
     params = {k: v[:, 0] for k, v in params.items()}
@@ -170,7 +178,7 @@ def main(args):
     results = {}
     for s in sites:
         results[s] = params[s].numpy().astype(float).tolist()
-    with open("fit_data_pyro_base_" + args["name"] + ".json", "w") as io:
+    with open("fit_data_pyro_base_" + args.name + ".json", "w") as io:
         json.dump(results, io)
 
     predictive_outputs = Predictive(
@@ -194,7 +202,7 @@ def main(args):
     ax[3].set_xlabel("mu")
     ax[3].set_ylabel("real obs")
 
-    fig.savefig("fit_data_pyro_base.png", bbox_inches="tight")
+    fig.savefig("fit_data_pyro_base_" + args.name + ".png", bbox_inches="tight")
 
     # make errorplot of gamma and beta coefficients
     betas = []
@@ -215,10 +223,10 @@ def main(args):
     betas = np.stack(betas, axis=0)
     gammas = np.stack(gammas, axis=0)
 
-    betas_means = betas.mean((0, 1))
-    betas_std = betas.std((0, 1))
-    gammas_means = gammas.mean((0, 1))
-    gammas_std = gammas.std((0, 1))
+    betas_means = np.nanmean(betas,(0, 1))
+    betas_std = np.nanstd(betas,(0, 1))
+    gammas_means = np.nanmean(gammas,(0, 1))
+    gammas_std = np.nanstd(gammas,(0, 1))
     colnames = [c for c in X.columns if not c.startswith("dos")]
     colidx = np.array([i for i, c in enumerate(X.columns) if not c.startswith("dos")])
 
@@ -241,26 +249,30 @@ def main(args):
     ax[1].set_xticks(np.arange(len(colnames)))
     ax[1].set_xticklabels(colnames, rotation=45)
     ax[1].set_title("expected baseline hospitalizations")
-    fig.savefig("fit_data_pyro_coefficients_base.png", bbox_inches="tight")
+    fig.savefig("fit_data_pyro_coefficients_base_" + args.name + ".png", bbox_inches="tight")
 
     # load spline design matrix
-    dos = pd.read_parquet("data/processed/Btdos.parquet") .values # T x num feats
+    dos = pd.read_parquet("data/processed/Btdos.parquet").values # T x num feats
 
     dos_cols = np.array([i for i, c in enumerate(X.columns) if c.startswith("dos")], dtype=int)
-    dos_beta = betas[..., dos_cols].reshape(-1, 1, len(dos_cols))  #  (num samples*locs) x n1 x um feats
-    dos_eff = (dos_beta * dos).sum(-1)  # num samples x T
-
+    # dos_beta = betas[..., dos_cols].reshape(-1, 1, len(dos_cols))  #  (num samples*locs) x n1 x um feats
+    # ix0 = np.random.choice(dos_beta.shape[0], 200, replace=False)
+    # dos_eff = (dos_beta[ix0] * dos).sum(-1)  # num samples x T
+    # dos_eff = np.nansum(dos_beta[ix0]*dos, -1)
+    dos_beta = np.nanmean(betas,(0))[...,dos_cols].reshape(-1, 1, len(dos_cols))
+    dos_eff = (dos_beta * dos).sum(-1)
+    
     # plot as spaghetti, gray, alpha
     ix = np.random.choice(dos_eff.shape[0], 200, replace=False)
     fig, ax = plt.subplots(figsize=(8, 4))
     ax.plot(dos_eff[ix].T, color="k", alpha=0.1, lw=0.5)
-    ax.plot(dos_eff.mean(0), color="k", lw=2)
+    ax.plot(np.nanmean(dos_eff,(0)), color="k", lw=2)
     ax.set_xlabel("Day of summer")
     ax.set_title("Day of summer effect")
-    fig.savefig("fit_data_pyro_splines_base.png", bbox_inches="tight")
+    fig.savefig("fit_data_pyro_splines_base_" + args.name + ".png", bbox_inches="tight")
 
-    torch.save(model, "../Bayesian_models/Pyro_model_" + args["name"] + ".pt")
-    torch.save(guide, "../Bayesian_models/Pyro_guide_" + args["name"] + ".pt")
+    torch.save(model, "../Bayesian_models/Pyro_model_" + args.name + ".pt")
+    torch.save(guide, "../Bayesian_models/Pyro_guide_" + args.name + ".pt")
 
 
 if __name__ == "__main__":
