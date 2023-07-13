@@ -141,7 +141,7 @@ Bdos.columns = [f"dos_{i}" for i in range(Bdos.shape[1])]
 time_keys = [
     "fips",
     "Date",
-    "year",
+    # "year",
     "quant_HI_county",
     "quant_HI_3d_county",
     "alerts_2wks",
@@ -157,7 +157,7 @@ X = (
     .assign(intercept=1.0)
 )
 reorder = ["intercept", "quant_HI_county", "quant_HI_county_pow2", "quant_HI_3d_county", "quant_HI_3d_county_pow2",
-           "year", "weekend", "alerts_2wks"]
+           "weekend", "alerts_2wks"] # "year", 
 X = X[reorder]
 
 # paste splines onto X
