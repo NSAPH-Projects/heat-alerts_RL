@@ -21,9 +21,7 @@ def train(model, guide, data, lr, n_epochs, batch_size, num_particles=1):
     loss_fn(*data)  # initialize parameters
     num_pars = [p.numel() for p in loss_fn.parameters() if p.requires_grad]
     print("Number of parameters: ", sum(num_pars))
-
     dataset = torch.utils.data.TensorDataset(*data)
-
     # # Create a dataloader.
     if batch_size is not None:
         opt = torch.optim.Adam(loss_fn.parameters(), lr=lr)
@@ -36,7 +34,7 @@ def train(model, guide, data, lr, n_epochs, batch_size, num_particles=1):
             prefetch_factor=8,
             persistent_workers=True,
         )
-
+        Epoch_losses = []
         epoch_loss = np.nan
         for epoch in range(n_epochs):
             epoch_losses = []
@@ -54,13 +52,14 @@ def train(model, guide, data, lr, n_epochs, batch_size, num_particles=1):
                 pbar_desc = f"[epoch {epoch + 1}/{n_epochs}, {loss:.4f}]"
                 pbar.set_description(pbar_desc, refresh=False)
             epoch_loss = sum(epoch_losses) / len(epoch_losses)
+            Epoch_losses.append(epoch_loss)
             if epoch == 0 or ((epoch + 1) % (n_epochs // 10)) == 0:
                 print(
                     "[epoch {}/{}]  av. loss: {:.4f}".format(
                         epoch + 1, n_epochs, epoch_loss
                     )
                 )
-        return epoch_losses
+        return Epoch_losses
     else:
         epoch_loss = np.nan
         pbar = tqdm(range(n_epochs), leave=False)
@@ -80,15 +79,12 @@ def train(model, guide, data, lr, n_epochs, batch_size, num_particles=1):
             epoch_losses.append(epoch_loss)
         return epoch_losses
 
-            
-
 
 class Model(pyro.nn.PyroModule):
     def __init__(self, N, S):
         super().__init__()
         self.S = S
         self.N = N
-
     def forward(self, A, X, W, offset, sind, Y=None, return_all=False):
         batch_size, DX = X.shape
         _, DW = W.shape
@@ -121,7 +117,6 @@ class Model(pyro.nn.PyroModule):
         gamma = gamma_prior_mean + omega_gamma * unstruct_gamma[sind]
         lam = torch.exp((beta * X).sum(-1).clamp(-20, 10))  # baseline rate
         tau = torch.sigmoid((gamma * X).sum(-1))  # heat alert effectiveness
-
         # expected number of cases
         mu = offset * lam * (1.0 - A * tau)
         with pyro.plate("obs_plate", self.N, batch_size):
@@ -166,7 +161,7 @@ def main(args):
         model, init_loc_fn=init_fn
     )
 
-    epoch_loss = train(
+    Epoch_losses = train(
         model,
         guide,
         inputs,
@@ -176,8 +171,9 @@ def main(args):
         num_particles=args.num_particles,
     )
 
-    plt.plot(np.log(np.array(epoch_loss)))
+    plt.plot(np.log(np.array(Epoch_losses)))
     plt.savefig("fit_data_pyro_base_" + args.name + "_log-Loss.png")
+    plt.clf()
 
     # extract tau
     sites = [
@@ -186,22 +182,22 @@ def main(args):
         "delta_beta",
         "delta_gamma",
         "unstruct_beta",
-        "unstruct_gamma",
+        "unstruct_gamma"
     ]
-    params = Predictive(model, guide=guide, num_samples=50, return_sites=sites)(*inputs)
+    params = Predictive(model, guide=guide, num_samples=args.n_samples, return_sites=sites)(*inputs)
     params = {k: v[:, 0] for k, v in params.items()}
 
     # save a json of all samples on sites, make sure to save as float
     results = {}
     for s in sites:
         results[s] = params[s].numpy().astype(float).tolist()
-    with open("fit_data_pyro_base_" + args["name"] + ".json", "w") as io:
+    with open("Plots_params/fit_data_pyro_base_" + args.name + ".json", "w") as io:
         json.dump(results, io)
 
     predictive_outputs = Predictive(
         model,
         guide=guide,
-        num_samples=50,
+        num_samples=args.n_samples,
         return_sites=["_RETURN"],
     )
     outputs = predictive_outputs(*inputs, return_all=True)["_RETURN"]
@@ -219,7 +215,7 @@ def main(args):
     ax[3].set_xlabel("mu")
     ax[3].set_ylabel("real obs")
 
-    fig.savefig("fit_data_pyro_base.png", bbox_inches="tight")
+    fig.savefig("Plots_params/fit_data_pyro_base_" + args.name + ".png", bbox_inches="tight")
 
     # make errorplot of gamma and beta coefficients
     betas = []
@@ -227,7 +223,7 @@ def main(args):
     W__ = torch.tensor(
         pd.read_parquet(f"{dir}/spatial_feats.parquet").values, dtype=torch.float32
     )
-    for i in range(50):
+    for i in range(args.n_samples):
         delta_beta = params["delta_beta"][i]
         delta_gamma = params["delta_gamma"][i]
         omega_beta = params["omega_beta"][i]
@@ -242,10 +238,10 @@ def main(args):
     betas = np.stack(betas, axis=0)
     gammas = np.stack(gammas, axis=0)
 
-    betas_means = betas.mean((0, 1))
-    betas_std = betas.std((0, 1))
-    gammas_means = gammas.mean((0, 1))
-    gammas_std = gammas.std((0, 1))
+    betas_means = np.nanmean(betas,(0, 1))
+    betas_std = np.nanstd(betas,(0, 1))
+    gammas_means = np.nanmean(gammas,(0, 1))
+    gammas_std = np.nanstd(gammas,(0, 1))
     colnames = [c for c in X.columns if not c.startswith("dos")]
     colidx = np.array([i for i, c in enumerate(X.columns) if not c.startswith("dos")])
 
@@ -268,7 +264,7 @@ def main(args):
     ax[1].set_xticks(np.arange(len(colnames)))
     ax[1].set_xticklabels(colnames, rotation=45)
     ax[1].set_title("heat alert effectiveness")
-    fig.savefig("fit_data_pyro_coefficients_base.png", bbox_inches="tight")
+    fig.savefig("Plots_params/fit_data_pyro_coefficients_base_" + args.name + ".png", bbox_inches="tight")
 
     # load spline design matrix
     dos = pd.read_parquet("data/processed/Btdos.parquet").values  # T x num feats
@@ -296,15 +292,16 @@ def main(args):
     ax[1].plot(dos_gamma_eff.mean(0), color="k", lw=2)
     ax[1].set_xlabel("Day of summer")
     ax[1].set_title("Heat alert effectiveness")
-    fig.savefig("fit_data_pyro_splines_base.png", bbox_inches="tight")
+    fig.savefig("Plots_params/fit_data_pyro_splines_base_" + args.name + ".png", bbox_inches="tight")
 
-    torch.save(model, "../Bayesian_models/Pyro_model_" + args["name"] + ".pt")
-    torch.save(guide, "../Bayesian_models/Pyro_guide_" + args["name"] + ".pt")
+    torch.save(model, "../Bayesian_models/Pyro_model_" + args.name + ".pt")
+    torch.save(guide, "../Bayesian_models/Pyro_guide_" + args.name + ".pt")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--n_epochs", type=int, default=30)
+    parser.add_argument("--n_epochs", type=int, default=10)
+    parser.add_argument("--n_samples", type=int, default=50)
     parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument("--num_particles", type=int, default=10)
     parser.add_argument("--name", type=str, default="test")
