@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from patsy import dmatrix
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import OneHotEncoder
 
 
 # %%
@@ -91,11 +92,20 @@ space_keys = [
     "Med_HH_Income",
     "broadband_usage",
     "Democrat",
-    "Population",
     "pm25",
 ]
+
+# %% also add BA_zone, make one-hot encoding (sklearn) using the Hot-Humid as control
+enc = OneHotEncoder()
+enc.fit(data[["BA_zone"]])
+BA_zone = enc.transform(data[["BA_zone"]]).toarray()
+categories = enc.categories_[0]
+BA_zone = pd.DataFrame(BA_zone, columns=categories, index=data.index)
+BA_zone = BA_zone.drop(columns=["Hot-Humid"], axis=1)
+
 W = (
     data[space_keys]
+    .merge(BA_zone, left_index=True, right_index=True)
     .drop_duplicates()
     .set_index("fips")
     .groupby("fips")
@@ -105,15 +115,7 @@ W = (
     .drop(columns=["Pop_density", "Med_HH_Income"])
 )
 
-# %% also add BA_zone, make one-hot encoding (sklearn) using the Hot-Humid as control
-from sklearn.preprocessing import OneHotEncoder
-enc = OneHotEncoder()
-enc.fit(data[["BA_zone"]])
-BA_zone = enc.transform(data[["BA_zone"]]).toarray()
-categories = enc.categories_[0]
-BA_zone = pd.DataFrame(BA_zone, columns=categories)
-BA_zone = BA_zone.drop(columns=["Hot-Humid"], axis=1)
-W = pd.concat([W, BA_zone], axis=1)
+
 
 
 # %% standardize W
@@ -122,8 +124,7 @@ wscaler_cols = ["broadband_usage", "Democrat", "Lop_Pop_density", "Log_Med_HH_In
 W[wscaler_cols] = wscaler.fit_transform(W[wscaler_cols])
 W["intercept"] = 1.0
 
-P = W[["Population"]]
-W = W.drop(columns=["Population"])
+
 fips = W.index.values
 fips2idx = {fips: idx for idx, fips in enumerate(data["fips"].unique())}
 
