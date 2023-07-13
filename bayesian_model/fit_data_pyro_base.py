@@ -65,10 +65,10 @@ def train(model, guide, data, lr, n_epochs, batch_size, num_particles=1):
         epoch_loss = np.nan
         pbar = tqdm(range(n_epochs), leave=False)
         opt = pyro.optim.Adam({"lr": lr})
-        svi = pyro.infer.SVI(model, guide, opt, loss_fn)
+        svi = pyro.infer.SVI(model, guide, opt, loss=pyro.infer.Trace_ELBO(num_particles=num_particles))
         epoch_losses = []
         for epoch in pbar:
-            epoch_loss = svi.step(data)  # for some reason currently complaining
+            epoch_loss = svi.step(*data)  # for some reason currently complaining
             pbar_desc = f"[epoch {epoch + 1}/{n_epochs}, {epoch_loss:.4f}]"
             pbar.set_description(pbar_desc, refresh=False)
             if epoch == 0 or ((epoch + 1) % (n_epochs // 10)) == 0:
@@ -77,7 +77,7 @@ def train(model, guide, data, lr, n_epochs, batch_size, num_particles=1):
                         epoch + 1, n_epochs, epoch_loss
                     )
                 )
-            epoch_losses.append(epoch_loss.item())
+            epoch_losses.append(epoch_loss)
         return epoch_losses
 
             
