@@ -21,9 +21,7 @@ def train(model, guide, data, lr, n_epochs, batch_size, num_particles=1):
     loss_fn(*data)  # initialize parameters
     num_pars = [p.numel() for p in loss_fn.parameters() if p.requires_grad]
     print("Number of parameters: ", sum(num_pars))
-
     dataset = torch.utils.data.TensorDataset(*data)
-
     # # Create a dataloader.
     if batch_size is not None:
         opt = torch.optim.Adam(loss_fn.parameters(), lr=lr)
@@ -87,7 +85,6 @@ class Model(pyro.nn.PyroModule):
         super().__init__()
         self.S = S
         self.N = N
-
     def forward(self, A, X, W, offset, sind, Y=None, return_all=False):
         batch_size, DX = X.shape
         _, DW = W.shape
@@ -120,7 +117,6 @@ class Model(pyro.nn.PyroModule):
         gamma = gamma_prior_mean + omega_gamma * unstruct_gamma[sind]
         lam = torch.exp((beta * X).sum(-1).clamp(-20, 10))  # baseline rate
         tau = torch.sigmoid((gamma * X).sum(-1))  # heat alert effectiveness
-
         # expected number of cases
         mu = offset * lam * (1.0 - A * tau)
         with pyro.plate("obs_plate", self.N, batch_size):
@@ -177,6 +173,7 @@ def main(args):
 
     plt.plot(np.log(np.array(Epoch_losses)))
     plt.savefig("fit_data_pyro_base_" + args.name + "_log-Loss.png")
+    plt.clf()
 
     # extract tau
     sites = [
@@ -267,7 +264,7 @@ def main(args):
     ax[1].set_xticks(np.arange(len(colnames)))
     ax[1].set_xticklabels(colnames, rotation=45)
     ax[1].set_title("heat alert effectiveness")
-    fig.savefig("fit_data_pyro_coefficients_base_" + args.name + ".png", bbox_inches="tight")
+    fig.savefig("Plots_params/fit_data_pyro_coefficients_base_" + args.name + ".png", bbox_inches="tight")
 
     # load spline design matrix
     dos = pd.read_parquet("data/processed/Btdos.parquet").values  # T x num feats
@@ -295,7 +292,7 @@ def main(args):
     ax[1].plot(dos_gamma_eff.mean(0), color="k", lw=2)
     ax[1].set_xlabel("Day of summer")
     ax[1].set_title("Heat alert effectiveness")
-    fig.savefig("fit_data_pyro_splines_base_" + args.name + ".png", bbox_inches="tight")
+    fig.savefig("Plots_params/fit_data_pyro_splines_base_" + args.name + ".png", bbox_inches="tight")
 
     torch.save(model, "../Bayesian_models/Pyro_model_" + args.name + ".pt")
     torch.save(guide, "../Bayesian_models/Pyro_guide_" + args.name + ".pt")
@@ -303,7 +300,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--n_epochs", type=int, default=30)
+    parser.add_argument("--n_epochs", type=int, default=10)
     parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument("--num_particles", type=int, default=10)
     parser.add_argument("--name", type=str, default="test")
