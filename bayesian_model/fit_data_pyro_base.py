@@ -54,7 +54,7 @@ def train(model, guide, data, lr, n_epochs, batch_size, num_particles=1):
                 pbar.set_description(pbar_desc, refresh=False)
             epoch_loss = sum(losses_buffer) / len(losses_buffer)
             epoch_losses.append(epoch_loss)
-            if epoch == 0 or ((epoch + 1) % min(n_epochs // 10, 1) == 0):
+            if epoch == 0 or ((epoch + 1) % max(n_epochs // 10, 1) == 0):
                 print(
                     "[epoch {}/{}]  av. loss: {:.4f}".format(
                         epoch + 1, n_epochs, epoch_loss
