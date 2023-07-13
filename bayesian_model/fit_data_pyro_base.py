@@ -176,8 +176,8 @@ def main(args):
         num_particles=args.num_particles,
     )
 
-    loss_plot = plt.plot(np.log(np.array(epoch_loss)))
-    plt.savefig("fit_data_pyro_base_" + args["name"] + "_log-Loss.png")
+    plt.plot(np.log(np.array(epoch_loss)))
+    plt.savefig("fit_data_pyro_base_" + args.name + "_log-Loss.png")
 
     # extract tau
     sites = [
