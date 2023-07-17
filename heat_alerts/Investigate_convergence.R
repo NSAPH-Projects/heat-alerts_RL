@@ -1,6 +1,6 @@
 library(dplyr)
 library(ggplot2)
-library(cowplot)
+library(cowplot, lib.loc = "~/apps/R_4.2.2")
 
 setwd("/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL")
 
@@ -141,6 +141,27 @@ folder<- "d3rlpy_logs/Double_DQN_MR_small-S_lr01_seed-3_20230621111500/"
 folder<- "d3rlpy_logs/CPQ_observed-alerts_MR_small-S_lr03_seed-3_20230621112213/"
 folder<- "d3rlpy_logs/Double_DQN_MR_small-S_lr03_seed-3_20230621112214/"
 
+folder<- "d3rlpy_logs/CPQ_observed-alerts_MR_small-S_lr03_seed-1_20230621135159/"
+folder<- "d3rlpy_logs/Double_DQN_MR_small-S_lr03_seed-1_20230621135200/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_MR_small-S_lr03_seed-2_20230621135207/"
+folder<- "d3rlpy_logs/Double_DQN_MR_small-S_lr03_seed-2_20230621135201/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_MR_small-S_lr03_seed-4_20230621135208/"
+folder<- "d3rlpy_logs/Double_DQN_MR_small-S_lr03_seed-4_20230621135206/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_MR_small-S_lr03_seed-5_20230621135206/"
+folder<- "d3rlpy_logs/Double_DQN_MR_small-S_lr03_seed-5_20230621135207/"
+
+folder<- "d3rlpy_logs/CPQ_observed-alerts_logMR_small-S_lr03_seed-3_20230622104659/"
+folder<- "d3rlpy_logs/Double_DQN_logMR_small-S_lr03_seed-3_20230622104643/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_logMR_small-S_lr03_seed-1_20230622104655/"
+folder<- "d3rlpy_logs/Double_DQN_logMR_small-S_lr03_seed-1_20230622104653/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_logMR_small-S_lr03_seed-2_20230622104647/"
+folder<- "d3rlpy_logs/Double_DQN_logMR_small-S_lr03_seed-2_20230622104645/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_logMR_small-S_lr03_seed-4_20230622110550/"
+folder<- "d3rlpy_logs/Double_DQN_logMR_small-S_lr03_seed-4_20230622110234/"
+folder<- "d3rlpy_logs/CPQ_observed-alerts_logMR_small-S_lr03_seed-5_20230622110638/"
+folder<- "d3rlpy_logs/Double_DQN_logMR_small-S_lr03_seed-5_20230622110655/"
+
+
 Loss<- read.csv(paste0(folder,"/loss.csv"), header = FALSE)
 DF<- data.frame(Epoch=Loss$V1, Loss=Loss$V3)
 ggplot(DF[1:nrow(DF),], aes(x=Epoch, y=log(Loss))) + geom_line() + 
@@ -245,6 +266,25 @@ Alerts<- read.csv("Summer_results/Total_alerts_CPQ_observed-alerts_MR_medium-S_l
 
 Alerts<- read.csv("Summer_results/MA_200_total_alerts_Double_DQN_MR_small-S_lr03_seed-3.csv")[,1]
 Alerts<- read.csv("Summer_results/MA_200_total_alerts_CPQ_observed-alerts_MR_small-S_lr03_seed-3.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_Double_DQN_MR_small-S_lr03_seed-1.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_CPQ_observed-alerts_MR_small-S_lr03_seed-1.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_Double_DQN_MR_small-S_lr03_seed-2.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_CPQ_observed-alerts_MR_small-S_lr03_seed-2.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_Double_DQN_MR_small-S_lr03_seed-4.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_CPQ_observed-alerts_MR_small-S_lr03_seed-4.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_Double_DQN_MR_small-S_lr03_seed-5.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_CPQ_observed-alerts_MR_small-S_lr03_seed-5.csv")[,1]
+
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_Double_DQN_logMR_small-S_lr03_seed-3.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_CPQ_observed-alerts_logMR_small-S_lr03_seed-3.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_Double_DQN_logMR_small-S_lr03_seed-1.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_CPQ_observed-alerts_logMR_small-S_lr03_seed-1.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_Double_DQN_logMR_small-S_lr03_seed-2.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_CPQ_observed-alerts_logMR_small-S_lr03_seed-2.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_Double_DQN_logMR_small-S_lr03_seed-4.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_CPQ_observed-alerts_logMR_small-S_lr03_seed-4.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_Double_DQN_logMR_small-S_lr03_seed-5.csv")[,1]
+Alerts<- read.csv("Summer_results/MA_200_total_alerts_CPQ_observed-alerts_logMR_small-S_lr03_seed-5.csv")[,1]
 
 a_DF<-  data.frame(Epoch=1:length(Alerts), Alerts)
 ggplot(a_DF, aes(x=Epoch, y=Alerts)) + geom_point() + 
@@ -328,6 +368,8 @@ DF<- read.csv("lightning_logs/R_no-REs_lr-003/version_3/metrics.csv")
 
 DF<- read.csv("lightning_logs/R_no-REs_lr-tuned/version_0/metrics.csv")
 
+DF<- read.csv("lightning_logs/R_no-REs_lr-tuned/version_6/metrics.csv") # version 3 is 6-28 R model used in subsequent RL
+
 Val_Loss<- DF[seq(1,nrow(DF),2),1]
 Train_Loss<- DF[seq(2,nrow(DF),2),5]
 Epoch<- 1:length(Val_Loss)
@@ -343,7 +385,7 @@ Epoch<- 1:length(Val_Loss)
 
 Plot_df<- data.frame(Epoch, Train_Loss, Val_Loss)[-1,]
 
-ggplot(Plot_df[10:nrow(Plot_df),], aes(x=Epoch)) + geom_line(aes(y=Train_Loss)) + 
+ggplot(Plot_df[1:nrow(Plot_df),], aes(x=Epoch)) + geom_line(aes(y=Train_Loss)) + 
   geom_line(aes(y=Val_Loss), col = "blue") +
   ylab("Loss") + ggtitle("Model Convergence")
 

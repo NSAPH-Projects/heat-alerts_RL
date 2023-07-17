@@ -42,13 +42,13 @@ def main(params):
     ## For now:
     # params = dict(
     #     outcome = "other_hosps", n_hidden = 256,
-    #     n_gpus=1, b_size=2048, n_epochs=2,
-    #     lr=0.005, gamma=0.999, sync_rate = 3,
-    #     modeled_r = True, random_effects = False,
-    #     model_name = "test_cpq",
-    #     eligible = "90pct", S_size = "medium",
-    #     algo = "CPQ", std_budget = 0, HER = "False",
-    #     pca = False, pca_var_thresh = 0
+    #     n_gpus=0, b_size=256, n_epochs=2,
+    #     lr=0.03, gamma=0.999, sync_rate = 3,
+    #     modeled_r = False, random_effects = False,
+    #     model_name = "test_1-fips",
+    #     eligible = "90pct", S_size = "small",
+    #     algo = "DoubleDQN", std_budget = 0, HER = "False",
+    #     pca = False, pca_var_thresh = 0, 
     #     )
 
     ## Prepare data:
@@ -59,7 +59,8 @@ def main(params):
         outcome = params["outcome"], modeled_r = params["modeled_r"], std_budget = params["std_budget"],
         # log_r = True, 
         random_effects = params["random_effects"], eligible = params["eligible"],
-        pca = params["pca"], pca_var_thresh = params["pca_var_thresh"], manual_S_size = params["S_size"]
+        pca = params["pca"], pca_var_thresh = params["pca_var_thresh"], manual_S_size = params["S_size"],
+        fips = [6085]
     )
     dataset = data[0]
     # dataset.episodes[0][0].observation
@@ -191,7 +192,6 @@ if __name__ == "__main__":
     parser.add_argument("--HER", type=bool, default=False, help="Use hindsight experience replay for CPQ?")
     parser.add_argument("--continue", type=str, default="false", help="continue fitting an existing model")
     parser.add_argument("--seed", type=int, default=321, help="set seed")
-    parser.add_argument("--ma", type=int, default=200, help="number of epochs in moving average")
 
     args = parser.parse_args()
     main(args)

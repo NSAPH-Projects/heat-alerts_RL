@@ -26,14 +26,19 @@ def set_seed(seed):
 
 def main(params):
 
-    d3rlpy.seed(321)
     params = vars(params)
+    seed = params["seed"]
+    set_seed(seed)
+    d3rlpy.seed(seed)
 
     MA_models(params)
     print("Finished smoothing models")
 
     data = make_data(
-        eligible = "90pct", manual_S_size = "small"
+        outcome = params["outcome"],  
+        eligible = params["eligible"],
+        manual_S_size = params["S_size"],
+        fips = [6085]
     )
 
     # data = make_data(
@@ -84,16 +89,16 @@ def main(params):
     p = 0
     for i in range(0, len(dataset)): # test with i=1 for nonzero constraint
         alert_sum = 0
-        t_since_alert = dataset.episodes[i].observations[0][6]*s_stds["T_since_alert"] + s_means["T_since_alert"] - (dataset.episodes[i].observations[0][5]*s_stds["dos"] + s_means["dos"])
-        budget = dataset.episodes[i].observations[0][8]*s_stds["More_alerts"] + s_means["More_alerts"]
+        t_since_alert = dataset.episodes[i].observations[0][4]*s_stds["T_since_alert"] + s_means["T_since_alert"] - (dataset.episodes[i].observations[0][5]*s_stds["dos"] + s_means["dos"])
+        budget = dataset.episodes[i].observations[0][6]*s_stds["More_alerts"] + s_means["More_alerts"]
         d = 0
         dos_alert = -t_since_alert
         while d < len(dataset.episodes[i].observations):
             new_s = dataset.observations[p]
-            new_s[7] = (alert_sum - s_means["alert_sum"])/s_stds["alert_sum"]
-            new_s[8] = (budget - alert_sum - s_means["More_alerts"])/s_stds["More_alerts"]
-            dos = new_s[5]*s_stds["dos"] + s_means["dos"]
-            new_s[6] = (dos - dos_alert - s_means["T_since_alert"])/s_stds["T_since_alert"]
+            new_s[5] = (alert_sum - s_means["alert_sum"])/s_stds["alert_sum"]
+            new_s[6] = (budget - alert_sum - s_means["More_alerts"])/s_stds["More_alerts"]
+            dos = new_s[3]*s_stds["dos"] + s_means["dos"]
+            new_s[4] = (dos - dos_alert - s_means["T_since_alert"])/s_stds["T_since_alert"]
             dataset.observations[p] = new_s
             ## Get new policy:
             if params["policy_type"] == "DQN":
@@ -135,6 +140,7 @@ if __name__ == "__main__":
     parser.add_argument("--policy_type", type=str, default="DQN", help="DQN, NWS, or random")
     parser.add_argument("--n_epochs", type=int, default=5000, help="number of epochs to run")
     parser.add_argument("--ma", type=int, default=200, help="number of epochs in moving average")
+    parser.add_argument("--seed", type=int, default=321, help="set seed")
     # parser.add_argument("--final_model", type=str, default="CPQ_observed-alerts_small-S_lr5e-3_20230426131737/model_390000.pt", help="file path of model to get policy from")
 
     args = parser.parse_args()

@@ -9,6 +9,9 @@ import numpy as np
 # from torch_utility import TorchMiniBatch
 
 from cpq_global import her, MA_mean, MA_sd, SA_mean, SA_sd, device
+from dqn_global import Pct90, HI_mean, HI_sd
+# from heat_alerts.cpq_global import her, MA_mean, MA_sd, SA_mean, SA_sd, device
+
 # boost = np.loadtxt('/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/heat_alerts/cpq_boost.py')
 # penalty = np.loadtxt('/n/dominici_nsaph_l3/Lab/projects/heat-alerts_mortality_RL/heat_alerts/cpq_penalty.py')
 # boost = torch.FloatTensor(boost).to("cuda")
@@ -40,6 +43,7 @@ class CPQImpl(DQNImpl):
                 already_issued = np.array([b[3]*SA_sd + SA_mean for b in batch.next_observations.cpu()]) # column of medium and small Ss
                 new_budgets = np.random.randint(0, already_issued + more_alerts + 1) # upper end is round bracket
                 more_alerts = (already_issued < new_budgets).astype(int)
+                # print(np.unique(more_alerts))
             more_alerts = torch.tensor(more_alerts).to(device)
             constrained_targets = torch.where(torch.logical_and(action==1, more_alerts < 1), opposite_targets, original_targets) 
             # penalized_targets = torch.where(torch.logical_and(action==1, more_alerts < 0.5), original_targets - penalty, original_targets)

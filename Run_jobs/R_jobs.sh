@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH -J R_model
 #SBATCH -N 1
-#SBATCH --ntasks-per-node 10
-#SBATCH -p test # fasse_gpu
-#SBATCH -t 0-7:00 # 0-8:00
-#SBATCH --mem 92G # 50G
+#SBATCH --ntasks-per-node 4
+#SBATCH -p fasse # fasse_gpu
+#SBATCH -t 0-10:00 # 0-8:00
+#SBATCH --mem 180G # 370G
 #SBATCH --gres gpu:0 # gpu:1
 #SBATCH --array 0 # 0-2
 #SBATCH -o ./Run_jobs/slurm/r.%a.out

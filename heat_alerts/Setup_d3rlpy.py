@@ -26,10 +26,20 @@ def make_data(
     std_budget = 0,
     eligible = "all",
     pca = False, pca_var_thresh = 0.5, 
-    manual_S_size = "medium"
+    manual_S_size = "medium",
+    fips = []
 ):
     ## Read in data:
     Train = pd.read_csv(filename)
+    Fips = Train["fips"]
+
+    if len(fips) > 0:
+        county_pos = []
+        # for f in fips:
+        #     county_pos.append(Train.index[Fips == f].tolist())
+        # county_pos = [item for sublist in county_pos for item in sublist]
+        county_pos = Train.index[Fips == fips[0]].tolist()
+        Train = Train.loc[county_pos]
 
     # n_counties = Train["fips"].nunique()
     # n_years = 11
@@ -49,6 +59,12 @@ def make_data(
         rewards = (rewards - rewards.mean())/rewards.std()
         rewards = rewards.apply(symlog,shift=1)
         rewards = rewards.to_numpy()
+        if eligible != "all":
+            elig = pd.read_csv("data/Pct_90_eligible.csv") 
+            if len(fips) > 0:
+                elig = elig.loc[county_pos].reset_index()
+            Elig = elig.index[elig["Pct_90_eligible"]]
+            rewards = rewards[Elig]
     else:
         if outcome == "all_hosps":
             rewards = pd.read_csv("Fall_results/R_3-2_all-hosps_all.csv") # outdated
@@ -57,12 +73,19 @@ def make_data(
             rewards = pd.read_csv("Summer_results/R_6-21_forced_small-S_90pct.csv")
         else:
             rewards = pd.read_csv("Fall_results/R_1-23_deaths.csv") # would need to get deaths for d=153
-        ## Since most recent round of modeling just focused on top 90th pct of heat index:
+        ## Since most recent round of modeling just focused on top 90th pct of heat index: 
         elig = pd.read_csv("data/Pct_90_eligible.csv") # could include other options too
         Elig = elig.index[elig["Pct_90_eligible"]]
-        rewards = torch.gather(torch.FloatTensor(rewards.to_numpy()), 1, torch.LongTensor(actions[Elig].to_numpy()).view(-1, 1) +1).view(-1).detach().numpy()
-    
-
+        if len(fips) > 0:
+            Fips_elig = Fips.loc[Elig].reset_index()
+            fips_elig = Fips_elig.index[Fips_elig["fips"] == fips[0]].tolist()
+            rewards = rewards.loc[fips_elig]
+            elig = elig.loc[county_pos]
+            Elig = elig.index[elig["Pct_90_eligible"]]
+        rewards = torch.gather(torch.FloatTensor(rewards.to_numpy()), 1, torch.LongTensor(actions[Elig].to_numpy()).view(-1, 1) +1).view(-1)
+        rewards = -torch.log(-rewards).detach().numpy()
+        rewards = 0.5 * (rewards - rewards.mean()) / np.max(np.abs(rewards))
+        
     ## Prepare observations (S):
     if std_budget == 0:
         budget = Train[Train["dos"] == n_days]["alert_sum"]
@@ -126,24 +149,43 @@ def make_data(
 
     if manual_S_size == "medium":
         observations["weekend"] = observations["dow_Saturday"] + observations["dow_Sunday"]
-        observations = observations[[
-            "quant_HI_county", "HI_mean", "l.Pop_density", "l.Med.HH.Income",
-            "year", "dos", "T_since_alert", "alert_sum", "More_alerts", "all_hosp_mean_rate", 
-            "all_hosp_2wkMA_rate", "all_hosp_3dMA_rate", 
-             "age_65_74_rate", "age_75_84_rate", "dual_rate",
-            "Republican", "pm25", "weekend", 'BA_zone_Hot-Dry',
-            'BA_zone_Hot-Humid', 'BA_zone_Marine', 'BA_zone_Mixed-Dry',
-            'BA_zone_Mixed-Humid', 'BA_zone_Very Cold'
-        ]
-        ]
+        if len(fips) > 0:
+            observations = observations[[
+                "quant_HI_county", "HI_mean",
+                "year", "dos", "T_since_alert", "alert_sum", "More_alerts", "all_hosp_mean_rate", 
+                "all_hosp_2wkMA_rate", "all_hosp_3dMA_rate", 
+                "weekend"
+            ]
+            ]
+        else:
+            observations = observations[[
+                "quant_HI_county", "HI_mean", 
+                "year", "dos", "T_since_alert", "alert_sum", "More_alerts", 
+                "l.Pop_density", "l.Med.HH.Income", "all_hosp_mean_rate", 
+                "all_hosp_2wkMA_rate", "all_hosp_3dMA_rate", 
+                "age_65_74_rate", "age_75_84_rate", "dual_rate",
+                "Republican", "pm25", "weekend", 'BA_zone_Hot-Dry',
+                'BA_zone_Hot-Humid', 'BA_zone_Marine', 'BA_zone_Mixed-Dry',
+                'BA_zone_Mixed-Humid', 'BA_zone_Very Cold'
+            ]
+            ]
     elif manual_S_size == "small":
         observations["weekend"] = observations["dow_Saturday"] + observations["dow_Sunday"]
-        observations = observations[[
-            "quant_HI_county", "HI_mean", "l.Pop_density", "l.Med.HH.Income",
-            "year", "dos", "T_since_alert", "alert_sum", "More_alerts", "all_hosp_mean_rate", 
-            "weekend"
-        ]
-        ]
+        if len(fips) > 0:
+            observations = observations[[
+                "quant_HI_county", "HI_mean",
+                "year", "dos", "T_since_alert", "alert_sum", "More_alerts", "all_hosp_mean_rate", 
+                "weekend"
+            ]
+            ]
+        else: 
+            observations = observations[[
+                "quant_HI_county", "HI_mean", 
+                "year", "dos", "T_since_alert", "alert_sum", "More_alerts", 
+                "l.Pop_density", "l.Med.HH.Income", "all_hosp_mean_rate", 
+                "weekend"
+            ]
+            ]
     elif manual_S_size == "tiny":
         observations = observations[[
             "quant_HI_county", "More_alerts", "dos", "T_since_alert", "all_hosp_mean_rate"
@@ -153,11 +195,11 @@ def make_data(
 
     ## Put everything together:
     # summer = list(itertools.chain(*[itertools.repeat(i, n_days-1) for i in range(0,int(observations.shape[0]/(n_days-1)))]))
-    fips = Train.fips.unique()
-    a = []
-    b = []
-    c = []
-    d = []
+    # fips = Train.fips.unique()
+    # a = []
+    # b = []
+    # c = []
+    # d = []
 
     if eligible == "all":
         dataset = MDPDataset(
@@ -182,8 +224,14 @@ def make_data(
         elig = pd.read_csv("data/Pct_90_eligible.csv") # could include other options too
         Elig = elig.index[elig["Pct_90_eligible"]]
         terminals = pd.read_csv("data/Pct_90_eligible_terminals.csv")
+        if len(fips) > 0:
+            elig = elig.loc[county_pos].reset_index()
+            Fips_elig = Fips.loc[Elig].reset_index()
+            fips_elig = Fips_elig.index[Fips_elig["fips"] == fips[0]].tolist()
+            terminals = terminals.iloc[fips_elig]
+            Elig = elig.index[elig["Pct_90_eligible"]]
         dataset = MDPDataset(
-            observations.iloc[Elig].to_numpy(), actions[Elig].to_numpy(), 
+            observations.iloc[Elig].to_numpy(), actions.iloc[Elig].to_numpy(), 
             rewards, # since most recent round of modeling just focused on top 90th pct of heat index
             terminals.to_numpy()
         )

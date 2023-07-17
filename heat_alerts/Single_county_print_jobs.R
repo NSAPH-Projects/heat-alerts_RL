@@ -47,15 +47,19 @@ colnames(tests)<- c("algo", "Std_B", "HER", "seed", "LR",
 # rm_pos<- which(tests$algo == "DoubleDQN" & tests$HER == "T")
 # tests<- tests[-rm_pos,]
 
+<<<<<<< HEAD
 # tests<- rbind(tests, tests)
 # tests$mult_a[7:12]<- 0.8
 # tests$mult_alag1[7:12]<- 0.82
 
+=======
+>>>>>>> origin
 sink("Run_jobs/Single_county_dqn_tests")
 for(i in 1:nrow(tests)){
   cat(paste("python heat_alerts/Single_county_RL.py",
                 "--n_gpus", 0,
                 "--lr", tests[i, "LR"],
+<<<<<<< HEAD
                 "--std_budget", tests[i, "Std_B"],
                 # "--mult_a", tests[i, "mult_a"],
                 # "--mult_alag1", tests[i, "mult_alag1"],
@@ -73,6 +77,31 @@ for(i in 1:nrow(tests)){
                                        # "_Mlag-", tests[i, "mult_alag1"],
                                        # "_SR-", tests[i, "SR"],
                                        "_LR-", tests[i, "LR"],
+=======
+                "--modeled_r", tests[i, "modeled_r"],
+                "--eligible 'all'",
+                "--std_budget", tests[i, "Std_B"],
+                "--Pct90", tests[i, "Pct90"],
+                "--algo", tests[i, "algo"],
+                "--HER", tests[i, "HER"],
+                "--n_layers", tests[i, "NHL"],
+                "--n_hidden", tests[i, "NHU"],
+                "--n_epochs", 10000,
+                "--b_size", tests[i, "b_size"],
+                "--sync_rate", tests[i, "SR"],
+                "--seed", tests[i, "seed"],
+                "--fips", tests[i, "fips"],
+                "--model_name", paste0("Best_SC_", tests[i, "algo"],
+                                       "_MR-", tests[i, "modeled_r"],
+                                       "_Pct90-", tests[i, "Pct90"],
+                                       "_Std_B-", tests[i, "Std_B"],
+                                       "_HER-", tests[i, "HER"],
+                                       "_LR-", tests[i, "LR"],
+                                       # "_NH-", tests[i, "NHL"],
+                                       # "-", tests[i, "NHU"],
+                                       # "_B-", tests[i, "b_size"],
+                                       "_SR-", tests[i, "SR"],
+>>>>>>> origin
                                        "_fips-", tests[i, "fips"],
                                        "_seed-", tests[i, "seed"],
                                        "\n"
@@ -81,3 +110,7 @@ for(i in 1:nrow(tests)){
 }
 
 sink()
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin
