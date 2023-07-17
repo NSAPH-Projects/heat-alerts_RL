@@ -1,0 +1,3 @@
+num_hidden_layers: 1
+hidden_dim: 32
+name: nn

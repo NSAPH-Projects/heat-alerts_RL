@@ -17,15 +17,14 @@ dependencies:
   - click
   - tensorboardX
   - ipykernel
-  - cmdstan
   - tqdm
   - graphviz
   - pyarrow
+  - tensordict
   - pip:
     - pytorch-lightning
     - torch-tb-profiler
     - gym==0.17.2
-    - cmdstanpy
     - patsy
     - pyro-ppl
     - stable-baselines3>=0.10.0

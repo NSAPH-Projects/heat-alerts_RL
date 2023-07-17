@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -34,10 +35,10 @@ def train(model, guide, data, lr, n_epochs, batch_size, num_particles=1):
             prefetch_factor=8,
             persistent_workers=True,
         )
-        Epoch_losses = []
+        epoch_losses = []
         epoch_loss = np.nan
         for epoch in range(n_epochs):
-            epoch_losses = []
+            losses_buffer = []
             # add epoch indicator in tqdm
             pbar = tqdm(dataloader, leave=False)
             for batch in pbar:
@@ -48,26 +49,26 @@ def train(model, guide, data, lr, n_epochs, batch_size, num_particles=1):
                 loss.backward()
                 torch.nn.utils.clip_grad_value_(loss_fn.parameters(), 1.0)
                 opt.step()
-                epoch_losses.append(loss.item())
+                losses_buffer.append(loss.item())
                 pbar_desc = f"[epoch {epoch + 1}/{n_epochs}, {loss:.4f}]"
                 pbar.set_description(pbar_desc, refresh=False)
-            epoch_loss = sum(epoch_losses) / len(epoch_losses)
-            Epoch_losses.append(epoch_loss)
-            if epoch == 0 or ((epoch + 1) % (n_epochs // 10)) == 0:
+            epoch_loss = sum(losses_buffer) / len(losses_buffer)
+            epoch_losses.append(epoch_loss)
+            if epoch == 0 or ((epoch + 1) % max(n_epochs // 10, 1) == 0):
                 print(
                     "[epoch {}/{}]  av. loss: {:.4f}".format(
                         epoch + 1, n_epochs, epoch_loss
                     )
                 )
-        return Epoch_losses
+        return epoch_losses
     else:
         epoch_loss = np.nan
         pbar = tqdm(range(n_epochs), leave=False)
         opt = pyro.optim.Adam({"lr": lr})
-        svi = pyro.infer.SVI(model, guide, opt, loss_fn)
-        epoch_losses = []
+        svi = pyro.infer.SVI(model, guide, opt, loss=pyro.infer.Trace_ELBO(num_particles=num_particles))
+        losses_buffer = []
         for epoch in pbar:
-            epoch_loss = svi.step(data)  # for some reason currently complaining
+            epoch_loss = svi.step(*data)  # for some reason currently complaining
             pbar_desc = f"[epoch {epoch + 1}/{n_epochs}, {epoch_loss:.4f}]"
             pbar.set_description(pbar_desc, refresh=False)
             if epoch == 0 or ((epoch + 1) % (n_epochs // 10)) == 0:
@@ -76,8 +77,8 @@ def train(model, guide, data, lr, n_epochs, batch_size, num_particles=1):
                         epoch + 1, n_epochs, epoch_loss
                     )
                 )
-            epoch_losses.append(epoch_loss.item())
-        return epoch_losses
+            losses_buffer.append(epoch_loss)
+        return losses_buffer
 
 
 class Model(pyro.nn.PyroModule):
@@ -172,7 +173,11 @@ def main(args):
     )
 
     plt.plot(np.log(np.array(Epoch_losses)))
+<<<<<<< HEAD
     plt.savefig("Plots_params/fit_data_pyro_base_" + args.name + "_log-Loss.png")
+=======
+    plt.savefig(f"fit_data_pyro_{args.name}_log-Loss.png")
+>>>>>>> 87e21f2c89834bf29710394cb02f09cda6340fa7
     plt.clf()
 
     # extract tau
@@ -191,7 +196,7 @@ def main(args):
     results = {}
     for s in sites:
         results[s] = params[s].numpy().astype(float).tolist()
-    with open("Plots_params/fit_data_pyro_base_" + args.name + ".json", "w") as io:
+    with open(f"Plots_params/fit_data_pyro_{args.name}.json", "w") as io:
         json.dump(results, io)
 
     predictive_outputs = Predictive(
@@ -215,7 +220,7 @@ def main(args):
     ax[3].set_xlabel("mu")
     ax[3].set_ylabel("real obs")
 
-    fig.savefig("Plots_params/fit_data_pyro_base_" + args.name + ".png", bbox_inches="tight")
+    fig.savefig(f"Plots_params/fit_data_pyro_{args.name}.png", bbox_inches="tight")
 
     # make errorplot of gamma and beta coefficients
     betas = []
@@ -264,7 +269,7 @@ def main(args):
     ax[1].set_xticks(np.arange(len(colnames)))
     ax[1].set_xticklabels(colnames, rotation=45)
     ax[1].set_title("heat alert effectiveness")
-    fig.savefig("Plots_params/fit_data_pyro_coefficients_base_" + args.name + ".png", bbox_inches="tight")
+    fig.savefig("Plots_params/fit_data_pyro_coefficients_{args.name}.png", bbox_inches="tight")
 
     # load spline design matrix
     dos = pd.read_parquet("data/processed/Btdos.parquet").values  # T x num feats
@@ -292,10 +297,11 @@ def main(args):
     ax[1].plot(dos_gamma_eff.mean(0), color="k", lw=2)
     ax[1].set_xlabel("Day of summer")
     ax[1].set_title("Heat alert effectiveness")
-    fig.savefig("Plots_params/fit_data_pyro_splines_base_" + args.name + ".png", bbox_inches="tight")
+    fig.savefig(f"Plots_params/fit_data_pyro_splines_{args.name}.png", bbox_inches="tight")
 
-    torch.save(model, "../Bayesian_models/Pyro_model_" + args.name + ".pt")
-    torch.save(guide, "../Bayesian_models/Pyro_guide_" + args.name + ".pt")
+    os.makedirs("../Bayesian_models", exist_ok=True)
+    torch.save(model, f"../Bayesian_models/Pyro_model_{args.name}.pt")
+    torch.save(guide, f"../Bayesian_models/Pyro_guide_{args.name}.pt")
 
 
 if __name__ == "__main__":

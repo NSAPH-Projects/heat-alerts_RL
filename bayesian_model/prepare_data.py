@@ -134,8 +134,9 @@ W.head()
 dos = data["dos"] - 1
 M = dos.max()
 
-Bdos = dmatrix(f"bs(dos, df=5, degree=3, lower_bound=0, upper_bound={M}) - 1", {"dos": dos}, return_type="dataframe")
+Bdos = dmatrix(f"bs(dos, df=3, degree=3, lower_bound=0, upper_bound={M}) - 1", {"dos": dos}, return_type="dataframe")
 Bdos.columns = [f"dos_{i}" for i in range(Bdos.shape[1])]
+print("Bdos.shape: ", Bdos.shape)
 
 
 # %% time varying features
@@ -253,7 +254,7 @@ with open("data/processed/fips2idx.json", "w") as f:
 # %% save splines
 t_dos = np.arange(0, M + 1)
 # t_dow = np.arange(0, 7)
-Btdos = dmatrix(f"bs(t_dos, df=5, degree=3, lower_bound=0, upper_bound={M}) - 1", return_type="dataframe")
+Btdos = dmatrix(f"bs(t_dos, df=3, degree=3, lower_bound=0, upper_bound={M}) - 1", return_type="dataframe")
 # Btdow = dmatrix("bs(t_dow, df=5, degree=3, lower_bound=0, upper_bound=6) - 1", return_type="dataframe")
 Btdos.columns = [f"dos_{i}" for i in range(Btdos.shape[1])]
 # Btdow.columns = [f"dow_{i}" for i in range(Btdow.shape[1])]
