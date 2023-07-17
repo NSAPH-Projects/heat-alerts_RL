@@ -4,7 +4,7 @@ import hydra
 import pyro
 import pytorch_lightning as pl
 import torch
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 from pyro_heat_alert import (HeatAlertDataModule, HeatAlertLightning,
                              HeatAlertModel)
@@ -72,34 +72,9 @@ def main(cfg: DictConfig):
     torch.save(model.state_dict(), ckpt_model)
     torch.save(guide.state_dict(), ckpt_guide)
 
-    # # run some tests
-    # logging.info("Running tests")
-
-    # # test loading the model using lightning
-    # logging.info("Testing loading model ckpt")
-    # loaded_model = HeatAlertModel.load_from_checkpoint(ckpt_lightning)
-    # loaded_model = torch.load(ckpt_model)
-    # loaded_guide = torch.load(ckpt_guide)
-    # loaded_model = HeatAlertLightning.load_from_checkpoint(
-    #     ckpt_lightning, guide=loaded_guide
-    # )
-
-    # # test sampling from the posterior using guide
-    # logging.info("Sampling from posterior")
-    # sample = loaded_guide(*dm.dataset.tensors)
-
-    # shapes = {k: v.shape for k, v in sample.items()}
-    # logging.info(f"Obtained a sampel from guide:\n{shapes}")
-
-    # # test using posterior predictive, 10 samples
-    # logging.info("Sampling from posterior predictive (10 samples)")
-    # sites = list(sample.keys()) + ["_RETURN"]
-    # predictive = pyro.infer.Predictive(
-    #     loaded_model, guide=loaded_guide, num_samples=10, return_sites=sites
-    # )
-    # pp_sample = predictive(*dm.dataset.tensors)
-    # shapes = {k: v.shape for k, v in pp_sample.items()}
-    # logging.info(f"Obtain samples using Pyro's posterior predictive: \n{shapes}")
+    # save config for easy reproducibility
+    with open(f"ckpts/{cfg.model.name}_cfg.yaml", "w") as f:
+        OmegaConf.save(cfg, f)
 
 
 if __name__ == "__main__":
