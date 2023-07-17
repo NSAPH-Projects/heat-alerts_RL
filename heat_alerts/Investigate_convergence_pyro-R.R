@@ -3,7 +3,8 @@ library(dplyr)
 library(ggplot2)
 library(cowplot, lib.loc = "~/apps/R_4.2.2")
 
-pattern<- "SC_Pyro-0_CPQ"
+pattern<- "SC_Pyro-1"
+pattern<- "SC_Pyro-1_CPQ"
 
 ## Inspect loss:
 
