@@ -29,7 +29,7 @@ def main(cfg: DictConfig):
         d_effectiveness=dm.d_effectiveness,
         baseline_constraints=dm.baseline_constraints,
         baseline_feature_names=dm.baseline_feature_names,
-        effectivess_constraints=dm.effectivess_constraints,
+        effectivess_constraints=dm.effectiveness_constraints,
         effectivess_feature_names=dm.effectiveness_feature_names,
         hidden_dim=cfg.model.hidden_dim,
         num_hidden_layers=cfg.model.num_hidden_layers,
@@ -37,7 +37,7 @@ def main(cfg: DictConfig):
 
     # use low-rank normal guide and initialize by calling it once
     guide = pyro.infer.autoguide.AutoLowRankMultivariateNormal(model)
-    guide(*dm.dataset.tensors)
+    guide(*dm.dataset.tensors)  # always needed to initialize guide
 
     # create lightning module for training
     module = HeatAlertLightning(

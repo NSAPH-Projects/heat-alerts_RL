@@ -108,7 +108,7 @@ class HeatAlertModel(nn.Module):
         )
 
     def forward(
-        self, *inputs: torch.Tensor, condition: bool = True, return_outcomes=False
+        self, *inputs: torch.Tensor, condition: bool = True, return_outcomes=False, spatial_features=None
     ):
         # rebuild tensor from inputs
         hosps = inputs[0]
@@ -127,8 +127,11 @@ class HeatAlertModel(nn.Module):
         # sample coefficients with constraints to ensure correct sign
         baseline_samples = {}
         effectiveness_samples = {}
-        baseline_loc = self.loc_baseline_coefs(self.spatial_features)
-        eff_loc = self.loc_effectiveness_coefs(self.spatial_features)
+        if spatial_features is None:
+            # be careful with location indicator if not using original spatial feats
+            spatial_features = self.spatial_features
+        baseline_loc = self.loc_baseline_coefs(spatial_features)
+        eff_loc = self.loc_effectiveness_coefs(spatial_features)
 
         for i, name in enumerate(self.baseline_feature_names):
             dist = self.get_dist(name, self.baseline_constraints, baseline_loc[:, i])
@@ -229,15 +232,15 @@ class HeatAlertDataModule(pl.LightningDataModule):
         dos = [torch.FloatTensor(X[f"dos_{i}"].values) for i in range(n_dos_basis)]
 
         # alert effectiveness features
-        effectivess_features = {
+        effectiveness_features = {
             "heat_qi": heat_qi,
             "excess_heat": excess_heat,
             "previous_alerts": previous_alerts,
             "weekend": weekend,
             **{f"dos_{i}": v for i, v in enumerate(dos)},
         }
-        self.effectiveness_feature_names = list(effectivess_features.keys())
-        self.effectivess_constraints = dict(
+        self.effectiveness_feature_names = list(effectiveness_features.keys())
+        self.effectiveness_constraints = dict(
             heat_qi="positive",  # more heat more effective
             excess_heat="positive",  # more excess here more effective
             previous_alerts="negative",  # more alerts less effective
@@ -270,7 +273,7 @@ class HeatAlertDataModule(pl.LightningDataModule):
             [baseline_features[k] for k in self.baseline_feature_names], dim=1
         )
         effectivess_features_tensor = torch.stack(
-            [effectivess_features[k] for k in self.effectiveness_feature_names], dim=1
+            [effectiveness_features[k] for k in self.effectiveness_feature_names], dim=1
         )
         self.dataset = torch.utils.data.TensorDataset(
             hospitalizations,
