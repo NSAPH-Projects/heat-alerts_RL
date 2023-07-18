@@ -8,15 +8,14 @@ from pyro.infer import Predictive, predictive
 import pandas as pd
 import numpy as np
 import pyro
-from bayesian_model.pyro_heat_alert import (HeatAlertDataModule, HeatAlertLightning,
-                             HeatAlertModel)
-
+# from bayesian_model.pyro_heat_alert import HeatAlertDataModule, HeatAlertModel
+from pyro_heat_alert import HeatAlertDataModule, HeatAlertModel
 
 # Read in data:
 n_days = 153
 n_years = 10
 dm = HeatAlertDataModule(
-        dir="bayesian_model/data/processed",
+        dir="data/processed", # dir="bayesian_model/data/processed",
         batch_size=n_days*n_years,
         num_workers=4,
         for_gym=True
@@ -61,11 +60,13 @@ model = HeatAlertModel(
         hidden_dim= 32, #cfg.model.hidden_dim,
         num_hidden_layers= 1, #cfg.model.num_hidden_layers,
     )
-model.load_state_dict(torch.load("bayesian_model/ckpts/test_model.pt"))
+# model.load_state_dict(torch.load("bayesian_model/ckpts/test_model.pt"))
+model.load_state_dict(torch.load("ckpts/test_model.pt"))
 
 guide = pyro.infer.autoguide.AutoLowRankMultivariateNormal(model)
 guide(*dm.dataset.tensors)
-guide.load_state_dict(torch.load("bayesian_model/ckpts/test_guide.pt"))
+# guide.load_state_dict(torch.load("bayesian_model/ckpts/test_guide.pt"))
+guide.load_state_dict(torch.load("ckpts/test_guide.pt"))
 
 predictive_outputs = Predictive(
         model,
@@ -110,13 +111,13 @@ class HASDM_Env(gym.Env):
         self.alerts.append(action)
         # Obtain reward:
         inputs = [
-            hosps[self.county][self.year][self.day], 
+            hosps[self.county][self.year][self.day].reshape(-1), 
             self.loc, 
-            county_summer_mean[self.county][self.year][self.day], 
-            torch.tensor(action), 
-            self.observation, 
-            self.effectiveness_vars, 
-            index[self.county][self.year][self.day]
+            county_summer_mean[self.county][self.year][self.day].reshape(-1), 
+            torch.tensor(action).reshape(-1), 
+            self.observation.reshape(-1), 
+            self.effectiveness_vars.reshape(-1), 
+            index[self.county][self.year][self.day].reshape(-1)
         ]
         r = predictive_outputs(*inputs, return_outcomes=True)["_RETURN"][0]
         reward = r[2]
@@ -165,7 +166,7 @@ env = HASDM_Env(loc=2)
 
 d=0
 while d < 200:
-    next_observation, reward, terminal, info = env.step(0)
+    next_observation, reward, terminal, info = env.step(1)
     print(reward)
     if terminal:
         env.reset()

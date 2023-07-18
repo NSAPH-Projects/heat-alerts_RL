@@ -124,7 +124,7 @@ class HeatAlertModel(nn.Module):
         # sample coefficients with constraints to ensure correct sign
         baseline_samples = {}
         effectiveness_samples = {}
-        if len(loc_ind) > 1:
+        if sum(loc_ind.shape) > 1:
             spatial_features = self.spatial_features
 
             baseline_loc = self.loc_baseline_coefs(spatial_features)
@@ -191,7 +191,7 @@ class HeatAlertModel(nn.Module):
             baseline_bias = pyro.sample(
                 "baseline_bias", Uniform(-0.5, 0.5).expand([1]).to_event(1)
             )
-            baseline = torch.exp(sum(baseline_contribs) + baseline_bias[loc_ind])
+            baseline = torch.exp(sum(baseline_contribs) + baseline_bias)
             baseline = baseline.clamp(max=1e6)
 
             effectiveness_contribs = []
@@ -200,14 +200,14 @@ class HeatAlertModel(nn.Module):
                 effectiveness_contribs.append(coef * eff_features[i])
             
             eff_bias = pyro.sample("eff_bias", Uniform(-7, -5).expand([1]).to_event(1))
-            effectiveness = torch.sigmoid(sum(effectiveness_contribs) + eff_bias[loc_ind])
+            effectiveness = torch.sigmoid(sum(effectiveness_contribs) + eff_bias)
             effectiveness = effectiveness.clamp(1e-6, 1 - 1e-6)
 
             # sample the outcome
             outcome_mean = county_summer_mean * baseline * (1 - alert * effectiveness)
 
             y = hosps if condition else None
-            with pyro.plate("data", 1, subsample=index):
+            with pyro.plate("data", 1): 
                 obs = pyro.sample("hospitalizations", Poisson(outcome_mean + 1e-3), obs=y)
 
         if not return_outcomes:
