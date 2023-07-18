@@ -173,11 +173,7 @@ def main(args):
     )
 
     plt.plot(np.log(np.array(Epoch_losses)))
-<<<<<<< HEAD
-    plt.savefig("Plots_params/fit_data_pyro_base_" + args.name + "_log-Loss.png")
-=======
     plt.savefig(f"fit_data_pyro_{args.name}_log-Loss.png")
->>>>>>> 87e21f2c89834bf29710394cb02f09cda6340fa7
     plt.clf()
 
     # extract tau

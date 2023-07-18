@@ -226,6 +226,7 @@ W.to_parquet("data/processed/spatial_feats.parquet")
 sind.to_parquet("data/processed/location_indicator.parquet")
 P.to_parquet("data/processed/population.parquet")
 offset.to_parquet("data/processed/offset.parquet")
+year.to_parquet("data/processed/year.parquet")
 
 # %% save scaler info as json
 scaler_info = {

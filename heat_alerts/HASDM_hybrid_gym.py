@@ -28,7 +28,7 @@ predictive_outputs = Predictive(
 
 
 # Define your custom environment class
-class CustomEnv(gym.Env):
+class HASDM_Env(gym.Env):
     def __init__(self, fips):
         # Initialize your environment variables and parameters
         self.observation_space = spaces.Box(
