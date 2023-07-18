@@ -25,10 +25,10 @@ def main(args: argparse.Namespace):
         d_effectiveness=dm.d_effectiveness,
         baseline_constraints=dm.baseline_constraints,
         baseline_feature_names=dm.baseline_feature_names,
-        effectivess_constraints=dm.effectiveness_constraints,
-        effectivess_feature_names=dm.effectiveness_feature_names,
-        hidden_dim=cfg.model.hidden_dim,
-        num_hidden_layers=cfg.model.num_hidden_layers,
+        effectiveness_constraints=dm.effectiveness_constraints,
+        effectiveness_feature_names=dm.effectiveness_feature_names,
+        hidden_dim= 32, #cfg.model.hidden_dim,
+        num_hidden_layers= 1, #cfg.model.num_hidden_layers,
     )
 
     logging.info("Loading model weights")

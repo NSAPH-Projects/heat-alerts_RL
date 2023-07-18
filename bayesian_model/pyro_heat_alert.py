@@ -95,7 +95,7 @@ class HeatAlertModel(nn.Module):
 
         # save constraints to define sampling
         self.baseline_constraints = baseline_constraints
-        self.effectivess_constraints = effectiveness_constraints
+        self.effectiveness_constraints = effectiveness_constraints
 
         # define the nn's for prior of the coefficients
         self.loc_baseline_coefs = MLP(
@@ -106,7 +106,7 @@ class HeatAlertModel(nn.Module):
         )
 
     def forward(
-        self, *inputs: torch.Tensor, condition: bool = True, return_outcomes=False, county=None # this is a location index, not a fips code
+        self, *inputs: torch.Tensor, condition: bool = True, return_outcomes=False
     ):
         # rebuild tensor from inputs
         hosps = inputs[0]
@@ -116,7 +116,6 @@ class HeatAlertModel(nn.Module):
         baseline_features = inputs[4]
         eff_features = inputs[5]
         index = inputs[6]
-        county_summer_mean = inputs[7]
 
         # register prior mean modules
         pyro.module("baseline_coefs_prior_mean", self.loc_baseline_coefs)
@@ -125,7 +124,7 @@ class HeatAlertModel(nn.Module):
         # sample coefficients with constraints to ensure correct sign
         baseline_samples = {}
         effectiveness_samples = {}
-        if county is None:
+        if len(loc_ind) > 1:
             spatial_features = self.spatial_features
 
             baseline_loc = self.loc_baseline_coefs(spatial_features)
@@ -135,13 +134,12 @@ class HeatAlertModel(nn.Module):
                 dist = self.get_dist(name, self.baseline_constraints, baseline_loc[:, i])
                 baseline_samples[name] = pyro.sample("baseline_" + name, dist)
 
-            for i, name in enumerate(self.effectivess_feature_names):
-                dist = self.get_dist(name, self.effectivess_constraints, eff_loc[:, i])
+            for i, name in enumerate(self.effectiveness_feature_names):
+                dist = self.get_dist(name, self.effectiveness_constraints, eff_loc[:, i])
                 effectiveness_samples[name] = pyro.sample("effectiveness_" + name, dist)
 
             # we need to match the time varying features in x with the correct coefficient sample
             baseline_contribs = []
-
             for i, name in enumerate(self.baseline_feature_names):
                 coef = baseline_samples[name][loc_ind]
                 baseline_contribs.append(coef * baseline_features[:, i])
@@ -154,41 +152,10 @@ class HeatAlertModel(nn.Module):
             baseline = baseline.clamp(max=1e6)
 
             effectiveness_contribs = []
-            for i, name in enumerate(self.effectivess_feature_names):
+            for i, name in enumerate(self.effectiveness_feature_names):
                 coef = effectiveness_samples[name][loc_ind]
                 effectiveness_contribs.append(coef * eff_features[:, i])
-            else: # be careful with location indicator if not using original spatial feats
-                spatial_features = self.spatial_features[county]
-                loc_ind = loc_ind[loc_ind == county] # just repeats of the county index
-            baseline_loc = self.loc_baseline_coefs(spatial_features)
-            eff_loc = self.loc_effectiveness_coefs(spatial_features)
-
-            for i, name in enumerate(self.baseline_feature_names):
-                dist = self.get_dist(name, self.baseline_constraints, baseline_loc[:, i])
-                baseline_samples[name] = pyro.sample("baseline_" + name, dist)
-
-            for i, name in enumerate(self.effectivess_feature_names):
-                dist = self.get_dist(name, self.effectivess_constraints, eff_loc[:, i])
-                effectiveness_samples[name] = pyro.sample("effectiveness_" + name, dist)
-
-            # we need to match the time varying features in x with the correct coefficient sample
-            baseline_contribs = []
-
-            for i, name in enumerate(self.baseline_feature_names):
-                coef = baseline_samples[name][loc_ind]
-                baseline_contribs.append(coef * baseline_features[:, i])
-
-            # compute baseline hospitalizations
-            baseline_bias = pyro.sample(
-                "baseline_bias", Uniform(-0.5, 0.5).expand([self.S]).to_event(1)
-            )
-            baseline = torch.exp(sum(baseline_contribs) + baseline_bias[loc_ind])
-            baseline = baseline.clamp(max=1e6)
-
-            effectiveness_contribs = []
-            for i, name in enumerate(self.effectivess_feature_names):
-                coef = effectiveness_samples[name][loc_ind]
-                effectiveness_contribs.append(coef * eff_features[:, i])
+            
             eff_bias = pyro.sample("eff_bias", Uniform(-7, -5).expand([self.S]).to_event(1))
             effectiveness = torch.sigmoid(sum(effectiveness_contribs) + eff_bias[loc_ind])
             effectiveness = effectiveness.clamp(1e-6, 1 - 1e-6)
@@ -201,9 +168,7 @@ class HeatAlertModel(nn.Module):
                 obs = pyro.sample("hospitalizations", Poisson(outcome_mean + 1e-3), obs=y)
 
         else: # be careful with location indicator if only using one county
-            spatial_features = self.spatial_features[county]
-            this_loc = loc_ind == county
-            loc_ind = torch.zeros(torch.sum(this_loc)).long()
+            spatial_features = self.spatial_features[loc_ind]
             
             baseline_loc = self.loc_baseline_coefs(spatial_features)
             eff_loc = self.loc_effectiveness_coefs(spatial_features)
@@ -212,15 +177,15 @@ class HeatAlertModel(nn.Module):
                 dist = self.get_dist(name, self.baseline_constraints, baseline_loc[i].reshape(-1,1))
                 baseline_samples[name] = pyro.sample("baseline_" + name, dist)
 
-            for i, name in enumerate(self.effectivess_feature_names):
-                dist = self.get_dist(name, self.effectivess_constraints, eff_loc[i].reshape(-1,1))
+            for i, name in enumerate(self.effectiveness_feature_names):
+                dist = self.get_dist(name, self.effectiveness_constraints, eff_loc[i].reshape(-1,1))
                 effectiveness_samples[name] = pyro.sample("effectiveness_" + name, dist)
 
             # we need to match the time varying features in x with the correct coefficient sample
             baseline_contribs = []
             for i, name in enumerate(self.baseline_feature_names):
-                coef = baseline_samples[name][loc_ind]
-                baseline_contribs.append(coef[:,0] * baseline_features[this_loc, i])
+                coef = baseline_samples[name]
+                baseline_contribs.append(coef * baseline_features[i])
 
             # compute baseline hospitalizations
             baseline_bias = pyro.sample(
@@ -230,19 +195,19 @@ class HeatAlertModel(nn.Module):
             baseline = baseline.clamp(max=1e6)
 
             effectiveness_contribs = []
-            for i, name in enumerate(self.effectivess_feature_names):
-                coef = effectiveness_samples[name][loc_ind]
-                effectiveness_contribs.append(coef[:,0] * eff_features[this_loc, i])
+            for i, name in enumerate(self.effectiveness_feature_names):
+                coef = effectiveness_samples[name]
+                effectiveness_contribs.append(coef * eff_features[i])
             
             eff_bias = pyro.sample("eff_bias", Uniform(-7, -5).expand([1]).to_event(1))
             effectiveness = torch.sigmoid(sum(effectiveness_contribs) + eff_bias[loc_ind])
             effectiveness = effectiveness.clamp(1e-6, 1 - 1e-6)
 
             # sample the outcome
-            outcome_mean = county_summer_mean[this_loc] * baseline * (1 - alert[this_loc] * effectiveness)
+            outcome_mean = county_summer_mean * baseline * (1 - alert * effectiveness)
 
-            y = hosps[this_loc] if condition else None
-            with pyro.plate("data", torch.sum(this_loc), subsample=index):
+            y = hosps if condition else None
+            with pyro.plate("data", 1, subsample=index):
                 obs = pyro.sample("hospitalizations", Poisson(outcome_mean + 1e-3), obs=y)
 
         if not return_outcomes:
@@ -265,7 +230,7 @@ class HeatAlertModel(nn.Module):
 class HeatAlertDataModule(pl.LightningDataModule):
     """Reads the preprocess data and prepared it for training using tensordicts"""
 
-    def __init__(self, dir: str, batch_size: int | None = None, num_workers: int = 8):
+    def __init__(self, dir: str, batch_size: int | None = None, num_workers: int = 8, for_gym=False):
         super().__init__()
         self.dir = dir
         self.workers = num_workers
@@ -281,6 +246,7 @@ class HeatAlertDataModule(pl.LightningDataModule):
         offset = pd.read_parquet(f"{dir}/offset.parquet")
         dos = pd.read_parquet(f"{dir}/Btdos.parquet")
         year = pd.read_parquet(f"{dir}/year.parquet")
+        budget = pd.read_parquet(f"{dir}/budget.parquet")
 
         if batch_size is None:
             self.batch_size = X.shape[0] // W.shape[0]  # ~ as batches as locations
@@ -298,6 +264,7 @@ class HeatAlertDataModule(pl.LightningDataModule):
         hospitalizations = torch.FloatTensor(Y.values[:, 0])
         alert = torch.FloatTensor(A.values[:, 0])
         year = torch.LongTensor(year.values[:,0])
+        budget = torch.LongTensor(budget.values[:,0])
 
         # prepare covariates
         heat_qi = torch.FloatTensor(X.quant_HI_county.values)
@@ -349,20 +316,34 @@ class HeatAlertDataModule(pl.LightningDataModule):
         baseline_features_tensor = torch.stack(
             [baseline_features[k] for k in self.baseline_feature_names], dim=1
         )
-        effectivess_features_tensor = torch.stack(
+        effectiveness_features_tensor = torch.stack(
             [effectiveness_features[k] for k in self.effectiveness_feature_names], dim=1
         )
+        
         self.dataset = torch.utils.data.TensorDataset(
             hospitalizations,
             location_indicator,
             county_summer_mean,
             alert,
             baseline_features_tensor,
-            effectivess_features_tensor,
+            effectiveness_features_tensor,
             torch.arange(X.shape[0]),
-            county_summer_mean,
             year,
+            budget,
         )
+        if for_gym:
+            self.gym_dataset=[
+                hospitalizations,
+                location_indicator,
+                county_summer_mean,
+                alert,
+                baseline_features_tensor,
+                effectiveness_features_tensor,
+                torch.arange(X.shape[0]),
+                year,
+                budget
+            ]
+
 
         # get dimensions
         self.data_size = X.shape[0]

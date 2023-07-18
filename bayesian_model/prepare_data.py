@@ -65,6 +65,7 @@ all_cols = [
     "alert",
     # "alert_lag1", # if doing online or hybrid RL
     "alerts_2wks",
+    "alert_sum",
     "other_hosps",
     "pm25",
     "holiday",
@@ -179,6 +180,15 @@ A = data[["fips", "Date", "alert"]].set_index(["fips", "Date"])
 Y = data[["fips", "Date", "other_hosps"]].set_index(["fips", "Date"])
 year = data[["fips", "Date", "year"]].set_index(["fips", "Date"])
 
+alert_sum = data[["fips", "Date", "alert_sum"]]
+n_days = 153
+end_seq = range(n_days-1, len(alert_sum), n_days)
+budget = alert_sum["alert_sum"][end_seq]
+Budget = pd.DataFrame(np.repeat(budget.values,n_days,axis=0))
+Budget["fips"] = data["fips"]
+Budget["Date"] = data["Date"]
+Budget = Budget.set_index(["fips", "Date"])
+
 # plot histograms of alerts and hospos in (1, 2) pane
 # fig, ax = plt.subplots(1, 2, figsize=(10, 5))
 # ax[0].hist(A.values, bins=20)
@@ -227,6 +237,7 @@ sind.to_parquet("data/processed/location_indicator.parquet")
 P.to_parquet("data/processed/population.parquet")
 offset.to_parquet("data/processed/offset.parquet")
 year.to_parquet("data/processed/year.parquet")
+Budget.to_parquet("data/processed/budget.parquet")
 
 # %% save scaler info as json
 scaler_info = {

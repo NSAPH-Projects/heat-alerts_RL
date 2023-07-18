@@ -3,22 +3,70 @@ import gym
 from gym import spaces
 
 import torch
-from pyro.infer import Predictive
+from pyro.infer import Predictive, predictive
 
 import pandas as pd
 import numpy as np
+import pyro
+from bayesian_model.pyro_heat_alert import (HeatAlertDataModule, HeatAlertLightning,
+                             HeatAlertModel)
 
 
-# Set up data:
+# Read in data:
 n_days = 153
-vars = ["quant_HI_county", "quant_HI_3d_county", "dos", "alert_sum", "More_alerts", 
-        "alerts_2wks", "year"]
-Train = pd.read_csv("data/Summer23_Train_smaller-for-Python.csv") 
-Train["More_alerts"] = 0 # filler column
+n_years = 10
+dm = HeatAlertDataModule(
+        dir="bayesian_model/data/processed",
+        batch_size=n_days*n_years,
+        num_workers=4,
+        for_gym=True
+    )
+data = dm.gym_dataset
+
+# X = pd.read_parquet(f"{dir}/states.parquet").drop(columns="intercept")
+# A = pd.read_parquet(f"{dir}/actions.parquet")
+# Y = pd.read_parquet(f"{dir}/outcomes.parquet")
+# W = pd.read_parquet(f"{dir}/spatial_feats.parquet")
+# sind = pd.read_parquet(f"{dir}/location_indicator.parquet")
+# offset = pd.read_parquet(f"{dir}/offset.parquet")
+# dos = pd.read_parquet(f"{dir}/Btdos.parquet")
+# year = pd.read_parquet(f"{dir}/year.parquet")
+# budget = pd.read_parquet(f"{dir}/budget.parquet")
+
+hosps = data[0]
+loc_ind = data[1].long()
+county_summer_mean = data[2]
+alert = data[3]
+baseline_features = data[4]
+eff_features = data[5]
+index = data[6]
+year = data[7]
+budget = data[8]
+
+baseline_feature_names = dm.baseline_feature_names
+effectiveness_feature_names = dm.effectiveness_feature_names
 
 # Rewards model:
-model = torch.load("Bayesian_models/Pyro_model_7-13.pt") # may need to read in the Model class first?
-guide = torch.load("Bayesian_models/Pyro_guide_7-13.pt")
+# model = torch.load("bayesian_model/ckpts/test_model.pt") # may need to read in the Model class first?
+# guide = torch.load("bayesian_model/ckpts/test_guide.pt")
+model = HeatAlertModel(
+        spatial_features=dm.spatial_features,
+        data_size=dm.data_size,
+        d_baseline=dm.d_baseline,
+        d_effectiveness=dm.d_effectiveness,
+        baseline_constraints=dm.baseline_constraints,
+        baseline_feature_names=dm.baseline_feature_names,
+        effectiveness_constraints=dm.effectiveness_constraints,
+        effectiveness_feature_names=dm.effectiveness_feature_names,
+        hidden_dim= 32, #cfg.model.hidden_dim,
+        num_hidden_layers= 1, #cfg.model.num_hidden_layers,
+    )
+model.load_state_dict(torch.load("bayesian_model/ckpts/test_model.pt"))
+
+guide = pyro.infer.autoguide.AutoLowRankMultivariateNormal(model)
+guide(*dm.dataset.tensors)
+guide.load_state_dict(torch.load("bayesian_model/ckpts/test_guide.pt"))
+
 predictive_outputs = Predictive(
         model,
         guide=guide,
@@ -29,26 +77,30 @@ predictive_outputs = Predictive(
 
 # Define your custom environment class
 class HASDM_Env(gym.Env):
-    def __init__(self, fips):
+    def __init__(self, loc):
         # Initialize your environment variables and parameters
         self.observation_space = spaces.Box(
             low=-np.inf,
             high=np.inf,
-            shape=(len(vars),),
+            shape=(len(baseline_feature_names),),
             dtype=np.float32,
         )
         self.action_space = spaces.Discrete(2)
-        self.county_data = Train.loc[Train["fips"] == "fips"][vars]
-        self.year = np.random.randint(2006, 2016)
-        self.data = self.county_data.loc[self.county_data["year"] == self.year]
-        self.budget = self.data["alert_sum"].iloc[n_days-1]
-        # standardize self.data?
+        self.loc = torch.tensor(loc)
+        self.county = loc_ind == self.loc
+        self.y = np.random.randint(2006, 2016)
+        self.year = year[self.county] == self.y
+        self.budget = budget[self.county][self.year][0]
         self.day = 0
         self.alerts = []
-
+        obs = baseline_features[self.county][self.year][self.day]
+        obs[baseline_feature_names.index("previous_alerts")] = torch.tensor(0)
+        self.observation = torch.cat((obs,self.budget.reshape(-1))) # so the RL knows the budget
+        eff = eff_features[self.county][self.year][self.day]
+        eff[effectiveness_feature_names.index("previous_alerts")] = torch.tensor(0)
+        self.effectiveness_vars = eff
     def step(self, action):
         # Take an action in the environment and return the next state, reward, done flag, and additional information
-
         # Update new action according to the alert budget:
         if action == 1 and self.budget > 0:
             action = 1
@@ -56,41 +108,66 @@ class HASDM_Env(gym.Env):
         else:
             action = 0
         self.alerts.append(action)
-
         # Obtain reward:
-        inputs = [] # need to be tensors
-        reward = predictive_outputs(*inputs, return_all=True)["_RETURN"]
-        
+        inputs = [
+            hosps[self.county][self.year][self.day], 
+            self.loc, 
+            county_summer_mean[self.county][self.year][self.day], 
+            torch.tensor(action), 
+            self.observation, 
+            self.effectiveness_vars, 
+            index[self.county][self.year][self.day]
+        ]
+        r = predictive_outputs(*inputs, return_outcomes=True)["_RETURN"][0]
+        reward = r[2]
+        # format = effectiveness, baseline, outcome_mean
+        # R = county_summer_mean * baseline * (1 - alert[this_loc] * effectiveness)
         # Set up next observation:
-        obs = self.data[vars].iloc[self.day]
-        obs["alert_sum"] = sum(self.alerts)
-        obs["More_alerts"] = self.budget
-        if self.day < 14:
-            obs["alerts_2wks"] = sum(self.alerts)
-        else: 
-            obs["alerts_2wks"] = sum(self.alerts[(self.day - 14):self.day])
-        next_observation = np.array(obs)
-
         self.day += 1
+        obs = baseline_features[self.county][self.year][self.day]
+        eff = eff_features[self.county][self.year][self.day]
+        if self.day < 14:
+            s = torch.tensor(sum(self.alerts))
+            obs[baseline_feature_names.index("previous_alerts")] = s
+            eff[effectiveness_feature_names.index("previous_alerts")] = s
+        else: 
+            s = torch.tensor(sum(self.alerts[(self.day - 14):self.day]))
+            obs[baseline_feature_names.index("previous_alerts")] = s
+            eff[effectiveness_feature_names.index("previous_alerts")] = s
+        next_observation = torch.cat((obs,self.budget.reshape(-1))) # so the RL knows the budget
+        self.observation = next_observation
+        self.effectiveness_vars = eff
         if self.day == n_days:
             terminal = True
         else:
             terminal = False
-
-        info = {}
+        info = {} # could keep track of extra metrics here?
         return(next_observation, reward, terminal, info)
-
-def reset(self):
+    def reset(self):
         # Reset the environment to its initial state
-        self.year = np.random.randint(2006, 2016)
-        self.data = self.county_data.loc[self.county_data["year"] == self.year]
-        self.budget = self.data["alert_sum"].iloc[n_days-1]
-        # standardize self.data?
+        self.y = np.random.randint(2006, 2016)
+        self.year = year[self.county] == self.y
+        self.budget = budget[self.county][self.year][0]
         self.day = 0
         self.alerts = []
-        obs = self.data[vars].iloc[self.day]
-        obs["alert_sum"] = sum(self.alerts)
-        obs["More_alerts"] = self.budget 
-        obs["alerts_2wks"] = 0 # sum(self.alerts[(self.day - 13):self.day])
-        self.observation = np.array(obs)
+        obs = baseline_features[self.county][self.year][self.day]
+        obs[baseline_feature_names.index("previous_alerts")] = torch.tensor(0)
+        self.observation = torch.cat((obs,self.budget.reshape(-1))) # so the RL knows the budget
+        eff = eff_features[self.county][self.year][self.day]
+        eff[effectiveness_feature_names.index("previous_alerts")] = torch.tensor(0)
+        self.effectiveness_vars = eff
         return(self.observation)
+
+
+## Test the env:
+
+env = HASDM_Env(loc=2)
+
+d=0
+while d < 200:
+    next_observation, reward, terminal, info = env.step(0)
+    print(reward)
+    if terminal:
+        env.reset()
+    d+= 1
+
