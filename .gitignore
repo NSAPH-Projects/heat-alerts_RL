@@ -16,10 +16,6 @@ cpq_global.py
 random*
 *workspace*
 *cuda*
-bayesian_model/np*
-bayesian_model/pd*
-bayesian_model/gym*
-bayesian_model/torch*
 
 # Pytorch models and other output from bayesian model:
 *.pt
