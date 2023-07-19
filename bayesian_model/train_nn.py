@@ -50,7 +50,7 @@ def main(cfg: DictConfig):
     )
 
     # Train model
-    logger = pl.loggers.TensorBoardLogger("logs/", name=cfg.model.name)
+    logger = pl.loggers.TensorBoardLogger("logs/", name=cfg.model.name) # to see output, from terminal run "tensorboard --logdir logs/[cfg.model.name]"
     trainer = pl.Trainer(
         max_epochs=cfg.training.epochs,
         accelerator="auto",

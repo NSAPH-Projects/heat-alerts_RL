@@ -8,14 +8,14 @@ from pyro.infer import Predictive, predictive
 import pandas as pd
 import numpy as np
 import pyro
-# from bayesian_model.pyro_heat_alert import HeatAlertDataModule, HeatAlertModel
-from pyro_heat_alert import HeatAlertDataModule, HeatAlertModel
+from bayesian_model.pyro_heat_alert import HeatAlertDataModule, HeatAlertModel
+# from pyro_heat_alert import HeatAlertDataModule, HeatAlertModel
 
 # Read in data:
 n_days = 153
 n_years = 10
 dm = HeatAlertDataModule(
-        dir="data/processed", # dir="bayesian_model/data/processed",
+        dir="bayesian_model/data/processed", # dir="data/processed",
         batch_size=n_days*n_years,
         num_workers=4,
         for_gym=True
@@ -46,8 +46,6 @@ baseline_feature_names = dm.baseline_feature_names
 effectiveness_feature_names = dm.effectiveness_feature_names
 
 # Rewards model:
-# model = torch.load("bayesian_model/ckpts/test_model.pt") # may need to read in the Model class first?
-# guide = torch.load("bayesian_model/ckpts/test_guide.pt")
 model = HeatAlertModel(
         spatial_features=dm.spatial_features,
         data_size=dm.data_size,
@@ -60,13 +58,13 @@ model = HeatAlertModel(
         hidden_dim= 32, #cfg.model.hidden_dim,
         num_hidden_layers= 1, #cfg.model.num_hidden_layers,
     )
-# model.load_state_dict(torch.load("bayesian_model/ckpts/test_model.pt"))
-model.load_state_dict(torch.load("ckpts/test_model.pt"))
+model.load_state_dict(torch.load("bayesian_model/ckpts/Fast_7-19_model.pt"))
+# model.load_state_dict(torch.load("ckpts/Fast_7-19_model.pt"))
 
 guide = pyro.infer.autoguide.AutoLowRankMultivariateNormal(model)
 guide(*dm.dataset.tensors)
-# guide.load_state_dict(torch.load("bayesian_model/ckpts/test_guide.pt"))
-guide.load_state_dict(torch.load("ckpts/test_guide.pt"))
+guide.load_state_dict(torch.load("bayesian_model/ckpts/Fast_7-19_guide.pt"))
+# guide.load_state_dict(torch.load("ckpts/Fast_7-19_guide.pt"))
 
 predictive_outputs = Predictive(
         model,
@@ -83,7 +81,7 @@ class HASDM_Env(gym.Env):
         self.observation_space = spaces.Box(
             low=-np.inf,
             high=np.inf,
-            shape=(len(baseline_feature_names),),
+            shape=(len(baseline_feature_names)+1,),
             dtype=np.float32,
         )
         self.action_space = spaces.Discrete(2)
@@ -101,7 +99,7 @@ class HASDM_Env(gym.Env):
         eff[effectiveness_feature_names.index("previous_alerts")] = torch.tensor(0.0, dtype=torch.float32)
         self.effectiveness_vars = eff
     def step(self, action):
-        print("Day = " + str(self.day))
+        # print("Day = " + str(self.day))
         # print("Index = " + str(self.county[self.year][self.day]))
         # Take an action in the environment and return the next state, reward, done flag, and additional information
         # Update new action according to the alert budget:
@@ -145,7 +143,7 @@ class HASDM_Env(gym.Env):
         else:
             terminal = False
         info = {} # could keep track of extra metrics here?
-        return(next_observation, reward, terminal, info)
+        return(next_observation.reshape(-1,).detach().numpy(), reward, terminal, info)
     def reset(self):
         # Reset the environment to its initial state
         self.y = np.random.randint(2006, 2016)
@@ -159,19 +157,19 @@ class HASDM_Env(gym.Env):
         eff = eff_features[self.county][self.year][self.day]
         eff[effectiveness_feature_names.index("previous_alerts")] = torch.tensor(0.0, dtype=torch.float32)
         self.effectiveness_vars = eff
-        return(self.observation)
+        return(self.observation.reshape(-1,).detach().numpy())
 
 
-## Test the env:
+# ## Test the env:
 
-env = HASDM_Env(loc=2)
+# env = HASDM_Env(loc=2)
 
-d=0
-while d < 200:
-    next_observation, reward, terminal, info = env.step(1)
-    # print(reward)
-    print(next_observation)
-    if terminal:
-        env.reset()
-    d+= 1
+# d=0
+# while d < 200:
+#     next_observation, reward, terminal, info = env.step(1)
+#     # print(reward)
+#     print(next_observation)
+#     if terminal:
+#         env.reset()
+#     d+= 1
 
