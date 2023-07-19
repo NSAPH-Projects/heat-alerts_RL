@@ -87,7 +87,7 @@ class HASDM_Env(gym.Env):
             dtype=np.float32,
         )
         self.action_space = spaces.Discrete(2)
-        self.loc = torch.tensor(loc)
+        self.loc = torch.tensor(loc).long()
         self.county = loc_ind == self.loc
         self.y = np.random.randint(2006, 2016)
         self.year = year[self.county] == self.y
@@ -95,12 +95,14 @@ class HASDM_Env(gym.Env):
         self.day = 0
         self.alerts = []
         obs = baseline_features[self.county][self.year][self.day]
-        obs[baseline_feature_names.index("previous_alerts")] = torch.tensor(0)
+        obs[baseline_feature_names.index("previous_alerts")] = torch.tensor(0.0, dtype=torch.float32)
         self.observation = torch.cat((obs,self.budget.reshape(-1))) # so the RL knows the budget
         eff = eff_features[self.county][self.year][self.day]
-        eff[effectiveness_feature_names.index("previous_alerts")] = torch.tensor(0)
+        eff[effectiveness_feature_names.index("previous_alerts")] = torch.tensor(0.0, dtype=torch.float32)
         self.effectiveness_vars = eff
     def step(self, action):
+        print("Day = " + str(self.day))
+        # print("Index = " + str(self.county[self.year][self.day]))
         # Take an action in the environment and return the next state, reward, done flag, and additional information
         # Update new action according to the alert budget:
         if action == 1 and self.budget > 0:
@@ -111,16 +113,16 @@ class HASDM_Env(gym.Env):
         self.alerts.append(action)
         # Obtain reward:
         inputs = [
-            hosps[self.county][self.year][self.day].reshape(-1), 
-            self.loc, 
-            county_summer_mean[self.county][self.year][self.day].reshape(-1), 
-            torch.tensor(action).reshape(-1), 
-            self.observation.reshape(-1), 
-            self.effectiveness_vars.reshape(-1), 
-            index[self.county][self.year][self.day].reshape(-1)
+            hosps[self.county][self.year][self.day].reshape(1,1), 
+            self.loc.reshape(1,1), 
+            county_summer_mean[self.county][self.year][self.day].reshape(1,1), 
+            torch.tensor(action, dtype=torch.float32).reshape(1,1), 
+            self.observation[0:(len(self.observation)-1)].reshape(1,-1), 
+            self.effectiveness_vars.reshape(1,-1), 
+            index[self.county][self.year][self.day].reshape(1,1)
         ]
-        r = predictive_outputs(*inputs, return_outcomes=True)["_RETURN"][0]
-        reward = r[2]
+        r = predictive_outputs(*inputs, condition=False, return_outcomes=True)["_RETURN"][0]
+        reward = r[0][2][0].item()
         # format = effectiveness, baseline, outcome_mean
         # R = county_summer_mean * baseline * (1 - alert[this_loc] * effectiveness)
         # Set up next observation:
@@ -128,11 +130,11 @@ class HASDM_Env(gym.Env):
         obs = baseline_features[self.county][self.year][self.day]
         eff = eff_features[self.county][self.year][self.day]
         if self.day < 14:
-            s = torch.tensor(sum(self.alerts))
+            s = torch.tensor(sum(self.alerts), dtype=torch.float32)
             obs[baseline_feature_names.index("previous_alerts")] = s
             eff[effectiveness_feature_names.index("previous_alerts")] = s
         else: 
-            s = torch.tensor(sum(self.alerts[(self.day - 14):self.day]))
+            s = torch.tensor(sum(self.alerts[(self.day - 14):self.day]), dtype=torch.float32)
             obs[baseline_feature_names.index("previous_alerts")] = s
             eff[effectiveness_feature_names.index("previous_alerts")] = s
         next_observation = torch.cat((obs,self.budget.reshape(-1))) # so the RL knows the budget
@@ -152,10 +154,10 @@ class HASDM_Env(gym.Env):
         self.day = 0
         self.alerts = []
         obs = baseline_features[self.county][self.year][self.day]
-        obs[baseline_feature_names.index("previous_alerts")] = torch.tensor(0)
+        obs[baseline_feature_names.index("previous_alerts")] = torch.tensor(0.0, dtype=torch.float32)
         self.observation = torch.cat((obs,self.budget.reshape(-1))) # so the RL knows the budget
         eff = eff_features[self.county][self.year][self.day]
-        eff[effectiveness_feature_names.index("previous_alerts")] = torch.tensor(0)
+        eff[effectiveness_feature_names.index("previous_alerts")] = torch.tensor(0.0, dtype=torch.float32)
         self.effectiveness_vars = eff
         return(self.observation)
 
@@ -165,7 +167,7 @@ class HASDM_Env(gym.Env):
 env = HASDM_Env(loc=2)
 
 d=0
-while d < 200:
+while d < 10:
     next_observation, reward, terminal, info = env.step(1)
     print(reward)
     if terminal:
