@@ -3,6 +3,7 @@ import os
 from argparse import ArgumentParser
 import numpy as np
 import pandas as pd
+import json
 import random
 
 import gym
@@ -35,7 +36,7 @@ def main(params):
     d3rlpy.seed(seed)
 
     # params=dict(
-    #     loc = 2, model_name = "test_2", algo="DQN",
+    #     fips = 4013, model_name = "test_4013", algo="DQN",
     #     n_hidden = 32, n_layers = 2,
     #     n_epochs = 2, sa = 1, sync_rate = 3,
     #     b_size = 153, lr = 0.1, gamma = 0.999,
@@ -73,7 +74,10 @@ def main(params):
         reward_scaler = None
         )
     
-    env = HASDM_Env(params["loc"])
+    with open("bayesian_model/data/processed/fips2idx.json","r") as f:
+        crosswalk = json.load(f)
+    
+    env = HASDM_Env(crosswalk[str(params["fips"])])
     # eval_env = HASDM_Env(params["loc"])
 
     buffer = ReplayBuffer(maxlen=H*params["n_epochs"], env=env)
@@ -103,14 +107,14 @@ def main(params):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--loc", type=int, default=0, help="location index")
+    parser.add_argument("--fips", type=int, default=4013, help="fips code")
     parser.add_argument("--algo", type=str, default="DQN", help="RL algorithm")
     parser.add_argument("--seed", type=int, default=321, help="set seed")
     parser.add_argument("--model_name", type=str, default="test", help="name to save model under")
-    parser.add_argument("--b_size", type=int, default=1530, help="size of the batches")
+    parser.add_argument("--b_size", type=int, default=500, help="size of the batches")
     parser.add_argument("--n_layers", type=int, default=2, help="how many hidden layers in DQN")
     parser.add_argument("--n_hidden", type=int, default=32, help="number of params in DQN hidden layers")
-    parser.add_argument("--lr", type=float, default=0.1, help="learning rate")
+    parser.add_argument("--lr", type=float, default=0.01, help="learning rate")
     parser.add_argument("--gamma", type=float, default=0.999, help="discount factor")
     parser.add_argument("--sync_rate", type=int, default=3, help="how often (in epochs) to sync the target model")
     parser.add_argument("--n_epochs", type=int, default=100, help="number of epochs to run")
