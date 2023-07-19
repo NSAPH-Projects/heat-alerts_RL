@@ -7,11 +7,13 @@ from pyro.infer import Predictive, predictive
 
 import pandas as pd
 import numpy as np
+from itertools import groupby
 import pyro
+
 from bayesian_model.pyro_heat_alert import HeatAlertDataModule, HeatAlertModel
 # from pyro_heat_alert import HeatAlertDataModule, HeatAlertModel
 
-# Read in data:
+## Read in data:
 n_days = 153
 n_years = 10
 dm = HeatAlertDataModule(
@@ -21,16 +23,6 @@ dm = HeatAlertDataModule(
         for_gym=True
     )
 data = dm.gym_dataset
-
-# X = pd.read_parquet(f"{dir}/states.parquet").drop(columns="intercept")
-# A = pd.read_parquet(f"{dir}/actions.parquet")
-# Y = pd.read_parquet(f"{dir}/outcomes.parquet")
-# W = pd.read_parquet(f"{dir}/spatial_feats.parquet")
-# sind = pd.read_parquet(f"{dir}/location_indicator.parquet")
-# offset = pd.read_parquet(f"{dir}/offset.parquet")
-# dos = pd.read_parquet(f"{dir}/Btdos.parquet")
-# year = pd.read_parquet(f"{dir}/year.parquet")
-# budget = pd.read_parquet(f"{dir}/budget.parquet")
 
 hosps = data[0]
 loc_ind = data[1].long()
@@ -45,7 +37,7 @@ budget = data[8]
 baseline_feature_names = dm.baseline_feature_names
 effectiveness_feature_names = dm.effectiveness_feature_names
 
-# Rewards model:
+## Rewards model:
 model = HeatAlertModel(
         spatial_features=dm.spatial_features,
         data_size=dm.data_size,
@@ -58,13 +50,13 @@ model = HeatAlertModel(
         hidden_dim= 32, #cfg.model.hidden_dim,
         num_hidden_layers= 1, #cfg.model.num_hidden_layers,
     )
-model.load_state_dict(torch.load("bayesian_model/ckpts/Fast_7-19_model.pt"))
-# model.load_state_dict(torch.load("ckpts/Fast_7-19_model.pt"))
+model.load_state_dict(torch.load("bayesian_model/ckpts/Full_7-19_model.pt"))
+# model.load_state_dict(torch.load("ckpts/Full_7-19_model.pt"))
 
 guide = pyro.infer.autoguide.AutoLowRankMultivariateNormal(model)
 guide(*dm.dataset.tensors)
-guide.load_state_dict(torch.load("bayesian_model/ckpts/Fast_7-19_guide.pt"))
-# guide.load_state_dict(torch.load("ckpts/Fast_7-19_guide.pt"))
+guide.load_state_dict(torch.load("bayesian_model/ckpts/Full_7-19_guide.pt"))
+# guide.load_state_dict(torch.load("ckpts/Full_7-19_guide.pt"))
 
 predictive_outputs = Predictive(
         model,
@@ -73,8 +65,23 @@ predictive_outputs = Predictive(
         return_sites=["_RETURN"],
     )
 
+def avg_streak_length(inds): # inds = indices (days) of alerts
+    n = len(inds)
+    diffs = inds[1:n] - inds[0:(n-1)]
+    rle = [(k, sum(1 for i in g)) for k,g in groupby(diffs)]
+    D = dict()
+    for tup in rle:
+        if str(tup[0]) in D.keys():
+            D[str(tup[0])].append(tup[1])
+        else:
+            D[str(tup[0])] = [tup[1]]
+    if "1" in D.keys():
+        return(np.mean(np.array(D["1"])+1))
+    else:
+        return(0)
 
-# Define your custom environment class
+## Define the custom environment class:
+
 class HASDM_Env(gym.Env):
     def __init__(self, loc):
         # Initialize your environment variables and parameters
@@ -98,10 +105,14 @@ class HASDM_Env(gym.Env):
         eff = eff_features[self.county][self.year][self.day]
         eff[effectiveness_feature_names.index("previous_alerts")] = torch.tensor(0.0, dtype=torch.float32)
         self.effectiveness_vars = eff
-    def step(self, action):
+        # create a couple of metrics to save and return at end:
+        self.episode_sum = []
+        self.episode_budget = []
+        self.episode_avg_dos = []
+        self.episode_avg_streak_length = []
+    def step(self, action): # Take an action in the environment and return the next state, reward, done flag, and additional information
         # print("Day = " + str(self.day))
         # print("Index = " + str(self.county[self.year][self.day]))
-        # Take an action in the environment and return the next state, reward, done flag, and additional information
         # Update new action according to the alert budget:
         if action == 1 and self.budget > 0:
             action = 1
@@ -122,7 +133,7 @@ class HASDM_Env(gym.Env):
         r = predictive_outputs(*inputs, condition=False, return_outcomes=True)["_RETURN"][0]
         reward = r[0][2][0].item()
         # format = effectiveness, baseline, outcome_mean
-        # R = county_summer_mean * baseline * (1 - alert[this_loc] * effectiveness)
+        # R = county_summer_mean * baseline * (1 - alert * effectiveness)
         # Set up next observation:
         self.day += 1
         obs = baseline_features[self.county][self.year][self.day]
@@ -140,15 +151,28 @@ class HASDM_Env(gym.Env):
         self.effectiveness_vars = eff
         if self.day == n_days-1:
             terminal = True
+            k = sum(self.alerts)
+            self.episode_sum.append(k)
+            if k > 0:
+                i = np.where(np.array(self.alerts) == 1)[0]
+                self.episode_avg_dos.append(np.mean(i+1))
+                if k > 1:
+                    self.episode_avg_streak_length.append(avg_streak_length(i))
+                else:
+                    self.episode_avg_streak_length.append(0)
+            else:
+                self.episode_avg_dos.append(-1)
+                self.episode_avg_streak_length.append(0)
         else:
             terminal = False
-        info = {} # could keep track of extra metrics here?
+        info = {} 
         return(next_observation.reshape(-1,).detach().numpy(), reward, terminal, info)
     def reset(self):
         # Reset the environment to its initial state
         self.y = np.random.randint(2006, 2016)
         self.year = year[self.county] == self.y
         self.budget = budget[self.county][self.year][0]
+        self.episode_budget.append(self.budget.item()) # saving for later reference
         self.day = 0
         self.alerts = []
         obs = baseline_features[self.county][self.year][self.day]
@@ -163,7 +187,7 @@ class HASDM_Env(gym.Env):
 # ## Test the env:
 
 # env = HASDM_Env(loc=2)
-
+# env.reset()
 # d=0
 # while d < 200:
 #     next_observation, reward, terminal, info = env.step(1)
