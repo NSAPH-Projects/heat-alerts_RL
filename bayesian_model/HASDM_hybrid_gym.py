@@ -140,7 +140,7 @@ class HASDM_Env(gym.Env):
         next_observation = torch.cat((obs,self.budget.reshape(-1))) # so the RL knows the budget
         self.observation = next_observation
         self.effectiveness_vars = eff
-        if self.day == n_days:
+        if self.day == n_days-1:
             terminal = True
         else:
             terminal = False
@@ -167,9 +167,10 @@ class HASDM_Env(gym.Env):
 env = HASDM_Env(loc=2)
 
 d=0
-while d < 10:
+while d < 200:
     next_observation, reward, terminal, info = env.step(1)
-    print(reward)
+    # print(reward)
+    print(next_observation)
     if terminal:
         env.reset()
     d+= 1
