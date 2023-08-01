@@ -11,16 +11,13 @@ This is code for investigating applicability of RL to environmental health, spec
 6. Separate and finish cleaning the train and test sets: Make_train_test_sets.R
 7. Export to csv (for Python) and create standardized dataset for further analyses in R: Data_for_Python.R
 
-### Installing Pytorch on FASRC/FASSE:
-1. Follow [these instructions](https://github.com/fasrc/User_Codes/tree/master/AI/PyTorch)
-2. Additionally, run this from terminal:
+### Installing necessary packages:
+Terminal commands to install the conda environment:
 ```bash
-conda install scikit-learn pytorch-lightning
-conda install -c conda-forge tqdm ray-tune
-conda install -c anaconda cython # assists with d3rlpy installation
-pip install d3rlpy # conda can't find it
+conda env create -f ../envs/heatrl/env-linux.yaml
+conda activate heatrl
 ```
-3. Might need to manually install pandas as well depending on the conda environment version...
+*Note: you have to be on a gpu-enabled partition for pytorch to install the cuda requirements.*
 
 ### Installing torch for R on FASRC/FASSE:
 *Note: we couldn't get torch for R to correctly use GPUs, so we switched to Pytorch*
