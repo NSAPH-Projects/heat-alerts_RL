@@ -1,0 +1,10 @@
+outputs/
+data/*
+!data/processed/
+Plots_params/*
+logs/*
+ckpts/*
+np
+pd
+gym
+torch

@@ -2,6 +2,32 @@
 data/*
 Run_jobs/slurm/*
 
+# Random folders to ignore:
+d3rlpy_logs/*
+Bayesian_models/*
+Summer_results/*
+Policies/*
+Sim_actions/*
+Fall_results/*
+new_results/*
+bin/*
+cpq_global.py
+.lr_find*
+random*
+*workspace*
+*cuda*
+
+# Pytorch models and other output from bayesian model:
+*.pt
+*.parquet
+*.json
+*.png
+
+# vscode projects
+devcontainer.json
+launch.json
+settings.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -9,6 +35,12 @@ __pycache__/
 
 # C extensions
 *.so
+*.cpp
+*.hpp
+
+# stan outputs
+model*.csv
+model*.txt
 
 # Distribution / packaging
 .Python
@@ -131,3 +163,17 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# mac
+.DS_Store
+
+# shapefiles
+*.shp
+*.shp.xml
+*.shx
+*.dbf
+*.prj
+packrat/lib*/
+
+# lightning
+lightning_logs

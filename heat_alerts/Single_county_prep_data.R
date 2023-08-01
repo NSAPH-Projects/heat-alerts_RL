@@ -1,4 +1,3 @@
-
 library(dplyr)
 library(lubridate)
 library(readr)
@@ -29,6 +28,5 @@ save(Train, Test, file="data/Summer23_Train-Test.RData")
 Top3rd<- Train[which(Train$Population>= 65000),]
 
 write_csv(Top3rd, "data/Summer23_Train_smaller-for-Python.csv")
-
 
 
