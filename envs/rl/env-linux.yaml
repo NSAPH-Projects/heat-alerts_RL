@@ -32,3 +32,4 @@ dependencies:
     - graphviz
     - seaborn
     - statsmodels
+    - hydra-core
