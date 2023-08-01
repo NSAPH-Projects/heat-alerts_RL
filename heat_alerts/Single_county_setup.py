@@ -1,6 +1,5 @@
 from d3rlpy.dataset import MDPDataset
 
-import os
 import numpy as np
 import pandas as pd
 import itertools
@@ -43,9 +42,10 @@ def make_data(
         # rewards = rewards.apply(symlog,shift=1)
         rewards = rewards.to_numpy()
     else:
-        rewards = pd.read_csv("Summer_results/R_6-28_forced_small-S_all.csv")
-        rewards = rewards.loc[county_pos]
-        rewards = torch.gather(torch.FloatTensor(rewards.to_numpy()), 1, torch.LongTensor(elig["alert"].to_numpy()).view(-1, 1) +1).view(-1)
+        # rewards = pd.read_csv("Summer_results/R_6-28_forced_small-S_all.csv")
+        rewards = pd.read_csv("Bayesian_models/Bayesian_R_7-13.csv")
+        rewards = rewards.loc[rewards["fips"] == fips]
+        rewards = torch.gather(torch.FloatTensor(-rewards.to_numpy()), 1, torch.LongTensor(elig["alert"].to_numpy()).view(-1, 1) +2).view(-1)
         rewards = -torch.log(-rewards).detach().numpy()
         rewards = 0.5 * (rewards - rewards.mean()) / np.max(np.abs(rewards))
 
@@ -68,17 +68,17 @@ def make_data(
         terminals.append(1)
 
     ## Prepare observations (S)... 
-    States = elig[["quant_HI_county", "HI_mean", "year", "dos", 
-                   "T_since_alert", "alert_sum", "More_alerts", "all_hosp_mean_rate"]]
+    # States = elig[["quant_HI_county", "HI_mean", "year", "dos", 
+    #                "T_since_alert", "alert_sum", "More_alerts", "all_hosp_mean_rate"]]
+    States = elig[[
+        # "quant_HI_county", "quant_HI_3d_county", "year", "weekend", "T_since_alert",
+        "quant_HI_county", "quant_HI_3d_county", "dos", "alert_sum", "More_alerts", 
+        "alerts_2wks", "year"
+    ]]
 
     s_means = States.mean(0)
     s_stds = States.std(0)
     S = (States - s_means)/s_stds
-    # print(sum(States["More_alerts"] == 0))
-    # print(np.min(S["More_alerts"]))
-    # print(np.max(S["More_alerts"]))
-    # print(np.mean(S["More_alerts"]))
-    # print(np.std(S["More_alerts"]))
 
     observations = S.reset_index().drop("index", axis=1)
 

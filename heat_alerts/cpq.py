@@ -35,29 +35,17 @@ class CPQImpl(DQNImpl):
                 # torch.zeros(len(action).to(torch.int64)).to(device), # can't do this because the function does one hot encoding and needs more than one action
                 reduction="min", # reducing over an ensemble of Q functions
             )
-            # test = [b[6] for b in batch.next_observations.cpu()]
-            # print(len(test))
-            # print(np.min(test))
-            # print(np.max(test))
-            # print(np.mean(test))
-            # print(np.std(test))
-            # k = np.min(test)
-            # print(sum(test == k))
-            more_alerts = np.round(np.array([(b[6]*MA_sd + MA_mean) for b in batch.next_observations.cpu()]) + 1e-5) # column of medium and small Ss
-            # print(np.unique(more_alerts))
+            more_alerts = np.array([b[4]*MA_sd + MA_mean for b in batch.next_observations.cpu()]) # column of medium and small Ss
             # if her:
             #     p = np.round(1/(more_alerts + 1), 6) # prob of being at budget already after uniform sampling
             #     more_alerts = np.random.binomial(1, 1-p)
             if her:
-                already_issued = np.round(np.array([(b[5]*SA_sd + SA_mean) for b in batch.next_observations.cpu()]) + 1e-5) # column of medium and small Ss
+                already_issued = np.array([b[3]*SA_sd + SA_mean for b in batch.next_observations.cpu()]) # column of medium and small Ss
                 new_budgets = np.random.randint(0, already_issued + more_alerts + 1) # upper end is round bracket
                 more_alerts = (already_issued < new_budgets).astype(int)
                 # print(np.unique(more_alerts))
             more_alerts = torch.tensor(more_alerts).to(device)
             constrained_targets = torch.where(torch.logical_and(action==1, more_alerts < 1), opposite_targets, original_targets) 
-            if Pct90:
-                quant_HI_county = torch.tensor(np.array([(b[6]*HI_sd + HI_mean) for b in batch.next_observations.cpu()])).to(device)
-                constrained_targets = torch.where(torch.logical_and(action==1, quant_HI_county < 0.9), opposite_targets, constrained_targets) 
             # penalized_targets = torch.where(torch.logical_and(action==1, more_alerts < 0.5), original_targets - penalty, original_targets)
             # boosted_targets = torch.where(torch.logical_and(action==1, more_alerts > 0.5), original_targets + boost, original_targets)
             # constrained_targets = torch.where(more_alerts > 0.5, boosted_targets, penalized_targets)
