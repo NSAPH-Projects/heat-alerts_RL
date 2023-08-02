@@ -155,7 +155,8 @@ class HASDM_Env(gym.Env):
         effectiveness_contribs = torch.matmul(self.eff_coef.reshape(-1), self.effectiveness_vars)
         effectiveness = torch.exp(effectiveness_contribs + self.eff_bias)
         effectiveness = effectiveness.clamp(1e-6, 1 - 1e-6)
-        reward = county_summer_mean[self.county][self.year][self.day] * baseline * (1 - torch.tensor(action, dtype=torch.float32) * effectiveness)
+        # reward = county_summer_mean[self.county][self.year][self.day] * baseline * (1 - torch.tensor(action, dtype=torch.float32) * effectiveness)
+        reward = baseline * (1 - torch.tensor(action, dtype=torch.float32) * effectiveness)
         # inputs = [
         #     hosps[self.county][self.year][self.day].reshape(1,1), 
         #     self.loc.reshape(1,1), 
@@ -201,7 +202,7 @@ class HASDM_Env(gym.Env):
         else:
             terminal = False
         info = {} 
-        return(next_observation.reshape(-1,).detach().numpy(), reward, terminal, info)
+        return(next_observation.reshape(-1,).detach().numpy(), -reward, terminal, info) # Note that reward is negative so higher is better
     def reset(self):
         # Reset the environment to its initial state
         self.y = np.random.randint(2006, 2016)
@@ -220,14 +221,14 @@ class HASDM_Env(gym.Env):
 
 
 # ## Test the env:
-# env = HASDM_Env(loc=2)
-# env.reset()
-# d=0
-# while d < 200:
-#     next_observation, reward, terminal, info = env.step(1)
-#     print(reward)
-#     # print(next_observation)
-#     if terminal:
-#         env.reset()
-#     d+= 1
+env = HASDM_Env(loc=2)
+env.reset()
+d=0
+while d < 200:
+    next_observation, reward, terminal, info = env.step(1)
+    print(reward)
+    # print(next_observation)
+    if terminal:
+        env.reset()
+    d+= 1
 

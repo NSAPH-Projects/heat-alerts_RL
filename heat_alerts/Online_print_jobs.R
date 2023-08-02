@@ -16,8 +16,8 @@ tests<- expand.grid(algos,
                     # NHU,
                     # NHL, 
                     LR, 
-                    SR# , 
-                    # b_size
+                    SR, 
+                    b_size
                     )
 colnames(tests)<- c("algo",
                     # "seed",
@@ -25,8 +25,8 @@ colnames(tests)<- c("algo",
                     # "n_hidden",
                     # "n_layers", 
                     "LR",
-                    "SR"#,
-                    # "b_size"
+                    "SR",
+                    "b_size"
                     )
 
 # rm_pos<- which(tests$algo == "DoubleDQN" & tests$HER == "T")
@@ -50,7 +50,7 @@ for(i in 1:nrow(tests)){
                                    "_LR-", tests[i, "LR"],
                                    # "_NH-", tests[i, "NHL"],
                                    # "-", tests[i, "NHU"],
-                                   # "_B-", tests[i, "b_size"],
+                                   "_B-", tests[i, "b_size"],
                                    "_SR-", tests[i, "SR"],
                                    "_fips-", tests[i, "fips"],
                                    # "_seed-", tests[i, "seed"],

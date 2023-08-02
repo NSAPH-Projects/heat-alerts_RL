@@ -1,8 +1,8 @@
-python Online_RL.py --n_gpus 0 --lr 0.01 --algo DoubleDQN --n_epochs 5000 --b_size  --sync_rate 3 --fips 4013 --model_name Online-0_DoubleDQN_LR-0.01_SR-3_fips-4013
-python Online_RL.py --n_gpus 0 --lr 0.01 --algo DoubleDQN --n_epochs 5000 --b_size  --sync_rate 3 --fips 36061 --model_name Online-0_DoubleDQN_LR-0.01_SR-3_fips-36061
-python Online_RL.py --n_gpus 0 --lr 0.001 --algo DoubleDQN --n_epochs 5000 --b_size  --sync_rate 3 --fips 4013 --model_name Online-0_DoubleDQN_LR-0.001_SR-3_fips-4013
-python Online_RL.py --n_gpus 0 --lr 0.001 --algo DoubleDQN --n_epochs 5000 --b_size  --sync_rate 3 --fips 36061 --model_name Online-0_DoubleDQN_LR-0.001_SR-3_fips-36061
-python Online_RL.py --n_gpus 0 --lr 0.01 --algo DoubleDQN --n_epochs 5000 --b_size  --sync_rate 7 --fips 4013 --model_name Online-0_DoubleDQN_LR-0.01_SR-7_fips-4013
-python Online_RL.py --n_gpus 0 --lr 0.01 --algo DoubleDQN --n_epochs 5000 --b_size  --sync_rate 7 --fips 36061 --model_name Online-0_DoubleDQN_LR-0.01_SR-7_fips-36061
-python Online_RL.py --n_gpus 0 --lr 0.001 --algo DoubleDQN --n_epochs 5000 --b_size  --sync_rate 7 --fips 4013 --model_name Online-0_DoubleDQN_LR-0.001_SR-7_fips-4013
-python Online_RL.py --n_gpus 0 --lr 0.001 --algo DoubleDQN --n_epochs 5000 --b_size  --sync_rate 7 --fips 36061 --model_name Online-0_DoubleDQN_LR-0.001_SR-7_fips-36061
+python Online_RL.py --n_gpus 0 --lr 0.01 --algo DoubleDQN --n_epochs 5000 --b_size 600 --sync_rate 3 --fips 4013 --model_name Online-0_DoubleDQN_LR-0.01_B-600_SR-3_fips-4013
+python Online_RL.py --n_gpus 0 --lr 0.01 --algo DoubleDQN --n_epochs 5000 --b_size 600 --sync_rate 3 --fips 36061 --model_name Online-0_DoubleDQN_LR-0.01_B-600_SR-3_fips-36061
+python Online_RL.py --n_gpus 0 --lr 0.001 --algo DoubleDQN --n_epochs 5000 --b_size 600 --sync_rate 3 --fips 4013 --model_name Online-0_DoubleDQN_LR-0.001_B-600_SR-3_fips-4013
+python Online_RL.py --n_gpus 0 --lr 0.001 --algo DoubleDQN --n_epochs 5000 --b_size 600 --sync_rate 3 --fips 36061 --model_name Online-0_DoubleDQN_LR-0.001_B-600_SR-3_fips-36061
+python Online_RL.py --n_gpus 0 --lr 0.01 --algo DoubleDQN --n_epochs 5000 --b_size 600 --sync_rate 7 --fips 4013 --model_name Online-0_DoubleDQN_LR-0.01_B-600_SR-7_fips-4013
+python Online_RL.py --n_gpus 0 --lr 0.01 --algo DoubleDQN --n_epochs 5000 --b_size 600 --sync_rate 7 --fips 36061 --model_name Online-0_DoubleDQN_LR-0.01_B-600_SR-7_fips-36061
+python Online_RL.py --n_gpus 0 --lr 0.001 --algo DoubleDQN --n_epochs 5000 --b_size 600 --sync_rate 7 --fips 4013 --model_name Online-0_DoubleDQN_LR-0.001_B-600_SR-7_fips-4013
+python Online_RL.py --n_gpus 0 --lr 0.001 --algo DoubleDQN --n_epochs 5000 --b_size 600 --sync_rate 7 --fips 36061 --model_name Online-0_DoubleDQN_LR-0.001_B-600_SR-7_fips-36061
