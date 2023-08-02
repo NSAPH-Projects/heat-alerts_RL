@@ -124,7 +124,8 @@ class HeatAlertModel(nn.Module):
         # sample coefficients with constraints to ensure correct sign
         baseline_samples = {}
         effectiveness_samples = {}
-        if sum(loc_ind.shape) > 1:
+
+        if sum(loc_ind.shape) > 2:
             spatial_features = self.spatial_features
 
             baseline_loc = self.loc_baseline_coefs(spatial_features)
@@ -167,11 +168,16 @@ class HeatAlertModel(nn.Module):
             with pyro.plate("data", self.N, subsample=index):
                 obs = pyro.sample("hospitalizations", Poisson(outcome_mean + 1e-3), obs=y)
 
+            if not return_outcomes:
+                return obs
+            else:
+                return torch.stack([effectiveness, baseline, outcome_mean], dim=1)
+
         else: # be careful with location indicator if only using one county
             spatial_features = self.spatial_features[loc_ind]
             
-            baseline_loc = self.loc_baseline_coefs(spatial_features)
-            eff_loc = self.loc_effectiveness_coefs(spatial_features)
+            baseline_loc = self.loc_baseline_coefs(spatial_features)[0][0]
+            eff_loc = self.loc_effectiveness_coefs(spatial_features)[0][0]
 
             for i, name in enumerate(self.baseline_feature_names):
                 dist = self.get_dist(name, self.baseline_constraints, baseline_loc[i].reshape(-1,1))
@@ -181,39 +187,42 @@ class HeatAlertModel(nn.Module):
                 dist = self.get_dist(name, self.effectiveness_constraints, eff_loc[i].reshape(-1,1))
                 effectiveness_samples[name] = pyro.sample("effectiveness_" + name, dist)
 
-            # we need to match the time varying features in x with the correct coefficient sample
-            baseline_contribs = []
-            for i, name in enumerate(self.baseline_feature_names):
-                coef = baseline_samples[name]
-                baseline_contribs.append(coef * baseline_features[i])
+            # # we need to match the time varying features in x with the correct coefficient sample
+            # baseline_contribs = []
+            # for i, name in enumerate(self.baseline_feature_names):
+            #     coef = baseline_samples[name]
+            #     baseline_contribs.append(coef * baseline_features[i])
 
             # compute baseline hospitalizations
             baseline_bias = pyro.sample(
                 "baseline_bias", Uniform(-0.5, 0.5).expand([1]).to_event(1)
             )
-            baseline = torch.exp(sum(baseline_contribs) + baseline_bias)
-            baseline = baseline.clamp(max=1e6)
+            # baseline = torch.exp(sum(baseline_contribs) + baseline_bias)
+            # baseline = baseline.clamp(max=1e6)
 
-            effectiveness_contribs = []
-            for i, name in enumerate(self.effectiveness_feature_names):
-                coef = effectiveness_samples[name]
-                effectiveness_contribs.append(coef * eff_features[i])
+            # effectiveness_contribs = []
+            # for i, name in enumerate(self.effectiveness_feature_names):
+            #     coef = effectiveness_samples[name]
+            #     effectiveness_contribs.append(coef * eff_features[i])
             
             eff_bias = pyro.sample("eff_bias", Uniform(-7, -5).expand([1]).to_event(1))
-            effectiveness = torch.sigmoid(sum(effectiveness_contribs) + eff_bias)
-            effectiveness = effectiveness.clamp(1e-6, 1 - 1e-6)
+            # effectiveness = torch.sigmoid(sum(effectiveness_contribs) + eff_bias)
+            # effectiveness = effectiveness.clamp(1e-6, 1 - 1e-6)
 
-            # sample the outcome
-            outcome_mean = county_summer_mean * baseline * (1 - alert * effectiveness)
+            # # sample the outcome
+            # outcome_mean = county_summer_mean * baseline * (1 - alert * effectiveness)
 
-            y = hosps if condition else None
-            with pyro.plate("data", 1): 
-                obs = pyro.sample("hospitalizations", Poisson(outcome_mean + 1e-3), obs=y)
+            # y = hosps if condition else None
+            # with pyro.plate("data", 1): 
+            #     obs = pyro.sample("hospitalizations", Poisson(outcome_mean + 1e-3), obs=y)
 
-        if not return_outcomes:
-            return obs
-        else:
-            return torch.stack([effectiveness, baseline, outcome_mean], dim=1)
+            if not return_outcomes:
+                return obs
+            else:
+                # return torch.stack([effectiveness, baseline, outcome_mean], dim=1)
+                E_coef = torch.cat([effectiveness_samples[name] for name in self.effectiveness_feature_names])
+                B_coef = torch.cat([baseline_samples[name] for name in self.baseline_feature_names])
+                return torch.cat([E_coef, B_coef, eff_bias.reshape(1,1), baseline_bias.reshape(1,1)])
 
     @staticmethod
     def get_dist(name, constraints, loc):

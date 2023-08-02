@@ -53,14 +53,14 @@ model = HeatAlertModel(
 model.load_state_dict(torch.load("bayesian_model/ckpts/Full_7-19_model.pt"))
 # model.load_state_dict(torch.load("ckpts/Full_7-19_model.pt"))
 
-guide = pyro.infer.autoguide.AutoLowRankMultivariateNormal(model)
-guide(*dm.dataset.tensors)
-guide.load_state_dict(torch.load("bayesian_model/ckpts/Full_7-19_guide.pt"))
-# guide.load_state_dict(torch.load("ckpts/Full_7-19_guide.pt"))
+# guide = pyro.infer.autoguide.AutoLowRankMultivariateNormal(model)
+# guide(*dm.dataset.tensors)
+# guide.load_state_dict(torch.load("bayesian_model/ckpts/Full_7-19_guide.pt"))
+# # guide.load_state_dict(torch.load("ckpts/Full_7-19_guide.pt"))
 
 predictive_outputs = Predictive(
         model,
-        guide=guide,
+        # guide=guide, # including the guide includes all sites by default
         num_samples=1, # or can do >1 and take average
         return_sites=["_RETURN"],
     )
@@ -79,6 +79,7 @@ def avg_streak_length(inds): # inds = indices (days) of alerts
         return(np.mean(np.array(D["1"])+1))
     else:
         return(0)
+
 
 ## Define the custom environment class:
 
@@ -111,6 +112,24 @@ class HASDM_Env(gym.Env):
         self.episode_avg_dos = []
         self.episode_avg_streak_length = []
     def step(self, action): # Take an action in the environment and return the next state, reward, done flag, and additional information
+        if self.day == 0:
+            inputs = [
+                hosps[self.county][self.year][self.day].reshape(1,1), 
+                self.loc.reshape(1,1), 
+                county_summer_mean[self.county][self.year][self.day].reshape(1,1), 
+                torch.tensor(action, dtype=torch.float32).reshape(1,1), 
+                self.observation[0:(len(self.observation)-1)].reshape(1,-1), 
+                self.effectiveness_vars.reshape(1,-1), 
+                index[self.county][self.year][self.day].reshape(1,1)
+            ]
+            r = predictive_outputs(*inputs, condition=False, return_outcomes=True)["_RETURN"][0]
+            j = len(effectiveness_feature_names)
+            self.eff_coef = r[0:j]
+            k = len(baseline_feature_names)
+            self.base_coef = r[j:(j+k)]
+            j += k
+            self.eff_bias = r[j:(j+1)]
+            self.base_bias = r[(j+1):(j+2)]
         # print("Day = " + str(self.day))
         # print("Index = " + str(self.county[self.year][self.day]))
         # Update new action according to the alert budget:
@@ -120,20 +139,27 @@ class HASDM_Env(gym.Env):
         else:
             action = 0
         self.alerts.append(action)
-        # Obtain reward:
-        inputs = [
-            hosps[self.county][self.year][self.day].reshape(1,1), 
-            self.loc.reshape(1,1), 
-            county_summer_mean[self.county][self.year][self.day].reshape(1,1), 
-            torch.tensor(action, dtype=torch.float32).reshape(1,1), 
-            self.observation[0:(len(self.observation)-1)].reshape(1,-1), 
-            self.effectiveness_vars.reshape(1,-1), 
-            index[self.county][self.year][self.day].reshape(1,1)
-        ]
-        r = predictive_outputs(*inputs, condition=False, return_outcomes=True)["_RETURN"][0]
-        reward = r[0][2][0].item()
-        # format = effectiveness, baseline, outcome_mean
-        # R = county_summer_mean * baseline * (1 - alert * effectiveness)
+        # # Obtain reward:
+        baseline_contribs = torch.matmul(self.base_coef.reshape(-1), self.observation[0:(len(self.observation)-1)])
+        baseline = torch.exp(baseline_contribs + self.base_bias)
+        baseline = baseline.clamp(max=1e6)
+        effectiveness_contribs = torch.matmul(self.eff_coef.reshape(-1), self.effectiveness_vars)
+        effectiveness = torch.exp(effectiveness_contribs + self.eff_bias)
+        effectiveness = effectiveness.clamp(1e-6, 1 - 1e-6)
+        reward = county_summer_mean[self.county][self.year][self.day] * baseline * (1 - torch.tensor(action, dtype=torch.float32) * effectiveness)
+        # inputs = [
+        #     hosps[self.county][self.year][self.day].reshape(1,1), 
+        #     self.loc.reshape(1,1), 
+        #     county_summer_mean[self.county][self.year][self.day].reshape(1,1), 
+        #     torch.tensor(action, dtype=torch.float32).reshape(1,1), 
+        #     self.observation[0:(len(self.observation)-1)].reshape(1,-1), 
+        #     self.effectiveness_vars.reshape(1,-1), 
+        #     index[self.county][self.year][self.day].reshape(1,1)
+        # ]
+        # r = predictive_outputs(*inputs, condition=False, return_outcomes=True)["_RETURN"][0]
+        # reward = r[0][2][0].item()
+        ## format = effectiveness, baseline, outcome_mean
+        ## R = county_summer_mean * baseline * (1 - alert * effectiveness)
         # Set up next observation:
         self.day += 1
         obs = baseline_features[self.county][self.year][self.day]
@@ -185,14 +211,13 @@ class HASDM_Env(gym.Env):
 
 
 # ## Test the env:
-
 # env = HASDM_Env(loc=2)
 # env.reset()
 # d=0
 # while d < 200:
 #     next_observation, reward, terminal, info = env.step(1)
-#     # print(reward)
-#     print(next_observation)
+#     print(reward)
+#     # print(next_observation)
 #     if terminal:
 #         env.reset()
 #     d+= 1
