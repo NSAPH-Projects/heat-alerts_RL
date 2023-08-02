@@ -33,7 +33,7 @@ colnames(tests)<- c("algo",
 # tests<- tests[-rm_pos,]
 
 
-sink("Run_jobs/Online_tests.txt")
+sink("Run_jobs/Online_tests")
 for(i in 1:nrow(tests)){
   cat(paste("python Online_RL.py",
             "--n_gpus", 0,
