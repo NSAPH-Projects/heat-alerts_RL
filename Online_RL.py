@@ -1,5 +1,6 @@
 
-import os
+
+import datetime
 from argparse import ArgumentParser
 import numpy as np
 import pandas as pd
@@ -38,7 +39,7 @@ def main(params):
     # params=dict(
     #     fips = 4013, model_name = "test_4013", algo="DQN",
     #     n_hidden = 32, n_layers = 2,
-    #     n_epochs = 2, sa = 1, sync_rate = 3,
+    #     n_epochs = 50, sa = 1, sync_rate = 3,
     #     b_size = 153, lr = 0.1, gamma = 0.999,
     #     n_gpus = 0
     # )
@@ -82,13 +83,16 @@ def main(params):
 
     buffer = ReplayBuffer(maxlen=H*params["n_epochs"], env=env)
 
-    # explorer = LinearDecayEpsilonGreedy(start_epsilon=1.0,
-    #                                 end_epsilon=0.1,
-    #                                 duration=H*params["n_epochs"]*0.5)
+    if params["xpl"] == "T":
+        explorer = LinearDecayEpsilonGreedy(start_epsilon=params["eps_0"],
+                                    end_epsilon=params["eps_t"],
+                                    duration=H*params["n_epochs"]*params["eps_dur"])
+    else: 
+        explorer = None
 
     dqn.fit_online(env,
                buffer,
-               # explorer,
+               explorer,
                experiment_name=name,
                with_timestamp=False,
                n_steps=H*params["n_epochs"],
@@ -109,6 +113,10 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--fips", type=int, default=4013, help="fips code")
     parser.add_argument("--algo", type=str, default="DQN", help="RL algorithm")
+    parser.add_argument("--xpl", type=str, default="F", help="Use explorer?")
+    parser.add_argument("--eps_0", type=float, default=1.0, help="epsilon start")
+    parser.add_argument("--eps_t", type=float, default=0.00000001, help="epsilon end")
+    parser.add_argument("--eps_dur", type=float, default=1.0, help="epsilon duration (fraction)")
     parser.add_argument("--seed", type=int, default=321, help="set seed")
     parser.add_argument("--model_name", type=str, default="test", help="name to save model under")
     parser.add_argument("--b_size", type=int, default=500, help="size of the batches")
