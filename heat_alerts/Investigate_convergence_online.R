@@ -3,7 +3,7 @@ library(dplyr)
 library(ggplot2)
 library(cowplot, lib.loc = "~/apps/R_4.2.2")
 
-model<- "test_4013_lr-01"
+model<- "Online-0"
 
 plot_metric<- function(df, metric){
   DF<- data.frame(df$V1, df$V3)

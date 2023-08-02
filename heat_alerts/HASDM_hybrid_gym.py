@@ -61,7 +61,7 @@ model.load_state_dict(torch.load("bayesian_model/ckpts/Full_7-19_model.pt"))
 predictive_outputs = Predictive(
         model,
         # guide=guide, # including the guide includes all sites by default
-        num_samples=1, # or can do >1 and take average
+        num_samples=50, # either can do 1 or can do >1 and take average
         return_sites=["_RETURN"],
     )
 
@@ -79,6 +79,14 @@ def avg_streak_length(inds): # inds = indices (days) of alerts
         return(np.mean(np.array(D["1"])+1))
     else:
         return(0)
+
+## Testing:
+# loc = torch.tensor(2).long()
+# county = loc_ind == loc
+# y = 2009
+# this_y = year[county] == y
+
+# inputs = [ hosps[county][this_y][0].reshape(1,1), loc.reshape(1,1), county_summer_mean[county][this_y][0].reshape(1,1), torch.tensor(1, dtype=torch.float32).reshape(1,1), baseline_features[county][this_y][0].reshape(1,-1), eff_features[county][this_y][0].reshape(1,-1), index[county][this_y][0].reshape(1,1) ]
 
 
 ## Define the custom environment class:
@@ -122,7 +130,8 @@ class HASDM_Env(gym.Env):
                 self.effectiveness_vars.reshape(1,-1), 
                 index[self.county][self.year][self.day].reshape(1,1)
             ]
-            r = predictive_outputs(*inputs, condition=False, return_outcomes=True)["_RETURN"][0]
+            R = predictive_outputs(*inputs, condition=False, return_outcomes=True)["_RETURN"]#[0]
+            r = torch.mean(R, dim=0)
             j = len(effectiveness_feature_names)
             self.eff_coef = r[0:j]
             k = len(baseline_feature_names)
