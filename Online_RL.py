@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 import d3rlpy
 from d3rlpy.models.encoders import VectorEncoderFactory
-from d3rlpy.algos import DQN, DoubleDQN, SAC
+from d3rlpy.algos import DQN, DoubleDQN, DiscreteSAC
 from d3rlpy.online.buffers import ReplayBuffer
 from d3rlpy.dataset import MDPDataset
 from d3rlpy.online.explorers import LinearDecayEpsilonGreedy
@@ -37,11 +37,12 @@ def main(params):
     d3rlpy.seed(seed)
 
     # params=dict(
-    #     fips = 4013, model_name = "test_4013", algo="DQN",
+    #     fips = 4013, model_name = "test_sac_4013", algo="SAC",
     #     n_hidden = 32, n_layers = 2,
-    #     n_epochs = 50, sa = 1, sync_rate = 3,
+    #     n_epochs = 5, sa = 1, sync_rate = 3,
     #     b_size = 153, lr = 0.1, gamma = 0.999,
-    #     n_gpus = 0
+    #     n_gpus = 0, tau = 0.005, update_rate = 5,
+    #     eps_0 = 1.0, eps_t = 0.00000001, eps_dur = 1.0
     # )
 
     n_days=153
@@ -59,21 +60,36 @@ def main(params):
         gpu = True
         device = "cuda"
 
-    functions = [DQN, DoubleDQN, SAC]
+    functions = [DQN, DoubleDQN, DiscreteSAC]
     func_names = ["DQN", "DoubleDQN", "SAC"]
     algos = dict(zip(func_names, functions))
     algo = algos[params["algo"]]
 
-    dqn = algo(
-        encoder_factory=encoder_factory,
-        use_gpu=gpu, 
-        batch_size=params["b_size"],
-        learning_rate=params["lr"],
-        gamma=params["gamma"],
-        target_update_interval=H*params["sync_rate"],
-        scaler = None,
-        reward_scaler = None
-        )
+    if algo == DQN or algo == DoubleDQN:
+        RL = algo(
+            encoder_factory=encoder_factory,
+            use_gpu=gpu, 
+            batch_size=params["b_size"],
+            learning_rate=params["lr"],
+            gamma=params["gamma"],
+            target_update_interval=H*params["sync_rate"],
+            scaler = None,
+            reward_scaler = None
+            )
+    elif algo == DiscreteSAC:
+        RL = algo(
+            actor_encoder_factory=encoder_factory,
+            critic_encoder_factory=encoder_factory,
+            use_gpu=gpu, 
+            batch_size=params["b_size"],
+            actor_learning_rate=params["lr"],
+            critic_learning_rate=params["lr"],
+            temp_learning_rate=params["lr"],
+            gamma=params["gamma"],
+            target_update_interval=H*params["sync_rate"],
+            scaler = None,
+            reward_scaler = None
+            )
     
     with open("bayesian_model/data/processed/fips2idx.json","r") as f:
         crosswalk = json.load(f)
@@ -90,7 +106,7 @@ def main(params):
     else: 
         explorer = None
 
-    dqn.fit_online(env,
+    RL.fit_online(env,
                buffer,
                explorer,
                experiment_name=name,
@@ -98,7 +114,7 @@ def main(params):
                n_steps=H*params["n_epochs"],
                # eval_env=eval_env,
                n_steps_per_epoch=n_days, 
-               update_interval=10,
+               update_interval=params["update_rate"],
                # update_start_step=1000,
                save_interval = params["sa"])
     
@@ -125,6 +141,7 @@ if __name__ == "__main__":
     parser.add_argument("--lr", type=float, default=0.01, help="learning rate")
     parser.add_argument("--gamma", type=float, default=0.999, help="discount factor")
     parser.add_argument("--sync_rate", type=int, default=3, help="how often (in epochs) to sync the target model")
+    parser.add_argument("--update_rate", type=int, default=5, help="how often (in epochs) to update the online RL")
     parser.add_argument("--n_epochs", type=int, default=100, help="number of epochs to run")
     parser.add_argument("--n_gpus", type=int, default=0, help="number of gpus")
     parser.add_argument("--sa", type=int, default=10, help="save model params every X episodes")

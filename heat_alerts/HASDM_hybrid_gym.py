@@ -221,14 +221,14 @@ class HASDM_Env(gym.Env):
 
 
 # ## Test the env:
-env = HASDM_Env(loc=2)
-env.reset()
-d=0
-while d < 200:
-    next_observation, reward, terminal, info = env.step(1)
-    print(reward)
-    # print(next_observation)
-    if terminal:
-        env.reset()
-    d+= 1
+# env = HASDM_Env(loc=2)
+# env.reset()
+# d=0
+# while d < 200:
+#     next_observation, reward, terminal, info = env.step(1)
+#     print(reward)
+#     # print(next_observation)
+#     if terminal:
+#         env.reset()
+#     d+= 1
 

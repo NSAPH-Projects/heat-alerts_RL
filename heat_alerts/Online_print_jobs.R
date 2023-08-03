@@ -1,32 +1,43 @@
 
-algos<- c("DoubleDQN") # , "DQN" , "SAC"
+algos<- c("SAC") # , "DQN", "DoubleDQN"
 seed<- c("321") # , "221", "121"
 fips<- c("4013", "36061")
-NHU<- c(32)
-NHL<- c(2)
-LR<- c(0.01, 0.001) 
-SR<- c(3, 7)
+NHU<- c(32) 
+NHL<- c(2) # 3
+LR<- c(0.001) # 0.01
+SR<- c(3)
 # std_b<- c(0)
-b_size<- c(600)
-
+b_size<- c(1200, 2400) # 600, 1200
+xpl<- c("T") # "F"
+eps_dur<- c(1.0)
+eps_t<- c(0.00000001) # , 0.05, 0.01, 0.1
+tau<- c(0.005, 0.01)
 
 tests<- expand.grid(algos,
                     # seed,
                     fips,
-                    # NHU,
-                    # NHL, 
+                    NHU,
+                    NHL, 
                     LR, 
                     SR, 
-                    b_size
+                    b_size,
+                    xpl,
+                    eps_dur,
+                    eps_t,
+                    tau
                     )
 colnames(tests)<- c("algo",
                     # "seed",
                     "fips",
-                    # "n_hidden",
-                    # "n_layers", 
+                    "NHU",
+                    "NHL",
                     "LR",
                     "SR",
-                    "b_size"
+                    "b_size",
+                    "xpl",
+                    "eps_dur",
+                    "eps_t",
+                    "tau"
                     )
 
 # rm_pos<- which(tests$algo == "DoubleDQN" & tests$HER == "T")
@@ -39,19 +50,26 @@ for(i in 1:nrow(tests)){
             "--n_gpus", 0,
             "--lr", tests[i, "LR"],
             "--algo", tests[i, "algo"],
-            # "--n_layers", tests[i, "NHL"],
-            # "--n_hidden", tests[i, "NHU"],
+            "--n_layers", tests[i, "NHL"],
+            "--n_hidden", tests[i, "NHU"],
             "--n_epochs", 5000,
             "--b_size", tests[i, "b_size"],
             "--sync_rate", tests[i, "SR"],
             # "--seed", tests[i, "seed"],
             "--fips", tests[i, "fips"],
-            "--model_name", paste0("Online-0_", tests[i, "algo"],
-                                   "_LR-", tests[i, "LR"],
-                                   # "_NH-", tests[i, "NHL"],
-                                   # "-", tests[i, "NHU"],
+            "--sa", 50,
+            "--xpl", tests[i, "xpl"],
+            "--eps_dur", tests[i, "eps_dur"],
+            "--eps_t", tests[i, "eps_t"],
+            "--model_name", paste0(#"SAC-0_", 
+                                   tests[i, "algo"],
+                                   # "_LR-", tests[i, "LR"],
+                                   "_NH-", tests[i, "NHL"],
+                                   "-", tests[i, "NHU"],
                                    "_B-", tests[i, "b_size"],
-                                   "_SR-", tests[i, "SR"],
+                                   # "_SR-", tests[i, "SR"],
+                                   "_tau-", tests[i, "tau"],
+                                   # "_ET-", tests[i, "eps_t"],
                                    "_fips-", tests[i, "fips"],
                                    # "_seed-", tests[i, "seed"],
                                    "\n"

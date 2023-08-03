@@ -4,7 +4,17 @@ library(ggplot2)
 library(cowplot, lib.loc = "~/apps/R_4.2.2")
 library(stringr)
 
-model<- "Online-0"
+model<- "Online-0" # update interval = 10
+model<- "Online-1" # update interval = 1 --> diverging
+model<- "Online-2" # update interval = 5
+model<- "Online-3" # update interval = 5, SR = 3, larger batch sizes
+
+model<- "Xpl-0"
+model<- "Xpl-1" # stop using explorer halfway through
+model<- "Xpl-2" # investigating different NN sizes; LR=0.001, B=2400
+
+model<- "Xpl-3" # using explorer the whole time, varying end magnitude
+model<- "SAC-0"
 
 plot_metric<- function(df, metric, title){
   DF<- data.frame(df[,1], df[,3])
@@ -36,18 +46,20 @@ for(f in folders){
 #   plot_metric(loss, "Evaluation")
 # }
 
-for(f in folders){
+these_plots<- c(1,2,5,6)
+
+for(f in folders[these_plots]){
   custom<- read.csv(paste0("d3rlpy_logs/",f,"/custom_metrics.csv"))
   custom$budget_frac<- custom$Alert_sum/custom$Budget
   print(plot_metric(custom[,c("X", "Alert_sum", "budget_frac")], "Fraction of Budget Used", f))
 }
 
-for(f in folders){
+for(f in folders[these_plots]){
   custom<- read.csv(paste0("d3rlpy_logs/",f,"/custom_metrics.csv"))
   print(plot_metric(custom[,c("X", "Alert_sum", "Avg_DOS")], "Average Day of Summer", f))
 }
 
-for(f in folders){
+for(f in folders[these_plots]){
   custom<- read.csv(paste0("d3rlpy_logs/",f,"/custom_metrics.csv"))
   print(plot_metric(custom[,c("X", "Alert_sum", "Avg_StrkLn")], "Average Alert Streak Length", f))
 }
