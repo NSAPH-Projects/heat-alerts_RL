@@ -67,6 +67,7 @@ for(i in 1:nrow(tests)){
                                    # "_B-", tests[i, "b_size"],
                                    "_SR-", tests[i, "SR"],
                                    # "_ET-", tests[i, "eps_t"],
+                                   "_ED-", tests[i, "eps_dur"],
                                    "_fips-", tests[i, "fips"],
                                    # "_seed-", tests[i, "seed"],
                                    "\n"

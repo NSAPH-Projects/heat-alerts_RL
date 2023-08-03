@@ -4,7 +4,8 @@ library(ggplot2)
 library(cowplot, lib.loc = "~/apps/R_4.2.2")
 library(stringr)
 
-
+model<- "Online-0_DoubleDQN"
+model<- "Online-0_SAC"
 
 ########### Final evaluations:
 
