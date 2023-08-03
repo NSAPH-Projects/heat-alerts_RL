@@ -4,17 +4,21 @@ library(ggplot2)
 library(cowplot, lib.loc = "~/apps/R_4.2.2")
 library(stringr)
 
-model<- "Online-0" # update interval = 10
-model<- "Online-1" # update interval = 1 --> diverging
-model<- "Online-2" # update interval = 5
-model<- "Online-3" # update interval = 5, SR = 3, larger batch sizes
 
-model<- "Xpl-0"
-model<- "Xpl-1" # stop using explorer halfway through
-model<- "Xpl-2" # investigating different NN sizes; LR=0.001, B=2400
 
-model<- "Xpl-3" # using explorer the whole time, varying end magnitude
-model<- "SAC-0"
+########### Final evaluations:
+
+files<- list.files("Summer_results", pattern = model)
+for(f in files){
+  df<- read.csv(paste0("Summer_results/",f))[,-1]
+  DF<- aggregate(. ~ Model, df, sum)
+  r<- ggplot(DF, aes(x=Model,y=Rewards
+                     # ,color=as.factor(Year)
+             )) + geom_line() + geom_smooth() + ggtitle(f)
+  print(r)
+}
+
+########### Getting insight into training:
 
 plot_metric<- function(df, metric, title){
   DF<- data.frame(df[,1], df[,3])
@@ -29,6 +33,16 @@ folders<- list.files("d3rlpy_logs", pattern = model)
 for(f in folders){
   loss<- read.csv(paste0("d3rlpy_logs/",f,"/loss.csv"), header = FALSE)
   print(plot_metric(loss, "Loss", f))
+}
+
+## For SAC:
+for(f in folders){
+  actor_loss<- read.csv(paste0("d3rlpy_logs/",f,"/actor_loss.csv"), header = FALSE)
+  print(plot_metric(actor_loss, "Actor Loss", f))
+  critic_loss<- read.csv(paste0("d3rlpy_logs/",f,"/critic_loss.csv"), header = FALSE)
+  print(plot_metric(critic_loss, "Critic Loss", f))
+  temp_loss<- read.csv(paste0("d3rlpy_logs/",f,"/temp_loss.csv"), header = FALSE)
+  print(plot_metric(temp_loss, "Temp. Loss", f))
 }
 
 for(f in folders){

@@ -92,7 +92,7 @@ def avg_streak_length(inds): # inds = indices (days) of alerts
 ## Define the custom environment class:
 
 class HASDM_Env(gym.Env):
-    def __init__(self, loc):
+    def __init__(self, loc, y = None):
         # Initialize your environment variables and parameters
         self.observation_space = spaces.Box(
             low=-np.inf,
@@ -103,9 +103,12 @@ class HASDM_Env(gym.Env):
         self.action_space = spaces.Discrete(2)
         self.loc = torch.tensor(loc).long()
         self.county = loc_ind == self.loc
-        self.y = np.random.randint(2006, 2016)
+        if y is None:
+            self.y = np.random.randint(2006, 2016)
+        else:
+            self.y = y
         self.year = year[self.county] == self.y
-        self.budget = budget[self.county][self.year][0]
+        self.budget = torch.tensor(np.random.randint(0, budget[self.county][self.year][0]+1)).long()
         self.day = 0
         self.alerts = []
         obs = baseline_features[self.county][self.year][self.day]
@@ -203,11 +206,14 @@ class HASDM_Env(gym.Env):
             terminal = False
         info = {} 
         return(next_observation.reshape(-1,).detach().numpy(), -reward, terminal, info) # Note that reward is negative so higher is better
-    def reset(self):
+    def reset(self, y = None):
         # Reset the environment to its initial state
-        self.y = np.random.randint(2006, 2016)
+        if y is None:
+            self.y = np.random.randint(2006, 2016)
+        else:
+            self.y = y
         self.year = year[self.county] == self.y
-        self.budget = budget[self.county][self.year][0]
+        self.budget = torch.tensor(np.random.randint(0, budget[self.county][self.year][0]+1)).long()
         self.episode_budget.append(self.budget.item()) # saving for later reference
         self.day = 0
         self.alerts = []

@@ -1,16 +1,12 @@
 
-
-import datetime
+import glob
 from argparse import ArgumentParser
 import numpy as np
 import pandas as pd
 import json
 import random
 
-import gym
-
 import torch
-import torch.nn as nn
 import d3rlpy
 from d3rlpy.models.encoders import VectorEncoderFactory
 from d3rlpy.algos import DQN, DoubleDQN, DiscreteSAC
@@ -41,7 +37,7 @@ def main(params):
     #     n_hidden = 32, n_layers = 2,
     #     n_epochs = 5, sa = 1, sync_rate = 3,
     #     b_size = 153, lr = 0.1, gamma = 0.999,
-    #     n_gpus = 0, tau = 0.005, update_rate = 5,
+    #     n_gpus = 0, update_rate = 5,
     #     eps_0 = 1.0, eps_t = 0.00000001, eps_dur = 1.0
     # )
 
@@ -109,9 +105,9 @@ def main(params):
     RL.fit_online(env,
                buffer,
                explorer,
-               experiment_name=name,
+               experiment_name=name, 
                with_timestamp=False,
-               n_steps=H*params["n_epochs"],
+               n_steps=H*params["n_epochs"], 
                # eval_env=eval_env,
                n_steps_per_epoch=n_days, 
                update_interval=params["update_rate"],
@@ -124,6 +120,40 @@ def main(params):
     DF.columns = ["Alert_sum", "Budget", "Avg_DOS", "Avg_StrkLn"]
     DF.to_csv("d3rlpy_logs/" + name + "/custom_metrics.csv")
 
+    ## Evaluation:
+    models = glob.glob("d3rlpy_logs/" + name + "/model_*")
+
+    Results = pd.DataFrame(columns=["Actions", "Rewards", "Year", "Model"])
+    i = 0
+    for m in models:
+        RL.load_model(m)
+        Rewards = []
+        Actions = []
+        Year = []
+        eval_env = HASDM_Env(crosswalk[str(params["fips"])])
+        for y in range(2006, 2016):
+            obs = eval_env.reset(y)
+            obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
+            action = RL.predict(obs).item()
+            terminal = False
+            while terminal == False:
+                if action == 1 and eval_env.budget == 0:
+                    action = 0
+                Actions.append(action)
+                Year.append(y)
+                obs, reward, terminal, info = eval_env.step(action)
+                Rewards.append(reward.item())
+                obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
+                action = RL.predict(obs).item()
+            print(y)
+        results = pd.DataFrame(np.array([Actions, Rewards]).T)
+        results.columns = ["Actions", "Rewards"]
+        results["Year"] = Year
+        results["Model"] = i
+        Results = pd.concat([Results, results], ignore_index=True)
+        i += 1
+
+    Results.to_csv("Summer_results/ORL_eval_" + name + ".csv")
 
 if __name__ == "__main__":
     parser = ArgumentParser()
