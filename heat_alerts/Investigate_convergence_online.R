@@ -5,7 +5,12 @@ library(cowplot, lib.loc = "~/apps/R_4.2.2")
 library(stringr)
 
 model<- "Online-0_DoubleDQN"
+model<- "Online-0_DoubleDQN_xpl-T"
 model<- "Online-0_SAC"
+model<- "Online-0_SAC_xpl-F"
+
+model<- "Online-1_DoubleDQN"
+model<- "Online-1_SAC"
 
 ########### Final evaluations:
 
@@ -61,7 +66,7 @@ for(f in folders){
 #   plot_metric(loss, "Evaluation")
 # }
 
-these_plots<- c(1,2,5,6)
+these_plots<- c(1:8)
 
 for(f in folders[these_plots]){
   custom<- read.csv(paste0("d3rlpy_logs/",f,"/custom_metrics.csv"))

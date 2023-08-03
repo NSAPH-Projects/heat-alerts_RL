@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 from itertools import groupby
 import pyro
+import json
 
 from bayesian_model.pyro_heat_alert import HeatAlertDataModule, HeatAlertModel
 # from pyro_heat_alert import HeatAlertDataModule, HeatAlertModel
@@ -238,3 +239,42 @@ class HASDM_Env(gym.Env):
 #         env.reset()
 #     d+= 1
 
+
+# #### Evaluate observed actions:
+
+# with open("bayesian_model/data/processed/fips2idx.json","r") as f:
+#         crosswalk = json.load(f)
+
+# counties = np.fromiter(crosswalk.keys(), dtype=int)
+# locations = np.fromiter(crosswalk.values(), dtype=int)
+
+# Results = pd.DataFrame(columns=["Actions", "Rewards", "Year", "County"])
+
+# for i in range(0, len(locations)):  
+#     env = HASDM_Env(loc=locations[i])
+#     Rewards = []
+#     Actions = []
+#     Year = []
+#     for y in range(2006, 2016):
+#         obs = env.reset(y)
+#         obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
+#         action = alert[env.county][env.year][env.day].item()
+#         terminal = False
+#         while terminal == False:
+#             if action == 1 and env.budget == 0:
+#                 action = 0
+#             Actions.append(action)
+#             Year.append(y)
+#             obs, reward, terminal, info = env.step(action)
+#             Rewards.append(reward.item())
+#             obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
+#             action = alert[env.county][env.year][env.day].item()
+#         print(y)
+#     results = pd.DataFrame(np.array([Actions, Rewards]).T)
+#     results.columns = ["Actions", "Rewards"]
+#     results["Year"] = Year
+#     results["County"] = counties[i]
+#     Results = pd.concat([Results, results], ignore_index=True)
+#     print(locations[i])
+
+# Results.to_csv("Summer_results/ORL_eval_NWS.csv")
