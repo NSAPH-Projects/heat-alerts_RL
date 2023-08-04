@@ -51,13 +51,13 @@ model = HeatAlertModel(
         hidden_dim= 32, #cfg.model.hidden_dim,
         num_hidden_layers= 1, #cfg.model.num_hidden_layers,
     )
-model.load_state_dict(torch.load("bayesian_model/ckpts/Full_7-19_model.pt"))
-# model.load_state_dict(torch.load("ckpts/Full_7-19_model.pt"))
+model.load_state_dict(torch.load("bayesian_model/ckpts/Full_8-4_model.pt"))
+# model.load_state_dict(torch.load("ckpts/Full_8-4_model.pt"))
 
 # guide = pyro.infer.autoguide.AutoLowRankMultivariateNormal(model)
 # guide(*dm.dataset.tensors)
-# guide.load_state_dict(torch.load("bayesian_model/ckpts/Full_7-19_guide.pt"))
-# # guide.load_state_dict(torch.load("ckpts/Full_7-19_guide.pt"))
+# guide.load_state_dict(torch.load("bayesian_model/ckpts/Full_8-4_guide.pt"))
+# # guide.load_state_dict(torch.load("ckpts/Full_8-4_guide.pt"))
 
 predictive_outputs = Predictive(
         model,
@@ -91,9 +91,10 @@ def avg_streak_length(inds): # inds = indices (days) of alerts
 
 
 ## Define the custom environment class:
+years = set(range(2006, 2017))
 
 class HASDM_Env(gym.Env):
-    def __init__(self, loc, y = None):
+    def __init__(self, loc, y = None, hold_out=[2015]):
         # Initialize your environment variables and parameters
         self.observation_space = spaces.Box(
             low=-np.inf,
@@ -102,14 +103,19 @@ class HASDM_Env(gym.Env):
             dtype=np.float32,
         )
         self.action_space = spaces.Discrete(2)
+        self.year_options = np.array(list(years-set(hold_out)))
         self.loc = torch.tensor(loc).long()
         self.county = loc_ind == self.loc
-        if y is None:
-            self.y = np.random.randint(2006, 2016)
-        else:
+        if y is None: # training
+            self.y = np.random.choice(self.year_options)
+        else: # evaluation
             self.y = y
         self.year = year[self.county] == self.y
-        self.budget = torch.tensor(np.random.randint(0, budget[self.county][self.year][0]+1)).long()
+        self.b = budget[self.county][self.year][0]
+        if y is None: # training
+            self.budget = torch.tensor(np.random.randint(0.5*self.b, 1.5*self.b+1)).long()
+        else: # evaluation
+            self.budget = self.b
         self.day = 0
         self.alerts = []
         obs = baseline_features[self.county][self.year][self.day]
@@ -123,7 +129,7 @@ class HASDM_Env(gym.Env):
         self.episode_budget = []
         self.episode_avg_dos = []
         self.episode_avg_streak_length = []
-    def step(self, action): # Take an action in the environment and return the next state, reward, done flag, and additional information
+    def step(self, action, y = None): # Take an action in the environment and return the next state, reward, done flag, and additional information
         if self.day == 0:
             inputs = [
                 hosps[self.county][self.year][self.day].reshape(1,1), 
@@ -146,9 +152,13 @@ class HASDM_Env(gym.Env):
         # print("Day = " + str(self.day))
         # print("Index = " + str(self.county[self.year][self.day]))
         # Update new action according to the alert budget:
+        penalty = 0
         if action == 1 and self.budget > 0:
             action = 1
             self.budget -= 1
+        elif action == 1 and self.budget == 0:
+            action = 0
+            penalty = -10 # could pass this in as an argument of the RL
         else:
             action = 0
         self.alerts.append(action)
@@ -161,6 +171,10 @@ class HASDM_Env(gym.Env):
         effectiveness = effectiveness.clamp(1e-6, 1 - 1e-6)
         # reward = county_summer_mean[self.county][self.year][self.day] * baseline * (1 - torch.tensor(action, dtype=torch.float32) * effectiveness)
         reward = baseline * (1 - torch.tensor(action, dtype=torch.float32) * effectiveness)
+        if y is not None: # evaluation
+            Reward = -reward # Note that reward is negative so higher is better
+        else: # training
+            Reward = -reward + torch.tensor(penalty, dtype=torch.float32)
         # inputs = [
         #     hosps[self.county][self.year][self.day].reshape(1,1), 
         #     self.loc.reshape(1,1), 
@@ -206,15 +220,19 @@ class HASDM_Env(gym.Env):
         else:
             terminal = False
         info = {} 
-        return(next_observation.reshape(-1,).detach().numpy(), -reward, terminal, info) # Note that reward is negative so higher is better
+        return(next_observation.reshape(-1,).detach().numpy(), Reward, terminal, info) 
     def reset(self, y = None):
         # Reset the environment to its initial state
-        if y is None:
-            self.y = np.random.randint(2006, 2016)
-        else:
+        if y is None: # training
+            self.y = np.random.choice(self.year_options)
+        else: # evaluation
             self.y = y
         self.year = year[self.county] == self.y
-        self.budget = torch.tensor(np.random.randint(0, budget[self.county][self.year][0]+1)).long()
+        self.b = budget[self.county][self.year][0]
+        if y is None: # training
+            self.budget = torch.tensor(np.random.randint(0.5*self.b, 1.5*self.b+1)).long()
+        else: # evaluation
+            self.budget = self.b
         self.episode_budget.append(self.budget.item()) # saving for later reference
         self.day = 0
         self.alerts = []
@@ -231,12 +249,13 @@ class HASDM_Env(gym.Env):
 # env = HASDM_Env(loc=2)
 # env.reset()
 # d=0
+# y = 2016
 # while d < 200:
-#     next_observation, reward, terminal, info = env.step(1)
+#     next_observation, reward, terminal, info = env.step(1, y)
 #     print(reward)
 #     # print(next_observation)
 #     if terminal:
-#         env.reset()
+#         env.reset(y)
 #     d+= 1
 
 
@@ -255,7 +274,7 @@ class HASDM_Env(gym.Env):
 #     Rewards = []
 #     Actions = []
 #     Year = []
-#     for y in range(2006, 2016):
+#     for y in years:
 #         obs = env.reset(y)
 #         obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
 #         # action = alert[env.county][env.year][env.day].item()
@@ -266,7 +285,7 @@ class HASDM_Env(gym.Env):
 #                 action = 0
 #             Actions.append(action)
 #             Year.append(y)
-#             obs, reward, terminal, info = env.step(action)
+#             obs, reward, terminal, info = env.step(action, y)
 #             Rewards.append(reward.item())
 #             obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
 #             # action = alert[env.county][env.year][env.day].item()

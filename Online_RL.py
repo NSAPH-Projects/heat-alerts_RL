@@ -15,7 +15,6 @@ from d3rlpy.dataset import MDPDataset
 from d3rlpy.online.explorers import LinearDecayEpsilonGreedy
 from d3rlpy.metrics.scorer import td_error_scorer, average_value_estimation_scorer
 
-# from HASDM_hybrid_gym import HASDM_Env
 from heat_alerts.HASDM_hybrid_gym import HASDM_Env
 
 def set_seed(seed):
@@ -31,6 +30,8 @@ def main(params):
     seed = params["seed"]
     # seed = 321
     set_seed(seed)
+
+    print("Holding out:" + str(params["hold_out"]))
 
     # params=dict(
     #     fips = 4013, model_name = "test_sac_4013", algo="SAC",
@@ -90,7 +91,7 @@ def main(params):
     with open("bayesian_model/data/processed/fips2idx.json","r") as f:
         crosswalk = json.load(f)
     
-    env = HASDM_Env(crosswalk[str(params["fips"])])
+    env = HASDM_Env(crosswalk[str(params["fips"])], hold_out=params["hold_out"])
     # eval_env = HASDM_Env(params["loc"])
 
     buffer = ReplayBuffer(maxlen=H*params["n_epochs"], env=env)
@@ -123,41 +124,64 @@ def main(params):
     ## Evaluation:
     models = glob.glob("d3rlpy_logs/" + name + "/model_*")
 
-    Results = pd.DataFrame(columns=["Actions", "Rewards", "Year", "Model"])
+    Training_Results = pd.DataFrame(columns=["Actions", "Rewards", "Year", "Model"])
+    Evaluation_Results = pd.DataFrame(columns=["Actions", "Rewards", "Year", "Model"])
     i = 0
     for m in models:
         RL.load_model(m)
-        Rewards = []
-        Actions = []
-        Year = []
+        T_Rewards = []
+        T_Actions = []
+        T_Year = []
+        E_Rewards = []
+        E_Actions = []
+        E_Year = []
         eval_env = HASDM_Env(crosswalk[str(params["fips"])])
-        for y in range(2006, 2016):
+        for y in range(2006, 2017):
             obs = eval_env.reset(y)
             obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
             action = RL.predict(obs).item()
             terminal = False
-            while terminal == False:
-                if action == 1 and eval_env.budget == 0:
-                    action = 0
-                Actions.append(action)
-                Year.append(y)
-                obs, reward, terminal, info = eval_env.step(action)
-                Rewards.append(reward.item())
-                obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
-                action = RL.predict(obs).item()
+            if y in params["hold_out"]:
+                while terminal == False:
+                    if action == 1 and eval_env.budget == 0:
+                        action = 0
+                    E_Actions.append(action)
+                    E_Year.append(y)
+                    obs, reward, terminal, info = eval_env.step(action, y)
+                    E_Rewards.append(reward.item())
+                    obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
+                    action = RL.predict(obs).item()
+            else:
+                while terminal == False:
+                    if action == 1 and eval_env.budget == 0:
+                        action = 0
+                    T_Actions.append(action)
+                    T_Year.append(y)
+                    obs, reward, terminal, info = eval_env.step(action, y)
+                    T_Rewards.append(reward.item())
+                    obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
+                    action = RL.predict(obs).item()
             print(y)
-        results = pd.DataFrame(np.array([Actions, Rewards]).T)
-        results.columns = ["Actions", "Rewards"]
-        results["Year"] = Year
-        results["Model"] = i
-        Results = pd.concat([Results, results], ignore_index=True)
+        T_results = pd.DataFrame(np.array([T_Actions, T_Rewards]).T)
+        T_results.columns = ["Actions", "Rewards"]
+        T_results["Year"] = T_Year
+        T_results["Model"] = i
+        Training_Results = pd.concat([Training_Results, T_results], ignore_index=True)
+        E_results = pd.DataFrame(np.array([E_Actions, E_Rewards]).T)
+        E_results.columns = ["Actions", "Rewards"]
+        E_results["Year"] = E_Year
+        E_results["Model"] = i
+        Evaluation_Results = pd.concat([Evaluation_Results, E_results], ignore_index=True)
         i += 1
 
-    Results.to_csv("Summer_results/ORL_eval_" + name + ".csv")
+    Training_Results.to_csv("Summer_results/ORL_training_" + name + ".csv")
+    Evaluation_Results.to_csv("Summer_results/ORL_eval_" + name + ".csv")
+
 
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--fips", type=int, default=4013, help="fips code")
+    parser.add_argument("--hold_out", nargs='+', type=int, default=2015, help="evaluation years")
     parser.add_argument("--algo", type=str, default="DQN", help="RL algorithm")
     parser.add_argument("--xpl", type=str, default="F", help="Use explorer?")
     parser.add_argument("--eps_0", type=float, default=1.0, help="epsilon start")
