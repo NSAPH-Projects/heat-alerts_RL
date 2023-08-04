@@ -1,7 +1,8 @@
 
 library(arrow)
 
-bayes<- read.csv("Bayesian_models/Bayesian_R_7-19.csv", header=FALSE)
+# bayes<- read.csv("Bayesian_models/Bayesian_R_7-19.csv", header=FALSE)
+bayes<- read.csv("Bayesian_models/Bayesian_Full_8-4.csv", header=FALSE)
 
 Y<- read_parquet("bayesian_model/data/processed/outcomes.parquet")$other_hosps
 A<- read_parquet("bayesian_model/data/processed/actions.parquet")$alert
