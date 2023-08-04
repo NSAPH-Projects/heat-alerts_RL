@@ -18,6 +18,12 @@ conda activate heatrl
 Then run the script bayesian_model/prepare_data.py to get everything in the right format for the Bayesian model and gym environment.
 
 ### Bayesian rewards modeling:
-1. 
+*From within bayesian_model directory:*
+1. Run train_nn.py -- configuration of arguments are in the conf directory. For example:
+```
+python train_nn.py training=full model.name="Full_8-1"
+```
+2. Evaluate the accuracy of these predictions with the script Evaluate_pyro_R.R
 
 ### Online RL:
+
