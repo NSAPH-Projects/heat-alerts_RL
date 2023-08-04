@@ -167,17 +167,19 @@ class HASDM_Env(gym.Env):
         obs = baseline_features[self.county][self.year][self.day]
         obs[baseline_feature_names.index("previous_alerts")] = torch.tensor(0.0, dtype=torch.float32)
         self.observation = torch.cat((obs,self.budget.reshape(-1))) # so the RL knows the budget
-        self.observation = torch.cat((self.observation,hi_mean[self.county][self.year][self.day].reshape(-1)))
         eff = eff_features[self.county][self.year][self.day]
         eff[effectiveness_feature_names.index("previous_alerts")] = torch.tensor(0.0, dtype=torch.float32)
         self.effectiveness_vars = eff
-        if y is not None: # training
+        if y is None: # training
             for v in baseline_weather_names:
                 pos = baseline_feature_names.index(v)
                 self.observation[pos] = baseline_features[self.weather_county][self.weather_year][self.day][pos]
             for v in effectiveness_weather_names:
                 pos = effectiveness_feature_names.index(v)
                 self.effectiveness[pos] = eff_features[self.weather_county][self.weather_year][self.day][pos]
+            self.observation = torch.cat((self.observation,hi_mean[self.weather_county][self.weather_year][self.day].reshape(-1)))
+        else:
+            self.observation = torch.cat((self.observation,hi_mean[self.county][self.year][self.day].reshape(-1)))
         # create a couple of metrics to save and return at end:
         self.episode_sum = []
         self.episode_budget = []
@@ -267,16 +269,18 @@ class HASDM_Env(gym.Env):
             obs[baseline_feature_names.index("previous_alerts")] = s
             eff[effectiveness_feature_names.index("previous_alerts")] = s
         next_observation = torch.cat((obs,self.budget.reshape(-1))) # so the RL knows the budget
-        next_observation = torch.cat((next_observation,hi_mean[self.county][self.year][self.day].reshape(-1)))
-        self.observation = next_observation
         self.effectiveness_vars = eff
-        if y is not None: # training
+        if y is None: # training
             for v in baseline_weather_names:
                 pos = baseline_feature_names.index(v)
                 self.observation[pos] = baseline_features[self.weather_county][self.weather_year][self.day][pos]
             for v in effectiveness_weather_names:
                 pos = effectiveness_feature_names.index(v)
                 self.effectiveness[pos] = eff_features[self.weather_county][self.weather_year][self.day][pos]
+            next_observation = torch.cat((next_observation,hi_mean[self.weather_county][self.weather_year][self.day].reshape(-1)))
+        else:
+            next_observation = torch.cat((next_observation,hi_mean[self.county][self.year][self.day].reshape(-1)))
+        self.observation = next_observation
         if self.day == n_days-1:
             terminal = True
             k = sum(self.alerts)
@@ -316,17 +320,19 @@ class HASDM_Env(gym.Env):
         obs = baseline_features[self.county][self.year][self.day]
         obs[baseline_feature_names.index("previous_alerts")] = torch.tensor(0.0, dtype=torch.float32)
         self.observation = torch.cat((obs,self.budget.reshape(-1))) # so the RL knows the budget
-        self.observation = torch.cat((self.observation,hi_mean[self.county][self.year][self.day].reshape(-1)))
         eff = eff_features[self.county][self.year][self.day]
         eff[effectiveness_feature_names.index("previous_alerts")] = torch.tensor(0.0, dtype=torch.float32)
         self.effectiveness_vars = eff
-        if y is not None: # training
+        if y is None: # training
             for v in baseline_weather_names:
                 pos = baseline_feature_names.index(v)
                 self.observation[pos] = baseline_features[self.weather_county][self.weather_year][self.day][pos]
             for v in effectiveness_weather_names:
                 pos = effectiveness_feature_names.index(v)
                 self.effectiveness[pos] = eff_features[self.weather_county][self.weather_year][self.day][pos]
+            self.observation = torch.cat((self.observation,hi_mean[self.weather_county][self.weather_year][self.day].reshape(-1)))
+        else:
+            self.observation = torch.cat((self.observation,hi_mean[self.county][self.year][self.day].reshape(-1)))
         return(self.observation.reshape(-1,).detach().numpy())
 
 
