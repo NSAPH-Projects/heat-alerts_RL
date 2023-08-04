@@ -11,10 +11,10 @@ This is code for investigating applicability of RL to environmental health, spec
 6. Finalize and select only counties with population > 65,000: Single_county_prep_data.R
 
 ### Installing the conda environment and getting the data ready for modeling:
-'''
+```
 conda env create -f ../envs/heatrl/env-linux.yaml
 conda activate heatrl
-'''
+```
 Then run the script bayesian_model/prepare_data.py to get everything in the right format for the Bayesian model and gym environment.
 
 ### Bayesian rewards modeling:
