@@ -62,8 +62,9 @@ all_cols = [
     "year",
     "quant_HI_county",
     "quant_HI_3d_county",
+    "HI_mean",
     "alert",
-    # "alert_lag1", # if doing online or hybrid RL
+    "alert_lag1", # if doing online or hybrid RL
     "alerts_2wks",
     "alert_sum",
     "other_hosps",
@@ -72,6 +73,7 @@ all_cols = [
     "dos",
     "dow",
     "Population",
+    "total_count", # Medicare enrollees
     "Pop_density",
     "Med_HH_Income",
     "broadband_usage",
@@ -111,7 +113,7 @@ W = (
     .set_index("fips")
     .groupby("fips")
     .mean()
-    .assign(Lop_Pop_density=lambda x: np.log(x["Pop_density"]))
+    .assign(Log_Pop_density=lambda x: np.log(x["Pop_density"]))
     .assign(Log_Med_HH_Income=lambda x: np.log(x["Med_HH_Income"]))
     .drop(columns=["Pop_density", "Med_HH_Income"])
 )
@@ -121,7 +123,7 @@ W = (
 
 # %% standardize W
 wscaler = StandardScaler()
-wscaler_cols = ["broadband_usage", "Democrat", "Lop_Pop_density", "Log_Med_HH_Income", "pm25"]
+wscaler_cols = ["broadband_usage", "Democrat", "Log_Pop_density", "Log_Med_HH_Income", "pm25"]
 W[wscaler_cols] = wscaler.fit_transform(W[wscaler_cols])
 W["intercept"] = 1.0
 
@@ -147,6 +149,8 @@ time_keys = [
     # "year",
     "quant_HI_county",
     "quant_HI_3d_county",
+    "HI_mean",
+    "alert_lag1",
     "alerts_2wks",
     "holiday",
 ]
@@ -160,7 +164,7 @@ X = (
     .assign(intercept=1.0)
 )
 reorder = ["intercept", "quant_HI_county", "quant_HI_county_pow2", "quant_HI_3d_county", "quant_HI_3d_county_pow2",
-           "weekend", "alerts_2wks"] # "year", 
+           "HI_mean", "weekend", "alert_lag1", "alerts_2wks"] # "year", 
 X = X[reorder]
 
 # paste splines onto X
@@ -205,6 +209,7 @@ Y.loc[A.values == 1].mean() - Y.loc[A.values == 0].mean()
 sind = data.fips.map(fips2idx).values
 sind = pd.DataFrame({"sind": sind}, Y.index)
 P = data[["Population"]] / 1000 # better to work on thousands
+Enrolled = data[["total_count"]] 
 
 # %% offset = location means
 df = pd.DataFrame({"other_hosps": Y.values[:, 0], "sind": sind.values[:, 0], "year": year.values[:, 0]})
@@ -235,6 +240,7 @@ A.to_parquet("data/processed/actions.parquet")
 W.to_parquet("data/processed/spatial_feats.parquet")
 sind.to_parquet("data/processed/location_indicator.parquet")
 P.to_parquet("data/processed/population.parquet")
+Enrolled.to_parquet("data/processed/Medicare_denominator.parquet")
 offset.to_parquet("data/processed/offset.parquet")
 year.to_parquet("data/processed/year.parquet")
 Budget.to_parquet("data/processed/budget.parquet")

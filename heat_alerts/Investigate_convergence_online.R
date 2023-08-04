@@ -14,6 +14,21 @@ model<- "Online-1_SAC"
 
 ########### Final evaluations:
 
+## Benchmarks:
+df<- read.csv("Summer_results/ORL_eval_NWS.csv")[,-1]
+df<- read.csv("Summer_results/ORL_eval_zero.csv")[,-1]
+
+DF<- aggregate(. ~ County # + Year
+               , df, sum)
+fips<- 4013
+fips<- 36061
+DF[which(DF$County == fips),]
+
+# ggplot(DF, aes(x=County,y=Rewards
+#                    # ,color=as.factor(Year)
+#                )) + geom_line() + geom_smooth() + ggtitle("NWS")
+
+## Actual models:
 files<- list.files("Summer_results", pattern = model)
 for(f in files){
   df<- read.csv(paste0("Summer_results/",f))[,-1]
@@ -66,7 +81,7 @@ for(f in folders){
 #   plot_metric(loss, "Evaluation")
 # }
 
-these_plots<- c(1:8)
+these_plots<- c(1:16)
 
 for(f in folders[these_plots]){
   custom<- read.csv(paste0("d3rlpy_logs/",f,"/custom_metrics.csv"))

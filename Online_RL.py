@@ -24,13 +24,13 @@ def set_seed(seed):
     torch.backends.cudnn.deterministic = True
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
+    d3rlpy.seed(seed)
 
 def main(params):
     params = vars(params)
     seed = params["seed"]
     # seed = 321
     set_seed(seed)
-    d3rlpy.seed(seed)
 
     # params=dict(
     #     fips = 4013, model_name = "test_sac_4013", algo="SAC",

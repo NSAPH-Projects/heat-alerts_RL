@@ -66,7 +66,7 @@ def main(args: argparse.Namespace):
     # # save average predictions for comparison to Y:
     # preds = predictive(*dm.dataset.tensors, return_outcomes=True)["_RETURN"]
     # Preds = torch.mean(preds, dim=0).numpy()
-    # np.savetxt("../Bayesian_models/Bayesian_R_7-19.csv", Preds, delimiter=",")
+    # np.savetxt("../Bayesian_models/Bayesian_R_8-4.csv", Preds, delimiter=",")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 
 import hydra
 import pyro
@@ -75,6 +76,16 @@ def main(cfg: DictConfig):
     # save config for easy reproducibility
     with open(f"ckpts/{cfg.model.name}_cfg.yaml", "w") as f:
         OmegaConf.save(cfg, f)
+
+    # save average predictions for comparison to Y:
+    sample = guide(*dm.dataset.tensors)
+    sites = list(sample.keys()) + ["_RETURN"]
+    predictive = pyro.infer.Predictive(
+        model, guide=guide, num_samples=1000, return_sites=sites
+    )
+    preds = predictive(*dm.dataset.tensors, return_outcomes=True)["_RETURN"]
+    Preds = torch.mean(preds, dim=0).numpy()
+    np.savetxt(f"../Bayesian_models/Bayesian_{cfg.model.name}.csv", Preds, delimiter=",")
 
 
 if __name__ == "__main__":
