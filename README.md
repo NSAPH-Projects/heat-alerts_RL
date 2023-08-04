@@ -23,7 +23,7 @@ Then run the script bayesian_model/prepare_data.py to get everything in the righ
 ```
 python train_nn.py training=full model.name="Full_8-1"
 ```
-See [here](https://hydra.cc/docs/intro/) for an introduction to Hydra.
+See [here](https://hydra.cc/docs/intro/) for an introduction to Hydra. <br>
 2. Evaluate the accuracy of these predictions with the script Evaluate_pyro_R.R
 
 ### Online RL:
