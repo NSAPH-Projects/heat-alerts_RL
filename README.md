@@ -1,6 +1,6 @@
 # Heat Alerts Sequential Decision Making 
 
-This is code for investigating applicability of reinforcement learning (RL) to environmental health, specifically issuance of heat alerts.
+This is code for investigating applicability of reinforcement learning (RL) to environmental health, specifically issuance of heat alerts in the United States.
 
 ### Data Processing:
 1. Merging mortality data and heat alerts data: Explore_merged_data.R
