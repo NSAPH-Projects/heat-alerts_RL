@@ -16,15 +16,22 @@ from bayesian_model.pyro_heat_alert import HeatAlertDataModule, HeatAlertModel
 
 ## Read in data:
 n_days = 153
-n_years = 11
+years = set(range(2006, 2017))
+n_years = len(years)
 dm = HeatAlertDataModule(
         dir="bayesian_model/data/processed", # dir="data/processed",
         batch_size=n_days*n_years,
         num_workers=4,
         for_gym=True
     )
-data = dm.gym_dataset
 
+baseline_feature_names = dm.baseline_feature_names
+effectiveness_feature_names = dm.effectiveness_feature_names
+
+baseline_weather_names = ['heat_qi_base', 'heat_qi1_above_25', 'heat_qi2_above_75', 'excess_heat']
+effectiveness_weather_names = ['heat_qi', 'excess_heat']
+
+data = dm.gym_dataset
 hosps = data[0]
 loc_ind = data[1].long()
 county_summer_mean = data[2]
@@ -36,26 +43,22 @@ year = data[7]
 budget = data[8]
 hi_mean = data[10]
 state = data[9]
+# Get unique state IDs:
 W_state = state.loc[np.arange(0, len(state), n_days*n_years)]
 s = np.unique(W_state)
 W_state = W_state["state"].replace(s, np.arange(0,len(s)))
 
-# The "Cold" zone is very large, so split on additional east-west feature
+# The "Cold" zone is very large, so split on additional east-west feature:
 western = [' AZ', ' CA', ' CO', ' ID', ' MT', ' NM', ' NV', ' OR', ' WA' 
            ,' ND', ' SD', ' NE', ' KS' # adds 10 counties to the Cold western group
            ] 
 western = pd.DataFrame(western).replace(s, np.arange(0,len(s)))
 western.columns = ["Num"]
 
+# Add state ID to spatial features data frame:
 spatial_features = dm.spatial_features
 spatial_features = torch.cat((spatial_features,torch.tensor(np.array(W_state), dtype=torch.int).reshape(-1,1)), dim=1)
 spatial_features = pd.DataFrame(spatial_features.numpy())
-
-baseline_feature_names = dm.baseline_feature_names
-effectiveness_feature_names = dm.effectiveness_feature_names
-
-baseline_weather_names = ['heat_qi_base', 'heat_qi1_above_25', 'heat_qi2_above_75', 'excess_heat']
-effectiveness_weather_names = ['heat_qi', 'excess_heat']
 
 spatial_feature_names = dm.spatial_features_names
 spatial_feature_names = spatial_feature_names.union(["State"], sort=False)
@@ -63,12 +66,13 @@ spatial_features.columns = spatial_feature_names
 
 locations = np.arange(0, spatial_features.shape[0])
 
-def sample_similar_counties(loc):
+# Function for obtaining counties with similar weather:
+def get_similar_counties(loc):
     this_spat = spatial_features.loc[loc]
     group = locations[spatial_features[['Cold', 'Hot-Dry', 'Marine',
        'Mixed-Dry', 'Mixed-Humid', 'Very Cold']].eq(this_spat[['Cold', 'Hot-Dry', 'Marine',
        'Mixed-Dry', 'Mixed-Humid', 'Very Cold']]).all(axis=1)]
-    if this_spat["Cold"] == 1.0:
+    if this_spat["Cold"] == 1.0: # additionally separating the "Cold" region into western and eastern
         this_w = this_spat["State"] in western
         if this_w:
             group = group[np.isin(spatial_features.loc[group]["State"], western)]
@@ -77,7 +81,7 @@ def sample_similar_counties(loc):
     return(group)
 
 
-## Rewards model:
+## Set up the rewards model, previously trained using pyro:
 model = HeatAlertModel(
         spatial_features=dm.spatial_features,
         data_size=dm.data_size,
@@ -93,11 +97,6 @@ model = HeatAlertModel(
 model.load_state_dict(torch.load("bayesian_model/ckpts/Full_8-4_model.pt"))
 # model.load_state_dict(torch.load("ckpts/Full_8-4_model.pt"))
 
-# guide = pyro.infer.autoguide.AutoLowRankMultivariateNormal(model)
-# guide(*dm.dataset.tensors)
-# guide.load_state_dict(torch.load("bayesian_model/ckpts/Full_8-4_guide.pt"))
-# # guide.load_state_dict(torch.load("ckpts/Full_8-4_guide.pt"))
-
 predictive_outputs = Predictive(
         model,
         # guide=guide, # including the guide includes all sites by default
@@ -105,6 +104,7 @@ predictive_outputs = Predictive(
         return_sites=["_RETURN"],
     )
 
+# Function for getting the average streak length of alerts:
 def avg_streak_length(inds): # inds = indices (days) of alerts
     n = len(inds)
     diffs = inds[1:n] - inds[0:(n-1)]
@@ -130,11 +130,11 @@ def avg_streak_length(inds): # inds = indices (days) of alerts
 
 
 ## Define the custom environment class:
-years = set(range(2006, 2017))
-
 class HASDM_Env(gym.Env):
-    def __init__(self, loc, y = None, hold_out=[2015]):
-        # Initialize your environment variables and parameters
+    def __init__( ## Initialize the environment variables and parameters...
+            self, loc, y = None, # if y (a year) is passed, we are doing evaluation
+            hold_out=[2015]
+    ): 
         self.observation_space = spaces.Box(
             low=-np.inf,
             high=np.inf,
@@ -142,20 +142,25 @@ class HASDM_Env(gym.Env):
             dtype=np.float32,
         )
         self.action_space = spaces.Discrete(2)
+        # Get the set of years allocated for training (as opposed to evaluation):
         self.year_options = np.array(list(years-set(hold_out)))
         if y is None: # training
-            self.y = np.random.choice(self.year_options)
-            self.similar_counties = sample_similar_counties(loc) # loc is not yet a tensor
+            self.y = np.random.choice(self.year_options) # select the year
+            # Obtain codes of counties in the same region:
+            self.similar_counties = get_similar_counties(loc) # loc is not yet a tensor
+            # Sample a county from the region:
             self.weather_loc = torch.tensor(np.random.choice(self.similar_counties)).long()
             self.weather_county = loc_ind == self.weather_loc 
         else: # evaluation
             self.y = y
+        ## Get the initial environment data:
         self.loc = torch.tensor(loc).long()
         self.county = loc_ind == self.loc
         self.year = year[self.county] == self.y
         self.weather_year = year[self.weather_county] == self.y
         self.b = budget[self.county][self.year][0]
         if y is None: # training
+            # Sample the budget:
             self.budget = torch.tensor(np.random.randint(0.5*self.b, 1.5*self.b+1)).long()
             self.R = torch.empty((n_days,
                                   len(effectiveness_feature_names)+len(baseline_feature_names)+2, 1), 
@@ -171,21 +176,25 @@ class HASDM_Env(gym.Env):
         eff[effectiveness_feature_names.index("previous_alerts")] = torch.tensor(0.0, dtype=torch.float32)
         self.effectiveness_vars = eff
         if y is None: # training
+            # Use the weather features from the sampled county:
             for v in baseline_weather_names:
                 pos = baseline_feature_names.index(v)
                 self.observation[pos] = baseline_features[self.weather_county][self.weather_year][self.day][pos]
             for v in effectiveness_weather_names:
                 pos = effectiveness_feature_names.index(v)
-                self.effectiveness[pos] = eff_features[self.weather_county][self.weather_year][self.day][pos]
+                self.effectiveness_vars[pos] = eff_features[self.weather_county][self.weather_year][self.day][pos]
+            # Include rolling mean of heat index, which is not given to the rewards model:
             self.observation = torch.cat((self.observation,hi_mean[self.weather_county][self.weather_year][self.day].reshape(-1)))
         else:
+            # Include rolling mean of heat index, which is not given to the rewards model:
             self.observation = torch.cat((self.observation,hi_mean[self.county][self.year][self.day].reshape(-1)))
-        # create a couple of metrics to save and return at end:
+        ## Create a few additional metrics to save and return at end of training:
         self.episode_sum = []
         self.episode_budget = []
         self.episode_avg_dos = []
         self.episode_avg_streak_length = []
-    def step(self, action, y = None): # Take an action in the environment and return the next state, reward, done flag, and additional information
+    def step(self, action, y = None): ## Take an action in the environment and return the next state, reward, done flag, and additional information...
+        ## Sample coefficients from the rewards model, at the beginning of each episode for speed:
         if self.day == 0:
             inputs = [
                 hosps[self.county][self.year][self.day].reshape(1,1), 
@@ -198,6 +207,7 @@ class HASDM_Env(gym.Env):
             ]
             R = predictive_outputs(*inputs, condition=False, return_outcomes=True)["_RETURN"]#[0]
             if y is not None: # evaluation
+                # Calculate the average of each coefficient across the samples:
                 r = torch.mean(R, dim=0)
                 j = len(effectiveness_feature_names)
                 self.eff_coef = r[0:j]
@@ -217,9 +227,7 @@ class HASDM_Env(gym.Env):
             j += k
             self.eff_bias = r[j:(j+1)]
             self.base_bias = r[(j+1):(j+2)]
-        # print("Day = " + str(self.day))
-        # print("Index = " + str(self.county[self.year][self.day]))
-        # Update new action according to the alert budget:
+        ## Update new action according to the alert budget, and penalize if the RL exceeded it:
         penalty = 0
         if action == 1 and self.budget > 0:
             action = 1
@@ -227,36 +235,21 @@ class HASDM_Env(gym.Env):
         elif action == 1 and self.budget == 0:
             action = 0
             penalty = -10 # could pass this in as an argument of the RL
-        else:
-            action = 0
         self.alerts.append(action)
-        # # Obtain reward:
+        ## Calculate reward:
         baseline_contribs = torch.matmul(self.base_coef.reshape(-1), self.observation[0:(len(self.observation)-1)])
         baseline = torch.exp(baseline_contribs + self.base_bias)
         baseline = baseline.clamp(max=1e6)
         effectiveness_contribs = torch.matmul(self.eff_coef.reshape(-1), self.effectiveness_vars)
         effectiveness = torch.exp(effectiveness_contribs + self.eff_bias)
         effectiveness = effectiveness.clamp(1e-6, 1 - 1e-6)
-        # reward = county_summer_mean[self.county][self.year][self.day] * baseline * (1 - torch.tensor(action, dtype=torch.float32) * effectiveness)
-        reward = baseline * (1 - torch.tensor(action, dtype=torch.float32) * effectiveness)
+        reward = baseline * (1 - torch.tensor(action, dtype=torch.float32) * effectiveness) # relative scale
+        # reward = county_summer_mean[self.county][self.year][self.day] * baseline * (1 - torch.tensor(action, dtype=torch.float32) * effectiveness) # absolute scale
         if y is not None: # evaluation
             Reward = -reward # Note that reward is negative so higher is better
         else: # training
             Reward = -reward + torch.tensor(penalty, dtype=torch.float32)
-        # inputs = [
-        #     hosps[self.county][self.year][self.day].reshape(1,1), 
-        #     self.loc.reshape(1,1), 
-        #     county_summer_mean[self.county][self.year][self.day].reshape(1,1), 
-        #     torch.tensor(action, dtype=torch.float32).reshape(1,1), 
-        #     self.observation[0:(len(self.observation)-1)].reshape(1,-1), 
-        #     self.effectiveness_vars.reshape(1,-1), 
-        #     index[self.county][self.year][self.day].reshape(1,1)
-        # ]
-        # r = predictive_outputs(*inputs, condition=False, return_outcomes=True)["_RETURN"][0]
-        # reward = r[0][2][0].item()
-        ## format = effectiveness, baseline, outcome_mean
-        ## R = county_summer_mean * baseline * (1 - alert * effectiveness)
-        # Set up next observation:
+        ## Set up next observation:
         self.day += 1
         obs = baseline_features[self.county][self.year][self.day]
         eff = eff_features[self.county][self.year][self.day]
@@ -271,18 +264,22 @@ class HASDM_Env(gym.Env):
         next_observation = torch.cat((obs,self.budget.reshape(-1))) # so the RL knows the budget
         self.effectiveness_vars = eff
         if y is None: # training
+            # Use the weather features from the sampled county:
             for v in baseline_weather_names:
                 pos = baseline_feature_names.index(v)
                 self.observation[pos] = baseline_features[self.weather_county][self.weather_year][self.day][pos]
             for v in effectiveness_weather_names:
                 pos = effectiveness_feature_names.index(v)
-                self.effectiveness[pos] = eff_features[self.weather_county][self.weather_year][self.day][pos]
+                self.effectiveness_vars[pos] = eff_features[self.weather_county][self.weather_year][self.day][pos]
+            # Include rolling mean of heat index, which is not given to the rewards model:
             next_observation = torch.cat((next_observation,hi_mean[self.weather_county][self.weather_year][self.day].reshape(-1)))
         else:
+            # Include rolling mean of heat index, which is not given to the rewards model:
             next_observation = torch.cat((next_observation,hi_mean[self.county][self.year][self.day].reshape(-1)))
         self.observation = next_observation
         if self.day == n_days-1:
             terminal = True
+            ## Calculate additional metrics:
             k = sum(self.alerts)
             self.episode_sum.append(k)
             if k > 0:
@@ -299,10 +296,10 @@ class HASDM_Env(gym.Env):
             terminal = False
         info = {} 
         return(next_observation.reshape(-1,).detach().numpy(), Reward, terminal, info) 
-    def reset(self, y = None):
-        # Reset the environment to its initial state
+    def reset(self, y = None): ## Reset the environment to its initial state...
         if y is None: # training
-            self.y = np.random.choice(self.year_options)
+            self.y = np.random.choice(self.year_options) # select the year
+            # Sample a county from the region:
             self.weather_loc = torch.tensor(np.random.choice(self.similar_counties)).long()
             self.weather_county = loc_ind == self.weather_loc
         else: # evaluation
@@ -311,12 +308,14 @@ class HASDM_Env(gym.Env):
         self.weather_year = year[self.weather_county] == self.y
         self.b = budget[self.county][self.year][0]
         if y is None: # training
+            # Sample the budget:
             self.budget = torch.tensor(np.random.randint(0.5*self.b, 1.5*self.b+1)).long()
         else: # evaluation
             self.budget = self.b
         self.episode_budget.append(self.budget.item()) # saving for later reference
         self.day = 0
         self.alerts = []
+        ## Get the initial environment data:
         obs = baseline_features[self.county][self.year][self.day]
         obs[baseline_feature_names.index("previous_alerts")] = torch.tensor(0.0, dtype=torch.float32)
         self.observation = torch.cat((obs,self.budget.reshape(-1))) # so the RL knows the budget
@@ -324,30 +323,33 @@ class HASDM_Env(gym.Env):
         eff[effectiveness_feature_names.index("previous_alerts")] = torch.tensor(0.0, dtype=torch.float32)
         self.effectiveness_vars = eff
         if y is None: # training
+            # Use the weather features from the sampled county:
             for v in baseline_weather_names:
                 pos = baseline_feature_names.index(v)
                 self.observation[pos] = baseline_features[self.weather_county][self.weather_year][self.day][pos]
             for v in effectiveness_weather_names:
                 pos = effectiveness_feature_names.index(v)
-                self.effectiveness[pos] = eff_features[self.weather_county][self.weather_year][self.day][pos]
+                self.effectiveness_vars[pos] = eff_features[self.weather_county][self.weather_year][self.day][pos]
+            # Include rolling mean of heat index, which is not given to the rewards model:
             self.observation = torch.cat((self.observation,hi_mean[self.weather_county][self.weather_year][self.day].reshape(-1)))
         else:
+            # Include rolling mean of heat index, which is not given to the rewards model:
             self.observation = torch.cat((self.observation,hi_mean[self.county][self.year][self.day].reshape(-1)))
         return(self.observation.reshape(-1,).detach().numpy())
 
 
-# ## Test the env:
-# env = HASDM_Env(loc=2)
-# env.reset() # y = 2009
-# d = 0
-# y = 2016
-# while d < 20:
-#     next_observation, reward, terminal, info = env.step(1) #,y
-#     print(reward)
-#     # print(next_observation)
-#     if terminal:
-#         env.reset(y)
-#     d+= 1
+## Test the env:
+env = HASDM_Env(loc=2)
+env.reset() # y = 2009
+d = 0
+y = 2016
+while d < 20:
+    next_observation, reward, terminal, info = env.step(1) #,y
+    print(reward)
+    # print(next_observation)
+    if terminal:
+        env.reset()
+    d+= 1
 
 
 # #### Evaluate observed actions:
