@@ -8,7 +8,7 @@ This is code for investigating applicability of RL to environmental health, spec
 3. Merge together: Merge-finalize_county_data.R
 4. Include hospitalizations: Get_hosp_data.R
 5. Add more covariates to address confounding: More_confounders.R
-6. Finalize and subset out counties with population > 65,000: Single_county_prep_data.R
+6. Finalize and select only counties with population > 65,000: Single_county_prep_data.R
 
 ### Installing Pytorch on FASRC/FASSE:
 1. Follow [these instructions](https://github.com/fasrc/User_Codes/tree/master/AI/PyTorch)
