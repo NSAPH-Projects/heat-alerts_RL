@@ -78,7 +78,8 @@ all_cols = [
     "Med_HH_Income",
     "broadband_usage",
     "Democrat",
-    "BA_zone"
+    "BA_zone",
+    "state"
 ]
 
 # drop rows with missing values
@@ -210,6 +211,7 @@ sind = data.fips.map(fips2idx).values
 sind = pd.DataFrame({"sind": sind}, Y.index)
 P = data[["Population"]] / 1000 # better to work on thousands
 Enrolled = data[["total_count"]] 
+State = data[["state"]]
 
 # %% offset = location means
 df = pd.DataFrame({"other_hosps": Y.values[:, 0], "sind": sind.values[:, 0], "year": year.values[:, 0]})
@@ -242,6 +244,7 @@ sind.to_parquet("data/processed/location_indicator.parquet")
 P.to_parquet("data/processed/population.parquet")
 Enrolled.to_parquet("data/processed/Medicare_denominator.parquet")
 offset.to_parquet("data/processed/offset.parquet")
+State.to_parquet("data/processed/state.parquet")
 year.to_parquet("data/processed/year.parquet")
 Budget.to_parquet("data/processed/budget.parquet")
 

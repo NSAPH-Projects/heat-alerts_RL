@@ -256,6 +256,7 @@ class HeatAlertDataModule(pl.LightningDataModule):
         dos = pd.read_parquet(f"{dir}/Btdos.parquet")
         year = pd.read_parquet(f"{dir}/year.parquet")
         budget = pd.read_parquet(f"{dir}/budget.parquet")
+        state = pd.read_parquet(f"{dir}/state.parquet")
 
         if batch_size is None:
             self.batch_size = X.shape[0] // W.shape[0]  # ~ as batches as locations
@@ -274,13 +275,15 @@ class HeatAlertDataModule(pl.LightningDataModule):
         alert = torch.FloatTensor(A.values[:, 0])
         year = torch.LongTensor(year.values[:,0])
         budget = torch.LongTensor(budget.values[:,0])
+        hi_mean = torch.FloatTensor(X.HI_mean.values) # for RL
 
         # prepare covariates
         heat_qi = torch.FloatTensor(X.quant_HI_county.values)
         heat_qi_3d = torch.FloatTensor(X.quant_HI_3d_county.values)
         excess_heat = (heat_qi - heat_qi_3d).clamp(min=0)
-        previous_alerts = torch.FloatTensor(X.alerts_2wks.values)
-        weekend = torch.FloatTensor(X.weekend.values)
+        alert_lag1 = torch.LongTensor(X.alert_lag1.values)
+        previous_alerts = torch.LongTensor(X.alerts_2wks.values)
+        weekend = torch.LongTensor(X.weekend.values)
         n_dos_basis = self.dos_spline_basis.shape[1]
         dos = [torch.FloatTensor(X[f"dos_{i}"].values) for i in range(n_dos_basis)]
 
@@ -288,6 +291,7 @@ class HeatAlertDataModule(pl.LightningDataModule):
         effectiveness_features = {
             "heat_qi": heat_qi,
             "excess_heat": excess_heat,
+            "alert_lag1": alert_lag1,
             "previous_alerts": previous_alerts,
             "weekend": weekend,
             **{f"dos_{i}": v for i, v in enumerate(dos)},
@@ -296,6 +300,7 @@ class HeatAlertDataModule(pl.LightningDataModule):
         self.effectiveness_constraints = dict(
             heat_qi="positive",  # more heat more effective
             excess_heat="positive",  # more excess here more effective
+            alert_lag1="negative",  # alert yesterday less effective
             previous_alerts="negative",  # more alerts less effective
         )
         # note: contraints are passed to the heat alert model
@@ -310,6 +315,7 @@ class HeatAlertDataModule(pl.LightningDataModule):
             "heat_qi1_above_25": heat_qi1_above_25,
             "heat_qi2_above_75": heat_qi2_above_75,
             "excess_heat": excess_heat,
+            "alert_lag1": alert_lag1,
             "previous_alerts": previous_alerts,
             "weekend": weekend,
             **{f"dos_{i}": v for i, v in enumerate(dos)},
@@ -319,6 +325,7 @@ class HeatAlertDataModule(pl.LightningDataModule):
             heat_qi1_above_25="positive",  # heat could have any slope at first
             heat_qi2_above_75="positive",  #    but should be increasingly worst
             excess_heat="positive",  # more excess heat more hospitalizations
+            alert_lag1="negative",  # alert yesterday less hospitalizations
             previous_alerts="negative",  # more trailing alerts less hospitalizations
         )
 
@@ -350,7 +357,9 @@ class HeatAlertDataModule(pl.LightningDataModule):
                 effectiveness_features_tensor,
                 torch.arange(X.shape[0]),
                 year,
-                budget
+                budget,
+                state,
+                hi_mean # for RL
             ]
 
 
