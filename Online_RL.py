@@ -91,7 +91,11 @@ def main(params):
     with open("bayesian_model/data/processed/fips2idx.json","r") as f:
         crosswalk = json.load(f)
     
-    env = HASDM_Env(crosswalk[str(params["fips"])], hold_out=params["hold_out"])
+    env = HASDM_Env(
+        loc=crosswalk[str(params["fips"])],
+        P=params["penalty"],
+        hold_out=params["hold_out"]
+    )
     # eval_env = HASDM_Env(params["loc"])
 
     buffer = ReplayBuffer(maxlen=H*params["n_epochs"], env=env)
@@ -135,7 +139,7 @@ def main(params):
         E_Rewards = []
         E_Actions = []
         E_Year = []
-        eval_env = HASDM_Env(crosswalk[str(params["fips"])])
+        eval_env = HASDM_Env(loc=crosswalk[str(params["fips"])])
         for y in range(2006, 2017):
             obs = eval_env.reset(y)
             obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
@@ -187,6 +191,7 @@ if __name__ == "__main__":
     parser.add_argument("--eps_0", type=float, default=1.0, help="epsilon start")
     parser.add_argument("--eps_t", type=float, default=0.00000001, help="epsilon end")
     parser.add_argument("--eps_dur", type=float, default=1.0, help="epsilon duration (fraction)")
+    parser.add_argument("--penalty", type=float, default=-10.0, help="penalty for going over the alert budget (during training)")
     parser.add_argument("--seed", type=int, default=321, help="set seed")
     parser.add_argument("--model_name", type=str, default="test", help="name to save model under")
     parser.add_argument("--b_size", type=int, default=500, help="size of the batches")

@@ -120,19 +120,15 @@ W = (
 )
 
 
-
-
 # %% standardize W
 wscaler = StandardScaler()
 wscaler_cols = ["broadband_usage", "Democrat", "Log_Pop_density", "Log_Med_HH_Income", "pm25"]
 W[wscaler_cols] = wscaler.fit_transform(W[wscaler_cols])
 W["intercept"] = 1.0
 
+fips2idx = {fips: idx for idx, fips in enumerate(W.index.values)}
 
-fips = W.index.values
-fips2idx = {fips: idx for idx, fips in enumerate(data["fips"].unique())}
-
-W.head()
+# W.head()
 
 # %% make splines of time of summer, use patsy to make bspline basis for dos, degree 3, df 5
 dos = data["dos"] - 1

@@ -133,6 +133,7 @@ def avg_streak_length(inds): # inds = indices (days) of alerts
 class HASDM_Env(gym.Env):
     def __init__( ## Initialize the environment variables and parameters...
             self, loc, y = None, # if y (a year) is passed, we are doing evaluation
+            P = -10, # the penalty applied during training when the RL goes over the alert budget
             hold_out=[2015]
     ): 
         self.observation_space = spaces.Box(
@@ -167,6 +168,7 @@ class HASDM_Env(gym.Env):
                                   dtype=torch.float32)
         else: # evaluation
             self.budget = self.b
+        self.P = P # given penalty for the RL going over the alert budget during training
         self.day = 0
         self.alerts = []
         obs = baseline_features[self.county][self.year][self.day]
@@ -234,10 +236,10 @@ class HASDM_Env(gym.Env):
             self.budget -= 1
         elif action == 1 and self.budget == 0:
             action = 0
-            penalty = -10 # could pass this in as an argument of the RL
+            penalty = self.P 
         self.alerts.append(action)
         ## Calculate reward:
-        baseline_contribs = torch.matmul(self.base_coef.reshape(-1), self.observation[0:(len(self.observation)-1)])
+        baseline_contribs = torch.matmul(self.base_coef.reshape(-1), self.observation[0:(len(self.observation)-2)])
         baseline = torch.exp(baseline_contribs + self.base_bias)
         baseline = baseline.clamp(max=1e6)
         effectiveness_contribs = torch.matmul(self.eff_coef.reshape(-1), self.effectiveness_vars)
@@ -348,7 +350,7 @@ while d < 20:
     print(reward)
     # print(next_observation)
     if terminal:
-        env.reset()
+        env.reset(y)
     d+= 1
 
 
