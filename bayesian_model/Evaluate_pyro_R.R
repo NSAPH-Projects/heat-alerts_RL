@@ -3,7 +3,8 @@ library(arrow)
 library(rjson)
 
 # bayes<- read.csv("Bayesian_models/Bayesian_R_7-19.csv", header=FALSE)
-bayes<- read.csv("Bayesian_models/Bayesian_Full_8-4.csv", header=FALSE)
+# bayes<- read.csv("Bayesian_models/Bayesian_Full_8-4.csv", header=FALSE)
+bayes<- read.csv("Bayesian_models/Bayesian_Full_8-7.csv", header=FALSE)
 
 #### Compare to observations:
 Y<- read_parquet("bayesian_model/data/processed/outcomes.parquet")$other_hosps
@@ -45,10 +46,10 @@ DF<- data.frame(County = fips[locs+1],
                 Eff = effectiveness)
 DF<- DF[A==1,]
 
-DF[order(DF$Eff, decreasing=TRUE),]
+DF[order(DF$Eff, decreasing=TRUE),][0:30,]
 
 agg_DF<- aggregate(Eff ~ County + Region, DF, mean)
-agg_DF[order(agg_DF$Eff, decreasing=TRUE),]
+agg_DF[order(agg_DF$Eff, decreasing=TRUE),][0:30,]
 
 
 #### Sanity check:
