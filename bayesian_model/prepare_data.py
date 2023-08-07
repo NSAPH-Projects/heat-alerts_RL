@@ -126,7 +126,10 @@ wscaler_cols = ["broadband_usage", "Democrat", "Log_Pop_density", "Log_Med_HH_In
 W[wscaler_cols] = wscaler.fit_transform(W[wscaler_cols])
 W["intercept"] = 1.0
 
-fips2idx = {fips: idx for idx, fips in enumerate(W.index.values)}
+fips = data["fips"].unique()
+W = W.loc[fips] # needed to ensure they have the same ordering!
+
+fips2idx = {fips: idx for idx, fips in enumerate(fips)}
 
 # W.head()
 
