@@ -46,7 +46,7 @@ DF<- data.frame(County = fips[locs+1],
                 Eff = effectiveness)
 DF<- DF[A==1,]
 
-DF[order(DF$Eff, decreasing=TRUE),][0:30,]
+DF[order(DF$Eff, decreasing=TRUE),][0:20,]
 
 agg_DF<- aggregate(Eff ~ County + Region, DF, mean)
 agg_DF[order(agg_DF$Eff, decreasing=TRUE),][0:30,]

@@ -39,7 +39,8 @@ def main(params):
     #     n_epochs = 5, sa = 1, sync_rate = 3,
     #     b_size = 153, lr = 0.1, gamma = 0.999,
     #     n_gpus = 0, update_rate = 5,
-    #     eps_0 = 1.0, eps_t = 0.00000001, eps_dur = 1.0
+    #     eps_0 = 1.0, eps_t = 0.00000001, eps_dur = 1.0,
+    #     hold_out = [2015], penalty = -5
     # )
 
     n_days=153
@@ -91,11 +92,19 @@ def main(params):
     with open("bayesian_model/data/processed/fips2idx.json","r") as f:
         crosswalk = json.load(f)
     
-    env = HASDM_Env(
-        loc=crosswalk[str(params["fips"])],
-        P=params["penalty"],
-        hold_out=params["hold_out"]
-    )
+    hold_out = params["hold_out"]
+    if type(hold_out) == list:
+        env = HASDM_Env(
+            loc=crosswalk[str(params["fips"])],
+            P=params["penalty"],
+            hold_out=hold_out
+        )
+    else: 
+        env = HASDM_Env(
+            loc=crosswalk[str(params["fips"])],
+            P=params["penalty"],
+            hold_out=[hold_out]
+        )
     # eval_env = HASDM_Env(params["loc"])
 
     buffer = ReplayBuffer(maxlen=H*params["n_epochs"], env=env)
@@ -107,6 +116,7 @@ def main(params):
     else: 
         explorer = None
 
+    
     RL.fit_online(env,
                buffer,
                explorer,

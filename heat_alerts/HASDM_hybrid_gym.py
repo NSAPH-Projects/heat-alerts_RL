@@ -94,7 +94,7 @@ model = HeatAlertModel(
         hidden_dim= 32, #cfg.model.hidden_dim,
         num_hidden_layers= 1, #cfg.model.num_hidden_layers,
     )
-model.load_state_dict(torch.load("bayesian_model/ckpts/Full_8-4_model.pt"))
+model.load_state_dict(torch.load("bayesian_model/ckpts/Full_8-7_model.pt"))
 # model.load_state_dict(torch.load("ckpts/Full_8-4_model.pt"))
 
 predictive_outputs = Predictive(
@@ -139,7 +139,7 @@ class HASDM_Env(gym.Env):
         self.observation_space = spaces.Box(
             low=-np.inf,
             high=np.inf,
-            shape=(len(baseline_feature_names)+1,),
+            shape=(len(baseline_feature_names)+2,),
             dtype=np.float32,
         )
         self.action_space = spaces.Discrete(2)
@@ -340,18 +340,19 @@ class HASDM_Env(gym.Env):
         return(self.observation.reshape(-1,).detach().numpy())
 
 
-## Test the env:
-env = HASDM_Env(loc=2)
-env.reset() # y = 2009
-d = 0
-y = 2016
-while d < 20:
-    next_observation, reward, terminal, info = env.step(1) #,y
-    print(reward)
-    # print(next_observation)
-    if terminal:
-        env.reset(y)
-    d+= 1
+# ## Test the env:
+# env = HASDM_Env(loc=610)
+# env.observation
+# env.reset() # y = 2009
+# d = 0
+# y = 2016
+# while d < 20:
+#     next_observation, reward, terminal, info = env.step(1) #,y
+#     # print(reward)
+#     print(next_observation)
+#     if terminal:
+#         env.reset(y)
+#     d+= 1
 
 
 # #### Evaluate observed actions:
