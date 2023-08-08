@@ -340,16 +340,16 @@ class HASDM_Env(gym.Env):
         return(self.observation.reshape(-1,).detach().numpy())
 
 
+
 # ## Test the env:
-# env = HASDM_Env(loc=610)
-# env.observation
+# env = HASDM_Env(loc=400)
 # env.reset() # y = 2009
 # d = 0
 # y = 2016
 # while d < 20:
 #     next_observation, reward, terminal, info = env.step(1) #,y
-#     # print(reward)
-#     print(next_observation)
+#     print(reward)
+#     # print(next_observation)
 #     if terminal:
 #         env.reset(y)
 #     d+= 1

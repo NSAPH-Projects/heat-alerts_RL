@@ -29,10 +29,12 @@ cor(Y, pred_Y)^2
 
 effectiveness<- bayes$V1
 
-locs<- read_parquet("bayesian_model/data/processed/location_indicator.parquet")[,1]
+locs<- read_parquet("bayesian_model/data/processed/location_indicator.parquet")[,1]$sind
 
 crosswalk<- unlist(fromJSON(file="bayesian_model/data/processed/fips2idx.json"))
 fips<- names(crosswalk)
+
+sum_alerts<- aggregate(A ~ locs, data.frame(A,locs), sum)
 
 W<- as.data.frame(read_parquet("bayesian_model/data/processed/spatial_feats.parquet"))
 region_vars<- c("Cold", "Hot-Dry", "Marine", "Mixed-Dry", "Mixed-Humid", "Very Cold")
@@ -43,13 +45,17 @@ Region<- unlist(Region)
 
 DF<- data.frame(County = fips[locs+1],
                 Region = Region[locs+1],
-                Eff = effectiveness)
+                Eff = effectiveness,
+                Alerts = rep(sum_alerts$A, each=length(A)/761))
 DF<- DF[A==1,]
 
 DF[order(DF$Eff, decreasing=TRUE),][0:20,]
 
-agg_DF<- aggregate(Eff ~ County + Region, DF, mean)
-agg_DF[order(agg_DF$Eff, decreasing=TRUE),][0:30,]
+agg_DF<- aggregate(. ~ County + Region, DF, mean)
+
+
+agg_DF[order(agg_DF$Eff, decreasing=TRUE),][0:100,]
+agg_DF[order(agg_DF$Alerts, decreasing=TRUE),][0:30,]
 
 
 #### Sanity check:

@@ -7,8 +7,8 @@ library(stringr)
 model<- "Online-0_DoubleDQN"
 model<- "Online-0_SAC"
 
-i<- 1
-these_plots<- seq(i, 60, 5)
+i<- 5
+these_plots<- c(2,6,11,16,21,26) # seq(i, 30, 5)
 
 ########### Final evaluations:
 
@@ -27,13 +27,25 @@ DF[which(DF$County == fips),]
 #                )) + geom_line() + geom_smooth() + ggtitle("NWS")
 
 ## Actual models:
-files<- list.files("Summer_results", pattern = model)
-for(f in files){
+train_files<- list.files("Summer_results", 
+                         pattern = paste0("ORL_training_", model))[these_plots]
+eval_files<- list.files("Summer_results", 
+                         pattern = paste0("ORL_eval_", model))[these_plots]
+for(f in train_files){
   df<- read.csv(paste0("Summer_results/",f))[,-1]
   DF<- aggregate(. ~ Model, df, sum)
   r<- ggplot(DF, aes(x=Model,y=Rewards
                      # ,color=as.factor(Year)
              )) + geom_line() + geom_smooth() + ggtitle(f)
+  print(r)
+}
+
+for(f in eval_files){
+  df<- read.csv(paste0("Summer_results/",f))[,-1]
+  DF<- aggregate(. ~ Model, df, sum)
+  r<- ggplot(DF, aes(x=Model,y=Rewards
+                     # ,color=as.factor(Year)
+  )) + geom_line() + geom_smooth() + ggtitle(f)
   print(r)
 }
 
@@ -47,7 +59,7 @@ plot_metric<- function(df, metric, title){
   return(p)
 }
 
-folders<- list.files("d3rlpy_logs", pattern = model)
+folders<- list.files("d3rlpy_logs", pattern = model)[these_plots]
 
 for(f in folders){
   loss<- read.csv(paste0("d3rlpy_logs/",f,"/loss.csv"), header = FALSE)
@@ -79,18 +91,19 @@ for(f in folders){
 #   plot_metric(loss, "Evaluation")
 # }
 
-for(f in folders[these_plots]){
+for(f in folders){
   custom<- read.csv(paste0("d3rlpy_logs/",f,"/custom_metrics.csv"))
+  # print(sum(custom$Alert_sum))
   custom$budget_frac<- custom$Alert_sum/custom$Budget
   print(plot_metric(custom[,c("X", "Alert_sum", "budget_frac")], "Fraction of Budget Used", f))
 }
 
-for(f in folders[these_plots]){
+for(f in folders){
   custom<- read.csv(paste0("d3rlpy_logs/",f,"/custom_metrics.csv"))
   print(plot_metric(custom[,c("X", "Alert_sum", "Avg_DOS")], "Average Day of Summer", f))
 }
 
-for(f in folders[these_plots]){
+for(f in folders){
   custom<- read.csv(paste0("d3rlpy_logs/",f,"/custom_metrics.csv"))
   print(plot_metric(custom[,c("X", "Alert_sum", "Avg_StrkLn")], "Average Alert Streak Length", f))
 }
