@@ -139,7 +139,7 @@ class HASDM_Env(gym.Env):
         self.observation_space = spaces.Box(
             low=-np.inf,
             high=np.inf,
-            shape=(len(baseline_feature_names)+2,),
+            shape=(len(baseline_feature_names)+2,), # Don't forget to update this if you change the length of the observations!!
             dtype=np.float32,
         )
         self.action_space = spaces.Discrete(2)
