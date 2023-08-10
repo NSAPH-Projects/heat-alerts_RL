@@ -390,8 +390,8 @@ class HASDM_Env(gym.Env):
 #     for y in years:
 #         obs = env.reset(y)
 #         obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
-#         action = alert[env.county][env.year][env.day].item()
-#         # action = 0
+#         # action = alert[env.county_pos].item()
+#         action = 0
 #         terminal = False
 #         while terminal == False:
 #             if action == 1 and env.budget == 0:
@@ -401,8 +401,8 @@ class HASDM_Env(gym.Env):
 #             obs, reward, terminal, info = env.step(action, y, absolute=True)
 #             Rewards.append(reward.item())
 #             obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
-#             action = alert[env.county][env.year][env.day].item()
-#             # action = 0
+#             # action = alert[env.county_pos].item()
+#             action = 0
 #         print(y)
 #     results = pd.DataFrame(np.array([Actions, Rewards]).T)
 #     results.columns = ["Actions", "Rewards"]
@@ -411,7 +411,7 @@ class HASDM_Env(gym.Env):
 #     Results = pd.concat([Results, results], ignore_index=True)
 #     print(locations[i])
 
-# Results.to_csv("Summer_results/ORL_eval_NWS.csv")
-# # Results.to_csv("Summer_results/ORL_eval_zero.csv")
+# # Results.to_csv("Summer_results/ORL_eval_NWS.csv")
+# Results.to_csv("Summer_results/ORL_eval_zero.csv")
 
 
