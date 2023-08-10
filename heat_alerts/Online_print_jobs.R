@@ -1,10 +1,10 @@
 
 algos<- c("DoubleDQN", "SAC") # , "DQN", "DoubleDQN", "SAC"
 seed<- c("321") # , "221", "121"
-fips<- c("36005", "41067", "28035", "6071", "4013") # c("53057", "37171", "27019", "35045", "12085") # c("4013", "36061")
-NHU<- c(32) 
+fips<- c("36005") # c("36005", "41067", "28035", "6071", "4013") # c("53057", "37171", "27019", "35045", "12085") # c("4013", "36061")
+NHU<- c(32, 64) 
 NHL<- c(2, 3) # 3
-LR<- c(0.001) # 0.01
+LR<- c(0.001, 0.01) # 0.01
 SR<- c(3)
 # std_b<- c(0)
 b_size<- c(1200) # 600, 1200
@@ -64,7 +64,7 @@ for(i in 1:nrow(tests)){
             "--eps_dur", tests[i, "eps_dur"],
             "--eps_t", tests[i, "eps_t"],
             "--penalty", tests[i, "penalty"],
-            "--model_name", paste0("Online-1_", 
+            "--model_name", paste0("Online-2_", 
                                    tests[i, "algo"],
                                    # "_xpl-", tests[i, "xpl"],
                                    "_LR-", tests[i, "LR"],

@@ -100,10 +100,11 @@ def main(params):
             hold_out=hold_out
         )
     else: 
+        hold_out = [hold_out]
         env = HASDM_Env(
             loc=crosswalk[str(params["fips"])],
             P=params["penalty"],
-            hold_out=[hold_out]
+            hold_out=hold_out
         )
     # eval_env = HASDM_Env(params["loc"])
 
@@ -139,11 +140,13 @@ def main(params):
     models = glob.glob("d3rlpy_logs/" + name + "/model_*")
 
     Training_Results = pd.DataFrame(columns=["Actions", "Rewards", "Year", "Model"])
+    Training_Penalty_Results = pd.DataFrame(columns=["Actions", "Rewards", "Year", "Model"])
     Evaluation_Results = pd.DataFrame(columns=["Actions", "Rewards", "Year", "Model"])
     i = 0
     for m in models:
         RL.load_model(m)
         T_Rewards = []
+        TP_Rewards = []
         T_Actions = []
         T_Year = []
         E_Rewards = []
@@ -155,24 +158,27 @@ def main(params):
             obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
             action = RL.predict(obs).item()
             terminal = False
-            if y in params["hold_out"]:
+            if y in hold_out:
                 while terminal == False:
                     if action == 1 and eval_env.budget == 0:
                         action = 0
                     E_Actions.append(action)
                     E_Year.append(y)
-                    obs, reward, terminal, info = eval_env.step(action, y)
+                    obs, reward, terminal, info = eval_env.step(action, y, absolute=True)
                     E_Rewards.append(reward.item())
                     obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
                     action = RL.predict(obs).item()
             else:
                 while terminal == False:
+                    penalty = 0
                     if action == 1 and eval_env.budget == 0:
                         action = 0
+                        penalty = params["penalty"]
                     T_Actions.append(action)
                     T_Year.append(y)
                     obs, reward, terminal, info = eval_env.step(action, y)
                     T_Rewards.append(reward.item())
+                    TP_Rewards.append(reward.item() + penalty)
                     obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
                     action = RL.predict(obs).item()
             print(y)
@@ -181,6 +187,11 @@ def main(params):
         T_results["Year"] = T_Year
         T_results["Model"] = i
         Training_Results = pd.concat([Training_Results, T_results], ignore_index=True)
+        TP_results = pd.DataFrame(np.array([T_Actions, TP_Rewards]).T)
+        TP_results.columns = ["Actions", "Rewards"]
+        TP_results["Year"] = T_Year
+        TP_results["Model"] = i
+        Training_Penalty_Results = pd.concat([Training_Results, T_results], ignore_index=True)
         E_results = pd.DataFrame(np.array([E_Actions, E_Rewards]).T)
         E_results.columns = ["Actions", "Rewards"]
         E_results["Year"] = E_Year
@@ -189,6 +200,7 @@ def main(params):
         i += 1
 
     Training_Results.to_csv("Summer_results/ORL_training_" + name + ".csv")
+    Training_Penalty_Results.to_csv("Summer_results/ORL_training_penalty_" + name + ".csv")
     Evaluation_Results.to_csv("Summer_results/ORL_eval_" + name + ".csv")
 
 
