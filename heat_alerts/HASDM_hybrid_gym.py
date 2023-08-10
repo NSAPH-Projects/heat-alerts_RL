@@ -121,7 +121,7 @@ def avg_streak_length(inds): # inds = indices (days) of alerts
         return(0)
 
 ## Testing:
-# loc = torch.tensor(2).long()
+# loc = torch.tensor(318).long()
 # county = loc_ind == loc
 # y = 2009
 # this_y = year[county] == y
@@ -159,11 +159,13 @@ class HASDM_Env(gym.Env):
         self.county = loc_ind == self.loc
         self.year = year == self.y
         self.all_county_pos = torch.where(torch.logical_and(self.county, self.year))[0]
-        self.all_weather_county_pos = torch.where(torch.logical_and(self.weather_county, self.year))[0]
+        if y is None:
+            self.all_weather_county_pos = torch.where(torch.logical_and(self.weather_county, self.year))[0]
         ## Get the initial environment data:
         self.day = 0
         self.county_pos = self.all_county_pos[self.day]
-        self.weather_county_pos = self.all_weather_county_pos[self.day]
+        if y is None:
+            self.weather_county_pos = self.all_weather_county_pos[self.day]
         self.b = budget[self.county_pos]
         if y is None: # training
             # Sample the budget:
@@ -262,7 +264,8 @@ class HASDM_Env(gym.Env):
         ## Set up next observation:
         self.day += 1
         self.county_pos = self.all_county_pos[self.day]
-        self.weather_county_pos = self.all_weather_county_pos[self.day]
+        if y is None:
+            self.weather_county_pos = self.all_weather_county_pos[self.day]
         obs = baseline_features[self.county_pos]
         obs[baseline_feature_names.index("alert_lag1")] = torch.tensor(self.alerts[self.day-1], dtype=torch.float32)
         eff = eff_features[self.county_pos]
@@ -320,11 +323,13 @@ class HASDM_Env(gym.Env):
             self.y = y
         self.year = year == self.y
         self.all_county_pos = torch.where(torch.logical_and(self.county, self.year))[0]
-        self.all_weather_county_pos = torch.where(torch.logical_and(self.weather_county, self.year))[0]
+        if y is None:
+            self.all_weather_county_pos = torch.where(torch.logical_and(self.weather_county, self.year))[0]
         ## Get the initial environment data:
         self.day = 0
         self.county_pos = self.all_county_pos[self.day]
-        self.weather_county_pos = self.all_weather_county_pos[self.day]
+        if y is None:
+            self.weather_county_pos = self.all_weather_county_pos[self.day]
         self.b = budget[self.county_pos]
         if y is None: # training
             # Sample the budget:
@@ -357,10 +362,9 @@ class HASDM_Env(gym.Env):
         return(self.observation.reshape(-1,).detach().numpy())
 
 
-
 # ## Test the env:
-# env = HASDM_Env(loc=400)
-# env.reset() # y = 2009
+# env = HASDM_Env(loc=318)
+# env.reset(y=2007) 
 # d = 0
 # y = 2016
 # while d < 20:

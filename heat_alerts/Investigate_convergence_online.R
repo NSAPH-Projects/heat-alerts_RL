@@ -43,33 +43,51 @@ Eval
 #                )) + geom_line() + geom_smooth() + ggtitle("NWS")
 
 ## Actual models:
-# train_files<- list.files("Summer_results", 
-#                          pattern = paste0("ORL_training_", model))[these_plots]
+train_files<- list.files("Summer_results",
+                         pattern = paste0("ORL_training_", model))[these_plots]
 train_files<- list.files("Summer_results", 
                          pattern = paste0("ORL_training_penalty_", model))[these_plots]
 eval_files<- list.files("Summer_results", 
                          pattern = paste0("ORL_eval_", model))[these_plots]
 # Order = 28035, 36005, 4013, 41067, 6071
-eval_NWS<- c(-422.7742, -487.1440, -480.2201, -445.2530, -498.1305)[i]
+eval_NWS<- c(-5434.4522)#[i]
+eval_zero<- c(-5613.6311)
 
 for(f in train_files){
   df<- read.csv(paste0("Summer_results/",f))[,-1]
-  DF<- aggregate(. ~ Model, df, sum)
-  r<- ggplot(DF, aes(x=Model,y=Rewards
-                     # ,color=as.factor(Year)
-             )) + geom_line() + geom_smooth() + ggtitle(f)
-  print(r)
+  print(sum(df$Actions))
+  # DF<- aggregate(. ~ Model, df, sum)
+  # r<- ggplot(DF, aes(x=Model,y=Rewards
+  #                    # ,color=as.factor(Year)
+  #            )) + geom_line() + geom_smooth() + ggtitle(f)
+  # print(r)
 }
 
 for(f in eval_files){
   df<- read.csv(paste0("Summer_results/",f))[,-1]
-  DF<- aggregate(. ~ Model, df, sum)
-  r<- ggplot(DF, aes(x=Model,y=Rewards
-                     # ,color=as.factor(Year)
-  )) + geom_line() + geom_smooth() + ggtitle(f) +
-    geom_hline(yintercept=eval_NWS, 
-               color="orange", lwd=1, lty=2) #+ ylim(-560, -440)
-  print(r)
+  print(sum(df$Actions))
+  # rDF<- aggregate(. ~ Model, df, sum)
+  # r<- ggplot(rDF, aes(x=Model,y=Rewards
+  #                    # ,color=as.factor(Year)
+  # )) + geom_line() + geom_smooth() + ggtitle(f) +
+  #   geom_hline(yintercept=eval_NWS,
+  #              color="orange", lwd=1, lty=2) +
+  #   geom_hline(yintercept=eval_zero,
+  #              color="red", lwd=1, lty=2) +
+  # ylim(-6000, -4500)
+  # 
+  # dDF<- aggregate(Actions ~ Model, df, function(a){
+  #   if(sum(a) > 0){
+  #     return(mean(which(a==1)%%153))
+  #   }else{
+  #     return(0)
+  #   }
+  # })
+  # d<- ggplot(dDF, aes(x=Model,y=Actions
+  #                     # ,color=as.factor(Year)
+  # )) + geom_line() + geom_smooth() + ggtitle(f) +
+  #   ylab("Average DOS")
+  # print(plot_grid(r,d))
 }
 
 ########### Getting insight into training:

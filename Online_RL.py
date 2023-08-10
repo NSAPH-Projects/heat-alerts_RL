@@ -35,13 +35,13 @@ def main(params):
     print("Holding out:" + str(params["hold_out"]))
 
     # params=dict(
-    #     fips = 4013, model_name = "test_sac_4013", algo="SAC",
-    #     n_hidden = 32, n_layers = 2,
-    #     n_epochs = 5, sa = 1, sync_rate = 3,
+    #     fips = 36005, model_name = "test_4013", algo="DoubleDQN",
+    #     n_hidden = 32, n_layers = 3,
+    #     n_epochs = 5000, sa = 1, sync_rate = 3,
     #     b_size = 153, lr = 0.1, gamma = 0.999,
     #     n_gpus = 0, update_rate = 5,
     #     eps_0 = 1.0, eps_t = 0.00000001, eps_dur = 1.0,
-    #     hold_out = [2015], penalty = -5
+    #     hold_out = [2015, 2011, 2007], penalty = -1
     # )
 
     n_days=153
@@ -118,26 +118,26 @@ def main(params):
     else: 
         explorer = None
 
-    s = timeit.default_timer()
-    RL.fit_online(env,
-               buffer,
-               explorer,
-               experiment_name=name, 
-               with_timestamp=False,
-               n_steps=H*params["n_epochs"], 
-               # eval_env=eval_env,
-               n_steps_per_epoch=n_days, 
-               update_interval=params["update_rate"],
-               # update_start_step=1000,
-               save_interval = params["sa"])
-    e = timeit.default_timer()
-    print(e-s)
+    # s = timeit.default_timer()
+    # RL.fit_online(env,
+    #            buffer,
+    #            explorer,
+    #            experiment_name=name, 
+    #            with_timestamp=False,
+    #            n_steps=H*params["n_epochs"], 
+    #            # eval_env=eval_env,
+    #            n_steps_per_epoch=n_days, 
+    #            update_interval=params["update_rate"],
+    #            # update_start_step=1000,
+    #            save_interval = params["sa"])
+    # e = timeit.default_timer()
+    # print(e-s)
 
-    B = env.episode_budget 
-    del B[len(B)-1] # env.reset() gets called one extra time at the end
-    DF = pd.DataFrame(np.array([env.episode_sum, B, env.episode_avg_dos, env.episode_avg_streak_length]).T)
-    DF.columns = ["Alert_sum", "Budget", "Avg_DOS", "Avg_StrkLn"]
-    DF.to_csv("d3rlpy_logs/" + name + "/custom_metrics.csv")
+    # B = env.episode_budget 
+    # del B[len(B)-1] # env.reset() gets called one extra time at the end
+    # DF = pd.DataFrame(np.array([env.episode_sum, B, env.episode_avg_dos, env.episode_avg_streak_length]).T)
+    # DF.columns = ["Alert_sum", "Budget", "Avg_DOS", "Avg_StrkLn"]
+    # DF.to_csv("d3rlpy_logs/" + name + "/custom_metrics.csv")
 
     ## Evaluation:
     models = glob.glob("d3rlpy_logs/" + name + "/model_*")
@@ -155,7 +155,7 @@ def main(params):
         E_Rewards = []
         E_Actions = []
         E_Year = []
-        eval_env = HASDM_Env(loc=crosswalk[str(params["fips"])])
+        eval_env = HASDM_Env(loc=crosswalk[str(params["fips"])],y=2006)
         for y in range(2006, 2017):
             obs = eval_env.reset(y)
             obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
