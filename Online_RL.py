@@ -140,6 +140,7 @@ def main(params):
     # DF.to_csv("d3rlpy_logs/" + name + "/custom_metrics.csv")
 
     ## Evaluation:
+    RL.build_with_env(env)
     models = glob.glob("d3rlpy_logs/" + name + "/model_*")
 
     Training_Results = pd.DataFrame(columns=["Actions", "Rewards", "Year", "Model"])
