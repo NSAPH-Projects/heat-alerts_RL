@@ -133,7 +133,7 @@ def avg_streak_length(inds): # inds = indices (days) of alerts
 class HASDM_Env(gym.Env):
     def __init__( ## Initialize the environment variables and parameters...
             self, loc, y = None, # if y (a year) is passed, we are doing evaluation
-            P = -10, # the penalty applied during training when the RL goes over the alert budget
+            P = -1, # the penalty applied during training when the RL goes over the alert budget
             hold_out=[2015]
     ): 
         self.observation_space = spaces.Box(
@@ -151,15 +151,20 @@ class HASDM_Env(gym.Env):
             self.similar_counties = get_similar_counties(loc) # loc is not yet a tensor
             # Sample a county from the region:
             self.weather_loc = torch.tensor(np.random.choice(self.similar_counties)).long()
-            self.weather_county = loc_ind == self.weather_loc 
+            self.weather_county = loc_ind == self.weather_loc
         else: # evaluation
             self.y = y
-        ## Get the initial environment data:
+        ## Get the episode environment data:
         self.loc = torch.tensor(loc).long()
         self.county = loc_ind == self.loc
-        self.year = year[self.county] == self.y
-        self.weather_year = year[self.weather_county] == self.y
-        self.b = budget[self.county][self.year][0]
+        self.year = year == self.y
+        self.all_county_pos = torch.where(torch.logical_and(self.county, self.year))[0]
+        self.all_weather_county_pos = torch.where(torch.logical_and(self.weather_county, self.year))[0]
+        ## Get the initial environment data:
+        self.day = 0
+        self.county_pos = self.all_county_pos[self.day]
+        self.weather_county_pos = self.all_weather_county_pos[self.day]
+        self.b = budget[self.county_pos]
         if y is None: # training
             # Sample the budget:
             self.budget = torch.tensor(np.random.randint(0.5*self.b, 1.5*self.b+1)).long()
@@ -169,13 +174,12 @@ class HASDM_Env(gym.Env):
         else: # evaluation
             self.budget = self.b
         self.P = P # given penalty for the RL going over the alert budget during training
-        self.day = 0
         self.alerts = []
-        obs = baseline_features[self.county][self.year][self.day]
+        obs = baseline_features[self.county_pos]
         obs[baseline_feature_names.index("previous_alerts")] = torch.tensor(0.0, dtype=torch.float32)
         obs[baseline_feature_names.index("alert_lag1")] = torch.tensor(0.0, dtype=torch.float32)
         self.observation = torch.cat((obs,self.budget.reshape(-1))) # so the RL knows the budget
-        eff = eff_features[self.county][self.year][self.day]
+        eff = eff_features[self.county_pos]
         eff[effectiveness_feature_names.index("previous_alerts")] = torch.tensor(0.0, dtype=torch.float32)
         eff[effectiveness_feature_names.index("alert_lag1")] = torch.tensor(0.0, dtype=torch.float32)
         self.effectiveness_vars = eff
@@ -183,15 +187,15 @@ class HASDM_Env(gym.Env):
             # Use the weather features from the sampled county:
             for v in baseline_weather_names:
                 pos = baseline_feature_names.index(v)
-                self.observation[pos] = baseline_features[self.weather_county][self.weather_year][self.day][pos]
+                self.observation[pos] = baseline_features[self.weather_county_pos][pos]
             for v in effectiveness_weather_names:
                 pos = effectiveness_feature_names.index(v)
-                self.effectiveness_vars[pos] = eff_features[self.weather_county][self.weather_year][self.day][pos]
+                self.effectiveness_vars[pos] = eff_features[self.weather_county_pos][pos]
             # Include rolling mean of heat index, which is not given to the rewards model:
-            self.observation = torch.cat((self.observation,hi_mean[self.weather_county][self.weather_year][self.day].reshape(-1)))
+            self.observation = torch.cat((self.observation,hi_mean[self.weather_county_pos].reshape(-1)))
         else:
             # Include rolling mean of heat index, which is not given to the rewards model:
-            self.observation = torch.cat((self.observation,hi_mean[self.county][self.year][self.day].reshape(-1)))
+            self.observation = torch.cat((self.observation,hi_mean[self.county_pos].reshape(-1)))
         ## Create a few additional metrics to save and return at end of training:
         self.episode_sum = []
         self.episode_budget = []
@@ -201,13 +205,13 @@ class HASDM_Env(gym.Env):
         ## Sample coefficients from the rewards model, at the beginning of each episode for speed:
         if self.day == 0:
             inputs = [
-                hosps[self.county][self.year][self.day].reshape(1,1), 
+                hosps[self.county_pos].reshape(1,1), 
                 self.loc.reshape(1,1), 
-                county_summer_mean[self.county][self.year][self.day].reshape(1,1), 
+                county_summer_mean[self.county_pos].reshape(1,1), 
                 torch.tensor(action, dtype=torch.float32).reshape(1,1), 
                 self.observation[0:(len(self.observation)-2)].reshape(1,-1), 
                 self.effectiveness_vars.reshape(1,-1), 
-                index[self.county][self.year][self.day].reshape(1,1)
+                index[self.county_pos].reshape(1,1)
             ]
             R = predictive_outputs(*inputs, condition=False, return_outcomes=True)["_RETURN"]#[0]
             if y is not None: # evaluation
@@ -248,7 +252,7 @@ class HASDM_Env(gym.Env):
         effectiveness = torch.exp(effectiveness_contribs + self.eff_bias)
         effectiveness = effectiveness.clamp(1e-6, 1 - 1e-6)
         if absolute:
-            reward = county_summer_mean[self.county][self.year][self.day] * baseline * (1 - torch.tensor(action, dtype=torch.float32) * effectiveness) # absolute scale
+            reward = county_summer_mean[self.county_pos] * baseline * (1 - torch.tensor(action, dtype=torch.float32) * effectiveness) # absolute scale
         else:
             reward = baseline * (1 - torch.tensor(action, dtype=torch.float32) * effectiveness) # relative scale
         if y is not None: # evaluation
@@ -257,9 +261,11 @@ class HASDM_Env(gym.Env):
             Reward = -reward + torch.tensor(penalty, dtype=torch.float32)
         ## Set up next observation:
         self.day += 1
-        obs = baseline_features[self.county][self.year][self.day]
+        self.county_pos = self.all_county_pos[self.day]
+        self.weather_county_pos = self.all_weather_county_pos[self.day]
+        obs = baseline_features[self.county_pos]
         obs[baseline_feature_names.index("alert_lag1")] = torch.tensor(self.alerts[self.day-1], dtype=torch.float32)
-        eff = eff_features[self.county][self.year][self.day]
+        eff = eff_features[self.county_pos]
         eff[effectiveness_feature_names.index("alert_lag1")] = torch.tensor(self.alerts[self.day-1], dtype=torch.float32)
         if self.day < 14:
             s = torch.tensor(sum(self.alerts), dtype=torch.float32)
@@ -275,15 +281,15 @@ class HASDM_Env(gym.Env):
             # Use the weather features from the sampled county:
             for v in baseline_weather_names:
                 pos = baseline_feature_names.index(v)
-                self.observation[pos] = baseline_features[self.weather_county][self.weather_year][self.day][pos]
+                self.observation[pos] = baseline_features[self.weather_county_pos][pos]
             for v in effectiveness_weather_names:
                 pos = effectiveness_feature_names.index(v)
-                self.effectiveness_vars[pos] = eff_features[self.weather_county][self.weather_year][self.day][pos]
+                self.effectiveness_vars[pos] = eff_features[self.weather_county_pos][pos]
             # Include rolling mean of heat index, which is not given to the rewards model:
-            next_observation = torch.cat((next_observation,hi_mean[self.weather_county][self.weather_year][self.day].reshape(-1)))
+            next_observation = torch.cat((next_observation,hi_mean[self.weather_county_pos].reshape(-1)))
         else:
             # Include rolling mean of heat index, which is not given to the rewards model:
-            next_observation = torch.cat((next_observation,hi_mean[self.county][self.year][self.day].reshape(-1)))
+            next_observation = torch.cat((next_observation,hi_mean[self.county_pos].reshape(-1)))
         self.observation = next_observation
         if self.day == n_days-1:
             terminal = True
@@ -312,23 +318,26 @@ class HASDM_Env(gym.Env):
             self.weather_county = loc_ind == self.weather_loc
         else: # evaluation
             self.y = y
-        self.year = year[self.county] == self.y
-        self.weather_year = year[self.weather_county] == self.y
-        self.b = budget[self.county][self.year][0]
+        self.year = year == self.y
+        self.all_county_pos = torch.where(torch.logical_and(self.county, self.year))[0]
+        self.all_weather_county_pos = torch.where(torch.logical_and(self.weather_county, self.year))[0]
+        ## Get the initial environment data:
+        self.day = 0
+        self.county_pos = self.all_county_pos[self.day]
+        self.weather_county_pos = self.all_weather_county_pos[self.day]
+        self.b = budget[self.county_pos]
         if y is None: # training
             # Sample the budget:
             self.budget = torch.tensor(np.random.randint(0.5*self.b, 1.5*self.b+1)).long()
         else: # evaluation
             self.budget = self.b
         self.episode_budget.append(self.budget.item()) # saving for later reference
-        self.day = 0
         self.alerts = []
-        ## Get the initial environment data:
-        obs = baseline_features[self.county][self.year][self.day]
+        obs = baseline_features[self.county_pos]
         obs[baseline_feature_names.index("previous_alerts")] = torch.tensor(0.0, dtype=torch.float32)
         obs[baseline_feature_names.index("alert_lag1")] = torch.tensor(0.0, dtype=torch.float32)
         self.observation = torch.cat((obs,self.budget.reshape(-1))) # so the RL knows the budget
-        eff = eff_features[self.county][self.year][self.day]
+        eff = eff_features[self.county_pos]
         eff[effectiveness_feature_names.index("previous_alerts")] = torch.tensor(0.0, dtype=torch.float32)
         eff[effectiveness_feature_names.index("alert_lag1")] = torch.tensor(0.0, dtype=torch.float32)
         self.effectiveness_vars = eff
@@ -336,15 +345,15 @@ class HASDM_Env(gym.Env):
             # Use the weather features from the sampled county:
             for v in baseline_weather_names:
                 pos = baseline_feature_names.index(v)
-                self.observation[pos] = baseline_features[self.weather_county][self.weather_year][self.day][pos]
+                self.observation[pos] = baseline_features[self.weather_county_pos][pos]
             for v in effectiveness_weather_names:
                 pos = effectiveness_feature_names.index(v)
-                self.effectiveness_vars[pos] = eff_features[self.weather_county][self.weather_year][self.day][pos]
+                self.effectiveness_vars[pos] = eff_features[self.weather_county_pos][pos]
             # Include rolling mean of heat index, which is not given to the rewards model:
-            self.observation = torch.cat((self.observation,hi_mean[self.weather_county][self.weather_year][self.day].reshape(-1)))
+            self.observation = torch.cat((self.observation,hi_mean[self.weather_county_pos].reshape(-1)))
         else:
             # Include rolling mean of heat index, which is not given to the rewards model:
-            self.observation = torch.cat((self.observation,hi_mean[self.county][self.year][self.day].reshape(-1)))
+            self.observation = torch.cat((self.observation,hi_mean[self.county_pos].reshape(-1)))
         return(self.observation.reshape(-1,).detach().numpy())
 
 

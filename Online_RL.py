@@ -1,6 +1,7 @@
 
 import glob
 from argparse import ArgumentParser
+import timeit
 import numpy as np
 import pandas as pd
 import json
@@ -117,7 +118,7 @@ def main(params):
     else: 
         explorer = None
 
-    
+    s = timeit.default_timer()
     RL.fit_online(env,
                buffer,
                explorer,
@@ -129,7 +130,9 @@ def main(params):
                update_interval=params["update_rate"],
                # update_start_step=1000,
                save_interval = params["sa"])
-    
+    e = timeit.default_timer()
+    print(e-s)
+
     B = env.episode_budget 
     del B[len(B)-1] # env.reset() gets called one extra time at the end
     DF = pd.DataFrame(np.array([env.episode_sum, B, env.episode_avg_dos, env.episode_avg_streak_length]).T)
