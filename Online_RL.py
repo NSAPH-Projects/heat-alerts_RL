@@ -147,6 +147,7 @@ def main(params):
     Training_Penalty_Results = pd.DataFrame(columns=["Actions", "Rewards", "Year", "Model"])
     Evaluation_Results = pd.DataFrame(columns=["Actions", "Rewards", "Year", "Model"])
     i = 0
+    eval_env = HASDM_Env(loc=crosswalk[str(params["fips"])],y=2006)
     for m in models:
         RL.load_model(m)
         T_Rewards = []
@@ -156,7 +157,6 @@ def main(params):
         E_Rewards = []
         E_Actions = []
         E_Year = []
-        eval_env = HASDM_Env(loc=crosswalk[str(params["fips"])],y=2006)
         for y in range(2006, 2017):
             obs = eval_env.reset(y)
             obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)

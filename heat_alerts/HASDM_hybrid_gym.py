@@ -40,7 +40,7 @@ baseline_features = data[4]
 eff_features = data[5]
 index = data[6]
 year = data[7]
-budget = data[8]
+Budget = data[8]
 hi_mean = data[10]
 state = data[9]
 # Get unique state IDs:
@@ -166,7 +166,7 @@ class HASDM_Env(gym.Env):
         self.county_pos = self.all_county_pos[self.day]
         if y is None:
             self.weather_county_pos = self.all_weather_county_pos[self.day]
-        self.b = budget[self.county_pos]
+        self.b = Budget[self.county_pos]
         if y is None: # training
             # Sample the budget:
             self.budget = torch.tensor(np.random.randint(0.5*self.b, 1.5*self.b+1)).long()
@@ -330,7 +330,7 @@ class HASDM_Env(gym.Env):
         self.county_pos = self.all_county_pos[self.day]
         if y is None:
             self.weather_county_pos = self.all_weather_county_pos[self.day]
-        self.b = budget[self.county_pos]
+        self.b = Budget[self.county_pos]
         if y is None: # training
             # Sample the budget:
             self.budget = torch.tensor(np.random.randint(0.5*self.b, 1.5*self.b+1)).long()
@@ -362,18 +362,19 @@ class HASDM_Env(gym.Env):
         return(self.observation.reshape(-1,).detach().numpy())
 
 
-# ## Test the env:
-# env = HASDM_Env(loc=318)
-# env.reset(y=2007) 
-# d = 0
-# y = 2016
-# while d < 20:
-#     next_observation, reward, terminal, info = env.step(1) #,y
-#     print(reward)
-#     # print(next_observation)
-#     if terminal:
-#         env.reset(y)
-#     d+= 1
+## Test the env:
+env = HASDM_Env(loc=318)
+env.reset(y=2007) 
+d = 0
+y = 2007
+while d < 200:
+    next_observation, reward, terminal, info = env.step(1) #,y
+    print(reward)
+    # print(next_observation)
+    if terminal:
+        env.reset(y)
+        print(env.budget)
+    d+= 1
 
 
 # #### Evaluate observed actions:
@@ -387,7 +388,7 @@ class HASDM_Env(gym.Env):
 # Results = pd.DataFrame(columns=["Actions", "Rewards", "Year", "County"])
 
 # for i in range(0, len(locations)):  
-#     env = HASDM_Env(loc=locations[i])
+#     env = HASDM_Env(loc=locations[i], y=2006)
 #     Rewards = []
 #     Actions = []
 #     Year = []
