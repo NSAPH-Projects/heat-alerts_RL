@@ -104,7 +104,7 @@ model.load_state_dict(torch.load("bayesian_model/ckpts/Full_8-7_model.pt"))
 predictive_outputs = Predictive(
         model,
         # guide=guide, # including the guide includes all sites by default
-        num_samples=global_n_days, 
+        num_samples= 1500, # global_n_days, 
         return_sites=["_RETURN"],
     )
 
@@ -239,50 +239,46 @@ class HASDM_Env(gym.Env):
         self.episode_budget = []
         self.episode_avg_dos = []
         self.episode_avg_streak_length = []
+        ## Sample coefficients from the rewards model:
+        inputs = [
+            self.hosps[self.county_pos].reshape(1,1), 
+            self.loc.reshape(1,1), 
+            self.county_summer_mean[self.county_pos].reshape(1,1), 
+            torch.tensor(0, dtype=torch.float32).reshape(1,1),
+            self.observation[0:(len(self.observation)-2)].reshape(1,-1), 
+            self.effectiveness_vars.reshape(1,-1), 
+            self.Index[self.county_pos].reshape(1,1)
+        ]
+        R = predictive_outputs(*inputs, condition=False, return_outcomes=True)["_RETURN"]#[0]
+        self.R = R
+        self.R_shape = R.shape[0]
+        self.r = torch.mean(R, dim=0)
+        j = len(self.effectiveness_feature_names)
+        k = len(self.baseline_feature_names)
+        self.eff_coef = self.r[0:j]
+        self.base_coef = self.r[j:(j+k)]
+        j += k
+        self.eff_bias = self.r[j:(j+1)]
+        self.base_bias = self.r[(j+1):(j+2)]
     def step(self, action, y = None, absolute=False): ## Take an action in the environment and return the next state, reward, done flag, and additional information...
-        ## Sample coefficients from the rewards model, at the beginning of each episode for speed:
-        if self.day == 0:
-            inputs = [
-                self.hosps[self.county_pos].reshape(1,1), 
-                self.loc.reshape(1,1), 
-                self.county_summer_mean[self.county_pos].reshape(1,1), 
-                torch.tensor(action, dtype=torch.float32).reshape(1,1), # Note that action != self.Alert (latter is NWS data)
-                self.observation[0:(len(self.observation)-2)].reshape(1,-1), 
-                self.effectiveness_vars.reshape(1,-1), 
-                self.Index[self.county_pos].reshape(1,1)
-            ]
-            R = predictive_outputs(*inputs, condition=False, return_outcomes=True)["_RETURN"]#[0]
-            if y is not None: # evaluation
-                # Calculate the average of each coefficient across the samples:
-                r = torch.mean(R, dim=0)
-                j = len(self.effectiveness_feature_names)
-                self.eff_coef = r[0:j]
-                k = len(self.baseline_feature_names)
-                self.base_coef = r[j:(j+k)]
-                j += k
-                self.eff_bias = r[j:(j+1)]
-                self.base_bias = r[(j+1):(j+2)]
-            else: # training
-                self.R = R
-        if y is None: # training
-            r = self.R[self.day] # using a different sample each time
-            j = len(self.effectiveness_feature_names)
-            self.eff_coef = r[0:j]
-            k = len(self.baseline_feature_names)
-            self.base_coef = r[j:(j+k)]
-            j += k
-            self.eff_bias = r[j:(j+1)]
-            self.base_bias = r[(j+1):(j+2)]
         ## Update new action according to the alert budget, and penalize if the RL exceeded it:
         penalty = 0
         if action == 1 and self.budget > 0:
-            action = 1
             self.budget -= 1
         elif action == 1 and self.budget == 0:
             action = 0
             penalty = self.P 
         self.alerts.append(action)
         ## Calculate reward:
+        # if y is None: # training
+        #     r = self.R[np.random.randint(0, self.R_shape)] # using a different sample each time
+        #     j = len(self.effectiveness_feature_names)
+        #     self.eff_coef = r[0:j]
+        #     k = len(self.baseline_feature_names)
+        #     self.base_coef = r[j:(j+k)]
+        #     j += k
+        #     self.eff_bias = r[j:(j+1)]
+        #     self.base_bias = r[(j+1):(j+2)]
         baseline_contribs = torch.matmul(self.base_coef.reshape(-1), self.observation[0:(len(self.observation)-2)])
         baseline = torch.exp(baseline_contribs + self.base_bias)
         baseline = baseline.clamp(max=1e6)
@@ -292,7 +288,7 @@ class HASDM_Env(gym.Env):
         if absolute:
             reward = self.county_summer_mean[self.county_pos].detach().clone() * baseline * (1 - torch.tensor(action, dtype=torch.float32) * effectiveness) # absolute scale
         else:
-            reward = baseline * (1 - torch.tensor(action, dtype=torch.float32) * effectiveness) # relative scale
+            reward = -1 + baseline * (1 - torch.tensor(action, dtype=torch.float32) * effectiveness) # relative scale
         if y is not None: # evaluation
             Reward = -reward # Note that reward is negative so higher is better
         else: # training
@@ -428,22 +424,22 @@ class HASDM_Env(gym.Env):
 #     Rewards = []
 #     Actions = []
 #     Year = []
-#     for y in years:
-#         obs = env.reset(y)
+#     for y in global_years:
+#         obs = env.reset(y=y)
 #         obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
-#         # action = env.Alert[env.county_pos].detach().clone().item()
-#         action = 0
+#         action = env.Alert[env.county_pos].detach().clone().item()
+#         # action = 0
 #         terminal = False
 #         while terminal == False:
 #             if action == 1 and env.budget == 0:
 #                 action = 0
 #             Actions.append(action)
 #             Year.append(y)
-#             obs, reward, terminal, info = env.step(action, y, absolute=True)
+#             obs, reward, terminal, info = env.step(action, y=y, absolute=True)
 #             Rewards.append(reward.item())
 #             obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
-#             # action = env.Alert[env.county_pos].detach().clone().item()
-#             action = 0
+#             action = env.Alert[env.county_pos].detach().clone().item()
+#             # action = 0
 #         print(y)
 #     results = pd.DataFrame(np.array([Actions, Rewards]).T)
 #     results.columns = ["Actions", "Rewards"]
@@ -452,8 +448,8 @@ class HASDM_Env(gym.Env):
 #     Results = pd.concat([Results, results], ignore_index=True)
 #     print(locations[i])
 
-# # Results.to_csv("Summer_results/ORL_eval_NWS.csv")
-# Results.to_csv("Summer_results/ORL_eval_zero.csv")
+# Results.to_csv("Summer_results/ORL_eval_NWS.csv")
+# # Results.to_csv("Summer_results/ORL_eval_zero.csv")
 
 
 

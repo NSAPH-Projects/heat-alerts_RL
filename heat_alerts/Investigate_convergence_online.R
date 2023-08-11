@@ -4,8 +4,8 @@ library(ggplot2)
 library(cowplot, lib.loc = "~/apps/R_4.2.2")
 library(stringr)
 
-model<- "Online-2_DoubleDQN"
-model<- "Online-2_SAC"
+model<- "Online-0_DoubleDQN"
+model<- "Online-0_SAC"
 
 these_plots<- 1:24
 these_plots<- c(1:12) # LR constant, comparing P
@@ -55,39 +55,41 @@ eval_zero<- c(-5613.6311)
 
 for(f in train_files){
   df<- read.csv(paste0("Summer_results/",f))[,-1]
-  print(sum(df$Actions))
-  # DF<- aggregate(. ~ Model, df, sum)
-  # r<- ggplot(DF, aes(x=Model,y=Rewards
-  #                    # ,color=as.factor(Year)
-  #            )) + geom_line() + geom_smooth() + ggtitle(f)
-  # print(r)
+  # print(sum(df$Actions))
+  DF<- aggregate(. ~ Model, df, sum)
+  r<- ggplot(DF[-nrow(DF),], aes(x=Model,y=Rewards
+                     # ,color=as.factor(Year)
+             )) + geom_line() + geom_smooth() + ggtitle(f) +
+    ylim(-1400, -1100)
+  print(r)
 }
 
 for(f in eval_files){
   df<- read.csv(paste0("Summer_results/",f))[,-1]
-  print(sum(df$Actions))
-  # rDF<- aggregate(. ~ Model, df, sum)
-  # r<- ggplot(rDF, aes(x=Model,y=Rewards
-  #                    # ,color=as.factor(Year)
-  # )) + geom_line() + geom_smooth() + ggtitle(f) +
+  # print(sum(df$Actions))
+  rDF<- aggregate(. ~ Model, df, sum)
+  r<- ggplot(rDF, aes(x=Model,y=Rewards
+                     # ,color=as.factor(Year)
+  )) + geom_line() + geom_smooth() + ggtitle(f) +
   #   geom_hline(yintercept=eval_NWS,
   #              color="orange", lwd=1, lty=2) +
   #   geom_hline(yintercept=eval_zero,
   #              color="red", lwd=1, lty=2) +
-  # ylim(-6000, -4500)
-  # 
-  # dDF<- aggregate(Actions ~ Model, df, function(a){
-  #   if(sum(a) > 0){
-  #     return(mean(which(a==1)%%153))
-  #   }else{
-  #     return(0)
-  #   }
-  # })
-  # d<- ggplot(dDF, aes(x=Model,y=Actions
-  #                     # ,color=as.factor(Year)
-  # )) + geom_line() + geom_smooth() + ggtitle(f) +
-  #   ylab("Average DOS")
-  # print(plot_grid(r,d))
+  ylim(-6000, -4500)
+
+  dDF<- aggregate(Actions ~ Model, df, function(a){
+    if(sum(a) > 0){
+      return(mean(which(a==1)%%153))
+    }else{
+      return(0)
+    }
+  })
+  d<- ggplot(dDF, aes(x=Model,y=Actions
+                      # ,color=as.factor(Year)
+  )) + geom_line() + geom_smooth() + ggtitle(f) +
+    ylab("Average DOS")
+  print(plot_grid(r,d))
+  # print(r)
 }
 
 ########### Getting insight into training:
