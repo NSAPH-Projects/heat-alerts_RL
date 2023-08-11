@@ -119,28 +119,28 @@ def main(params):
         explorer = None
 
     # s = timeit.default_timer()
-    # RL.fit_online(env,
-    #            buffer,
-    #            explorer,
-    #            experiment_name=name, 
-    #            with_timestamp=False,
-    #            n_steps=H*params["n_epochs"], 
-    #            # eval_env=eval_env,
-    #            n_steps_per_epoch=n_days, 
-    #            update_interval=params["update_rate"],
-    #            # update_start_step=1000,
-    #            save_interval = params["sa"])
+    RL.fit_online(env,
+               buffer,
+               explorer,
+               experiment_name=name, 
+               with_timestamp=False,
+               n_steps=H*params["n_epochs"], 
+               # eval_env=eval_env,
+               n_steps_per_epoch=n_days, 
+               update_interval=params["update_rate"],
+               # update_start_step=1000,
+               save_interval = params["sa"])
     # e = timeit.default_timer()
     # print(e-s)
 
-    # B = env.episode_budget 
-    # del B[len(B)-1] # env.reset() gets called one extra time at the end
-    # DF = pd.DataFrame(np.array([env.episode_sum, B, env.episode_avg_dos, env.episode_avg_streak_length]).T)
-    # DF.columns = ["Alert_sum", "Budget", "Avg_DOS", "Avg_StrkLn"]
-    # DF.to_csv("d3rlpy_logs/" + name + "/custom_metrics.csv")
+    B = env.episode_budget 
+    del B[len(B)-1] # env.reset() gets called one extra time at the end
+    DF = pd.DataFrame(np.array([env.episode_sum, B, env.episode_avg_dos, env.episode_avg_streak_length]).T)
+    DF.columns = ["Alert_sum", "Budget", "Avg_DOS", "Avg_StrkLn"]
+    DF.to_csv("d3rlpy_logs/" + name + "/custom_metrics.csv")
 
     ## Evaluation:
-    RL.build_with_env(env)
+    # RL.build_with_env(env)
     models = glob.glob("d3rlpy_logs/" + name + "/model_*")
 
     Training_Results = pd.DataFrame(columns=["Actions", "Rewards", "Year", "Model"])
@@ -158,7 +158,8 @@ def main(params):
         E_Actions = []
         E_Year = []
         for y in range(2006, 2017):
-            obs = eval_env.reset(y)
+            obs = eval_env.reset(y=y)
+            # print(str(y) + " budget = " + str(eval_env.budget))
             obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
             action = RL.predict(obs).item()
             terminal = False
@@ -168,7 +169,7 @@ def main(params):
                         action = 0
                     E_Actions.append(action)
                     E_Year.append(y)
-                    obs, reward, terminal, info = eval_env.step(action, y, absolute=True)
+                    obs, reward, terminal, info = eval_env.step(action, y=y, absolute=True)
                     E_Rewards.append(reward.item())
                     obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)
                     action = RL.predict(obs).item()
@@ -180,7 +181,7 @@ def main(params):
                         penalty = params["penalty"]
                     T_Actions.append(action)
                     T_Year.append(y)
-                    obs, reward, terminal, info = eval_env.step(action, y)
+                    obs, reward, terminal, info = eval_env.step(action, y=y)
                     T_Rewards.append(reward.item())
                     TP_Rewards.append(reward.item() + penalty)
                     obs = torch.tensor(obs,dtype=torch.float32).reshape(1,-1)

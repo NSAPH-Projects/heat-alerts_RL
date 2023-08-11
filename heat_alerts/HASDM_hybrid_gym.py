@@ -165,19 +165,19 @@ class HASDM_Env(gym.Env):
         self.action_space = spaces.Discrete(2)
         # Save within-class versions of vectors:
         self.n_days = n_days
-        self.baseline_feature_names = baseline_feature_names,
-        self.effectiveness_feature_names = effectiveness_feature_names,
-        self.baseline_weather_names = baseline_weather_names,
-        self.effectiveness_weather_names = effectiveness_weather_names,
-        self.hosps = hosps, 
-        self.loc_ind = loc_ind,
-        self.county_summer_mean = county_summer_mean,
-        self.Alert = alert, 
-        self.baseline_features = baseline_features,
-        self.eff_features = eff_features,
-        self.index = index,
-        self.Year = year,
-        self.Budget = Budget,
+        self.baseline_feature_names = baseline_feature_names
+        self.effectiveness_feature_names = effectiveness_feature_names
+        self.baseline_weather_names = baseline_weather_names
+        self.effectiveness_weather_names = effectiveness_weather_names
+        self.hosps = hosps
+        self.loc_ind = loc_ind
+        self.county_summer_mean = county_summer_mean
+        self.Alert = alert 
+        self.baseline_features = baseline_features
+        self.eff_features = eff_features
+        self.Index = index
+        self.Year = year
+        self.Budget = Budget
         self.hi_mean = hi_mean
         # Get the set of years allocated for training (as opposed to evaluation):
         self.year_options = np.array(list(years-set(hold_out)))
@@ -193,7 +193,7 @@ class HASDM_Env(gym.Env):
         ## Get the episode environment data:
         self.loc = torch.tensor(loc).long()
         self.county = self.loc_ind == self.loc
-        self.year = self.Year == self.y
+        self.year = self.Year == torch.tensor(self.y, dtype=torch.long)
         self.all_county_pos = torch.where(torch.logical_and(self.county, self.year))[0]
         if y is None:
             self.all_weather_county_pos = torch.where(torch.logical_and(self.weather_county, self.year))[0]
@@ -249,7 +249,7 @@ class HASDM_Env(gym.Env):
                 torch.tensor(action, dtype=torch.float32).reshape(1,1), # Note that action != self.Alert (latter is NWS data)
                 self.observation[0:(len(self.observation)-2)].reshape(1,-1), 
                 self.effectiveness_vars.reshape(1,-1), 
-                self.index[self.county_pos].reshape(1,1)
+                self.Index[self.county_pos].reshape(1,1)
             ]
             R = predictive_outputs(*inputs, condition=False, return_outcomes=True)["_RETURN"]#[0]
             if y is not None: # evaluation
@@ -320,15 +320,15 @@ class HASDM_Env(gym.Env):
             # Use the weather features from the sampled county:
             for v in self.baseline_weather_names:
                 pos = self.baseline_feature_names.index(v)
-                self.observation[pos] = self.baseline_features[self.weather_county_pos][pos].detach().clone()
+                next_observation[pos] = self.baseline_features[self.weather_county_pos][pos].detach().clone()
             for v in self.effectiveness_weather_names:
                 pos = self.effectiveness_feature_names.index(v)
                 self.effectiveness_vars[pos] = self.eff_features[self.weather_county_pos][pos].detach().clone()
             # Include rolling mean of heat index, which is not given to the rewards model:
-            self.observation = torch.cat((self.observation,self.hi_mean[self.weather_county_pos].detach().clone().reshape(-1)))
+            next_observation = torch.cat((next_observation,self.hi_mean[self.weather_county_pos].detach().clone().reshape(-1)))
         else:
             # Include rolling mean of heat index, which is not given to the rewards model:
-            self.observation = torch.cat((self.observation,self.hi_mean[self.county_pos].detach().clone().reshape(-1)))
+            next_observation = torch.cat((next_observation,self.hi_mean[self.county_pos].detach().clone().reshape(-1)))
         self.observation = next_observation
         if self.day == self.n_days-1:
             terminal = True
@@ -357,7 +357,7 @@ class HASDM_Env(gym.Env):
             self.weather_county = self.loc_ind == self.weather_loc
         else: # evaluation
             self.y = y
-        self.year = self.Year == self.y
+        self.year = self.Year == torch.tensor(self.y, dtype=torch.long)
         self.all_county_pos = torch.where(torch.logical_and(self.county, self.year))[0]
         if y is None:
             self.all_weather_county_pos = torch.where(torch.logical_and(self.weather_county, self.year))[0]
@@ -398,19 +398,19 @@ class HASDM_Env(gym.Env):
         return(self.observation.reshape(-1,).detach().numpy())
 
 
-## Test the env:
-env = HASDM_Env(loc=318)
-env.reset(y=2007) 
-d = 0
-y = 2007
-while d < 200:
-    next_observation, reward, terminal, info = env.step(1) #,y
-    print(reward)
-    # print(next_observation)
-    if terminal:
-        env.reset(y)
-        print(env.budget)
-    d+= 1
+# ## Test the env:
+# y = 2007
+# env = HASDM_Env(loc=318)
+# env.reset(y) 
+# d = 0
+# while d < 200:
+#     next_observation, reward, terminal, info = env.step(1) #,y
+#     print(reward)
+#     # print(next_observation)
+#     if terminal:
+#         env.reset(y)
+#         print(env.budget)
+#     d+= 1
 
 
 # #### Evaluate observed actions:
@@ -454,5 +454,6 @@ while d < 200:
 
 # # Results.to_csv("Summer_results/ORL_eval_NWS.csv")
 # Results.to_csv("Summer_results/ORL_eval_zero.csv")
+
 
 
