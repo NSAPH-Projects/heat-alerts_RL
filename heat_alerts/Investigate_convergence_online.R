@@ -4,16 +4,18 @@ library(ggplot2)
 library(cowplot, lib.loc = "~/apps/R_4.2.2")
 library(stringr)
 
-model<- "Online-0_DoubleDQN"
-model<- "Online-0_SAC"
-
-these_plots<- 1:24
-these_plots<- c(1:12) # LR constant, comparing P
-these_plots<- c(13:24) # LR constant, comparing P
-these_plots<- c(1:3, 13:15, 4:6, 16:18) # comparing LR
-these_plots<- c(7:9, 19:21, 10:12, 22:24) # comparing LR
-these_plots<- c(1:3, 7:9, 13:15, 19:21) # comparing n_layers
-these_plots<- c(4:6, 10:12, 16:18, 22:24) # comparing n_layers
+model<- "Test_DoubleDQN"
+model<- "Test_SAC"
+# model<- "Online-0_DoubleDQN"
+# model<- "Online-0_SAC"
+# 
+# these_plots<- 1:24
+# these_plots<- c(1:12) # LR constant, comparing P
+# these_plots<- c(13:24) # LR constant, comparing P
+# these_plots<- c(1:3, 13:15, 4:6, 16:18) # comparing LR
+# these_plots<- c(7:9, 19:21, 10:12, 22:24) # comparing LR
+# these_plots<- c(1:3, 7:9, 13:15, 19:21) # comparing n_layers
+# these_plots<- c(4:6, 10:12, 16:18, 22:24) # comparing n_layers
 
 ########### Final evaluations:
 
