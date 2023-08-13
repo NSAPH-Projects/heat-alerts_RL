@@ -21,6 +21,7 @@
 **Model**
 
 To make the model scalable we need to assume linearity.
+
 $$
 \begin{aligned}
 Y_{s,t} & \sim \text{Poisson}(N_{s,t} * \lambda_{s,t} * (1 - A_{s,t}\tau_{s,t})) \\
