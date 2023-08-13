@@ -37,20 +37,20 @@ $$
 \begin{aligned}
 \b_{s} \sim MLP(W_s)\\
 \g_{s} \sim MLP(W_s)\\
-for i in 1 to length(b_s):
-  if $C_{bi}$ == None:
-    \beta_{s}\[i\] \sim Normal(b_s,1)
-  else if $C_{bi}$ == "positive":
-    \beta_{s}\[i\] \sim LogNormal(b_s,1)
-  else if $C_{bi}$ == "negative":
-    \beta_{s}\[i\] \sim NegativeLogNormal(b_s,1)
-for i in 1 to length(g_s):
-  if $C_{bi}$ == None:
-    \gamma_{s}\[i\] \sim Normal(g_s,1)
-  else if $C_{bi}$ == "positive":
-    \gamma_{s}\[i\] \sim LogNormal(g_s,1)
-  else if $C_{bi}$ == "negative":
-    \gamma_{s}\[i\] \sim NegativeLogNormal(g_s,1)
+for i in 1 to length(b_s): \\
+  if $C_{bi}$ == None: \\
+    \beta_{s}\[i\] \sim Normal(b_s,1) \\
+  else if $C_{bi}$ == "positive": \\
+    \beta_{s}\[i\] \sim LogNormal(b_s,1) \\
+  else if $C_{bi}$ == "negative": \\
+    \beta_{s}\[i\] \sim NegativeLogNormal(b_s,1) \\
+for i in 1 to length(g_s): \\
+  if $C_{bi}$ == None: \\
+    \gamma_{s}\[i\] \sim Normal(g_s,1) \\
+  else if $C_{bi}$ == "positive": \\
+    \gamma_{s}\[i\] \sim LogNormal(g_s,1) \\
+  else if $C_{bi}$ == "negative": \\
+    \gamma_{s}\[i\] \sim NegativeLogNormal(g_s,1) \\
 \end{aligned}
 $$
 
