@@ -52,5 +52,6 @@ And for i in 1 to length($g_s$):
 * else if $C_{gi}$ == "positive": $\gamma_{s}\[i\] \sim LogNormal(g_s,1)$
 * else if $C_{gi}$ == "negative": $\gamma_{s}\[i\] \sim NegativeLogNormal(g_s,1)$
 
-
+**Model Fitting**
+We use stochastic variational inference (SVI) with a low-rank multivariate normal distribution as the guide for the posterior. You can read more about estimating and optimizing the evidence lower bound (ELBO) with SVI using Pyro [here](http://pyro.ai/examples/intro_long.html#Background:-Estimating-and-optimizing-the-Evidence-Lower-Bound-(ELBO)).
 
