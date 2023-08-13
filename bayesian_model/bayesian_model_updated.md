@@ -31,7 +31,7 @@ $$
 
 where $N_{s,t}$ is the summer-specific mean of NOHR hospitalizations at location $s$, $\lambda_{s,t}$ is the baseline variation from the mean (with mean 1), and $V_{s,t}$ is a subset of $X_{s,t}$.
 
-To make this model hierarchical, we specify priors depending on the spatial variables. To incorporate domain knowledge, we also impose constraints on some of the variables. Let $C_{bi}$ denote the constraint (or lack thereof) for variable $i \in \[1,length(b_s)\]$ and $C_{gi}$ denote the constraint (or lack thereof) for variable $i \in \[1,length(g_s)\]$.
+To make this model hierarchical, we specify priors depending on the spatial variables. To incorporate domain knowledge, we also impose constraints on some of the variables. Let $C_{bi}$ denote the constraint (or lack thereof) for variable $i \in \[1,length(\beta_s)\]$ and $C_{gi}$ denote the constraint (or lack thereof) for variable $i \in \[1,length(\gamma_s)\]$.
 
 First:
 
