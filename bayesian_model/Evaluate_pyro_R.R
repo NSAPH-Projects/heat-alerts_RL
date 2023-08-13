@@ -54,11 +54,13 @@ DF[order(DF$Eff, decreasing=TRUE),][0:20,]
 agg_DF<- aggregate(. ~ County + Region, DF, mean)
 
 agg_DF[order(agg_DF$Eff, decreasing=TRUE),][0:100,]
-agg_DF[order(agg_DF$Alerts, decreasing=TRUE),][0:30,]
+agg_DF[order(agg_DF$Alerts, decreasing=TRUE),][0:20,]
+
+var_DF<- aggregate(Eff ~ County + Region, DF, sd)
+var_DF[order(var_DF$Eff, decreasing=TRUE),][0:100,]
 
 
 #### Sanity check:
-
 
 library(usmap)
 library(ggplot2)

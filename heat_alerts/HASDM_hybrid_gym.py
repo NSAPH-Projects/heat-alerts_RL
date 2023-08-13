@@ -98,15 +98,7 @@ model = HeatAlertModel(
         hidden_dim= 32, #cfg.model.hidden_dim,
         num_hidden_layers= 1, #cfg.model.num_hidden_layers,
     )
-model.load_state_dict(torch.load("bayesian_model/ckpts/Full_8-7_model.pt"))
-# model.load_state_dict(torch.load("ckpts/Full_8-4_model.pt"))
 
-predictive_outputs = Predictive(
-        model,
-        # guide=guide, # including the guide includes all sites by default
-        num_samples= 1500, # global_n_days, 
-        return_sites=["_RETURN"],
-    )
 
 # Function for getting the average streak length of alerts:
 def avg_streak_length(inds): # inds = indices (days) of alerts
@@ -154,7 +146,10 @@ class HASDM_Env(gym.Env):
             index = global_index,
             year = global_year, # year of each data observation
             Budget = global_Budget,
-            hi_mean = global_hi_mean
+            hi_mean = global_hi_mean,
+            model = model,
+            model_name = "Full_8-7",
+            n_samples = 1500
     ): 
         self.observation_space = spaces.Box(
             low=-np.inf,
@@ -240,6 +235,13 @@ class HASDM_Env(gym.Env):
         self.episode_avg_dos = []
         self.episode_avg_streak_length = []
         ## Sample coefficients from the rewards model:
+        model.load_state_dict(torch.load("bayesian_model/ckpts/" + model_name + "_model.pt"))
+        predictive_outputs = Predictive(
+                model,
+                # guide=guide, # including the guide includes all sites by default
+                num_samples= n_samples, # global_n_days, 
+                return_sites=["_RETURN"],
+            )
         inputs = [
             self.hosps[self.county_pos].reshape(1,1), 
             self.loc.reshape(1,1), 

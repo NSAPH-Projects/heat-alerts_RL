@@ -52,32 +52,32 @@ train_files<- list.files("Summer_results",
 eval_files<- list.files("Summer_results", 
                          pattern = paste0("ORL_eval_", model))[these_plots]
 # Order = 28035, 36005, 4013, 41067, 6071
-eval_NWS<- c(-5434.4522)#[i]
-eval_zero<- c(-5613.6311)
+eval_NWS<- c(-5161.3184)#[i]
+eval_zero<- c(-5263.3250)
 
 for(f in train_files){
   df<- read.csv(paste0("Summer_results/",f))[,-1]
-  # print(sum(df$Actions))
+  print(sum(df$Actions))
   DF<- aggregate(. ~ Model, df, sum)
   r<- ggplot(DF[-nrow(DF),], aes(x=Model,y=Rewards
                      # ,color=as.factor(Year)
-             )) + geom_line() + geom_smooth() + ggtitle(f) +
-    ylim(-1400, -1100)
+             )) + geom_line() + geom_smooth() + ggtitle(f)# +
+    # ylim(-1400, -1100)
   print(r)
 }
 
 for(f in eval_files){
   df<- read.csv(paste0("Summer_results/",f))[,-1]
-  # print(sum(df$Actions))
+  print(sum(df$Actions))
   rDF<- aggregate(. ~ Model, df, sum)
   r<- ggplot(rDF, aes(x=Model,y=Rewards
                      # ,color=as.factor(Year)
   )) + geom_line() + geom_smooth() + ggtitle(f) +
-  #   geom_hline(yintercept=eval_NWS,
-  #              color="orange", lwd=1, lty=2) +
-  #   geom_hline(yintercept=eval_zero,
-  #              color="red", lwd=1, lty=2) +
-  ylim(-6000, -4500)
+    geom_hline(yintercept=eval_NWS,
+               color="orange", lwd=1, lty=2) +
+    geom_hline(yintercept=eval_zero,
+               color="red", lwd=1, lty=2) +
+  ylim(-5275, -5150)
 
   dDF<- aggregate(Actions ~ Model, df, function(a){
     if(sum(a) > 0){
@@ -109,7 +109,7 @@ plot_metric<- function(df, metric, title, meanline=FALSE){
   return(p)
 }
 
-folders<- list.files("d3rlpy_logs", pattern = model)[these_plots]
+folders<- list.files("d3rlpy_logs", pattern = model)#[these_plots]
 
 for(f in folders){
   loss<- read.csv(paste0("d3rlpy_logs/",f,"/loss.csv"), header = FALSE)
