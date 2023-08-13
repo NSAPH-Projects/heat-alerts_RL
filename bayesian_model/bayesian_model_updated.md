@@ -33,6 +33,17 @@ where $N_{s,t}$ is the summer-specific mean of NOHR hospitalizations at location
 
 To make this model hierarchical, we specify priors depending on the spatial variables. To incorporate domain knowledge, we also impose constraints on some of the variables. Let $C_{bi}$ denote the constraint (or lack thereof) for variable $i \in \[1,length(b_s)\]$ and $C_{gi}$ denote the constraint (or lack thereof) for variable $i \in \[1,length(g_s)\]$.
 
+First:
+$$
+\begin{aligned}
+b_{s} \sim MLP(W_s)\\
+g_{s} \sim MLP(W_s)\\
+\end{aligned}
+$$
+
+Next, for i in 1 to length($b_s$):
+* if $C_{bi}$ == None: $\beta_{s}\[i\] \sim Normal(b_s,1)$
+* else if $C_{bi}$ == "positive": $\beta_{s}\[i\] \sim LogNormal(b_s,1)$
 $$
 \begin{aligned}
 b_{s} \sim MLP(W_s)\\
@@ -53,5 +64,6 @@ for i in 1 to length(g_s): \\
     \gamma_{s}\[i\] \sim NegativeLogNormal(g_s,1) \\
 \end{aligned}
 $$
+
 
 
