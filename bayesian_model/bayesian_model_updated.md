@@ -1,4 +1,4 @@
-## Bayesian Model for the Rewards (Medicare Not-Obviously Heat-Related (NOHR) Hospitalizations)
+## Bayesian Model for the Rewards, aka Medicare Not-Obviously Heat-Related (NOHR) Hospitalizations
 *Goal: model the rewards such that (a) the coefficients are interpretable across space and time, (b) we can explicitly include domain knowledge, (c) uncertainty quantification is straightforward.* 
 
 **Notation**
