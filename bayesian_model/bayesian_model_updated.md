@@ -3,12 +3,11 @@
 
 **Notation**
 
-* Let $s\in\mathcal{S}$ and $t\in\mathcal{T}$ denote a county and time (in days), respectively. Note that time is broken into summers (of 153 days each) and that there are multiple summers per county. 
+* Let $s\in\mathcal{S}$ and $t\in\mathcal{T}$ denote a county and time (in days), respectively.  
 * Let $Y_{s,t}$ denote the number of NOHR hospitalizations.
 * Let $A_{s,t}$ denote whether or not a heat alert was issued.
 * Let $X_{s,t}$ denote the temporally-varying covariates at location $s$.
 * Let $W_{s}$ denote the spatially-varying but temporally static covariates. 
-* Let $Y_{s,t}^a$ be the potential outcome for $a\in \{0,1\}$.
 * Let $\tau_{s,t}$ be the multiplicative effect of $a=1$.
 
 **General Approach**
