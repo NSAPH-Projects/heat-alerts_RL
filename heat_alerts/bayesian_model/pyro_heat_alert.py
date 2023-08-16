@@ -49,6 +49,7 @@ class NegativeLogNormal(TorchDistribution):
 
 class MLP(nn.Module):
     """Simple MLP with the given dimensions and activation function"""
+
     def __init__(
         self, indim: int, outdim: int, hdim: int, num_hidden: int, act=nn.SiLU
     ):
@@ -60,6 +61,7 @@ class MLP(nn.Module):
             d_from = hdim
         modules.append(nn.Linear(d_from, outdim))
         self.net = nn.Sequential(*modules)
+
     def forward(self, x):
         return self.net(x)
 
@@ -79,7 +81,7 @@ class HeatAlertModel(nn.Module):
         num_hidden_layers: int = 1,
     ):
         super().__init__()
-    
+
         # sample size is required to know subsampling adjustments
         self.N = data_size
 
@@ -126,9 +128,9 @@ class HeatAlertModel(nn.Module):
         effectiveness_samples = {}
 
         # if loc_ind.shape >= 2:
-            # ^ why do we check for this?
-            # it seems redudant to have many ifs for the scalar case since
-            # we can handle the other case using batch size 1
+        # ^ why do we check for this?
+        # it seems redudant to have many ifs for the scalar case since
+        # we can handle the other case using batch size 1
         spatial_features = self.spatial_features
 
         baseline_loc = self.loc_baseline_coefs(spatial_features)
@@ -159,8 +161,10 @@ class HeatAlertModel(nn.Module):
         for i, name in enumerate(self.effectiveness_feature_names):
             coef = effectiveness_samples[name][loc_ind]
             effectiveness_contribs.append(coef * eff_features[:, i])
-        
-        eff_bias = pyro.sample("effectiveness_bias", Uniform(-8, -5).expand([self.S]).to_event(1))
+
+        eff_bias = pyro.sample(
+            "effectiveness_bias", Uniform(-8, -5).expand([self.S]).to_event(1)
+        )
         effectiveness = torch.sigmoid(sum(effectiveness_contribs) + eff_bias[loc_ind])
         effectiveness = effectiveness.clamp(1e-6, 1 - 1e-6)
 
@@ -178,7 +182,7 @@ class HeatAlertModel(nn.Module):
 
         # else: # be careful with location indicator if only using one county
         #     spatial_features = self.spatial_features[loc_ind]
-            
+
         #     baseline_loc = self.loc_baseline_coefs(spatial_features)[0][0]
         #     eff_loc = self.loc_effectiveness_coefs(spatial_features)[0][0]
 
@@ -207,7 +211,7 @@ class HeatAlertModel(nn.Module):
         #     # for i, name in enumerate(self.effectiveness_feature_names):
         #     #     coef = effectiveness_samples[name]
         #     #     effectiveness_contribs.append(coef * eff_features[i])
-            
+
         #     eff_bias = pyro.sample("eff_bias", Uniform(-7, -5).expand([1]).to_event(1))
         #     # effectiveness = torch.sigmoid(sum(effectiveness_contribs) + eff_bias)
         #     # effectiveness = effectiveness.clamp(1e-6, 1 - 1e-6)
@@ -216,7 +220,7 @@ class HeatAlertModel(nn.Module):
         #     # outcome_mean = county_summer_mean * baseline * (1 - alert * effectiveness)
 
         #     # y = hosps if condition else None
-        #     # with pyro.plate("data", 1): 
+        #     # with pyro.plate("data", 1):
         #     #     obs = pyro.sample("hospitalizations", Poisson(outcome_mean + 1e-3), obs=y)
 
         #     if not return_outcomes:
@@ -242,17 +246,26 @@ class HeatAlertModel(nn.Module):
 class HeatAlertDataModule(pl.LightningDataModule):
     """Reads the preprocess data and prepared it for training using tensordicts"""
 
-    def __init__(self, dir: str, batch_size: int | None = None, num_workers: int = 8, for_gym=False):
+    def __init__(
+        self,
+        dir: str,
+        batch_size: int | None = None,
+        num_workers: int = 8,
+        load_outcome: bool = True,
+        for_gym: bool = False,
+    ):
         super().__init__()
         self.dir = dir
         self.workers = num_workers
-
         dir = self.dir
 
         # read all raw data and transform into tensors
         X = pd.read_parquet(f"{dir}/states.parquet").drop(columns="intercept")
         A = pd.read_parquet(f"{dir}/actions.parquet")
-        Y = pd.read_parquet(f"{dir}/outcomes.parquet")
+        if load_outcome:
+            Y = pd.read_parquet(f"{dir}/outcomes.parquet")
+        else:
+            Y = pd.DataFrame({"outcome": np.full(A.shape[0], np.nan)}, index=A.index)
         W = pd.read_parquet(f"{dir}/spatial_feats.parquet")
         sind = pd.read_parquet(f"{dir}/location_indicator.parquet")
         offset = pd.read_parquet(f"{dir}/offset.parquet")
@@ -267,6 +280,7 @@ class HeatAlertDataModule(pl.LightningDataModule):
         # spatial metadata
         self.spatial_features = torch.FloatTensor(W.values)
         self.spatial_features_names = W.columns
+        self.spatial_features_idx = W.index
 
         # save day of summer splines as tensor
         self.dos_spline_basis = torch.FloatTensor(dos.values)
@@ -276,9 +290,9 @@ class HeatAlertDataModule(pl.LightningDataModule):
         county_summer_mean = torch.FloatTensor(offset.values[:, 0])
         hospitalizations = torch.FloatTensor(Y.values[:, 0])
         alert = torch.FloatTensor(A.values[:, 0])
-        year = torch.LongTensor(year.values[:,0])
-        budget = torch.LongTensor(budget.values[:,0])
-        hi_mean = torch.FloatTensor(X.HI_mean.values) # for RL
+        year = torch.LongTensor(year.values[:, 0])
+        budget = torch.LongTensor(budget.values[:, 0])
+        hi_mean = torch.FloatTensor(X.HI_mean.values)  # for RL
 
         # prepare covariates
         heat_qi = torch.FloatTensor(X.quant_HI_county.values)
@@ -286,7 +300,7 @@ class HeatAlertDataModule(pl.LightningDataModule):
         excess_heat = (heat_qi - heat_qi_3d).clamp(min=0)
         alert_lag1 = torch.LongTensor(X.alert_lag1.values)
         prev_a = X.alerts_2wks.values
-        previous_alerts = (prev_a - prev_a.mean())/(2*prev_a.std())
+        previous_alerts = (prev_a - prev_a.mean()) / (2 * prev_a.std())
         previous_alerts = torch.FloatTensor(previous_alerts)
         weekend = torch.LongTensor(X.weekend.values)
         n_dos_basis = self.dos_spline_basis.shape[1]
@@ -340,7 +354,7 @@ class HeatAlertDataModule(pl.LightningDataModule):
         effectiveness_features_tensor = torch.stack(
             [effectiveness_features[k] for k in self.effectiveness_feature_names], dim=1
         )
-        
+
         self.dataset = torch.utils.data.TensorDataset(
             hospitalizations,
             location_indicator,
@@ -353,7 +367,7 @@ class HeatAlertDataModule(pl.LightningDataModule):
             budget,
         )
         if for_gym:
-            self.gym_dataset=[
+            self.gym_dataset = [
                 hospitalizations,
                 location_indicator,
                 county_summer_mean,
@@ -364,9 +378,8 @@ class HeatAlertDataModule(pl.LightningDataModule):
                 year,
                 budget,
                 state,
-                hi_mean # for RL
+                hi_mean,  # for RL
             ]
-
 
         # get dimensions
         self.data_size = X.shape[0]
@@ -445,12 +458,24 @@ class HeatAlertLightning(pl.LightningModule):
                 sample = self.guide(*batch)
                 keys0 = [k for k in sample.keys() if k.startswith("effectiveness_")]
                 keys1 = [k for k in sample.keys() if k.startswith("baseline_")]
-                medians_0 = np.array([torch.quantile(sample[k], 0.5).item() for k in keys0])
-                medians_1 = np.array([torch.quantile(sample[k], 0.5).item() for k in keys1])
-                q25_0 = np.array([torch.quantile(sample[k], 0.25).item() for k in keys0])
-                q25_1 = np.array([torch.quantile(sample[k], 0.25).item() for k in keys1])
-                q75_0 = np.array([torch.quantile(sample[k], 0.75).item() for k in keys0])
-                q75_1 = np.array([torch.quantile(sample[k], 0.75).item() for k in keys1])
+                medians_0 = np.array(
+                    [torch.quantile(sample[k], 0.5).item() for k in keys0]
+                )
+                medians_1 = np.array(
+                    [torch.quantile(sample[k], 0.5).item() for k in keys1]
+                )
+                q25_0 = np.array(
+                    [torch.quantile(sample[k], 0.25).item() for k in keys0]
+                )
+                q25_1 = np.array(
+                    [torch.quantile(sample[k], 0.25).item() for k in keys1]
+                )
+                q75_0 = np.array(
+                    [torch.quantile(sample[k], 0.75).item() for k in keys0]
+                )
+                q75_1 = np.array(
+                    [torch.quantile(sample[k], 0.75).item() for k in keys1]
+                )
                 l0, u0 = medians_0 - q25_0, q75_0 - medians_0
                 l1, u1 = medians_1 - q25_1, q75_1 - medians_1
 
@@ -465,7 +490,9 @@ class HeatAlertLightning(pl.LightningModule):
                 ax[1].set_title("baseline coeff distribution")
                 ax[1].set_ylabel("coeff value")
                 plt.subplots_adjust(bottom=0.6)
-                self.logger.experiment.add_figure("coeffs", fig, global_step=self.global_step)
+                self.logger.experiment.add_figure(
+                    "coeffs", fig, global_step=self.global_step
+                )
 
                 # now a plot of the effect of day of summer
                 n_basis = self.dos_spline_basis.shape[1]

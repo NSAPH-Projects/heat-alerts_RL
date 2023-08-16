@@ -1,0 +1,14 @@
+model:
+  num_hidden_layers: 1
+  hidden_dim: 32
+  name: nn
+training:
+  batch_size: null
+  epochs: 80
+  gradient_clip_val: 1.0
+  lr: 0.001
+  num_workers: 0
+  num_particles: 1
+  max_steps: -1
+  jit: true
+datadir: data/processed
