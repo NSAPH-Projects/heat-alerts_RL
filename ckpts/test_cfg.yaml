@@ -1,0 +1,14 @@
+model:
+  num_hidden_layers: 1
+  hidden_dim: 32
+  name: test
+training:
+  batch_size: null
+  epochs: 1
+  gradient_clip_val: 1.0
+  lr: 0.001
+  num_workers: 8
+  num_particles: 1
+  max_steps: -1
+  jit: true
+datadir: data/processed

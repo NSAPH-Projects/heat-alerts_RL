@@ -177,3 +177,5 @@ packrat/lib*/
 
 # lightning
 lightning_logs
+logs
+outputs

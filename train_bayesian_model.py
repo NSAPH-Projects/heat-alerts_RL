@@ -7,11 +7,14 @@ import pytorch_lightning as pl
 import torch
 from omegaconf import DictConfig, OmegaConf
 
-from pyro_heat_alert import (HeatAlertDataModule, HeatAlertLightning,
-                             HeatAlertModel)
+from heat_alerts.bayesian_model import (
+    HeatAlertDataModule,
+    HeatAlertLightning,
+    HeatAlertModel,
+)
 
 
-@hydra.main(config_path="conf", config_name="config", version_base=None)
+@hydra.main(config_path="conf/bayesian_model", config_name="config", version_base=None)
 def main(cfg: DictConfig):
     # Load data
     logging.info("Loading data")
@@ -51,7 +54,9 @@ def main(cfg: DictConfig):
     )
 
     # Train model
-    logger = pl.loggers.TensorBoardLogger("logs/", name=cfg.model.name) # to see output, from terminal run "tensorboard --logdir logs/[cfg.model.name]"
+    logger = pl.loggers.TensorBoardLogger(
+        "logs/", name=cfg.model.name
+    )  # to see output, from terminal run "tensorboard --logdir logs/[cfg.model.name]"
     trainer = pl.Trainer(
         max_epochs=cfg.training.epochs,
         accelerator="auto",
@@ -85,7 +90,7 @@ def main(cfg: DictConfig):
     )
     preds = predictive(*dm.dataset.tensors, return_outcomes=True)["_RETURN"]
     Preds = torch.mean(preds, dim=0).numpy()
-    np.savetxt(f"../Bayesian_models/Bayesian_{cfg.model.name}.csv", Preds, delimiter=",")
+    np.savetxt(f"results/Bayesian_{cfg.model.name}.csv", Preds, delimiter=",")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,4 @@
+_target_: sb3_contrib.TRPO
+n_steps: 256
+policy_kwargs:
+  net_arch: [16, 16]
