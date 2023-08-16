@@ -7,7 +7,6 @@ import torch.nn as nn
 from matplotlib import pyplot as plt
 from pyro.distributions import LogNormal, Normal, Poisson, Uniform, constraints
 from pyro.distributions.torch_distribution import TorchDistribution
-from pyro.infer.autoguide.guides import AutoLowRankMultivariateNormal
 from pyro.infer.trace_elbo import JitTrace_ELBO, Trace_ELBO
 from torch.distributions.utils import broadcast_all
 

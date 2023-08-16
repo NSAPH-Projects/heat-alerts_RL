@@ -1,0 +1,4 @@
+_target_: stable_baselines3.PPO
+n_steps: 256
+policy_kwargs:
+  net_arch: [16, 16]

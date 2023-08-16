@@ -1,0 +1,29 @@
+defaults:
+  - _self_
+  - algo: ppo
+
+datadir: data/processed/bayesian_model
+county: 4013  # maricopa
+seed: 12345
+num_posterior_samples: 100
+guide_ckpt: ckpts/nn_guide.pt
+model:  # must match exactly the model used when producing the guide
+        # in the future linking them will be automatic
+  num_hidden_layers: 1
+  hidden_dim: 32
+
+train_years: [2008, 2009, 2010, 2012, 2013, 2014]
+val_years: [2007, 2011, 2015]
+
+num_envs: 32
+parallel: false
+training_timesteps: 10_000_000
+
+eval:
+  penalty: 1.0
+  freq: 1000
+  episodes: 10
+  eval_mode: false
+  val_years: true
+  match_similar: true
+
