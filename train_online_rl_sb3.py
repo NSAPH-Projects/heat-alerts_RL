@@ -28,6 +28,9 @@ def make_env(rank: int, seed: int, **kwargs) -> HeatAlertEnv:
 
     return _init
 
+# hydra.initialize(config_path="conf/online_rl/sb3", version_base=None)
+# cfg = hydra.compose(config_name="config")
+# cfg.guide_ckpt = "ckpts/FF_8-16_guide.pt"
 
 @hydra.main(config_path="conf/online_rl/sb3", config_name="config", version_base=None)
 def main(cfg: DictConfig):
@@ -35,7 +38,7 @@ def main(cfg: DictConfig):
     set_random_seed(cfg.seed)
 
     # instantiate guide
-    # TODO: I with the guide could be loaded more elegantly!
+    # TODO: I wish the guide could be loaded more elegantly!
     logging.info("Instantiating guide")
     dm = HeatAlertDataModule(dir=cfg.datadir, load_outcome=False)
 
@@ -111,6 +114,8 @@ def main(cfg: DictConfig):
         effectiveness_states=effect_dict,
         extra_states=extra_dict,
         budget_range=budget_range,
+        prev_alert_mean = dm.prev_alert_mean,
+        prev_alert_std = dm.prev_alert_std,
     )
     val_kwargs = dict(
         posterior_coefficient_samples=samples,
@@ -120,6 +125,8 @@ def main(cfg: DictConfig):
         budget_range=budget_range,
         eval_mode=cfg.eval.eval_mode,
         penalty=cfg.eval.penalty,
+        prev_alert_mean = dm.prev_alert_mean,
+        prev_alert_std = dm.prev_alert_std,
     )
     env_promise = [make_env(i, cfg.seed, **kwargs) for i in range(cfg.num_envs)]
     env_promise_val = [make_env(i, cfg.seed, **val_kwargs) for i in range(cfg.num_envs)]

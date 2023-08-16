@@ -168,9 +168,9 @@ X = (
     # make sure it is the third column
     .assign(quant_HI_county_pow2=lambda x: (x["quant_HI_county"] - 0.5) ** 2)
     .assign(quant_HI_3d_county_pow2=lambda x: (x["quant_HI_3d_county"] - 0.5) ** 2)
-    .assign(heat_qi_above_25=lambda x: (x["heat_qi"] - 0.25) * (x["heat_qi"] > 0.25))
-    .assign(heat_qi_above_75=lambda x: (x["heat_qi"] - 0.75) * (x["heat_qi"] > 0.75))
-    .assign(excess_heat=lambda x: x["heat_qi"] - x["quant_HI_3d_county"])
+    .assign(heat_qi_above_25=lambda x: (x["quant_HI_county"] - 0.25) * (x["quant_HI_county"] > 0.25))
+    .assign(heat_qi_above_75=lambda x: (x["quant_HI_county"] - 0.75) * (x["quant_HI_county"] > 0.75))
+    .assign(excess_heat=lambda x: x["quant_HI_county"] - x["quant_HI_3d_county"])
     .assign(intercept=1.0)
 )
 reorder = [

@@ -16,6 +16,8 @@ class HeatAlertEnv(gym.Env):
         extra_states: dict[str, np.ndarray] = {},
         penalty: float = 1.0,
         eval_mode: bool = False,
+        prev_alert_mean = 0,
+        prev_alert_std = 1
     ):
         """Initialize the environment.
 
@@ -39,6 +41,9 @@ class HeatAlertEnv(gym.Env):
                 but the budget is exceeded. Defaults to 0.1.
             eval_mode (bool): whether to run the environment in evaluation mode. In eval mode,
                 the reward is averaged over all posterior coefficient samples instead using one sample.
+            prev_alert_mean (float) and prev_alert_std (float): the mean and standard deviation of 
+                the previous_alerts variable, to enable putting this variable on the same scale as the 
+                rewards model training data.
 
         Note: The code assumes that all posterior coefficients have the same number of samples.
             The number of samples will be determined by the first key in the posterior_coefficients
@@ -49,7 +54,6 @@ class HeatAlertEnv(gym.Env):
         super().__init__()
 
         self.baseline_dim = len(baseline_states)
-        self.effectiveness_dim = len(effectiveness_states)
         self.extra_dim = len(extra_states)
 
         self.budget_range = budget_range
@@ -60,6 +64,9 @@ class HeatAlertEnv(gym.Env):
         self.baseline_states = baseline_states
         self.effectiveness_states = effectiveness_states
         self.extra_states = extra_states
+
+        self.prev_alert_mean = prev_alert_mean
+        self.prev_alert_std = prev_alert_std
 
         # deduce shapes (num days, num post samples, etc)
         coeffs_shape = next(iter(posterior_coefficient_samples.values())).shape
@@ -78,7 +85,6 @@ class HeatAlertEnv(gym.Env):
         # TODO: we could try a generalizing better the alert lags
         obs_dim = (
             self.baseline_dim
-            + self.effectiveness_dim
             + self.extra_dim
             + 4  # 3 for number of alert variables, 1 for budget
         )
@@ -109,39 +115,42 @@ class HeatAlertEnv(gym.Env):
             for k in self.baseline_states
         ]
 
-        eff_feats = [
-            self.effectiveness_states[k][self.feature_ep_index, self.t]
-            for k in self.effectiveness_states
-        ]
-
         extra_feats = [
             self.extra_states[k][self.feature_ep_index, self.t]
             for k in self.extra_states
         ]
 
         total_prev_alerts = sum(self.alert_buffer)
-        prev_alerts_2wks = sum(self.alert_buffer[-14:])
+        prev_alerts_2wks = (sum(self.alert_buffer[-14:]) - self.prev_alert_mean)/(2 * self.prev_alert_std)
         prev_alert_lag = 0 if len(self.alert_buffer) == 0 else self.alert_buffer[-1]
         alert_feats = [total_prev_alerts, prev_alerts_2wks, prev_alert_lag]
 
         return np.array(
-            baseline_feats + eff_feats + extra_feats + alert_feats + [self.budget]
+            baseline_feats + extra_feats + [self.budget] + alert_feats
         )
 
-    def _get_reward(self, posterior_index, action):
+    def _get_reward(self, posterior_index, action, alert_feats):
         baseline_contribs = [
             self.baseline_states[k][self.feature_ep_index, self.t]
             * self.posterior_coefficient_samples[k][posterior_index]
             for k in self.baseline_states
         ]
-        baseline = np.exp(sum(baseline_contribs))
+        baseline = np.exp(sum(baseline_contribs) + 
+                          # Note: total_prev_alerts is not a feature in the rewards model
+                          alert_feats[1]*self.posterior_coefficient_samples["baseline_previous_alerts"][posterior_index] +
+                          alert_feats[2]*self.posterior_coefficient_samples["baseline_alert_lag1"][posterior_index] + 
+                          self.posterior_coefficient_samples["baseline_bias"][posterior_index])
 
         effectiveness_contribs = [
             self.effectiveness_states[k][self.feature_ep_index, self.t]
             * self.posterior_coefficient_samples[k][posterior_index]
             for k in self.effectiveness_states
         ]
-        effectiveness = sigmoid(sum(effectiveness_contribs))
+        effectiveness = sigmoid(sum(effectiveness_contribs)  + 
+                          # Note: total_prev_alerts is not a feature in the rewards model
+                          alert_feats[1]*self.posterior_coefficient_samples["effectiveness_previous_alerts"][posterior_index] +
+                          alert_feats[2]*self.posterior_coefficient_samples["effectiveness_alert_lag1"][posterior_index] +
+                          self.posterior_coefficient_samples["effectiveness_bias"][posterior_index])
 
         if self.over_budget():
             return 1 - baseline - self.penalty
@@ -157,9 +166,10 @@ class HeatAlertEnv(gym.Env):
 
     def step(self, action: int):
         # advance state
-        self.alert_buffer.append(action)
         self.t += 1
         new_state = self._get_obs()
+        alert_feats = new_state[-3:]
+        self.alert_buffer.append(action)
 
         # compute reward for the new state
         posterior_indices = (
@@ -167,7 +177,7 @@ class HeatAlertEnv(gym.Env):
             if self.eval_mode
             else [self.rng.choice(self.n_posterior_samples)]
         )
-        reward = np.mean([self._get_reward(i, action) for i in posterior_indices])
+        reward = np.mean([self._get_reward(i, action, alert_feats) for i in posterior_indices])
         done = self.t == self.n_days - 1
         # trunc = self.over_budget()
 

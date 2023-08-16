@@ -94,7 +94,11 @@ def load_rl_states_data(dir: str):
     with open(f"{dir}/fips2idx.json", "r") as io:
         fips2idx = json.load(io)
     idx2fips = {v: k for k, v in fips2idx.items()}
-    dos2index = {x: i for i, x in enumerate(sorted(states.dos_0.unique()))}
+    # dos2index = {x: i for i, x in enumerate(sorted(states.dos_0.unique()))}
+    n_counties = len(sind.unique())
+    n_years = len(year.unique())
+    n_days = int(sum(year == 2006)/n_counties)
+    dos_index = list(itertools.chain(*[np.arange(0,n_days) for i in np.arange(0,n_years*n_counties)]))
 
     base_feat_names = [
         "heat_qi",
@@ -106,11 +110,11 @@ def load_rl_states_data(dir: str):
         "dos_1",
         "dos_2",
     ]
-    states["heat_qi_base"] = states["heat_qi"]  # alias, TODO: not need this
     base = (
         states[base_feat_names]
         .assign(fips=sind.map(idx2fips).astype(int))
-        .assign(dos_index=states["dos_0"].map(dos2index))
+        # .assign(dos_index=states["dos_0"].map(dos2index))
+        .assign(dos_index=dos_index)
         .assign(year=year)
     )
 
@@ -125,7 +129,8 @@ def load_rl_states_data(dir: str):
     eff = (
         states[eff_feat_names]
         .assign(fips=sind.map(idx2fips).astype(int))
-        .assign(dos_index=states["dos_0"].map(dos2index))
+        # .assign(dos_index=states["dos_0"].map(dos2index))
+        .assign(dos_index=dos_index)
         .assign(year=year)
     )
 
@@ -133,7 +138,8 @@ def load_rl_states_data(dir: str):
     extra = (
         states[extra_feats]
         .assign(fips=sind.map(idx2fips).astype(int))
-        .assign(dos_index=states["dos_0"].map(dos2index))
+        # .assign(dos_index=states["dos_0"].map(dos2index))
+        .assign(dos_index=dos_index)
         .assign(year=year)
     )
 

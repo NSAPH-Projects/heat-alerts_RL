@@ -1,4 +1,5 @@
 import logging
+import os
 import numpy as np
 
 import hydra
@@ -90,7 +91,8 @@ def main(cfg: DictConfig):
     )
     preds = predictive(*dm.dataset.tensors, return_outcomes=True)["_RETURN"]
     Preds = torch.mean(preds, dim=0).numpy()
-    np.savetxt(f"results/Bayesian_{cfg.model.name}.csv", Preds, delimiter=",")
+    os.makedirs("heat_alerts/bayesian_model/results", exist_ok=True)
+    np.savetxt(f"heat_alerts/bayesian_model/results/Bayesian_{cfg.model.name}.csv", Preds, delimiter=",")
 
 
 if __name__ == "__main__":

@@ -299,7 +299,9 @@ class HeatAlertDataModule(pl.LightningDataModule):
         excess_heat = (heat_qi - heat_qi_3d).clamp(min=0)
         alert_lag1 = torch.LongTensor(X.alert_lag1.values)
         prev_a = X.alerts_2wks.values
-        previous_alerts = (prev_a - prev_a.mean()) / (2 * prev_a.std())
+        self.prev_alert_mean = prev_a.mean()
+        self.prev_alert_std = prev_a.std()
+        previous_alerts = (prev_a - self.prev_alert_mean) / (2 * self.prev_alert_std)
         previous_alerts = torch.FloatTensor(previous_alerts)
         weekend = torch.LongTensor(X.weekend.values)
         n_dos_basis = self.dos_spline_basis.shape[1]
