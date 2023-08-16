@@ -23,8 +23,8 @@ To make the model scalable we need to assume linearity.
 $$
 \begin{aligned}
 Y_{s,t} & \sim \text{Poisson}(N_{s,t} * \lambda_{s,t} * (1 - A_{s,t}\tau_{s,t})) \\
-\lambda_{s,t} & = \beta_{s}^\top X_{s,t} \\
-\tau_{s,t} & = \gamma_{s}^\top V_{s,t} \\
+\lambda_{s,t} & = exp(\beta_{s}^\top X_{s,t}) \\
+\tau_{s,t} & = exp(\gamma_{s}^\top V_{s,t}) \\
 \end{aligned}
 $$
 
