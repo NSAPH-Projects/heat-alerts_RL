@@ -28,6 +28,7 @@ dependencies:
     - patsy
     - pyro-ppl
     - stable-baselines3>=0.10.0
+    - sb3-contrib
     - git+https://github.com/takuseno/d3rlpy@v1.1.1
     - graphviz
     - seaborn

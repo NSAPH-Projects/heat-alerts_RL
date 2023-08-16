@@ -13,7 +13,8 @@ class HeatAlertEnv(gym.Env):
         baseline_states: dict[str, np.ndarray],
         effectiveness_states: dict[str, np.ndarray],
         budget_range: tuple[int, int],
-        over_budget_penalty: float = 0.1,
+        extra_states: dict[str, np.ndarray] = {},
+        penalty: float = 1.0,
         eval_mode: bool = False,
     ):
         """Initialize the environment.
@@ -47,17 +48,18 @@ class HeatAlertEnv(gym.Env):
         """
         super().__init__()
 
-        self.baseline_keys = list(baseline_states.keys())
-        self.effectiveness_keys = list(effectiveness_states.keys())
-        self.baseline_dim = len(self.baseline_keys)
-        self.effectiveness_dim = len(self.effectiveness_keys)
+        self.baseline_dim = len(baseline_states)
+        self.effectiveness_dim = len(effectiveness_states)
+        self.extra_dim = len(extra_states)
+
         self.budget_range = budget_range
-        self.penalty = over_budget_penalty
+        self.penalty = penalty
         self.eval_mode = eval_mode
 
         self.posterior_coefficient_samples = posterior_coefficient_samples
         self.baseline_states = baseline_states
         self.effectiveness_states = effectiveness_states
+        self.extra_states = extra_states
 
         # deduce shapes (num days, num post samples, etc)
         coeffs_shape = next(iter(posterior_coefficient_samples.values())).shape
@@ -69,6 +71,7 @@ class HeatAlertEnv(gym.Env):
         # compute policy observation space; we will use:
         #   - baseline fixed features
         #   - covariate fixed features
+        #   - size of additional states
         #   - number of alerts (2weeks)
         #   - alert lag
         #   - number of prev alerts in all episode
@@ -76,7 +79,8 @@ class HeatAlertEnv(gym.Env):
         obs_dim = (
             self.baseline_dim
             + self.effectiveness_dim
-            + 3  # 3 for number of alert variables
+            + self.extra_dim
+            + 4  # 3 for number of alert variables, 1 for budget
         )
 
         self.observation_space = spaces.Box(
@@ -87,25 +91,32 @@ class HeatAlertEnv(gym.Env):
         )
         self.action_space = spaces.Discrete(2)  # alert or no alert
 
-    def reset(self):
+    def reset(self, seed: int | None = None):
+        # TODO: use a proper rng
+        self.rng = np.random.default_rng(seed)
         self.alert_buffer = []
-        self.budget = np.random.randint(*self.budget_range)
+        self.budget = self.rng.integers(*self.budget_range)
         self.t = 0  # day of summer indicator
-        self.feature_ep_index = np.random.choice(self.n_feature_episodes)
-        return self.get_state()
+        self.feature_ep_index = self.rng.choice(self.n_feature_episodes)
+        return self._get_obs(), self._get_info()
 
     def over_budget(self):
         return sum(self.alert_buffer) > self.budget
 
-    def get_state(self):
+    def _get_obs(self):
         baseline_feats = [
             self.baseline_states[k][self.feature_ep_index, self.t]
-            for k in self.baseline_keys
+            for k in self.baseline_states
         ]
 
         eff_feats = [
             self.effectiveness_states[k][self.feature_ep_index, self.t]
-            for k in self.effectiveness_keys
+            for k in self.effectiveness_states
+        ]
+
+        extra_feats = [
+            self.extra_states[k][self.feature_ep_index, self.t]
+            for k in self.extra_states
         ]
 
         total_prev_alerts = sum(self.alert_buffer)
@@ -113,20 +124,22 @@ class HeatAlertEnv(gym.Env):
         prev_alert_lag = 0 if len(self.alert_buffer) == 0 else self.alert_buffer[-1]
         alert_feats = [total_prev_alerts, prev_alerts_2wks, prev_alert_lag]
 
-        return np.array(baseline_feats + eff_feats + alert_feats)
+        return np.array(
+            baseline_feats + eff_feats + extra_feats + alert_feats + [self.budget]
+        )
 
-    def get_reward(self, posterior_index, action):
+    def _get_reward(self, posterior_index, action):
         baseline_contribs = [
             self.baseline_states[k][self.feature_ep_index, self.t]
             * self.posterior_coefficient_samples[k][posterior_index]
-            for k in self.baseline_keys
+            for k in self.baseline_states
         ]
         baseline = np.exp(sum(baseline_contribs))
 
         effectiveness_contribs = [
             self.effectiveness_states[k][self.feature_ep_index, self.t]
             * self.posterior_coefficient_samples[k][posterior_index]
-            for k in self.effectiveness_keys
+            for k in self.effectiveness_states
         ]
         effectiveness = sigmoid(sum(effectiveness_contribs))
 
@@ -135,29 +148,33 @@ class HeatAlertEnv(gym.Env):
         else:
             return 1 - baseline * (1 - effectiveness * action)
 
-    def step(self, action: int):
-        # advance state
-        self.alert_buffer.append(action)
-        self.t += 1
-        new_state = self.get_state()
-
-        # compute reward for the new state
-        posterior_indices = (
-            np.arange(self.n_posterior_samples)
-            if self.eval_mode
-            else [np.random.choice(self.n_posterior_samples)]
-        )
-        reward = np.mean([self.get_reward(i, action) for i in posterior_indices])
-        done = self.t == self.n_days - 1
-
-        # we can add more info here as needed, useful for callbacks, custom metrics
-        info = {
+    def _get_info(self) -> dict:
+        return {
             "episode_index": self.feature_ep_index,
             "budget": self.budget,
             "over_budget": self.over_budget(),
         }
 
-        return new_state, reward, done, info
+    def step(self, action: int):
+        # advance state
+        self.alert_buffer.append(action)
+        self.t += 1
+        new_state = self._get_obs()
+
+        # compute reward for the new state
+        posterior_indices = (
+            np.arange(self.n_posterior_samples)
+            if self.eval_mode
+            else [self.rng.choice(self.n_posterior_samples)]
+        )
+        reward = np.mean([self._get_reward(i, action) for i in posterior_indices])
+        done = self.t == self.n_days - 1
+        # trunc = self.over_budget()
+
+        # we can add more info here as needed, useful for callbacks, custom metrics
+        info = self._get_info()
+
+        return new_state, reward, done, False, info
 
 
 if __name__ == "__main__":
@@ -170,6 +187,8 @@ if __name__ == "__main__":
     n_effectiveness_feats = 20
     baseline_keys = list("abc")
     effectiveness_keys = list("de")
+
+    np.random.seed(1234)
 
     posterior_coefficient_samples = {
         k: np.random.randn(n_posterior_samples)
@@ -186,7 +205,7 @@ if __name__ == "__main__":
         baseline_fixed_features,
         effectiveness_fixed_features,
         budget_range=(10, 20),
-        over_budget_penalty=0.1,
+        # penalty=0.1,
     )
 
     # step through a full episode until done with random actions
@@ -195,7 +214,7 @@ if __name__ == "__main__":
     step = 0
     while not done:
         action = env.action_space.sample()
-        obs, reward, done, info = env.step(action)
+        obs, reward, done, _, info = env.step(action)
         step += 1
         over_budget = info["over_budget"]
         print(
