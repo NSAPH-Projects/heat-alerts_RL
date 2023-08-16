@@ -1,0 +1,4 @@
+defaults:
+  - _self_
+
+datadir: data/processed/bayesian_model
