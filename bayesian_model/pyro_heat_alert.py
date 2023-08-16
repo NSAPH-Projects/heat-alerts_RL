@@ -283,8 +283,10 @@ class HeatAlertDataModule(pl.LightningDataModule):
 
         # prepare covariates
         heat_qi = torch.FloatTensor(X.quant_HI_county.values)
+        heat_qi1_above_25 = torch.FloatTensor(X.quant_HI_county_above25.values)
+        heat_qi2_above_75 = torch.FloatTensor(X.quant_HI_county_above75.values)
         heat_qi_3d = torch.FloatTensor(X.quant_HI_3d_county.values)
-        excess_heat = (heat_qi - heat_qi_3d).clamp(min=0)
+        excess_heat = torch.FloatTensor(X.excess_heat.values)
         alert_lag1 = torch.LongTensor(X.alert_lag1.values)
         prev_a = X.alerts_2wks.values
         previous_alerts = (prev_a - prev_a.mean())/(2*prev_a.std())
@@ -309,15 +311,11 @@ class HeatAlertDataModule(pl.LightningDataModule):
             alert_lag1="negative",  # alert yesterday less effective
             previous_alerts="negative",  # more alerts less effective
         )
-        # note: contraints are passed to the heat alert model
 
         # baseline rate features
         # for now just use a simple 3-step piecewise linear function
-        heat_qi_base = heat_qi
-        heat_qi1_above_25 = (heat_qi - 0.25) * (heat_qi > 0.25)
-        heat_qi2_above_75 = (heat_qi - 0.75) * (heat_qi > 0.75)
         baseline_features = {
-            "heat_qi_base": heat_qi_base,
+            "heat_qi": heat_qi,
             "heat_qi1_above_25": heat_qi1_above_25,
             "heat_qi2_above_75": heat_qi2_above_75,
             "excess_heat": excess_heat,
