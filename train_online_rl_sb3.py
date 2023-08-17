@@ -145,7 +145,7 @@ def main(cfg: DictConfig):
     logger = configure(f"./logs/SB/{cfg.model_name}/training_metrics", ["csv", "tensorboard"])
 
     rl_model = hydra.utils.instantiate(
-        cfg.algo, "MlpPolicy", env, verbose=0 #, tensorboard_log="./logs/rl_tensorboard/"
+        cfg.algo, policy="MlpPolicy", env = env, verbose=0 #, tensorboard_log="./logs/rl_tensorboard/"
     )
 
     rl_model.set_logger(logger)
