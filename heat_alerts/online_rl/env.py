@@ -86,7 +86,7 @@ class HeatAlertEnv(gym.Env):
         obs_dim = (
             self.baseline_dim
             + self.extra_dim
-            + 4  # 3 for number of alert variables, 1 for budget
+            + 3  # alert variables
         )
 
         self.observation_space = spaces.Box(
@@ -105,6 +105,7 @@ class HeatAlertEnv(gym.Env):
         self.budget = self.rng.integers(*self.budget_range)
         self.t = 0  # day of summer indicator
         self.feature_ep_index = self.rng.choice(self.n_feature_episodes) #  We call this a hybrid environment because it uses a model for the rewards but samples the real weather trajectories for each summer.
+        self.cum_reward = 0.0
         return self._get_obs(), self._get_info()
 
     def over_budget(self):
@@ -122,12 +123,13 @@ class HeatAlertEnv(gym.Env):
         ]
 
         total_prev_alerts = sum(self.allowed_alert_buffer)
+        remaining_alerts = self.budget - total_prev_alerts
         prev_alerts_2wks = (sum(self.allowed_alert_buffer[-14:]) - self.prev_alert_mean)/(2 * self.prev_alert_std)
         prev_alert_lag = 0 if len(self.allowed_alert_buffer) == 0 else self.allowed_alert_buffer[-1]
-        alert_feats = [total_prev_alerts, prev_alerts_2wks, prev_alert_lag]
+        alert_feats = [remaining_alerts, prev_alerts_2wks, prev_alert_lag]
 
         return np.array(
-            baseline_feats + extra_feats + [self.budget] + alert_feats
+            baseline_feats + extra_feats + alert_feats
         )
 
     def _get_reward(self, posterior_index, action, alert_feats):
@@ -137,7 +139,7 @@ class HeatAlertEnv(gym.Env):
             for k in self.baseline_states
         ]
         baseline = np.exp(sum(baseline_contribs) + 
-                          # Note: total_prev_alerts is not a feature in the rewards model
+                          # Note: remaining alerts is not a feature in the rewards model
                           alert_feats[1]*self.posterior_coefficient_samples["baseline_previous_alerts"][posterior_index] +
                           alert_feats[2]*self.posterior_coefficient_samples["baseline_alert_lag1"][posterior_index] + 
                           self.posterior_coefficient_samples["baseline_bias"][posterior_index])
@@ -148,7 +150,7 @@ class HeatAlertEnv(gym.Env):
             for k in self.effectiveness_states
         ]
         effectiveness = sigmoid(sum(effectiveness_contribs)  + 
-                          # Note: total_prev_alerts is not a feature in the rewards model
+                          # Note: remaining alerts is not a feature in the rewards model
                           alert_feats[1]*self.posterior_coefficient_samples["effectiveness_previous_alerts"][posterior_index] +
                           alert_feats[2]*self.posterior_coefficient_samples["effectiveness_alert_lag1"][posterior_index] +
                           self.posterior_coefficient_samples["effectiveness_bias"][posterior_index])
@@ -182,6 +184,7 @@ class HeatAlertEnv(gym.Env):
             else [self.rng.choice(self.n_posterior_samples)]
         )
         reward = np.mean([self._get_reward(i, action, alert_feats) for i in posterior_indices])
+        self.cum_reward += reward
         done = self.t == self.n_days - 1
         # trunc = self.over_budget()
 

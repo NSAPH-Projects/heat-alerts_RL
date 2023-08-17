@@ -21,7 +21,7 @@ parallel: false
 training_timesteps: 10_000_000
 
 eval:
-  penalty: 1.0
+  penalty: 0.0 # no penalty during evaluation
   freq: 1000
   episodes: 10
   eval_mode: false
