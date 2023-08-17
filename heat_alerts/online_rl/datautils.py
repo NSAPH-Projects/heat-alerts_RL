@@ -19,7 +19,7 @@ WESTERN_STATES = [
     "SD",
     "NE",
     "KS",
-]
+] # ND, SD, NE and KS together only add 10 counties to the cold western group
 
 
 def get_similar_counties(dir: str):
@@ -29,7 +29,8 @@ def get_similar_counties(dir: str):
     spatial_feats = pd.read_parquet(f"{dir}/spatial_feats.parquet")
     with open(f"{dir}/fips2state.json", "r") as io:
         fips2state = json.load(io)
-    zones = ["Cold", "Hot-Dry", "Marine", "Mixed-Dry", "Mixed-Humid", "Very Cold"]
+    fips2state = {int(k):v.strip() for k,v in fips2state.items()}
+    # zones = ["Cold", "Hot-Dry", "Marine", "Mixed-Dry", "Mixed-Humid", "Very Cold"] # missing "Hot-Humid" due to one-hot encoding 
     spatial_feats = (
         spatial_feats.rename(
             {
@@ -44,7 +45,6 @@ def get_similar_counties(dir: str):
         )
         .assign(state=spatial_feats.index.map(fips2state))
         .assign(western=lambda x: x["state"].isin(WESTERN_STATES))
-        # adds 10 counties to the Cold western group
         .assign(cold_west=lambda x: x["cold"] * x["western"])
         .assign(cold_east=lambda x: x["cold"] * ~x["western"])
         .drop(columns="cold")
@@ -190,7 +190,7 @@ def dict_as_tensor(dict):
 
 
 def load_rl_states_by_county(
-    county: str,
+    county: int,
     dir: str,
     years: list[int] | None = None,
     match_similar: bool = False,

@@ -30,7 +30,6 @@ def make_env(rank: int, seed: int, **kwargs) -> HeatAlertEnv:
 
 # hydra.initialize(config_path="conf/online_rl/sb3", version_base=None)
 # cfg = hydra.compose(config_name="config")
-# cfg.guide_ckpt = "ckpts/FF_8-16_guide.pt"
 
 @hydra.main(config_path="conf/online_rl/sb3", config_name="config", version_base=None)
 def main(cfg: DictConfig):
@@ -103,7 +102,7 @@ def main(cfg: DictConfig):
         return k.replace("qi_base", "qi").replace("qi1", "qi").replace("qi2", "qi")
 
     samples = {
-        _clean_key(k): np.array([s[k][ix].item() for s in samples]) for k in samples[0]
+        _clean_key(k): np.array([s[k][ix].item() for s in samples]) for k in samples[0].keys()
     }
 
     # make RL env
