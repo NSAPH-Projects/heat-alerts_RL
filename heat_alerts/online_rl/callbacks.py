@@ -27,9 +27,9 @@ class AlertLoggingCallback(BaseCallback):
             if env.over_budget():
                 self.num_over_budget += 1
 
-            if env.alert_buffer:
+            if env.attempted_alert_buffer:
                 prev_alert = self.last_alert[i]
-                this_alert = env.alert_buffer[-1]
+                this_alert = env.attempted_alert_buffer[-1]
                 if this_alert:  # alert issued
                     self.when_alerted.append(env.t)
                     self.num_alerts += 1
@@ -45,9 +45,12 @@ class AlertLoggingCallback(BaseCallback):
         # Log the metrics to TensorBoard
         summary = {
             "over_budget_freq": self.num_over_budget / self.num_steps,
+            "budget_frac": self.num_alerts / self.budget if self.num_alerts < self.budget else 1,
             "alerts_freq": self.num_alerts / self.num_steps,
             "average_t_alerts": np.mean(self.when_alerted) if self.when_alerted else 0,
+            "stdev_t_alerts": np.std(self.when_alerted) if self.when_alerted else 0,
             "average_streak": np.mean(self.streaks) if self.streaks else 0,
+            "stdev_streak": np.std(self.streaks) if self.streaks else 0,
         }
 
         for k, v in summary.items():

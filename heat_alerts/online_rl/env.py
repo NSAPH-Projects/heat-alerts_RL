@@ -100,14 +100,15 @@ class HeatAlertEnv(gym.Env):
     def reset(self, seed: int | None = None):
         # TODO: use a proper rng
         self.rng = np.random.default_rng(seed)
-        self.alert_buffer = []
+        self.attempted_alert_buffer = [] # what the RL tries to do
+        self.allowed_alert_buffer = [] # what we allow the RL to do (based on the budget)
         self.budget = self.rng.integers(*self.budget_range)
         self.t = 0  # day of summer indicator
         self.feature_ep_index = self.rng.choice(self.n_feature_episodes) #  We call this a hybrid environment because it uses a model for the rewards but samples the real weather trajectories for each summer.
         return self._get_obs(), self._get_info()
 
     def over_budget(self):
-        return sum(self.alert_buffer) > self.budget
+        return sum(self.attempted_alert_buffer) > self.budget
 
     def _get_obs(self):
         baseline_feats = [
@@ -120,9 +121,9 @@ class HeatAlertEnv(gym.Env):
             for k in self.extra_states
         ]
 
-        total_prev_alerts = sum(self.alert_buffer)
-        prev_alerts_2wks = (sum(self.alert_buffer[-14:]) - self.prev_alert_mean)/(2 * self.prev_alert_std)
-        prev_alert_lag = 0 if len(self.alert_buffer) == 0 else self.alert_buffer[-1]
+        total_prev_alerts = sum(self.allowed_alert_buffer)
+        prev_alerts_2wks = (sum(self.allowed_alert_buffer[-14:]) - self.prev_alert_mean)/(2 * self.prev_alert_std)
+        prev_alert_lag = 0 if len(self.allowed_alert_buffer) == 0 else self.allowed_alert_buffer[-1]
         alert_feats = [total_prev_alerts, prev_alerts_2wks, prev_alert_lag]
 
         return np.array(
@@ -169,7 +170,10 @@ class HeatAlertEnv(gym.Env):
         self.t += 1
         new_state = self._get_obs()
         alert_feats = new_state[-3:]
-        self.alert_buffer.append(action)
+        self.attempted_alert_buffer.append(action)
+        if action == 1 and self.over_budget():
+            action = 0
+        self.allowed_alert_buffer.append(action)
 
         # compute reward for the new state
         posterior_indices = (
