@@ -4,6 +4,7 @@ Run_jobs/slurm/*
 
 # Random folders to ignore:
 d3rlpy_logs/*
+heat_alerts/bayesian_model/results/*
 Bayesian_models/*
 Summer_results/*
 Policies/*
@@ -179,3 +180,4 @@ packrat/lib*/
 lightning_logs
 logs
 outputs
+ckpts
