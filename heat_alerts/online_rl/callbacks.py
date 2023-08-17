@@ -45,7 +45,6 @@ class AlertLoggingCallback(BaseCallback):
         # Log the metrics to TensorBoard
         summary = {
             "over_budget_freq": self.num_over_budget / self.num_steps,
-            "budget_frac": self.num_alerts / self.budget if self.num_alerts < self.budget else 1,
             "alerts_freq": self.num_alerts / self.num_steps,
             "average_t_alerts": np.mean(self.when_alerted) if self.when_alerted else 0,
             "stdev_t_alerts": np.std(self.when_alerted) if self.when_alerted else 0,
