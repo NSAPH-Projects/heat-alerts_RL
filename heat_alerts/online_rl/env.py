@@ -5,7 +5,7 @@ from gymnasium import spaces
 
 
 class HeatAlertEnv(gym.Env):
-    """Class to simulate the environment for th online RL agent."""
+    """Class to simulate the environment for the online RL agent."""
 
     def __init__(
         self,
@@ -103,7 +103,7 @@ class HeatAlertEnv(gym.Env):
         self.alert_buffer = []
         self.budget = self.rng.integers(*self.budget_range)
         self.t = 0  # day of summer indicator
-        self.feature_ep_index = self.rng.choice(self.n_feature_episodes)
+        self.feature_ep_index = self.rng.choice(self.n_feature_episodes) #  We call this a hybrid environment because it uses a model for the rewards but samples the real weather trajectories for each summer.
         return self._get_obs(), self._get_info()
 
     def over_budget(self):
