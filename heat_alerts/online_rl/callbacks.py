@@ -40,7 +40,7 @@ class AlertLoggingCallback(BaseCallback):
                     self.current_streak[i] = 0
                 self.last_alert[i] = this_alert
             
-            if env.done:
+            if env.t == env.n_days - 1:
                 self.rolled_rewards += env.cum_reward
 
         return True
