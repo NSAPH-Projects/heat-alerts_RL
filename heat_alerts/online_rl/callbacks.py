@@ -1,6 +1,6 @@
 import numpy as np
 from stable_baselines3.common.callbacks import BaseCallback
-
+import csv
 
 class AlertLoggingCallback(BaseCallback):
     """This callback logs in when the alerts are issued"""

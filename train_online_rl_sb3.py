@@ -12,6 +12,7 @@ from omegaconf import DictConfig
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
+from stable_baselines3.common.logger import configure
 
 from heat_alerts.bayesian_model import HeatAlertDataModule, HeatAlertModel
 from heat_alerts.online_rl.datautils import load_rl_states_by_county
@@ -141,16 +142,19 @@ def main(cfg: DictConfig):
 
     # RL training code here
     logging.info("Creating RL model")
+    logger = configure(f"./logs/SB/{cfg.model_name}/training_metrics", ["csv", "tensorboard"])
 
     rl_model = hydra.utils.instantiate(
-        cfg.algo, "MlpPolicy", env, verbose=0, tensorboard_log="./logs/rl_tensorboard/"
+        cfg.algo, "MlpPolicy", env, verbose=0 #, tensorboard_log="./logs/rl_tensorboard/"
     )
+
+    rl_model.set_logger(logger)
 
     # Create a callback to evaluate the agent
     eval_callback = EvalCallback(
         env_val,
-        best_model_save_path="./logs/best_model",
-        log_path="./logs/results",
+        best_model_save_path=f"./logs/SB/{cfg.model_name}/best_model",
+        log_path=f"./logs/SB/{cfg.model_name}/results",
         eval_freq=cfg.eval.freq,  # Evaluation frequency
         n_eval_episodes=cfg.eval.episodes,
     )
