@@ -23,11 +23,14 @@ Then run the script heat_alerts/scripts/prepare_bayesian_model_data.py to get ev
 python train_nn.py training=full model.name="Full_8-1"
 ```
 See [here](https://hydra.cc/docs/intro/) for an introduction to Hydra. <br>
-2. Evaluate the accuracy of these predictions with the script Evaluate_pyro_R.R
+2. Evaluate the accuracy of these predictions with the script heat_alerts/bayesian_model/Evaluate_pyro_R.R
 
 ### Online RL:
-*From within the main directory:*
-1. Run the script Online_RL.py -- note that there are many possible arguments, passed using argparse.
+1. Run the script train_online_rl_sb3.py OR train_online_rl_d3rlpy.py -- note that there are many possible arguments, passed using Hydra / config files.
   * The script heat_alerts/Online_print_jobs.R can be used to write out the terminal commands for many experiments, and the script Run_jobs/Online_RL.sh can be used to start a job array to run these using SLURM.
-  * The gym environment is detailed in heat_alerts/HASDM_hybrid_gym.py -- we call this a hybrid environment because it uses a model for the rewards but samples the real weather trajectories for each summer.
+2. The gym environment is detailed in several scripts within the directory heat_alerts/online_rl
+ * env.py contains the overall mechanics of stepping through and resetting the gym environment.
+ * datautils.py contains several functions for data formatting, which is performed before calling the environment instantiation.
+ * callbacks.py contains the calculation of custom metrics that we wish to save from each episode through the environment.
 3. 
+
