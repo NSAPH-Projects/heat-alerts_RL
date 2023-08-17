@@ -16,6 +16,7 @@ class HeatAlertEnv(gym.Env):
         extra_states: dict[str, np.ndarray] = {},
         penalty: float = 1.0,
         eval_mode: bool = False,
+        years = [],
         prev_alert_mean = 0,
         prev_alert_std = 1
     ):
@@ -59,6 +60,7 @@ class HeatAlertEnv(gym.Env):
         self.budget_range = budget_range
         self.penalty = penalty
         self.eval_mode = eval_mode
+        self.years = years
 
         self.posterior_coefficient_samples = posterior_coefficient_samples
         self.baseline_states = baseline_states
@@ -97,14 +99,18 @@ class HeatAlertEnv(gym.Env):
         )
         self.action_space = spaces.Discrete(2)  # alert or no alert
 
-    def reset(self, seed: int | None = None):
+    def reset(self, seed: int | None = None, year = None): # just pass year with match_similar=False
         # TODO: use a proper rng
         self.rng = np.random.default_rng(seed)
         self.attempted_alert_buffer = [] # what the RL tries to do
         self.allowed_alert_buffer = [] # what we allow the RL to do (based on the budget)
-        self.budget = self.rng.integers(*self.budget_range)
         self.t = 0  # day of summer indicator
-        self.feature_ep_index = self.rng.choice(self.n_feature_episodes) #  We call this a hybrid environment because it uses a model for the rewards but samples the real weather trajectories for each summer.
+        if year is not None:
+            self.feature_ep_index = self.years.index(year) # just use with match_similar=False
+            self.budget = self.budget_range[self.feature_ep_index] # in this case, budget_range is a tuple with same length as years
+        else:
+            self.feature_ep_index = self.rng.choice(self.n_feature_episodes) #  We call this a hybrid environment because it uses a model for the rewards but samples the real weather trajectories for each summer.
+            self.budget = self.rng.integers(*self.budget_range)
         self.cum_reward = 0.0
         return self._get_obs(), self._get_info()
 
