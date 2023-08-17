@@ -15,11 +15,10 @@ This is code for investigating applicability of reinforcement learning (RL) to e
 conda env create -f ../envs/heatrl/env-linux.yaml
 conda activate heatrl
 ```
-Then run the script bayesian_model/prepare_data.py to get everything in the right format for the Bayesian model and gym environment.
+Then run the script heat_alerts/scripts/prepare_bayesian_model_data.py to get everything in the right format for the Bayesian model and gym environment.
 
 ### Bayesian rewards modeling:
-*From within the bayesian_model directory:*
-1. Run train_nn.py using Hydra arguments. Configurations are in the conf directory. For example:
+1. Run train_bayesian_model.py using Hydra arguments. Configurations are in the conf directory. For example:
 ```
 python train_nn.py training=full model.name="Full_8-1"
 ```
