@@ -26,8 +26,11 @@ See [here](https://hydra.cc/docs/intro/) for an introduction to Hydra. <br>
 2. Evaluate the accuracy of these predictions with the script heat_alerts/bayesian_model/Evaluate_pyro_R.R
 
 ### Online RL:
-1. Run the script train_online_rl_sb3.py OR train_online_rl_d3rlpy.py -- note that there are many possible arguments, passed using Hydra / config files.
-  * The script heat_alerts/Online_print_jobs.R can be used to write out the terminal commands for many experiments, and the script Run_jobs/Online_RL.sh can be used to start a job array to run these using SLURM.
+1. Run the script train_online_rl_sb3.py OR train_online_rl_d3rlpy.py -- note that there are many possible arguments, passed using Hydra / config files. For the base configurations:
+```
+python train_online_rl_sb3.py --algo=ppo,qrdqn,trpo,dqn --multirun
+```
+ * The script heat_alerts/Online_print_jobs.R can be used to write out the terminal commands for many experiments, and the script Run_jobs/Online_RL.sh can be used to start a job array to run these using SLURM.
 2. The gym environment is detailed in several scripts within the directory heat_alerts/online_rl
  * env.py contains the overall mechanics of stepping through and resetting the gym environment.
  * datautils.py contains several functions for data formatting, which is performed before calling the environment instantiation.
