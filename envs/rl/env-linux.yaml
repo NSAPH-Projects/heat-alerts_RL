@@ -33,3 +33,5 @@ dependencies:
     - graphviz
     - seaborn
     - statsmodels
+    - tqdm
+    - rich
