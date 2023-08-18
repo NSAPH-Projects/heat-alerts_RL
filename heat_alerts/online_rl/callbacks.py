@@ -25,7 +25,7 @@ class AlertLoggingCallback(BaseCallback):
         for i, env in enumerate(self.training_env.envs):
             self.num_steps += 1
 
-            if env.over_budget():
+            if env.penalize:
                 self.num_over_budget += 1
 
             if env.attempted_alert_buffer:

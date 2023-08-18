@@ -146,7 +146,7 @@ def main(cfg: DictConfig):
 
     year_set = "eval" if cfg.eval.val_years else "train"
     posterior = "avg-R" if cfg.eval.eval_mode else "samp-R"
-    weather = "obs-W" if cfg.eval.match_similar else "samp-W"
+    weather = "samp-W" if cfg.eval.match_similar else "obs-W"
     results.to_csv(f"Summer_results/ORL_{cfg.policy_type}_{year_set}_{posterior}_{weather}_{cfg.model_name}_fips_{cfg.county}.csv")
 
 if __name__ == "__main__":

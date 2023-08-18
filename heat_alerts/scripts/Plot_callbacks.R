@@ -2,10 +2,10 @@
 library(ggplot2)
 library(cowplot, lib.loc = "~/apps/R_4.2.2")
 
-model<- "trpo_lr-001"
-model<- "ppo_lr-001"
-model<- "qrdqn_lr-001"
-model<- "dqn_lr-001"
+model<- "trpo_0"
+model<- "ppo_0"
+model<- "qrdqn_0"
+model<- "dqn_0"
 
 df<- read.csv(paste0("logs/SB/", model, "/training_metrics/progress.csv"))
 
