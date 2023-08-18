@@ -12,7 +12,6 @@ from omegaconf import DictConfig
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
-from stable_baselines3.common.logger import configure
 
 from heat_alerts.bayesian_model import HeatAlertDataModule, HeatAlertModel
 from heat_alerts.online_rl.datautils import load_rl_states_by_county

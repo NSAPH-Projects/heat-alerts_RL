@@ -113,6 +113,7 @@ class HeatAlertEnv(gym.Env):
             b = self.other_data["budget"][self.feature_ep_index, self.t]
             self.budget = self.rng.integers(0.5*b, 1.5*b + 1)
         self.cum_reward = 0.0
+        self.penalize = False
         return self._get_obs(), self._get_info()
 
     def _get_obs(self):

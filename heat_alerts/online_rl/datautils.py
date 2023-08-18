@@ -145,8 +145,8 @@ def load_rl_states_data(dir: str):
         .assign(year=year)
     )
 
-    other = pd.concat([nws_alerts, budgets], axis=1)
-    other.columns = ["nws_alert", "budget"]
+    other = pd.concat([nws_alerts, budgets, year], axis=1)
+    other.columns = ["nws_alert", "budget", "y"]
     
     other_vars = (
         other.assign(fips=sind.map(idx2fips).astype(int))

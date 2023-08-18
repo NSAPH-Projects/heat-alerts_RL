@@ -69,3 +69,73 @@ class AlertLoggingCallback(BaseCallback):
         self.num_alerts = 0
         self.num_steps = 0
         self.rolled_rewards = 0.0
+
+
+class FinalEvalCallback(BaseCallback):
+    """This callback logs the year, budget, alerts, and rewards"""
+    def __init__(self, verbose=0, filename="test_log"):
+        super().__init__(verbose)
+        self.filename=filename
+        self.year = 0
+        self.budget = 0
+        self.alerts = []
+        self.sum_alerts = 0
+        self.reward = 0
+        self.when_alerted = []
+        self.streaks = []
+        self.current_streak = 0
+        self.last_alert = 0
+    def __call__(self, L = None, G = None):
+        self.L = L
+        self.year = 0
+        self.budget = 0
+        self.alerts = []
+        self.sum_alerts = 0
+        self.reward = 0
+        self.when_alerted = []
+        self.streaks = []
+        self.current_streak = 0
+        self.last_alert = 0
+        self.data = []
+    def _on_step(self) -> bool:
+        env = self.L["eval_env"] #self.training_env
+        prev_alert = self.last_alert
+        this_alert = env.allowed_alert_buffer[-1]
+        if this_alert: # alert issued
+            self.when_alerted.append(env.t)
+            self.current_streak += 1
+        elif prev_alert:  # end streak
+            self.streaks.append(self.current_streak)
+            self.current_streak = 0
+        self.last_alert = this_alert
+        if env.t == env.n_days - 2:
+            self.year = env.other_data["y"][env.feature_ep_index, self.env.t]
+            self.budget = env.other_data["budget"][env.feature_ep_index, self.env.t]
+            self.alerts = env.allowed_alert_buffer
+            self.sum_alerts = sum(self.alerts)
+            self.reward = env.cum_reward
+        return True
+    def _on_rollout_end(self):
+        self.data.append({
+            "year": self.year, 
+            "alert_budget": self.budget,
+            "sum_alerts": self.sum_alerts,
+            "reward": self.reward,
+            "average_t_alerts": np.mean(self.when_alerted) if self.when_alerted else 0,
+            "stdev_t_alerts": np.std(self.when_alerted) if self.when_alerted else 0,
+            "average_streak": np.mean(self.streaks) if self.streaks else 0,
+            "stdev_streak": np.std(self.streaks) if self.streaks else 0,
+            "alerts": self.alerts,
+        })
+        # Reset:
+        self.when_alerted = []
+        self.streaks = []
+        self.current_streak = 0
+        self.last_alert = 0
+    def _on_training_end(self):
+        with open(self.filename, 'w', newline='') as csvfile:
+            fieldnames = list(self.data[0].keys())
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for row in self.data:
+                writer.writerow(row)
