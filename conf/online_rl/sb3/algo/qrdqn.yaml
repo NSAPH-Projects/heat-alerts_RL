@@ -5,4 +5,4 @@ policy_kwargs:
 exploration_fraction: 0.25
 exploration_final_eps: 0.1
 batch_size: 512
-learning_rate: 0.0005
+learning_rate: 0.001

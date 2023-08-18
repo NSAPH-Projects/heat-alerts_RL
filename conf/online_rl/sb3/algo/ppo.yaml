@@ -1,5 +1,5 @@
 _target_: stable_baselines3.PPO
-n_steps: 256
-learning_rate: 0.0005
+n_steps: 2048 # 256
+learning_rate: 0.001
 policy_kwargs:
   net_arch: [16, 16]

@@ -133,7 +133,7 @@ def main(cfg: DictConfig):
 
     # vectorize environments
     if cfg.parallel:
-        fun = partial(SubprocVecEnv, start_method="spawn")
+        fun = partial(SubprocVecEnv) # , start_method="spawn"
     else:
         fun = DummyVecEnv
 
