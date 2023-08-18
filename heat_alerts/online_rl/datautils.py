@@ -229,7 +229,7 @@ def load_rl_states_by_county(
     else:
         counties = [county]
 
-    base_dict, eff_dict, extra_dict = subset_rl_states(
+    base_dict, eff_dict, extra_dict, other_dict = subset_rl_states(
         county, counties, years, base_dict, eff_dict, extra_dict, other_dict
     )
 

@@ -110,7 +110,8 @@ class HeatAlertEnv(gym.Env):
             self.budget = self.other_data["budget"][self.feature_ep_index, self.t] 
         else:
             self.feature_ep_index = self.rng.choice(self.n_feature_episodes) #  We call this a hybrid environment because it uses a model for the rewards but samples the real weather trajectories for each summer.
-            self.budget = self.rng.integers(0, self.other_data["budget"][self.feature_ep_index, self.t] + 1)
+            b = self.other_data["budget"][self.feature_ep_index, self.t]
+            self.budget = self.rng.integers(0.5*b, 1.5*b + 1)
         self.cum_reward = 0.0
         return self._get_obs(), self._get_info()
 

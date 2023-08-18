@@ -20,7 +20,6 @@ from heat_alerts.online_rl.env import HeatAlertEnv
 from heat_alerts.online_rl.callbacks import AlertLoggingCallback
 
 
-
 # hydra.initialize(config_path="conf/online_rl/sb3", version_base=None)
 # cfg = hydra.compose(config_name="config")
 
@@ -106,22 +105,24 @@ def main(cfg: DictConfig):
         rl_model = hydra.utils.instantiate(
             cfg.algo, policy="MlpPolicy", env = eval_env, verbose=0 #, tensorboard_log="./logs/rl_tensorboard/"
         )
-        rl_model.load(f"./logs/SB/{cfg.model_name}/best_model/best_model.zip")
-    elif cfg.policy_type == "NWS":
-        pass # come back to this, need to read in the alert data
+        rl_model.load(f"./logs/SB/{cfg.model_name}/best_model/best_model")
+    else:
+        rl_model = None
 
 
-    def get_action(policy_type, obs):
+    def get_action(policy_type, obs, env, rl_model=None):
         if policy_type == "RL":
             return(rl_model.predict(obs)[0].item())
         elif policy_type == "no alerts":
             return(0)
         elif policy_type == "NWS":
-            pass # come back to this
+            a = env.other_data["nws_alert"][env.feature_ep_index, env.t]
+            # print(a)
+            return(a)
 
-    Rewards = []
-    Actions = []
-    Year = []
+    rewards = []
+    actions = []
+    year = []
     i = 0
     a = 0
     n_reps = 1 if cfg.final_eval_EM else cfg.num_posterior_samples
@@ -129,25 +130,30 @@ def main(cfg: DictConfig):
 
     for y in val_years*n_reps:
         obs = eval_env.reset(year=y)[0]
-        action = get_action(cfg.policy_type, obs)
+        action = get_action(cfg.policy_type, obs, eval_env, rl_model)
         terminal = False
         while terminal == False:
             if action == 1 and eval_env.over_budget() == False:
                 a = i
             elif action == 1 and eval_env.over_budget():
                 action = 0
-                Actions[a] = 0 
-            Actions.append(action)
-            Year.append(y)
+                actions[a] = 0 
+            actions.append(action)
+            year.append(y)
             obs, reward, terminal, trunc, info = eval_env.step(action)
-            Rewards.append(reward)
-            action = get_action(cfg.policy_type, obs)
+            rewards.append(reward)
+            action = get_action(cfg.policy_type, obs, eval_env, rl_model)
             i += 1
+        print(y)
 
-    Results = pd.DataFrame(np.array([Actions, Rewards, Year]).T)
-    Results.columns = ["Actions", "Rewards", "Year"]
-    Results.to_csv(f"Summer_results/ORL_eval_{cfg.model_name}.csv")
-
+    results = pd.DataFrame(np.array([actions, rewards, year]).T)
+    results.columns = ["Actions", "Rewards", "Year"]
+    if cfg.policy_type == "RL":
+        results.to_csv(f"Summer_results/ORL_eval_{cfg.model_name}_fips_{cfg.county}.csv")
+    elif cfg.policy_type == "no alerts":
+        results.to_csv(f"Summer_results/ORL_eval_No_alerts_fips_{cfg.county}.csv")
+    elif cfg.policy_type == "NWS":
+        results.to_csv(f"Summer_results/ORL_eval_NWS_fips_{cfg.county}.csv")
 
 if __name__ == "__main__":
     main()
