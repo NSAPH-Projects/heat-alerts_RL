@@ -58,7 +58,7 @@ def main(cfg: DictConfig):
 
     # Load states data
     logging.info("Loading RL states data")
-    base_dict_val, effect_dict_val, extra_dict_val = load_rl_states_by_county(
+    base_dict_val, effect_dict_val, extra_dict_val, other_dict_val = load_rl_states_by_county(
         cfg.county,
         cfg.datadir,
         years=cfg.val_years,
@@ -66,16 +66,12 @@ def main(cfg: DictConfig):
         as_tensors=True,
     )
 
-    logging.info("Loading supporting county data (budget, index mapping)")
+    logging.info("Loading supporting county data (index mapping)")
     with open(f"{cfg.datadir}/fips2idx.json", "r") as f:
         fips2ix = json.load(f)
         fips2ix = {int(k): v for k, v in fips2ix.items()}
-    budget = pd.read_parquet(f"{cfg.datadir}/budget.parquet")
     ix = fips2ix[cfg.county]
-    observed_budget = budget.loc[cfg.county].values
-    b = observed_budget[np.arange(0,len(observed_budget), 153)]
-    budget_range = tuple([b[i][0] for i in [range(2006, 2017).index(y) for y in cfg.val_years]])
-
+    
     # take cfg.num_posterior_samples from the guide and make numpy arrays
     logging.info(f"Sampling posterior from guide {cfg.num_posterior_samples} times")
     with torch.no_grad():
@@ -96,7 +92,7 @@ def main(cfg: DictConfig):
         baseline_states=base_dict_val,
         effectiveness_states=effect_dict_val,
         extra_states=extra_dict_val,
-        budget_range=budget_range,
+        other_data = other_dict_val,
         penalty=cfg.eval.penalty,
         prev_alert_mean = dm.prev_alert_mean,
         prev_alert_std = dm.prev_alert_std,

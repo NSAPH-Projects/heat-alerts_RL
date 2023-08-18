@@ -19,7 +19,7 @@ val_years: [2007, 2011, 2015]
 
 num_envs: 1 # 32
 parallel: false
-training_timesteps: 10_000_000
+training_timesteps: 1_500_000 # 10_000_000
 
 eval:
   penalty: 0.0 # no penalty during evaluation

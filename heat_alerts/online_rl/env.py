@@ -12,8 +12,8 @@ class HeatAlertEnv(gym.Env):
         posterior_coefficient_samples: dict[str, np.ndarray],
         baseline_states: dict[str, np.ndarray],
         effectiveness_states: dict[str, np.ndarray],
-        budget_range: tuple[int, int],
         extra_states: dict[str, np.ndarray] = {},
+        other_data: dict[str, np.ndarray] = {},
         penalty: float = 1.0,
         eval_mode: bool = False,
         years = [],
@@ -57,7 +57,6 @@ class HeatAlertEnv(gym.Env):
         self.baseline_dim = len(baseline_states)
         self.extra_dim = len(extra_states)
 
-        self.budget_range = budget_range
         self.penalty = penalty
         self.eval_mode = eval_mode
         self.years = years
@@ -66,6 +65,7 @@ class HeatAlertEnv(gym.Env):
         self.baseline_states = baseline_states
         self.effectiveness_states = effectiveness_states
         self.extra_states = extra_states
+        self.other_data = other_data
 
         self.prev_alert_mean = prev_alert_mean
         self.prev_alert_std = prev_alert_std
@@ -107,10 +107,10 @@ class HeatAlertEnv(gym.Env):
         self.t = 0  # day of summer indicator
         if year is not None:
             self.feature_ep_index = self.years.index(year) # just use with match_similar=False
-            self.budget = self.budget_range[self.feature_ep_index] # in this case, budget_range is a tuple with same length as years
+            self.budget = self.other_data["budget"][self.feature_ep_index, self.t] 
         else:
             self.feature_ep_index = self.rng.choice(self.n_feature_episodes) #  We call this a hybrid environment because it uses a model for the rewards but samples the real weather trajectories for each summer.
-            self.budget = self.rng.integers(*self.budget_range)
+            self.budget = self.rng.integers(0, self.other_data["budget"][self.feature_ep_index, self.t] + 1)
         self.cum_reward = 0.0
         return self._get_obs(), self._get_info()
 

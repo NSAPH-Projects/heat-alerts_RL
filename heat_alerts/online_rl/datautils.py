@@ -89,6 +89,8 @@ def load_rl_states_data(dir: str):
     states = pd.read_parquet(f"{dir}/states.parquet").drop(columns="intercept")
     states = states.rename({"quant_HI_county": "heat_qi"}, axis=1)
     states["hi_mean"] = (states.HI_mean - states.HI_mean.mean()) / states.HI_mean.std()
+    nws_alerts = pd.read_parquet(f"{dir}/actions.parquet")
+    budgets = pd.read_parquet(f"{dir}/budget.parquet")
     sind = pd.read_parquet(f"{dir}/location_indicator.parquet").sind
     year = pd.read_parquet(f"{dir}/year.parquet").year
     with open(f"{dir}/fips2idx.json", "r") as io:
@@ -143,6 +145,15 @@ def load_rl_states_data(dir: str):
         .assign(year=year)
     )
 
+    other = pd.concat([nws_alerts, budgets], axis=1)
+    other.columns = ["nws_alert", "budget"]
+    
+    other_vars = (
+        other.assign(fips=sind.map(idx2fips).astype(int))
+        .assign(dos_index=dos_index)
+        .assign(year=year)
+    )
+
     # baseline feats
     base_dict = {}
     for f in base_feat_names:
@@ -163,16 +174,24 @@ def load_rl_states_data(dir: str):
         D = D.pivot(index=["fips", "year"], columns="dos_index", values=f)
         extra_dict[f"extra_{f}"] = D
 
-    return base_dict, eff_dict, extra_dict
+    other_dict = {}
+    for f in other.columns:
+        D = other_vars[[f, "fips", "year", "dos_index"]]
+        D = D.pivot(index=["fips", "year"], columns="dos_index", values=f)
+        other_dict[f] = D
+
+    return base_dict, eff_dict, extra_dict, other_dict
 
 
 def subset_rl_states(
+    county: int,
     counties: list[int],
     years: list[int] | None,
     base_dict: dict,
     eff_dict: dict,
     extra_dict: dict,
-) -> tuple[dict, dict, dict]:
+    other_dict: dict,
+) -> tuple[dict, dict, dict, dict]:
     if years is None:
         index_vals = next(iter(base_dict.values())).index.get_level_values("year")
         years = sorted(index_vals.unique())
@@ -181,7 +200,12 @@ def subset_rl_states(
     eff_dict = {k: v.loc[idxs] for k, v in eff_dict.items()}
     extra_dict = {k: v.loc[idxs] for k, v in extra_dict.items()}
 
-    return base_dict, eff_dict, extra_dict
+    ## Ensure all the budgets are just for the county of interest:
+    counties = [county]*len(counties)
+    new_idxs = list(itertools.product(counties, years))
+    other_dict = {k: v.loc[new_idxs] for k, v in other_dict.items()}
+
+    return base_dict, eff_dict, extra_dict, other_dict
 
 
 def dict_as_tensor(dict):
@@ -195,9 +219,9 @@ def load_rl_states_by_county(
     years: list[int] | None = None,
     match_similar: bool = False,
     as_tensors: bool = False,
-) -> tuple[dict, dict]:
+) -> tuple[dict, dict, dict, dict]:
     """Loads states RL training data for a single county and years"""
-    base_dict, eff_dict, extra_dict = load_rl_states_data(dir)
+    base_dict, eff_dict, extra_dict, other_dict = load_rl_states_data(dir)
 
     if match_similar:
         similar_counties = get_similar_counties(dir)
@@ -206,15 +230,16 @@ def load_rl_states_by_county(
         counties = [county]
 
     base_dict, eff_dict, extra_dict = subset_rl_states(
-        counties, years, base_dict, eff_dict, extra_dict
+        county, counties, years, base_dict, eff_dict, extra_dict, other_dict
     )
 
     if as_tensors:
         base_dict = dict_as_tensor(base_dict)
         eff_dict = dict_as_tensor(eff_dict)
         extra_dict = dict_as_tensor(extra_dict)
+        other_dict = dict_as_tensor(other_dict)
 
-    return base_dict, eff_dict, extra_dict
+    return base_dict, eff_dict, extra_dict, other_dict
 
 
 if __name__ == "__main__":
