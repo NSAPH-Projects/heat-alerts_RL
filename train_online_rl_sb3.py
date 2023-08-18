@@ -110,6 +110,7 @@ def main(cfg: DictConfig):
         other_data = other_dict,
         prev_alert_mean = dm.prev_alert_mean,
         prev_alert_std = dm.prev_alert_std,
+        sample_budget = cfg.sample_budget,
     )
     val_kwargs = dict(
         posterior_coefficient_samples=samples,
@@ -121,6 +122,7 @@ def main(cfg: DictConfig):
         penalty=cfg.eval.penalty,
         prev_alert_mean = dm.prev_alert_mean,
         prev_alert_std = dm.prev_alert_std,
+        sample_budget = cfg.sample_budget,
     )
     env_promise = [make_env(i, cfg.seed, **kwargs) for i in range(cfg.num_envs)]
     env_promise_val = [make_env(i, cfg.seed, **val_kwargs) for i in range(cfg.num_envs)]

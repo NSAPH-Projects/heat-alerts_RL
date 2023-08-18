@@ -20,6 +20,7 @@ val_years: [2007, 2011, 2015]
 num_envs: 1 # 32
 parallel: false
 training_timesteps: 1_500_000 # 10_000_000
+sample_budget: true
 
 eval:
   penalty: 0.0 # no penalty during evaluation
@@ -30,4 +31,4 @@ eval:
   match_similar: true
 
 policy_type: RL
-final_eval_EM: true
+final_eval_episodes: 1000

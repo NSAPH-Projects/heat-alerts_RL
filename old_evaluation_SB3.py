@@ -21,6 +21,8 @@ from heat_alerts.online_rl.callbacks import AlertLoggingCallback
 
 # hydra.initialize(config_path="conf/online_rl/sb3", version_base=None)
 # cfg = hydra.compose(config_name="config")
+# cfg.policy_type="NWS"
+# cfg.policy_type="NA"
 
 @hydra.main(config_path="conf/online_rl/sb3", config_name="config", version_base=None)
 def main(cfg: DictConfig):
@@ -59,7 +61,7 @@ def main(cfg: DictConfig):
     base_dict_val, effect_dict_val, extra_dict_val, other_dict_val = load_rl_states_by_county(
         cfg.county,
         cfg.datadir,
-        years=cfg.val_years,
+        years=cfg.val_years if cfg.eval.val_years else cfg.train_years,
         match_similar=False,
         as_tensors=True,
     )
@@ -94,7 +96,8 @@ def main(cfg: DictConfig):
         penalty=cfg.eval.penalty,
         prev_alert_mean = dm.prev_alert_mean,
         prev_alert_std = dm.prev_alert_std,
-        eval_mode = cfg.final_eval_EM,
+        eval_mode = cfg.eval.eval_mode,
+        sample_budget = False,
         years = cfg.val_years,
     )
 
@@ -112,48 +115,39 @@ def main(cfg: DictConfig):
     def get_action(policy_type, obs, env, rl_model=None):
         if policy_type == "RL":
             return(rl_model.predict(obs)[0].item())
-        elif policy_type == "no alerts":
+        elif policy_type == "NA":
             return(0)
         elif policy_type == "NWS":
-            a = env.other_data["nws_alert"][env.feature_ep_index, env.t]
-            # print(a)
-            return(a)
+            return(env.other_data["nws_alert"][env.feature_ep_index, env.t])
 
     rewards = []
     actions = []
     year = []
-    i = 0
-    a = 0
-    n_reps = 1 if cfg.final_eval_EM else cfg.num_posterior_samples
-    val_years = [x for x in cfg.val_years]
+    budget = []
 
-    for y in val_years*n_reps:
-        obs = eval_env.reset(year=y)[0]
+    for i in range(0, cfg.final_eval_episodes):
+        obs, info = eval_env.reset()
         action = get_action(cfg.policy_type, obs, eval_env, rl_model)
         terminal = False
         while terminal == False:
-            if action == 1 and eval_env.over_budget() == False:
-                a = i
-            elif action == 1 and eval_env.over_budget():
+            if action == 1 and info["over_budget"]:
                 action = 0
-                actions[a] = 0 
-            actions.append(action)
-            year.append(y)
             obs, reward, terminal, trunc, info = eval_env.step(action)
             rewards.append(reward)
+            year.append(eval_env.other_data["y"][eval_env.feature_ep_index, eval_env.t].item())
+            budget.append(eval_env.other_data["budget"][eval_env.feature_ep_index, eval_env.t].item())
             action = get_action(cfg.policy_type, obs, eval_env, rl_model)
-            i += 1
-        print(y)
+        actions.extend([x.item() if torch.is_tensor(x) else x for x in eval_env.allowed_alert_buffer])
+        print(i)
 
     results = pd.DataFrame(
-        {'Actions': actions, 'Rewards': rewards, 'Year': year}
+        {'Year': year, 'Budget': budget, 'Actions': actions, 'Rewards': rewards}
     )
-    if cfg.policy_type == "RL":
-        results.to_csv(f"Summer_results/ORL_train_{cfg.model_name}_fips_{cfg.county}.csv")
-    elif cfg.policy_type == "no alerts":
-        results.to_csv(f"Summer_results/ORL_train_No_alerts_fips_{cfg.county}.csv")
-    elif cfg.policy_type == "NWS":
-        results.to_csv(f"Summer_results/ORL_train_NWS_fips_{cfg.county}.csv")
+
+    year_set = "eval" if cfg.eval.val_years else "train"
+    posterior = "avg-R" if cfg.eval.eval_mode else "samp-R"
+    weather = "obs-W" if cfg.eval.match_similar else "samp-W"
+    results.to_csv(f"Summer_results/ORL_{cfg.policy_type}_{year_set}_{posterior}_{weather}_{cfg.model_name}_fips_{cfg.county}.csv")
 
 if __name__ == "__main__":
     main()

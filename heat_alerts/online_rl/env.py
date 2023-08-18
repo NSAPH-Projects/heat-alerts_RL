@@ -16,6 +16,7 @@ class HeatAlertEnv(gym.Env):
         other_data: dict[str, np.ndarray] = {},
         penalty: float = 1.0,
         eval_mode: bool = False,
+        sample_budget: bool = True,
         years = [],
         prev_alert_mean = 0,
         prev_alert_std = 1
@@ -59,6 +60,7 @@ class HeatAlertEnv(gym.Env):
 
         self.penalty = penalty
         self.eval_mode = eval_mode
+        self.sample_budget = sample_budget
         self.years = years
 
         self.posterior_coefficient_samples = posterior_coefficient_samples
@@ -99,19 +101,18 @@ class HeatAlertEnv(gym.Env):
         )
         self.action_space = spaces.Discrete(2)  # alert or no alert
 
-    def reset(self, seed: int | None = None, year = None): # just pass year with match_similar=False
+    def reset(self, seed: int | None = None):
         # TODO: use a proper rng
         self.rng = np.random.default_rng(seed)
         self.attempted_alert_buffer = [] # what the RL tries to do
         self.allowed_alert_buffer = [] # what we allow the RL to do (based on the budget)
         self.t = 0  # day of summer indicator
-        if year is not None:
-            self.feature_ep_index = self.years.index(year) # just use with match_similar=False
-            self.budget = self.other_data["budget"][self.feature_ep_index, self.t] 
-        else:
-            self.feature_ep_index = self.rng.choice(self.n_feature_episodes) #  We call this a hybrid environment because it uses a model for the rewards but samples the real weather trajectories for each summer.
-            b = self.other_data["budget"][self.feature_ep_index, self.t]
+        self.feature_ep_index = self.rng.choice(self.n_feature_episodes) #  We call this a hybrid environment because it uses a model for the rewards but samples the real weather trajectories for each summer.
+        b = self.other_data["budget"][self.feature_ep_index, self.t]
+        if self.sample_budget:
             self.budget = self.rng.integers(0.5*b, 1.5*b + 1)
+        else:
+            self.budget = b
         self.cum_reward = 0.0
         self.penalize = False
         return self._get_obs(), self._get_info()
@@ -194,12 +195,8 @@ class HeatAlertEnv(gym.Env):
         reward = np.mean([self._get_reward(i, action, alert_feats) for i in posterior_indices])
         self.cum_reward += reward
         done = self.t == self.n_days - 1
-        # trunc = self.over_budget()
 
-        # we can add more info here as needed, useful for callbacks, custom metrics
-        info = self._get_info()
-
-        return new_state, reward, done, False, info
+        return new_state, reward, done, False, self._get_info()
 
 
 if __name__ == "__main__":
