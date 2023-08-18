@@ -9,6 +9,13 @@ ppo<- read.csv("Summer_results/ORL_eval_ppo_lr-0005_fips_36005.csv")[,-1]
 qrdqn<- read.csv("Summer_results/ORL_eval_qrdqn_lr-0005_fips_36005.csv")[,-1]
 dqn<- read.csv("Summer_results/ORL_eval_dqn_lr-0005_fips_36005.csv")[,-1]
 
+NWS<- read.csv("Summer_results/ORL_train_NWS_fips_36005.csv")[,-1]
+None<- read.csv("Summer_results/ORL_train_No_alerts_fips_36005.csv")[,-1]
+trpo<- read.csv("Summer_results/ORL_train_trpo_lr-0005_fips_36005.csv")[,-1]
+ppo<- read.csv("Summer_results/ORL_train_ppo_lr-0005_fips_36005.csv")[,-1]
+qrdqn<- read.csv("Summer_results/ORL_train_qrdqn_lr-0005_fips_36005.csv")[,-1]
+dqn<- read.csv("Summer_results/ORL_train_dqn_lr-0005_fips_36005.csv")[,-1]
+
 agg_NWS<- aggregate(. ~ Year, NWS, sum)
 agg_None<- aggregate(. ~ Year, None, sum)
 agg_trpo<- aggregate(. ~ Year, trpo, sum)

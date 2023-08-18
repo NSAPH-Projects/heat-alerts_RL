@@ -115,9 +115,6 @@ class HeatAlertEnv(gym.Env):
         self.cum_reward = 0.0
         return self._get_obs(), self._get_info()
 
-    def over_budget(self):
-        return sum(self.attempted_alert_buffer) > self.budget
-
     def _get_obs(self):
         baseline_feats = [
             self.baseline_states[k][self.feature_ep_index, self.t]
@@ -162,7 +159,7 @@ class HeatAlertEnv(gym.Env):
                           alert_feats[2]*self.posterior_coefficient_samples["effectiveness_alert_lag1"][posterior_index] +
                           self.posterior_coefficient_samples["effectiveness_bias"][posterior_index])
 
-        if self.over_budget():
+        if self.penalize:
             return 1 - baseline - self.penalty
         else:
             return 1 - baseline * (1 - effectiveness * action)
@@ -171,7 +168,7 @@ class HeatAlertEnv(gym.Env):
         return {
             "episode_index": self.feature_ep_index,
             "budget": self.budget,
-            "over_budget": self.over_budget(),
+            "over_budget": self.penalize,
         }
 
     def step(self, action: int):
@@ -180,8 +177,11 @@ class HeatAlertEnv(gym.Env):
         new_state = self._get_obs()
         alert_feats = new_state[-3:]
         self.attempted_alert_buffer.append(action)
-        if action == 1 and self.over_budget():
+        if action == 1 and sum(self.allowed_alert_buffer) == self.budget:
+            self.penalize = True
             action = 0
+        else:
+            self.penalize = False
         self.allowed_alert_buffer.append(action)
 
         # compute reward for the new state

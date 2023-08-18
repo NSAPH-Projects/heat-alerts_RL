@@ -146,14 +146,15 @@ def main(cfg: DictConfig):
             i += 1
         print(y)
 
-    results = pd.DataFrame(np.array([actions, rewards, year]).T)
-    results.columns = ["Actions", "Rewards", "Year"]
+    results = pd.DataFrame(
+        {'Actions': actions, 'Rewards': rewards, 'Year': year}
+    )
     if cfg.policy_type == "RL":
-        results.to_csv(f"Summer_results/ORL_eval_{cfg.model_name}_fips_{cfg.county}.csv")
+        results.to_csv(f"Summer_results/ORL_train_{cfg.model_name}_fips_{cfg.county}.csv")
     elif cfg.policy_type == "no alerts":
-        results.to_csv(f"Summer_results/ORL_eval_No_alerts_fips_{cfg.county}.csv")
+        results.to_csv(f"Summer_results/ORL_train_No_alerts_fips_{cfg.county}.csv")
     elif cfg.policy_type == "NWS":
-        results.to_csv(f"Summer_results/ORL_eval_NWS_fips_{cfg.county}.csv")
+        results.to_csv(f"Summer_results/ORL_train_NWS_fips_{cfg.county}.csv")
 
 if __name__ == "__main__":
     main()
