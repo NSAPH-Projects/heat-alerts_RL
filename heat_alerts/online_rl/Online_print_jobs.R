@@ -1,17 +1,17 @@
 
-algos<- c("trpo", "ppo", "dqn", "qrdqn")
+algos<- c("trpo", "ppo", "dqn", "qrdqn", "lstm")
 eval.val_years<- c("true", "false")
 eval.match_similar<- c("true", "false")
 
-penalty<- c(5.0)
+penalty<- c(0.001) # 0.0, 0.01, 1.0, 5.0
 
 training<- expand.grid(algos, penalty)
 colnames(training)<- c("algo", "penalty")
-evaluation<- expand.grid(algo, eval.val_years, eval.match_similar)
+evaluation<- expand.grid(algos, eval.val_years, eval.match_similar)
 colnames(evaluation)<- c("algo", "eval.val_years", "eval.match_similar")
 
-training$model_name<- paste0(training$algo, "_p5")
-evaluation$model_name<- paste0(evaluation$algo, "_p5")
+training$model_name<- paste0(training$algo, "_p-001")
+evaluation$model_name<- paste0(evaluation$algo, "_p-001")
 
 training_script<- "python train_online_rl_sb3.py"
 evaluation_script<- "python old_evaluation_SB3.py"
