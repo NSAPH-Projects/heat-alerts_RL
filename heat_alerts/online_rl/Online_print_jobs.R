@@ -1,4 +1,44 @@
 
+algos<- c("trpo", "ppo", "dqn", "qrdqn")
+eval.val_years<- c("true", "false")
+eval.match_similar<- c("true", "false")
+
+penalty<- c(5.0)
+
+training<- expand.grid(algos, penalty)
+colnames(training)<- c("algo", "penalty")
+evaluation<- expand.grid(algo, eval.val_years, eval.match_similar)
+colnames(evaluation)<- c("algo", "eval.val_years", "eval.match_similar")
+
+training$model_name<- paste0(training$algo, "_p5")
+evaluation$model_name<- paste0(evaluation$algo, "_p5")
+
+training_script<- "python train_online_rl_sb3.py"
+evaluation_script<- "python old_evaluation_SB3.py"
+
+Training<- sapply(1:ncol(training), function(i){paste0(colnames(training)[i], "=", training[,i])})
+Evaluation<- sapply(1:ncol(evaluation), function(i){paste0(colnames(evaluation)[i], "=", evaluation[,i])})
+
+
+for(i in 1:length(algos)){
+  cat(training_script,
+    paste(
+      Training[i,]
+    ), " \n"
+  )
+  for(j in which(evaluation$algo == algos[i])){
+    cat(evaluation_script,
+        paste(
+          Evaluation[j,]
+        ), " \n"
+    )
+  }
+  cat("\n")
+}
+
+
+################################## Out of date...
+
 algos<- c("DoubleDQN", "SAC") # , "DQN", "DoubleDQN", "SAC"
 seed<- c("321") # , "221", "121"
 fips<- c("36005") # c("36005", "41067", "28035", "6071", "4013") # c("53057", "37171", "27019", "35045", "12085") # c("4013", "36061")
