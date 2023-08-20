@@ -22,6 +22,7 @@ parallel: false
 training_timesteps: 3_000_000 # 10_000_000
 sample_budget: true
 penalty: 1.0
+eval_mode: false
 
 eval:
   penalty: 0.0 # no penalty during evaluation

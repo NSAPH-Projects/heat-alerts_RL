@@ -108,6 +108,7 @@ def main(cfg: DictConfig):
         effectiveness_states=effect_dict,
         extra_states=extra_dict,
         other_data = other_dict,
+        eval_mode=cfg.eval_mode,
         penalty=cfg.penalty,
         prev_alert_mean = dm.prev_alert_mean,
         prev_alert_std = dm.prev_alert_std,

@@ -64,6 +64,9 @@ class HeatAlertEnv(gym.Env):
         self.years = years
 
         self.posterior_coefficient_samples = posterior_coefficient_samples
+        self.avg_posterior_coefficients = {}
+        for k in posterior_coefficient_samples:
+            self.avg_posterior_coefficients[k] = np.mean(posterior_coefficient_samples[k])
         self.baseline_states = baseline_states
         self.effectiveness_states = effectiveness_states
         self.extra_states = extra_states
@@ -139,22 +142,34 @@ class HeatAlertEnv(gym.Env):
         )
 
     def _get_reward(self, posterior_index, action, alert_feats):
-        baseline_contribs = [
-            self.baseline_states[k][self.feature_ep_index, self.t]
-            * self.posterior_coefficient_samples[k][posterior_index]
-            for k in self.baseline_states
-        ]
+        if self.eval_mode:
+            baseline_contribs = [
+                self.baseline_states[k][self.feature_ep_index, self.t]
+                * self.avg_posterior_coefficients[k]
+                for k in self.baseline_states
+            ]
+            effectiveness_contribs = [
+                self.effectiveness_states[k][self.feature_ep_index, self.t]
+                * self.avg_posterior_coefficients[k]
+                for k in self.effectiveness_states
+            ]
+        else: 
+            baseline_contribs = [
+                self.baseline_states[k][self.feature_ep_index, self.t]
+                * self.posterior_coefficient_samples[k][posterior_index]
+                for k in self.baseline_states
+            ]
+            effectiveness_contribs = [
+                self.effectiveness_states[k][self.feature_ep_index, self.t]
+                * self.posterior_coefficient_samples[k][posterior_index]
+                for k in self.effectiveness_states
+            ]
         baseline = np.exp(sum(baseline_contribs) + 
                           # Note: remaining alerts is not a feature in the rewards model
                           alert_feats[1]*self.posterior_coefficient_samples["baseline_previous_alerts"][posterior_index] +
                           alert_feats[2]*self.posterior_coefficient_samples["baseline_alert_lag1"][posterior_index] + 
                           self.posterior_coefficient_samples["baseline_bias"][posterior_index])
 
-        effectiveness_contribs = [
-            self.effectiveness_states[k][self.feature_ep_index, self.t]
-            * self.posterior_coefficient_samples[k][posterior_index]
-            for k in self.effectiveness_states
-        ]
         effectiveness = sigmoid(sum(effectiveness_contribs)  + 
                           # Note: remaining alerts is not a feature in the rewards model
                           alert_feats[1]*self.posterior_coefficient_samples["effectiveness_previous_alerts"][posterior_index] +
@@ -188,7 +203,7 @@ class HeatAlertEnv(gym.Env):
 
         # compute reward for the new state
         posterior_indices = (
-            np.arange(self.n_posterior_samples)
+            [0] # np.arange(self.n_posterior_samples)
             if self.eval_mode
             else [self.rng.choice(self.n_posterior_samples)]
         )
