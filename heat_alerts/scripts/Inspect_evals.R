@@ -12,7 +12,7 @@ my_proc<- function(filename){
     agg_df$Budget<- agg_df$Budget/(n_days-1)
     agg_df$budget_frac<- agg_df$Actions/agg_df$Budget
     agg_df$Frac<- agg_df$Count/sum(agg_df$Count)
-    estimated_reward<- sum(agg_df$Rewards*(1/nrow(agg_df))/agg_df$Frac)
+    estimated_reward<- sum(agg_df$Rewards*(1/nrow(agg_df))/agg_df$Frac)/1000
     # return(list(agg_df, estimated_reward))
     return(estimated_reward)
   }else{
@@ -40,11 +40,12 @@ these<- c("TRPO", "LSTM", "PPO", "DQN", "QRDQN")
 Algo<- rep(these, 4)
 # Model<- append(Model, rep(model, length(these)*4))
 Type<- rep(c("eval", "eval_samp", "train", "train_samp"), each=length(these))
-nws<- round(c(NWS_eval, NWS_eval_samp, NWS_train, NWS_train_samp))
+nws<- round(c(NWS_eval, NWS_eval_samp, NWS_train, NWS_train_samp),3)
 NWS<- rep(nws, each=length(these))
 
 # for(model in c("0", "p1", "p0", "p-01", "p-005", "p-001", "p-001_ee25")){
-for(model in c("p-05_ME", "p-001_ME", "p-0_ME")){ # "p-0"
+# for(model in c("p-05_ME", "p-001_ME", "p-0_ME")){ # "p-0"
+for(model in c("p_decay", "small", "ND_small", "big")){
   ## Read in data and calculate estimated rewards:
   PPO_eval_samp<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_ppo_", model, "_fips_36005.csv"))
   PPO_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_ppo_", model, "_fips_36005.csv"))
@@ -76,9 +77,9 @@ for(model in c("p-05_ME", "p-001_ME", "p-0_ME")){ # "p-0"
     return(c(get(paste0(x, "_eval")), get(paste0(x, "_eval_samp")),
              get(paste0(x, "_train")), get(paste0(x, "_train_samp"))))
   })
-  Reward<- round(as.vector(t(r)))
+  Reward<- round(as.vector(t(r)),3)
   
-  if(model == "p-05_ME"){
+  if(model == "p_decay"){
     DF<- data.frame(Type, NWS, Algo, Reward)
     names(DF)[which(names(DF) == "Reward")]<- paste0("R_", model)
     df<- DF

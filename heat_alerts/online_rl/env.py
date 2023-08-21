@@ -17,6 +17,7 @@ class HeatAlertEnv(gym.Env):
         penalty: float = 1.0,
         eval_mode: bool = False,
         sample_budget: bool = True,
+        penalty_decay: bool = False,
         years = [],
         prev_alert_mean = 0,
         prev_alert_std = 1,
@@ -62,6 +63,7 @@ class HeatAlertEnv(gym.Env):
         self.extra_dim = len(extra_states)
 
         self.penalty = penalty
+        self.penalty_decay = penalty_decay
         self.eval_mode = eval_mode
         self.sample_budget = sample_budget
         self.years = years
@@ -164,7 +166,10 @@ class HeatAlertEnv(gym.Env):
                           self.posterior_coefficient_samples["effectiveness_bias"][posterior_index])
 
         if self.penalize:
-            return 1 - baseline - (self.penalty)**((self.t)**(1/3))
+            if self.penalty_decay:
+                return 1 - baseline - (self.penalty)**((self.t)**(1/3))
+            else: 
+                return 1 - baseline - self.penalty
         else:
             return 1 - baseline * (1 - effectiveness * action)
 

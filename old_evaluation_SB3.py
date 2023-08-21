@@ -62,7 +62,7 @@ def main(cfg: DictConfig):
         cfg.county,
         cfg.datadir,
         years=cfg.val_years if cfg.eval.val_years else cfg.train_years,
-        match_similar=False,
+        match_similar=cfg.eval.match_similar,
         as_tensors=True,
     )
 

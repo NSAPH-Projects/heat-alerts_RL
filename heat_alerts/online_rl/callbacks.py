@@ -14,13 +14,13 @@ class AlertLoggingCallback(BaseCallback):
         self.num_over_budget = 0
         self.num_alerts = 0
         self.num_steps = 0
-        self.rolled_rewards = 0
+        self.n_envs = len(self.training_env.envs)
 
     def _on_step(self) -> bool:
-        n_envs = len(self.training_env.envs)
         if self.current_streak is None:
-            self.last_alert = np.zeros(n_envs, dtype=int)
-            self.current_streak = np.zeros(n_envs, dtype=int)
+            self.last_alert = np.zeros(self.n_envs, dtype=int)
+            self.current_streak = np.zeros(self.n_envs, dtype=int)
+            self.rolled_rewards = np.zeros(self.n_envs, dtype=float)
 
         for i, env in enumerate(self.training_env.envs):
             self.num_steps += 1
@@ -41,14 +41,14 @@ class AlertLoggingCallback(BaseCallback):
                 self.last_alert[i] = this_alert
             
             if env.t == env.n_days - 2: # if done on last day, cum_reward will already have been reset to 0
-                self.rolled_rewards += env.cum_reward
+                self.rolled_rewards[i] += env.cum_reward
 
         return True
 
     def _on_rollout_end(self):
         # Log the metrics to TensorBoard
         summary = {
-            "training_rewards": self.rolled_rewards,
+            "training_rewards": np.mean(self.rolled_rewards),
             "over_budget_freq": self.num_over_budget / self.num_steps,
             "alerts_freq": self.num_alerts / self.num_steps,
             "average_t_alerts": np.mean(self.when_alerted) if self.when_alerted else 0,

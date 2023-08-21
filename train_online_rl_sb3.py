@@ -113,6 +113,7 @@ def main(cfg: DictConfig):
         prev_alert_mean = dm.prev_alert_mean,
         prev_alert_std = dm.prev_alert_std,
         sample_budget = cfg.sample_budget,
+        penalty_decay = cfg.penalty_decay,
     )
     val_kwargs = dict(
         posterior_coefficient_samples=samples,

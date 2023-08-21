@@ -5,13 +5,15 @@ eval.match_similar<- c("true", "false")
 # eval_mode<- c("true") # , "false"
 # eval.eval_mode<- c("true") # , "false"
 
-penalty<- c(0.2) # 0.0, 0.001, 0.01, 1.0, 5.0
+penalty<- c(0.01) # 0.0, 0.001, 0.01, 1.0, 5.0
 eval.episodes<- c(25)
-policy_kwargs.net_arch="[32,32]"
+policy_kwargs.net_arch<- "[16]"
+penalty_decay<- c("false")
 
-training<- expand.grid(algos, penalty, eval.episodes, policy_kwargs.net_arch)
+training<- expand.grid(algos, penalty, eval.episodes, policy_kwargs.net_arch,
+                       penalty_decay)
 colnames(training)<- c("algo", "penalty", "eval.episodes",
-                       "algo.policy_kwargs.net_arch")
+                       "algo.policy_kwargs.net_arch", "penalty_decay")
 evaluation<- expand.grid(algos, eval.val_years, eval.match_similar, 
                          policy_kwargs.net_arch)
 colnames(evaluation)<- c("algo", "eval.val_years", "eval.match_similar",
@@ -23,8 +25,8 @@ colnames(evaluation)<- c("algo", "eval.val_years", "eval.match_similar",
 # colnames(evaluation)<- c("algo", "eval.val_years", "eval.match_similar",
 #                          "eval.eval_mode")
 
-training$model_name<- paste0(training$algo, "_big") # ME = multi-env
-evaluation$model_name<- paste0(evaluation$algo, "_big") # ME = multi-env
+training$model_name<- paste0(training$algo, "_ND_small") # ME = multi-env
+evaluation$model_name<- paste0(evaluation$algo, "_ND_small") # ME = multi-env
 
 training_script<- "python train_online_rl_sb3.py"
 evaluation_script<- "python old_evaluation_SB3.py"
