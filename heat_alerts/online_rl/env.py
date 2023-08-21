@@ -57,6 +57,7 @@ class HeatAlertEnv(gym.Env):
         super().__init__()
 
         self.global_seed = global_seed
+        self.rng = np.random.default_rng(self.global_seed)
         self.baseline_dim = len(baseline_states)
         self.extra_dim = len(extra_states)
 
@@ -104,12 +105,11 @@ class HeatAlertEnv(gym.Env):
         self.action_space = spaces.Discrete(2)  # alert or no alert
 
     def reset(self, seed: int | None = None):
-        # TODO: use a proper rng
-        self.rng = np.random.default_rng(self.global_seed + seed)
         self.attempted_alert_buffer = [] # what the RL tries to do
         self.allowed_alert_buffer = [] # what we allow the RL to do (based on the budget)
         self.t = 0  # day of summer indicator
         self.feature_ep_index = self.rng.choice(self.n_feature_episodes) #  We call this a hybrid environment because it uses a model for the rewards but samples the real weather trajectories for each summer.
+        # print(str(self.global_seed) + " + " + str(self.feature_ep_index))
         b = self.other_data["budget"][self.feature_ep_index, self.t]
         if self.sample_budget:
             self.budget = self.rng.integers(0.5*b, 1.5*b + 1)

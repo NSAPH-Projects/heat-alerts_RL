@@ -21,11 +21,11 @@ from heat_alerts.online_rl.callbacks import AlertLoggingCallback
 
 
 def make_env(rank: int, seed: int, **kwargs) -> HeatAlertEnv:
-    """Auxiliry function to make parallel vectorized envs"""
-    set_random_seed(seed + rank)
+    """Auxiliary function to make parallel vectorized envs"""
+    set_random_seed(seed)
 
     def _init() -> HeatAlertEnv:
-        return HeatAlertEnv(global_seed = rank,**kwargs)
+        return HeatAlertEnv(global_seed = rank, **kwargs)
 
     return _init
 
