@@ -141,16 +141,10 @@ def main(cfg: DictConfig):
     # RL training code here
     logging.info("Creating RL model")
     logger = configure(f"./logs/SB/{cfg.model_name}/training_metrics", ["csv", "tensorboard"])
-    print(cfg.algo)
-    if cfg.algo['_target_'] == 'sb3_contrib.RecurrentPPO':
-        rl_model = hydra.utils.instantiate(
-            cfg.algo, policy="MlpLstmPolicy", env = env, verbose=0 #, tensorboard_log="./logs/rl_tensorboard/"
+    # print(cfg.algo)
+    rl_model = hydra.utils.instantiate(
+            cfg.algo, env = env, verbose=0 #, tensorboard_log="./logs/rl_tensorboard/"
         )
-    else:
-        rl_model = hydra.utils.instantiate(
-            cfg.algo, policy="MlpPolicy", env = env, verbose=0 #, tensorboard_log="./logs/rl_tensorboard/"
-        )
-
     rl_model.set_logger(logger)
 
     # Create a callback to evaluate the agent

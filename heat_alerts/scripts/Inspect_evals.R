@@ -43,7 +43,8 @@ Type<- rep(c("eval", "eval_samp", "train", "train_samp"), each=length(these))
 nws<- round(c(NWS_eval, NWS_eval_samp, NWS_train, NWS_train_samp))
 NWS<- rep(nws, each=length(these))
 
-for(model in c("0", "p1", "p0", "p-01", "p-005", "p-001", "p-001_ee25")){
+# for(model in c("0", "p1", "p0", "p-01", "p-005", "p-001", "p-001_ee25")){
+for(model in c("p-05_ME", "p-001_ME", "p-0_ME")){ # "p-0"
   ## Read in data and calculate estimated rewards:
   PPO_eval_samp<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_ppo_", model, "_fips_36005.csv"))
   PPO_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_ppo_", model, "_fips_36005.csv"))
@@ -77,9 +78,9 @@ for(model in c("0", "p1", "p0", "p-01", "p-005", "p-001", "p-001_ee25")){
   })
   Reward<- round(as.vector(t(r)))
   
-  if(model == "0"){
+  if(model == "p-05_ME"){
     DF<- data.frame(Type, NWS, Algo, Reward)
-    names(DF)[which(names(DF) == "Reward")]<- paste0("R_", "p1_a")
+    names(DF)[which(names(DF) == "Reward")]<- paste0("R_", model)
     df<- DF
   }else{
     DF<- data.frame(Type, NWS, Algo, Reward)

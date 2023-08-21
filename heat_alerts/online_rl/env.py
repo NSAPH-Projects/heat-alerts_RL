@@ -164,7 +164,7 @@ class HeatAlertEnv(gym.Env):
                           self.posterior_coefficient_samples["effectiveness_bias"][posterior_index])
 
         if self.penalize:
-            return 1 - baseline - self.penalty
+            return 1 - baseline - (self.penalty)**((self.t)**(1/3))
         else:
             return 1 - baseline * (1 - effectiveness * action)
 

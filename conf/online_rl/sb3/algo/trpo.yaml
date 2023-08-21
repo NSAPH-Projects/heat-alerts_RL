@@ -1,5 +1,6 @@
 _target_: sb3_contrib.TRPO
-n_steps: 2048 # 256
+policy: MlpPolicy
+n_steps: 256 # 2048
 learning_rate: 0.001
 policy_kwargs:
   net_arch: [16, 16]

@@ -1,4 +1,5 @@
 _target_: stable_baselines3.DQN
+policy: MlpPolicy
 policy_kwargs:
   net_arch: [16, 16]
 exploration_fraction: 0.25

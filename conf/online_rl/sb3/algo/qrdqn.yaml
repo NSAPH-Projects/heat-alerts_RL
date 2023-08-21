@@ -1,4 +1,5 @@
 _target_: sb3_contrib.QRDQN
+policy: MlpPolicy
 policy_kwargs:
   net_arch: [16, 16]
   n_quantiles: 50

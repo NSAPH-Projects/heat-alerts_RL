@@ -21,7 +21,7 @@ num_envs: 32 # 1
 parallel: false
 training_timesteps: 10_000_000 # 3_000_000
 sample_budget: true
-penalty: 1.0
+penalty: 0.2 # 1.0
 eval_mode: false
 
 eval:

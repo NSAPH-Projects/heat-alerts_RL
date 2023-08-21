@@ -4,14 +4,14 @@ library(rjson)
 
 # bayes<- read.csv("Bayesian_models/Bayesian_R_7-19.csv", header=FALSE)
 # bayes<- read.csv("Bayesian_models/Bayesian_Full_8-4.csv", header=FALSE)
-# bayes<- read.csv("Bayesian_models/Bayesian_Full_8-7.csv", header=FALSE)
-bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_full_8-16.csv", header=FALSE)
+# bayes<- read.csv("Bayesian_models/Bayesian_Full_8-14.csv", header=FALSE)
+bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FullFast_8-16.csv", header=FALSE)
 
 #### Compare to observations:
-Y<- read_parquet("bayesian_model/data/processed/outcomes.parquet")$other_hosps
-A<- read_parquet("bayesian_model/data/processed/actions.parquet")$alert
-offset<- read_parquet("bayesian_model/data/processed/offset.parquet")[,1]
-denom<- read_parquet("bayesian_model/data/processed/Medicare_denominator.parquet")[,1]
+Y<- read_parquet("data/processed/outcomes.parquet")$other_hosps
+A<- read_parquet("data/processed/actions.parquet")$alert
+offset<- read_parquet("data/processed/offset.parquet")[,1]
+denom<- read_parquet("data/processed/Medicare_denominator.parquet")[,1]
 
 # pred_Y<- bayes$R0
 # pred_Y[A==1]<- bayes$R1[A==1]
@@ -30,14 +30,14 @@ cor(Y, pred_Y)^2
 
 effectiveness<- bayes$V1
 
-locs<- read_parquet("bayesian_model/data/processed/location_indicator.parquet")[,1]
+locs<- read_parquet("data/processed/location_indicator.parquet")[,1]$sind
 
-crosswalk<- unlist(fromJSON(file="bayesian_model/data/processed/fips2idx.json"))
+crosswalk<- unlist(fromJSON(file="data/processed/fips2idx.json"))
 fips<- names(crosswalk)
 
 sum_alerts<- aggregate(A ~ locs, data.frame(A,locs), sum)
 
-W<- as.data.frame(read_parquet("bayesian_model/data/processed/spatial_feats.parquet"))
+W<- as.data.frame(read_parquet("data/processed/spatial_feats.parquet"))
 region_vars<- c("Cold", "Hot-Dry", "Marine", "Mixed-Dry", "Mixed-Humid", "Very Cold")
 Region<- apply(W[,region_vars],
                MARGIN=1, function(x) region_vars[which(x == 1)])

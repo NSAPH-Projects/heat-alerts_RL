@@ -104,14 +104,9 @@ def main(cfg: DictConfig):
     eval_env = HeatAlertEnv(**val_kwargs)
 
     if cfg.policy_type == "RL":
-        if cfg.algo['_target_'] == 'sb3_contrib.RecurrentPPO':
-            rl_model = hydra.utils.instantiate(
-                cfg.algo, policy="MlpLstmPolicy", env = eval_env, verbose=0 #, tensorboard_log="./logs/rl_tensorboard/"
-            )
-        else:
-            rl_model = hydra.utils.instantiate(
-                cfg.algo, policy="MlpPolicy", env = eval_env, verbose=0 #, tensorboard_log="./logs/rl_tensorboard/"
-            )
+        rl_model = hydra.utils.instantiate(
+            cfg.algo, env = eval_env, verbose=0 #, tensorboard_log="./logs/rl_tensorboard/"
+        )
         rl_model.load(f"./logs/SB/{cfg.model_name}/best_model/best_model")
     else:
         rl_model = None
