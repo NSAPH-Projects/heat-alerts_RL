@@ -25,7 +25,7 @@ def make_env(rank: int, seed: int, **kwargs) -> HeatAlertEnv:
     set_random_seed(seed + rank)
 
     def _init() -> HeatAlertEnv:
-        return HeatAlertEnv(**kwargs)
+        return HeatAlertEnv(global_seed = rank,**kwargs)
 
     return _init
 

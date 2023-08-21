@@ -19,7 +19,8 @@ class HeatAlertEnv(gym.Env):
         sample_budget: bool = True,
         years = [],
         prev_alert_mean = 0,
-        prev_alert_std = 1
+        prev_alert_std = 1,
+        global_seed: int = 0,
     ):
         """Initialize the environment.
 
@@ -55,6 +56,7 @@ class HeatAlertEnv(gym.Env):
         """
         super().__init__()
 
+        self.global_seed = global_seed
         self.baseline_dim = len(baseline_states)
         self.extra_dim = len(extra_states)
 
@@ -64,9 +66,6 @@ class HeatAlertEnv(gym.Env):
         self.years = years
 
         self.posterior_coefficient_samples = posterior_coefficient_samples
-        self.avg_posterior_coefficients = {}
-        for k in posterior_coefficient_samples:
-            self.avg_posterior_coefficients[k] = np.mean(posterior_coefficient_samples[k])
         self.baseline_states = baseline_states
         self.effectiveness_states = effectiveness_states
         self.extra_states = extra_states
@@ -106,7 +105,7 @@ class HeatAlertEnv(gym.Env):
 
     def reset(self, seed: int | None = None):
         # TODO: use a proper rng
-        self.rng = np.random.default_rng(seed)
+        self.rng = np.random.default_rng(self.global_seed + seed)
         self.attempted_alert_buffer = [] # what the RL tries to do
         self.allowed_alert_buffer = [] # what we allow the RL to do (based on the budget)
         self.t = 0  # day of summer indicator
@@ -142,28 +141,16 @@ class HeatAlertEnv(gym.Env):
         )
 
     def _get_reward(self, posterior_index, action, alert_feats):
-        if self.eval_mode:
-            baseline_contribs = [
-                self.baseline_states[k][self.feature_ep_index, self.t]
-                * self.avg_posterior_coefficients[k]
-                for k in self.baseline_states
-            ]
-            effectiveness_contribs = [
-                self.effectiveness_states[k][self.feature_ep_index, self.t]
-                * self.avg_posterior_coefficients[k]
-                for k in self.effectiveness_states
-            ]
-        else: 
-            baseline_contribs = [
-                self.baseline_states[k][self.feature_ep_index, self.t]
-                * self.posterior_coefficient_samples[k][posterior_index]
-                for k in self.baseline_states
-            ]
-            effectiveness_contribs = [
-                self.effectiveness_states[k][self.feature_ep_index, self.t]
-                * self.posterior_coefficient_samples[k][posterior_index]
-                for k in self.effectiveness_states
-            ]
+        baseline_contribs = [
+            self.baseline_states[k][self.feature_ep_index, self.t]
+            * self.posterior_coefficient_samples[k][posterior_index]
+            for k in self.baseline_states
+        ]
+        effectiveness_contribs = [
+            self.effectiveness_states[k][self.feature_ep_index, self.t]
+            * self.posterior_coefficient_samples[k][posterior_index]
+            for k in self.effectiveness_states
+        ]
         baseline = np.exp(sum(baseline_contribs) + 
                           # Note: remaining alerts is not a feature in the rewards model
                           alert_feats[1]*self.posterior_coefficient_samples["baseline_previous_alerts"][posterior_index] +
@@ -203,7 +190,7 @@ class HeatAlertEnv(gym.Env):
 
         # compute reward for the new state
         posterior_indices = (
-            [0] # np.arange(self.n_posterior_samples)
+            np.arange(self.n_posterior_samples)
             if self.eval_mode
             else [self.rng.choice(self.n_posterior_samples)]
         )

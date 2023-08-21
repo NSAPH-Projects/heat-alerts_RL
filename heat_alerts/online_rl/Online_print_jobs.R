@@ -2,20 +2,25 @@
 algos<- c("trpo", "ppo", "dqn", "qrdqn", "lstm")
 eval.val_years<- c("true", "false")
 eval.match_similar<- c("true", "false")
-eval_mode<- c("true") # , "false"
-eval.eval_mode<- c("true") # , "false"
+# eval_mode<- c("true") # , "false"
+# eval.eval_mode<- c("true") # , "false"
 
-penalty<- c(0.005) # 0.0, 0.001, 0.01, 1.0, 5.0
+penalty<- c(0.001) # 0.0, 0.001, 0.01, 1.0, 5.0
+eval.episodes<- c(25)
 
-training<- expand.grid(algos, penalty, eval_mode, eval.eval_mode)
-colnames(training)<- c("algo", "penalty", "eval_mode", "eval.eval_mode")
-evaluation<- expand.grid(algos, eval.val_years, eval.match_similar,
-                         eval.eval_mode)
-colnames(evaluation)<- c("algo", "eval.val_years", "eval.match_similar",
-                         "eval.eval_mode")
+training<- expand.grid(algos, penalty, eval.episodes)
+colnames(training)<- c("algo", "penalty", "eval.episodes")
+evaluation<- expand.grid(algos, eval.val_years, eval.match_similar)
+colnames(evaluation)<- c("algo", "eval.val_years", "eval.match_similar")
+# training<- expand.grid(algos, penalty, eval_mode, eval.eval_mode)
+# colnames(training)<- c("algo", "penalty", "eval_mode", "eval.eval_mode")
+# evaluation<- expand.grid(algos, eval.val_years, eval.match_similar,
+#                          eval.eval_mode)
+# colnames(evaluation)<- c("algo", "eval.val_years", "eval.match_similar",
+#                          "eval.eval_mode")
 
-training$model_name<- paste0(training$algo, "_EM_p-005") # _EM_p-005
-evaluation$model_name<- paste0(evaluation$algo, "_EM_p-005") # _EM_p-005
+training$model_name<- paste0(training$algo, "_p-001_ee25") # _EM_p-005
+evaluation$model_name<- paste0(evaluation$algo, "_p-001_ee25") # _EM_p-005
 
 training_script<- "python train_online_rl_sb3.py"
 evaluation_script<- "python old_evaluation_SB3.py"
