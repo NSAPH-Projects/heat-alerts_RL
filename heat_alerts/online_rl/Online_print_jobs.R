@@ -1,39 +1,70 @@
 
-county<- c(4013) # 36005, 4013
-algos<- c("trpo", "ppo", "dqn", "qrdqn", "lstm")
-match_similar<- c("true") # "false"
+county<- c(36005, 4013) # 36005, 4013
+algos<- c("trpo", "ppo", "dqn") # , "lstm", "qrdqn"
+# match_similar<- c("true") # "false"
 eval.val_years<- c("true", "false")
 eval.match_similar<- c("true", "false") 
 # eval_mode<- c("true") # , "false"
 # eval.eval_mode<- c("true") # , "false"
 
-penalty<- c(0.2) # 0.2 vs 0.01
-eval.episodes<- c(25)
+learning_rate<- c(0.001, 0.0001)
+eval.episodes<- c(25, 100)
 policy_kwargs.net_arch<- "[16]"
-penalty_decay<- c("true") # false
+penalty_decay<- c("false") # "true", "false"
+explore_budget<- c("true", "false")
 
-training<- expand.grid(county, algos, match_similar, penalty, eval.episodes, policy_kwargs.net_arch,
-                       penalty_decay, eval.match_similar)
-colnames(training)<- c("county", "algo", "match_similar", "penalty", "eval.episodes",
-                       "algo.policy_kwargs.net_arch", "penalty_decay",
-                       "eval.match_similar")
-evaluation<- expand.grid(county, algos, eval.val_years, eval.match_similar, 
-                         policy_kwargs.net_arch)
-colnames(evaluation)<- c("county", "algo", "eval.val_years", "eval.match_similar",
-                         "algo.policy_kwargs.net_arch")
-# training<- expand.grid(algos, penalty, eval_mode, eval.eval_mode)
-# colnames(training)<- c("algo", "penalty", "eval_mode", "eval.eval_mode")
-# evaluation<- expand.grid(algos, eval.val_years, eval.match_similar,
-#                          eval.eval_mode)
-# colnames(evaluation)<- c("algo", "eval.val_years", "eval.match_similar",
-#                          "eval.eval_mode")
 
-# rm_pos<- which((training$penalty == 0.2 & training$penalty_decay=="false")|
-#                  (training$penalty == 0.01 & training$penalty_decay=="true"))
-# training<- training[-rm_pos,]
+training<- expand.grid(county, 
+                       algos, 
+                       # match_similar,
+                       explore_budget,
+                       eval.episodes, 
+                       policy_kwargs.net_arch,
+                       penalty_decay, 
+                       # eval.match_similar,
+                       learning_rate)
+colnames(training)<- c("county", 
+                       "algo", 
+                       # "match_similar",
+                       "explore_budget",
+                       "eval.episodes",
+                       "algo.policy_kwargs.net_arch", 
+                       "penalty_decay",
+                       # "eval.match_similar",
+                       "algo.learning_rate")
+evaluation<- expand.grid(county, 
+                         algos, 
+                         eval.val_years, 
+                         eval.match_similar, 
+                         policy_kwargs.net_arch,
+                         learning_rate)
+colnames(evaluation)<- c("county", 
+                         "algo", 
+                         "eval.val_years", 
+                         "eval.match_similar",
+                         "algo.policy_kwargs.net_arch",
+                         "algo.learning_rate")
 
-training$model_name<- paste0(training$algo, "_small_", county) 
-evaluation$model_name<- paste0(evaluation$algo, "_small_", county) 
+training$penalty<- 0.01
+training[which(training$penalty_decay == "true"), "penalty"]<- 0.2
+training$eval.freq<- 1000
+training[which(training$eval.episodes == 100), "eval.freq"]<- 4000
+training$training_timesteps<- 10000000
+training[which(training$algo.learning_rate == 0.0001), "training_timesteps"]<- 100000000
+
+training$model_name<- paste0("T0", "_fips-", training$county, 
+                             "_", training$algo,
+                             "_LR-", training$algo.learning_rate,
+                             "_EB-", training$explore_budget, 
+                             "_EE-", training$eval.episodes) 
+
+
+
+evaluation$model_name<- paste0("T0", "_fips-", evaluation$county, 
+                               "_", evaluation$algo,
+                               "_LR-", evaluation$algo.learning_rate,
+                               "_EB-", evaluation$explore_budget,
+                               "_EE-", evaluation$eval.episodes) 
 # training$model_name<- paste0(training$algo, "_obs-W_decay-", training$penalty_decay) # ME = multi-env
 # evaluation$model_name<- paste0(evaluation$algo, "_obs-W_decay-", training$penalty_decay) # ME = multi-env
 
@@ -44,20 +75,27 @@ Training<- sapply(1:ncol(training), function(i){paste0(colnames(training)[i], "=
 Evaluation<- sapply(1:ncol(evaluation), function(i){paste0(colnames(evaluation)[i], "=", evaluation[,i])})
 
 
-for(i in 1:length(algos)){
+for(i in 1:nrow(Training)){
   cat(training_script,
-    paste(
-      Training[i,]
-    ), " \n"
-  )
-  for(j in which(evaluation$algo == algos[i])){
-    cat(evaluation_script,
-        paste(
-          Evaluation[j,]
-        ), " \n"
-    )
+      paste(
+        Training[i,]
+      ), " \n")
+  for(v in eval.val_years){
+    for(m in eval.match_similar){
+      cat(evaluation_script,
+          paste0(
+            Training[i,which(names(training) == "county")], " ",
+            Training[i,which(names(training) == "algo")], " ",
+            Training[i,which(names(training) == "algo.policy_kwargs.net_arch")], " ",
+            Training[i,which(names(training) == "algo.learning_rate")], " ",
+            "eval.val_years=", v,  " ",
+            "eval.match_similar=", m, " ",
+            Training[i,which(names(training) == "model_name")],
+            " \n"
+          ))
+    }
   }
-  cat("\n")
+  cat(" \n")
 }
 
 ## For NWS and NA:

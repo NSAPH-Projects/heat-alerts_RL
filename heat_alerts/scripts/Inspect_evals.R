@@ -36,14 +36,25 @@ NA_train_samp<- my_proc(paste0("Summer_results/ORL_NA_train_samp-R_samp-W_test_f
 NA_eval<- my_proc(paste0("Summer_results/ORL_NA_eval_samp-R_obs-W_test_fips_", county, ".csv"))
 NA_train<- my_proc(paste0("Summer_results/ORL_NA_train_samp-R_obs-W_test_fips_", county, ".csv"))
 
+random_eval_samp<- my_proc(paste0("Summer_results/ORL_random_eval_samp-R_samp-W_test_fips_", county, ".csv"))
+random_train_samp<- my_proc(paste0("Summer_results/ORL_random_train_samp-R_samp-W_test_fips_", county, ".csv"))
+random_eval<- my_proc(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_test_fips_", county, ".csv"))
+random_train<- my_proc(paste0("Summer_results/ORL_random_train_samp-R_obs-W_test_fips_", county, ".csv"))
+
+na<- round(c(NA_eval, NA_eval_samp, NA_train, NA_train_samp),3)
+random<- round(c(random_eval, random_eval_samp, random_train, random_train_samp),3)
+nws<- round(c(NWS_eval, NWS_eval_samp, NWS_train, NWS_train_samp),3)
+
+na
+random
+nws
+
 ### Make a table, updated:
 
 these<- c("TRPO", "LSTM", "PPO", "DQN", "QRDQN")
 Algo<- rep(these, 4)
 # Model<- append(Model, rep(model, length(these)*4))
 Type<- rep(c("eval", "eval_samp", "train", "train_samp"), each=length(these))
-na<- round(c(NA_eval, NA_eval_samp, NA_train, NA_train_samp),3)
-nws<- round(c(NWS_eval, NWS_eval_samp, NWS_train, NWS_train_samp),3)
 NWS<- rep(nws, each=length(these))
 
 # for(model in c("0", "p1", "p0", "p-01", "p-005", "p-001", "p-001_ee25")){

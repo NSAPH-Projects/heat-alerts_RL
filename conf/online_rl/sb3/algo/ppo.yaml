@@ -1,6 +1,6 @@
 _target_: stable_baselines3.PPO
 policy: MlpPolicy
-n_steps: 256 # 2048
+n_steps: 2048 # 256
 learning_rate: 0.001
 policy_kwargs:
   net_arch: [16, 16]

@@ -120,7 +120,7 @@ def main(cfg: DictConfig):
         elif policy_type == "NWS":
             return(env.other_data["nws_alert"][env.feature_ep_index, env.t])
         elif policy_type == "random":
-            return(np.random.binomial(1, 1/env.n_days))
+            return(np.random.binomial(1, env.budget/env.n_days))
 
     rewards = []
     actions = []
