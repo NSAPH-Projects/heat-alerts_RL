@@ -24,8 +24,7 @@ from heat_alerts.online_rl.callbacks import AlertLoggingCallback
 # cfg.policy_type="NWS"
 # cfg.policy_type="NA"
 
-@hydra.main(config_path="conf/online_rl/sb3", config_name="config", version_base=None)
-def main(cfg: DictConfig):
+def prep_data(cfg: DictConfig):
     # Set seed
     set_random_seed(cfg.seed)
 
@@ -56,16 +55,6 @@ def main(cfg: DictConfig):
     logging.info("Loading checkpoint")
     guide.load_state_dict(torch.load(cfg.guide_ckpt, map_location=torch.device("cpu")))
 
-    # Load states data
-    logging.info("Loading RL states data")
-    base_dict_val, effect_dict_val, extra_dict_val, other_dict_val = load_rl_states_by_county(
-        cfg.county,
-        cfg.datadir,
-        years=cfg.val_years if cfg.eval.val_years else cfg.train_years,
-        match_similar=cfg.eval.match_similar,
-        as_tensors=True,
-    )
-
     logging.info("Loading supporting county data (index mapping)")
     with open(f"{cfg.datadir}/fips2idx.json", "r") as f:
         fips2ix = json.load(f)
@@ -85,6 +74,21 @@ def main(cfg: DictConfig):
         _clean_key(k): np.array([s[k][ix].item() for s in samples]) for k in samples[0].keys()
     }
 
+    return(dm, samples)
+
+
+def custom_eval(cfg: DictConfig, dm, samples):
+
+    # Load states data
+    logging.info("Loading RL states data")
+    base_dict_val, effect_dict_val, extra_dict_val, other_dict_val = load_rl_states_by_county(
+        cfg.county,
+        cfg.datadir,
+        years=cfg.val_years if cfg.eval.val_years else cfg.train_years,
+        match_similar=cfg.eval.match_similar,
+        as_tensors=True,
+    )
+
     # make RL env
     logging.info("Making RL environment")
     val_kwargs = dict(
@@ -100,9 +104,10 @@ def main(cfg: DictConfig):
         sample_budget = False,
         years = cfg.val_years,
     )
-
+    
     eval_env = HeatAlertEnv(**val_kwargs)
 
+    logging.info("Preparing to evaluate policy")
     if cfg.policy_type == "RL":
         rl_model = hydra.utils.instantiate(
             cfg.algo, env = eval_env, verbose=0 #, tensorboard_log="./logs/rl_tensorboard/"
@@ -127,6 +132,7 @@ def main(cfg: DictConfig):
     year = []
     budget = []
 
+    logging.info("Evaluating policy")
     for i in range(0, cfg.final_eval_episodes):
         obs, info = eval_env.reset()
         action = get_action(cfg.policy_type, obs, eval_env, rl_model)
@@ -150,4 +156,7 @@ def main(cfg: DictConfig):
     results.to_csv(f"Summer_results/ORL_{cfg.policy_type}_{year_set}_{posterior}_{weather}_{cfg.model_name}_fips_{cfg.county}.csv")
 
 if __name__ == "__main__":
-    main()
+    hydra.initialize(config_path="conf/online_rl/sb3", version_base=None)
+    cfg = hydra.compose(config_name="config")
+    dm, samples = prep_data(cfg)
+    custom_eval(cfg=cfg, dm=dm, samples=samples)

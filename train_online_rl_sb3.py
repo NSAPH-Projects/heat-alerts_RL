@@ -19,6 +19,8 @@ from heat_alerts.online_rl.datautils import load_rl_states_by_county
 from heat_alerts.online_rl.env import HeatAlertEnv
 from heat_alerts.online_rl.callbacks import AlertLoggingCallback
 
+from old_evaluation_SB3 import custom_eval
+
 
 def make_env(rank: int, seed: int, **kwargs) -> HeatAlertEnv:
     """Auxiliary function to make parallel vectorized envs"""
@@ -167,6 +169,15 @@ def main(cfg: DictConfig):
         callback=[eval_callback, alert_logging_callback],
         progress_bar=True,
     )
+
+    logging.info("Performing evaluations")
+    new_cfg = cfg
+    for v in [True, False]:
+        for m in [True, False]:
+            new_cfg.eval.val_years = v
+            new_cfg.eval.match_similar = m
+            custom_eval(new_cfg, dm=dm, samples=samples)
+            logging.info("Completed eval with eval.val_years="+str(v)+" and eval.match_similar="+str(m))
 
 
 if __name__ == "__main__":

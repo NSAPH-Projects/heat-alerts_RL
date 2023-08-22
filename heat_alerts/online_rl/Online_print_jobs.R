@@ -59,21 +59,21 @@ for(i in 1:nrow(Short)){
       paste(
         Short[i,]
       ), " \n")
-  for(v in eval.val_years){
-    for(m in eval.match_similar){
-      cat(evaluation_script,
-          paste0(
-            Short[i,which(names(training) == "county")], " ",
-            Short[i,which(names(training) == "algo")], " ",
-            Short[i,which(names(training) == "algo.policy_kwargs.net_arch")], " ",
-            Short[i,which(names(training) == "algo.learning_rate")], " ",
-            "eval.val_years=", v,  " ",
-            "eval.match_similar=", m, " ",
-            Short[i,which(names(training) == "model_name")],
-            " \n"
-          ))
-    }
-  }
+  # for(v in eval.val_years){
+  #   for(m in eval.match_similar){
+  #     cat(evaluation_script,
+  #         paste0(
+  #           Short[i,which(names(training) == "county")], " ",
+  #           Short[i,which(names(training) == "algo")], " ",
+  #           Short[i,which(names(training) == "algo.policy_kwargs.net_arch")], " ",
+  #           Short[i,which(names(training) == "algo.learning_rate")], " ",
+  #           "eval.val_years=", v,  " ",
+  #           "eval.match_similar=", m, " ",
+  #           Short[i,which(names(training) == "model_name")],
+  #           " \n"
+  #         ))
+  #   }
+  # }
   cat(" \n")
 }
 sink()
@@ -84,21 +84,21 @@ for(i in 1:nrow(Long)){
       paste(
         Long[i,]
       ), " \n")
-  for(v in eval.val_years){
-    for(m in eval.match_similar){
-      cat(evaluation_script,
-          paste0(
-            Long[i,which(names(training) == "county")], " ",
-            Long[i,which(names(training) == "algo")], " ",
-            Long[i,which(names(training) == "algo.policy_kwargs.net_arch")], " ",
-            Long[i,which(names(training) == "algo.learning_rate")], " ",
-            "eval.val_years=", v,  " ",
-            "eval.match_similar=", m, " ",
-            Long[i,which(names(training) == "model_name")],
-            " \n"
-          ))
-    }
-  }
+  # for(v in eval.val_years){
+  #   for(m in eval.match_similar){
+  #     cat(evaluation_script,
+  #         paste0(
+  #           Long[i,which(names(training) == "county")], " ",
+  #           Long[i,which(names(training) == "algo")], " ",
+  #           Long[i,which(names(training) == "algo.policy_kwargs.net_arch")], " ",
+  #           Long[i,which(names(training) == "algo.learning_rate")], " ",
+  #           "eval.val_years=", v,  " ",
+  #           "eval.match_similar=", m, " ",
+  #           Long[i,which(names(training) == "model_name")],
+  #           " \n"
+  #         ))
+  #   }
+  # }
   cat(" \n")
 }
 sink()
