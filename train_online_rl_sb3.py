@@ -70,7 +70,7 @@ def main(cfg: DictConfig):
         cfg.county,
         cfg.datadir,
         years=cfg.train_years,
-        match_similar=True,
+        match_similar=cfg.match_similar,
         as_tensors=True,
     )
     base_dict_val, effect_dict_val, extra_dict_val, other_dict_val = load_rl_states_by_county(

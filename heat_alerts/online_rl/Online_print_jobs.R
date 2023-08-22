@@ -1,22 +1,25 @@
 
+county<- c(4013) # 36005, 4013
 algos<- c("trpo", "ppo", "dqn", "qrdqn", "lstm")
+match_similar<- c("true") # "false"
 eval.val_years<- c("true", "false")
-eval.match_similar<- c("true", "false")
+eval.match_similar<- c("true", "false") 
 # eval_mode<- c("true") # , "false"
 # eval.eval_mode<- c("true") # , "false"
 
-penalty<- c(0.01) # 0.0, 0.001, 0.01, 1.0, 5.0
+penalty<- c(0.2) # 0.2 vs 0.01
 eval.episodes<- c(25)
 policy_kwargs.net_arch<- "[16]"
-penalty_decay<- c("false")
+penalty_decay<- c("true") # false
 
-training<- expand.grid(algos, penalty, eval.episodes, policy_kwargs.net_arch,
-                       penalty_decay)
-colnames(training)<- c("algo", "penalty", "eval.episodes",
-                       "algo.policy_kwargs.net_arch", "penalty_decay")
-evaluation<- expand.grid(algos, eval.val_years, eval.match_similar, 
+training<- expand.grid(county, algos, match_similar, penalty, eval.episodes, policy_kwargs.net_arch,
+                       penalty_decay, eval.match_similar)
+colnames(training)<- c("county", "algo", "match_similar", "penalty", "eval.episodes",
+                       "algo.policy_kwargs.net_arch", "penalty_decay",
+                       "eval.match_similar")
+evaluation<- expand.grid(county, algos, eval.val_years, eval.match_similar, 
                          policy_kwargs.net_arch)
-colnames(evaluation)<- c("algo", "eval.val_years", "eval.match_similar",
+colnames(evaluation)<- c("county", "algo", "eval.val_years", "eval.match_similar",
                          "algo.policy_kwargs.net_arch")
 # training<- expand.grid(algos, penalty, eval_mode, eval.eval_mode)
 # colnames(training)<- c("algo", "penalty", "eval_mode", "eval.eval_mode")
@@ -25,8 +28,14 @@ colnames(evaluation)<- c("algo", "eval.val_years", "eval.match_similar",
 # colnames(evaluation)<- c("algo", "eval.val_years", "eval.match_similar",
 #                          "eval.eval_mode")
 
-training$model_name<- paste0(training$algo, "_ND_small") # ME = multi-env
-evaluation$model_name<- paste0(evaluation$algo, "_ND_small") # ME = multi-env
+# rm_pos<- which((training$penalty == 0.2 & training$penalty_decay=="false")|
+#                  (training$penalty == 0.01 & training$penalty_decay=="true"))
+# training<- training[-rm_pos,]
+
+training$model_name<- paste0(training$algo, "_small_", county) 
+evaluation$model_name<- paste0(evaluation$algo, "_small_", county) 
+# training$model_name<- paste0(training$algo, "_obs-W_decay-", training$penalty_decay) # ME = multi-env
+# evaluation$model_name<- paste0(evaluation$algo, "_obs-W_decay-", training$penalty_decay) # ME = multi-env
 
 training_script<- "python train_online_rl_sb3.py"
 evaluation_script<- "python old_evaluation_SB3.py"
@@ -50,6 +59,22 @@ for(i in 1:length(algos)){
   }
   cat("\n")
 }
+
+## For NWS and NA:
+cat(paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=true ", "county=", county, "\n"),
+    paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=false ", "county=", county, "\n"),
+    paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=false eval.match_similar=true ", "county=", county, "\n"),
+    paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=false eval.match_similar=false ", "county=", county, "\n"))
+
+cat(paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=true ", "county=", county, "\n"),
+    paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=false ", "county=", county, "\n"),
+    paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=true ", "county=", county, "\n"),
+    paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=false ", "county=", county, "\n"))
+
+cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=true ", "county=", county, "\n"),
+    paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false ", "county=", county, "\n"),
+    paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=true ", "county=", county, "\n"),
+    paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=false ", "county=", county, "\n"))
 
 
 ################################## Out of date...

@@ -14,9 +14,9 @@ class AlertLoggingCallback(BaseCallback):
         self.num_over_budget = 0
         self.num_alerts = 0
         self.num_steps = 0
-        self.n_envs = len(self.training_env.envs)
 
     def _on_step(self) -> bool:
+        self.n_envs = len(self.training_env.envs)
         if self.current_streak is None:
             self.last_alert = np.zeros(self.n_envs, dtype=int)
             self.current_streak = np.zeros(self.n_envs, dtype=int)

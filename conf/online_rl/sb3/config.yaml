@@ -20,6 +20,7 @@ val_years: [2007, 2011, 2015]
 num_envs: 32 # 1
 parallel: false
 training_timesteps: 10_000_000 # 3_000_000
+match_similar: true
 sample_budget: true
 penalty: 0.2 # 1.0
 penalty_decay: true
