@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH -J Orl
 #SBATCH -N 1
-#SBATCH -n 4
+#SBATCH -n 1
 #SBATCH -p fasse # test
 #SBATCH -t 0-2:00
-#SBATCH --mem 100G
+#SBATCH --mem 6G
 #SBATCH --array 0-1
 #SBATCH -o ./Run_jobs/slurm/orl.%a.out
 #SBATCH --mail-user=ellen_considine@g.harvard.edu
