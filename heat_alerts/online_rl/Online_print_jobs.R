@@ -74,7 +74,7 @@ evaluation_script<- "python old_evaluation_SB3.py"
 Training<- sapply(1:ncol(training), function(i){paste0(colnames(training)[i], "=", training[,i])})
 Evaluation<- sapply(1:ncol(evaluation), function(i){paste0(colnames(evaluation)[i], "=", evaluation[,i])})
 
-
+sink("Run_jobs/Online_tests")
 for(i in 1:nrow(Training)){
   cat(training_script,
       paste(
@@ -97,6 +97,8 @@ for(i in 1:nrow(Training)){
   }
   cat(" \n")
 }
+sink()
+
 
 ## For NWS and NA:
 cat(paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=true ", "county=", county, "\n"),

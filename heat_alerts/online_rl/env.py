@@ -17,6 +17,7 @@ class HeatAlertEnv(gym.Env):
         penalty: float = 1.0,
         eval_mode: bool = False,
         sample_budget: bool = True,
+        explore_budget: bool = False,
         penalty_decay: bool = False,
         years = [],
         prev_alert_mean = 0,
@@ -66,6 +67,7 @@ class HeatAlertEnv(gym.Env):
         self.penalty_decay = penalty_decay
         self.eval_mode = eval_mode
         self.sample_budget = sample_budget
+        self.explore_budget = explore_budget
         self.years = years
 
         self.posterior_coefficient_samples = posterior_coefficient_samples
@@ -114,7 +116,10 @@ class HeatAlertEnv(gym.Env):
         # print(str(self.global_seed) + " + " + str(self.feature_ep_index))
         b = self.other_data["budget"][self.feature_ep_index, self.t]
         if self.sample_budget:
-            self.budget = self.rng.integers(0.5*b, 1.5*b + 1)
+            if self.explore_budget:
+                self.budget = self.rng.integers(0, self.n_days + 1)
+            else:
+                self.budget = self.rng.integers(0.5*b, 1.5*b + 1)
         else:
             self.budget = b
         self.cum_reward = 0.0

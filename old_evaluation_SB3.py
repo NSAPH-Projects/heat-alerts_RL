@@ -132,8 +132,6 @@ def main(cfg: DictConfig):
         action = get_action(cfg.policy_type, obs, eval_env, rl_model)
         terminal = False
         while terminal == False:
-            if action == 1 and info["over_budget"]:
-                action = 0
             obs, reward, terminal, trunc, info = eval_env.step(action)
             rewards.append(reward)
             year.append(eval_env.other_data["y"][eval_env.feature_ep_index, eval_env.t].item())
