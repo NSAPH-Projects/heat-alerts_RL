@@ -32,18 +32,6 @@ colnames(training)<- c("county",
                        "penalty_decay",
                        # "eval.match_similar",
                        "algo.learning_rate")
-evaluation<- expand.grid(county, 
-                         algos, 
-                         eval.val_years, 
-                         eval.match_similar, 
-                         policy_kwargs.net_arch,
-                         learning_rate)
-colnames(evaluation)<- c("county", 
-                         "algo", 
-                         "eval.val_years", 
-                         "eval.match_similar",
-                         "algo.policy_kwargs.net_arch",
-                         "algo.learning_rate")
 
 training$penalty<- 0.01
 training[which(training$penalty_decay == "true"), "penalty"]<- 0.2
@@ -58,39 +46,55 @@ training$model_name<- paste0("T0", "_fips-", training$county,
                              "_EB-", training$explore_budget, 
                              "_EE-", training$eval.episodes) 
 
-
-
-evaluation$model_name<- paste0("T0", "_fips-", evaluation$county, 
-                               "_", evaluation$algo,
-                               "_LR-", evaluation$algo.learning_rate,
-                               "_EB-", evaluation$explore_budget,
-                               "_EE-", evaluation$eval.episodes) 
-# training$model_name<- paste0(training$algo, "_obs-W_decay-", training$penalty_decay) # ME = multi-env
-# evaluation$model_name<- paste0(evaluation$algo, "_obs-W_decay-", training$penalty_decay) # ME = multi-env
-
 training_script<- "python train_online_rl_sb3.py"
 evaluation_script<- "python old_evaluation_SB3.py"
 
 Training<- sapply(1:ncol(training), function(i){paste0(colnames(training)[i], "=", training[,i])})
-Evaluation<- sapply(1:ncol(evaluation), function(i){paste0(colnames(evaluation)[i], "=", evaluation[,i])})
+Short<- Training[which(training$training_timesteps <= 10000000),]
+Long<- Training[which(training$training_timesteps > 10000000),]
 
-sink("Run_jobs/Online_tests")
-for(i in 1:nrow(Training)){
+sink("Run_jobs/Online_tests_short")
+for(i in 1:nrow(Short)){
   cat(training_script,
       paste(
-        Training[i,]
+        Short[i,]
       ), " \n")
   for(v in eval.val_years){
     for(m in eval.match_similar){
       cat(evaluation_script,
           paste0(
-            Training[i,which(names(training) == "county")], " ",
-            Training[i,which(names(training) == "algo")], " ",
-            Training[i,which(names(training) == "algo.policy_kwargs.net_arch")], " ",
-            Training[i,which(names(training) == "algo.learning_rate")], " ",
+            Short[i,which(names(training) == "county")], " ",
+            Short[i,which(names(training) == "algo")], " ",
+            Short[i,which(names(training) == "algo.policy_kwargs.net_arch")], " ",
+            Short[i,which(names(training) == "algo.learning_rate")], " ",
             "eval.val_years=", v,  " ",
             "eval.match_similar=", m, " ",
-            Training[i,which(names(training) == "model_name")],
+            Short[i,which(names(training) == "model_name")],
+            " \n"
+          ))
+    }
+  }
+  cat(" \n")
+}
+sink()
+
+sink("Run_jobs/Online_tests_long")
+for(i in 1:nrow(Long)){
+  cat(training_script,
+      paste(
+        Long[i,]
+      ), " \n")
+  for(v in eval.val_years){
+    for(m in eval.match_similar){
+      cat(evaluation_script,
+          paste0(
+            Long[i,which(names(training) == "county")], " ",
+            Long[i,which(names(training) == "algo")], " ",
+            Long[i,which(names(training) == "algo.policy_kwargs.net_arch")], " ",
+            Long[i,which(names(training) == "algo.learning_rate")], " ",
+            "eval.val_years=", v,  " ",
+            "eval.match_similar=", m, " ",
+            Long[i,which(names(training) == "model_name")],
             " \n"
           ))
     }

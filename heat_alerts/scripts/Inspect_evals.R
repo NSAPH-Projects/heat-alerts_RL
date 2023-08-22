@@ -55,6 +55,7 @@ these<- c("TRPO", "LSTM", "PPO", "DQN", "QRDQN")
 Algo<- rep(these, 4)
 # Model<- append(Model, rep(model, length(these)*4))
 Type<- rep(c("eval", "eval_samp", "train", "train_samp"), each=length(these))
+Random<- rep(random, each=length(these))
 NWS<- rep(nws, each=length(these))
 
 # for(model in c("0", "p1", "p0", "p-01", "p-005", "p-001", "p-001_ee25")){
@@ -96,11 +97,11 @@ for(model in c("p_decay", "small", "ND_small")){
   Reward<- round(as.vector(t(r)),3)
   
   if(model == "p_decay"){
-    DF<- data.frame(Type, NWS, Algo, Reward)
+    DF<- data.frame(Type, Random, NWS, Algo, Reward)
     names(DF)[which(names(DF) == "Reward")]<- paste0("R_", model)
     df<- DF
   }else{
-    DF<- data.frame(Type, NWS, Algo, Reward)
+    DF<- data.frame(Type, Random, NWS, Algo, Reward)
     names(DF)[which(names(DF) == "Reward")]<- paste0("R_", model)
     df<- left_join(df, DF)
   }
