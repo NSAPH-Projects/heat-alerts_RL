@@ -44,6 +44,7 @@ assess<- function(filename){
     Days<- rep(1:(n_days-1),eps)
     D<- Days[which(df$Actions == 1)]
     if(length(D)>0){
+      num_alerts<- length(D)/eps
       summary_dos<- summary(D)
       diffs<- D[2:length(D)] - D[1:(length(D)-1)]
       L<- rle(diffs)
@@ -52,12 +53,12 @@ assess<- function(filename){
       avg_streak_length<- mean(streaks + 1)
       avg_streak_length_overall<- mean(c(streaks + 1, rep(1,length(D)-length(streaks))))
       # return(list(agg_df, estimated_reward))
-      x<- c(as.vector(summary_dos), num_streaks, avg_streak_length, avg_streak_length_overall)
+      x<- c(num_alerts, as.vector(summary_dos), num_streaks, avg_streak_length, avg_streak_length_overall)
       result<- data.frame(t(x))
-      names(result)<- c("Min_dos", "Q1_dos", "Median_dos", "Mean_dos", "Q3_dos", "Max_dos", "NStrk", "AvStrkLn", "AvStrkLn_all")
+      names(result)<- c("AvNAl", "Min_dos", "Q1_dos", "Median_dos", "Mean_dos", "Q3_dos", "Max_dos", "NStrk", "AvStrkLn", "AvStrkLn_all")
       return(result)
     }else{
-      return(rep(NA,9))
+      return(rep(NA,10))
     }
   }else{
     return(NA)
@@ -181,6 +182,9 @@ as_NWS$Type<- type
 as_NWS$Algo<- "NWS"
 as_NWS$Model<- ""
 
+as_Type<- rep(type, length(these))
+as_Algo<- rep(these, each=4)
+
 # for(model in c("0", "p1", "p0", "p-01", "p-005", "p-001", "p-001_ee25")){
 # for(model in c("p-05_ME", "p-001_ME", "p-0_ME")){ # "p-0"
 # for(model in c("p_decay", "small", "ND_small")){
@@ -227,21 +231,22 @@ for(model in Models){
   if(model == Models[1]){
     as_df<- as_Random
     as_df<- rbind(as_df, as_NWS)
-    r$Type<- Type
-    r$Algo<- Algo
+    r$Type<- as_Type
+    r$Algo<- as_Algo
     r$Model<- model
     as_df<- rbind(as_df, r)
     
   }else{
-    r$Type<- Type
-    r$Algo<- Algo
+    r$Type<- as_Type
+    r$Algo<- as_Algo
     r$Model<- model
     as_df<- rbind(as_df, r)
   }
   print(model)
 }
 
-as_df[,c("Type", "Algo", "Model", cols)]
+as_df[,c( "Model", "Algo", "Type", cols)]
+
 
 ### Compare:
 NA_eval
