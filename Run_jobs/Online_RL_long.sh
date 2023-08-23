@@ -1,11 +1,11 @@
 #!/bin/bash
 #SBATCH -J Orl_long
 #SBATCH -N 1
-#SBATCH -n 2 # 1
+#SBATCH -n 1
 #SBATCH -p fasse # test
 #SBATCH -t 0-30:00
-#SBATCH --mem 12G # 8G
-#SBATCH --array 0-11
+#SBATCH --mem 8G
+#SBATCH --array 0-5
 #SBATCH -o ./Run_jobs/slurm/orl_long.%a.out
 #SBATCH --mail-user=ellen_considine@g.harvard.edu
 #SBATCH --mail-type=BEGIN
