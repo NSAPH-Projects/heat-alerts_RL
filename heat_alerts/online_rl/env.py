@@ -172,7 +172,7 @@ class HeatAlertEnv(gym.Env):
 
         if self.penalize:
             if self.penalty_decay:
-                return 1 - baseline - 10*(0.1)**((self.t)/25)
+                return 1 - baseline - 10*(self.penalty)**((self.t)/25) # penalty = 0.1 seems good here
             else: 
                 return 1 - baseline - self.penalty
         else:

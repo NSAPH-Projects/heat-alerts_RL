@@ -7,11 +7,11 @@ eval.match_similar<- c("true", "false")
 # eval_mode<- c("true") # , "false"
 # eval.eval_mode<- c("true") # , "false"
 
-learning_rate<- c(0.001, 0.0001)
+learning_rate<- c(0.001) #, 0.0001
 eval.episodes<- c(100) # 25
-policy_kwargs.net_arch<- "[16]"
-penalty_decay<- c("false") # "true", "false"
-explore_budget<- c("true", "false")
+policy_kwargs.net_arch<- c("[16]","[16,16]")
+penalty_decay<- c("true") # "true", "false"
+explore_budget<- c("false") # "true", "false"
 
 
 training<- expand.grid(county, 
@@ -34,24 +34,29 @@ colnames(training)<- c("county",
                        "algo.learning_rate")
 
 training$penalty<- 0.01
-training[which(training$penalty_decay == "true"), "penalty"]<- 0.2
+training[which(training$penalty_decay == "true"), "penalty"]<- 0.1
 training$eval.freq<- 1000
-training[which(training$eval.episodes == 100), "eval.freq"]<- 4000
-training$training_timesteps<- 10000000
+training[which(training$eval.episodes == 100), "eval.freq"]<- 2500 # rather than 4000
+training$training_timesteps<- 15000000 # original is 10 million
 training[which(training$algo.learning_rate == 0.0001), "training_timesteps"]<- 100000000
+training$arch<- "small"
+training[which(training$algo.policy_kwargs.net_arch == "[16,16]"), "arch"]<- "large"
 
-training$model_name<- paste0("T0", "_fips-", training$county, 
+training$model_name<- paste0("T1", "_fips-", training$county, 
                              "_", training$algo,
-                             "_LR-", training$algo.learning_rate,
-                             "_EB-", training$explore_budget, 
-                             "_EE-", training$eval.episodes) 
+                             # "_LR-", training$algo.learning_rate,
+                             # "_EB-", training$explore_budget, 
+                             # "_EE-", training$eval.episodes
+                             "_PD-", "log10-25",
+                             "_arch-", training$arch
+                             ) 
 
 training_script<- "python train_online_rl_sb3.py"
 evaluation_script<- "python old_evaluation_SB3.py"
 
 Training<- sapply(1:ncol(training), function(i){paste0(colnames(training)[i], "=", training[,i])})
-Short<- Training[which(training$training_timesteps <= 10000000),]
-Long<- Training[which(training$training_timesteps > 10000000),]
+Short<- Training[which(training$training_timesteps < 100000000),]
+Long<- Training[which(training$training_timesteps >= 100000000),]
 
 sink("Run_jobs/Online_tests_short")
 for(i in 1:nrow(Short)){
