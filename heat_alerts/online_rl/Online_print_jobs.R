@@ -8,7 +8,7 @@ eval.match_similar<- c("true", "false")
 # eval.eval_mode<- c("true") # , "false"
 
 learning_rate<- c(0.001, 0.0001)
-eval.episodes<- c(25, 100)
+eval.episodes<- c(100) # 25
 policy_kwargs.net_arch<- "[16]"
 penalty_decay<- c("false") # "true", "false"
 explore_budget<- c("true", "false")
