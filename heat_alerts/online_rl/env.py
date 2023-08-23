@@ -21,6 +21,7 @@ class HeatAlertEnv(gym.Env):
         penalty_decay: bool = False,
         restrict_alerts: bool = False,
         HI_restriction: float = 0.8,
+        hi_penalty: bool = False,
         years = [],
         prev_alert_mean = 0,
         prev_alert_std = 1,
@@ -69,6 +70,7 @@ class HeatAlertEnv(gym.Env):
         self.penalty_decay = penalty_decay
         self.restrict_alerts = restrict_alerts
         self.HI_restriction = HI_restriction
+        self.hi_penalty = hi_penalty
         self.eval_mode = eval_mode
         self.sample_budget = sample_budget
         self.explore_budget = explore_budget
@@ -180,8 +182,8 @@ class HeatAlertEnv(gym.Env):
                 return 1 - baseline - 10*(self.penalty)**((self.t)/25) # penalty = 0.1 seems good here
             else: 
                 return 1 - baseline - self.penalty
-        elif self.hi_penalty:
-            return 1 - baseline - action*10*(0.1)**((self.qhi)/0.2)
+        elif self.hi_penalty: # never turned on for evaluation
+            return 1 - baseline * (1 - effectiveness * action) - action*10*(0.1)**((self.qhi)/0.2)
         else:
             return 1 - baseline * (1 - effectiveness * action)
 
