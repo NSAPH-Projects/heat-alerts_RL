@@ -117,6 +117,8 @@ def main(cfg: DictConfig):
         sample_budget = cfg.sample_budget,
         explore_budget = cfg.explore_budget,
         penalty_decay = cfg.penalty_decay,
+        restrict_alerts = cfg.restrict_alerts,
+        HI_restriction = cfg.HI_restriction,
     )
     val_kwargs = dict(
         posterior_coefficient_samples=samples,
@@ -129,7 +131,9 @@ def main(cfg: DictConfig):
         prev_alert_mean = dm.prev_alert_mean,
         prev_alert_std = dm.prev_alert_std,
         sample_budget = cfg.sample_budget,
-        explore_budget = False
+        explore_budget = False,
+        restrict_alerts = cfg.restrict_alerts,
+        HI_restriction = cfg.HI_restriction,
     )
     env_promise = [make_env(i, cfg.seed, **kwargs) for i in range(cfg.num_envs)]
     env_promise_val = [make_env(i, cfg.seed, **val_kwargs) for i in range(cfg.num_envs)]

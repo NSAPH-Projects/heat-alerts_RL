@@ -19,6 +19,8 @@ class HeatAlertEnv(gym.Env):
         sample_budget: bool = True,
         explore_budget: bool = False,
         penalty_decay: bool = False,
+        restrict_alerts: bool = False,
+        HI_restriction: float = 0.8,
         years = [],
         prev_alert_mean = 0,
         prev_alert_std = 1,
@@ -65,6 +67,8 @@ class HeatAlertEnv(gym.Env):
 
         self.penalty = penalty
         self.penalty_decay = penalty_decay
+        self.restrict_alerts = restrict_alerts
+        self.HI_restriction = HI_restriction
         self.eval_mode = eval_mode
         self.sample_budget = sample_budget
         self.explore_budget = explore_budget
@@ -124,7 +128,8 @@ class HeatAlertEnv(gym.Env):
             self.budget = b
         self.cum_reward = 0.0
         self.penalize = False
-        return self._get_obs(), self._get_info()
+        self.observation = self._get_obs()
+        return self.observation, self._get_info()
 
     def _get_obs(self):
         baseline_feats = [
@@ -186,9 +191,14 @@ class HeatAlertEnv(gym.Env):
         }
 
     def step(self, action: int):
+        if self.restrict_alerts:
+            hot_day = self.observation[0] >= self.HI_restriction 
+            if action == 1 and not hot_day: 
+                action = 0
         # advance state
         self.t += 1
         new_state = self._get_obs()
+        self.observation = new_state
         alert_feats = new_state[-3:]
         self.attempted_alert_buffer.append(action)
         if action == 1 and sum(self.allowed_alert_buffer) == self.budget:

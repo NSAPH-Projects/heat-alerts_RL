@@ -23,8 +23,10 @@ training_timesteps: 10_000_000 # 3_000_000
 match_similar: true
 sample_budget: true
 explore_budget: false
-penalty: 0.2 # 1.0
+penalty: 0.1 # 1.0
 penalty_decay: true
+restrict_alerts: false
+HI_restriction: 0.8
 eval_mode: false
 
 eval:

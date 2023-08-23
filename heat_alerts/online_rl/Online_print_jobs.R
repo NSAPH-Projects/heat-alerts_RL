@@ -9,9 +9,10 @@ eval.match_similar<- c("true", "false")
 
 learning_rate<- c(0.001) #, 0.0001
 eval.episodes<- c(100) # 25
-policy_kwargs.net_arch<- c("[16]","[16,16]")
-penalty_decay<- c("true") # "true", "false"
+policy_kwargs.net_arch<- c("[16]") # ,"[16,16]"
+penalty_decay<- c("true", "false") # "true", "false"
 explore_budget<- c("false") # "true", "false"
+restrict_alerts<- c("true")
 
 
 training<- expand.grid(county, 
@@ -20,7 +21,8 @@ training<- expand.grid(county,
                        explore_budget,
                        eval.episodes, 
                        policy_kwargs.net_arch,
-                       penalty_decay, 
+                       penalty_decay,
+                       restrict_alerts,
                        # eval.match_similar,
                        learning_rate)
 colnames(training)<- c("county", 
@@ -30,6 +32,7 @@ colnames(training)<- c("county",
                        "eval.episodes",
                        "algo.policy_kwargs.net_arch", 
                        "penalty_decay",
+                       "restrict_alerts",
                        # "eval.match_similar",
                        "algo.learning_rate")
 
@@ -39,17 +42,24 @@ training$eval.freq<- 1000
 training[which(training$eval.episodes == 100), "eval.freq"]<- 2500 # rather than 4000
 training$training_timesteps<- 15000000 # original is 10 million
 training[which(training$algo.learning_rate == 0.0001), "training_timesteps"]<- 100000000
-training$arch<- "small"
-training[which(training$algo.policy_kwargs.net_arch == "[16,16]"), "arch"]<- "large"
 
 training$model_name<- paste0("T1", "_fips-", training$county, 
                              "_", training$algo,
                              # "_LR-", training$algo.learning_rate,
                              # "_EB-", training$explore_budget, 
                              # "_EE-", training$eval.episodes
-                             "_PD-", "log10-25",
-                             "_arch-", training$arch
+                             "_Rstr-HI",
+                             "_PD-", training$penalty_decay,
+                             "_arch-", training$algo.policy_kwargs.net_arch
                              ) 
+training$model_name<- sapply(training$model_name, function(s){
+  x<- strsplit(s, "\\[")[[1]]
+  if(nchar(x[2]) < 4){
+    return(paste0(x[1], "small"))
+  }else{
+    return(paste0(x[1], "large"))
+  }
+})
 
 training_script<- "python train_online_rl_sb3.py"
 evaluation_script<- "python old_evaluation_SB3.py"

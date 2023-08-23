@@ -103,6 +103,8 @@ def custom_eval(cfg: DictConfig, dm, samples):
         eval_mode = cfg.eval.eval_mode,
         sample_budget = False,
         years = cfg.val_years,
+        restrict_alerts = cfg.restrict_alerts,
+        HI_restriction = cfg.HI_restriction,
     )
     
     eval_env = HeatAlertEnv(**val_kwargs)
