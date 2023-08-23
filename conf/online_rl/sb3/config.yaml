@@ -27,6 +27,7 @@ penalty: 0.1 # 1.0
 penalty_decay: true
 restrict_alerts: false
 HI_restriction: 0.8
+hi_penalty: false
 eval_mode: false
 
 eval:
