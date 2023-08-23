@@ -74,7 +74,7 @@ for(i in 1:nrow(Short)){
   #         ))
   #   }
   # }
-  cat(" \n")
+  # cat(" \n")
 }
 sink()
 
@@ -99,7 +99,7 @@ for(i in 1:nrow(Long)){
   #         ))
   #   }
   # }
-  cat(" \n")
+  # cat(" \n")
 }
 sink()
 
