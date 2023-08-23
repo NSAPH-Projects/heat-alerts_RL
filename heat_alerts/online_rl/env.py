@@ -180,6 +180,8 @@ class HeatAlertEnv(gym.Env):
                 return 1 - baseline - 10*(self.penalty)**((self.t)/25) # penalty = 0.1 seems good here
             else: 
                 return 1 - baseline - self.penalty
+        elif self.hi_penalty:
+            return 1 - baseline - action*10*(0.1)**((self.qhi)/0.2)
         else:
             return 1 - baseline * (1 - effectiveness * action)
 
@@ -191,16 +193,14 @@ class HeatAlertEnv(gym.Env):
         }
 
     def step(self, action: int):
-        if self.restrict_alerts:
-            hot_day = self.observation[0] >= self.HI_restriction 
+        # Enforcing any heat-index-based restrictions:
+        self.qhi = self.observation[0]
+        if self.restrict_alerts: # just restricting, not penalizing 
+            hot_day = self.qhi >= self.HI_restriction 
             if action == 1 and not hot_day: 
                 action = 0
-        # advance state
-        self.t += 1
-        new_state = self._get_obs()
-        self.observation = new_state
-        alert_feats = new_state[-3:]
         self.attempted_alert_buffer.append(action)
+        # Enforcing the alert budget:
         if action == 1 and sum(self.allowed_alert_buffer) == self.budget:
             self.penalize = True
             action = 0
@@ -214,11 +214,15 @@ class HeatAlertEnv(gym.Env):
             if self.eval_mode
             else [self.rng.choice(self.n_posterior_samples)]
         )
-        reward = np.mean([self._get_reward(i, action, alert_feats) for i in posterior_indices])
+        reward = np.mean([self._get_reward(i, action, alert_feats=self.observation[-3:]) for i in posterior_indices])
         self.cum_reward += reward
+
+        # advance state
+        self.t += 1
+        self.observation = self._get_obs()
         done = self.t == self.n_days - 1
 
-        return new_state, reward, done, False, self._get_info()
+        return self.observation, reward, done, False, self._get_info()
 
 
 if __name__ == "__main__":
