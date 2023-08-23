@@ -179,13 +179,16 @@ class HeatAlertEnv(gym.Env):
 
         if self.penalize:
             if self.penalty_decay:
-                return 1 - baseline - 10*(self.penalty)**((self.t)/25) # penalty = 0.1 seems good here
+                r = 1 - baseline - 10*(self.penalty)**((self.t)/25) # penalty = 0.1 seems good here
             else: 
-                return 1 - baseline - self.penalty
-        elif self.hi_penalty: # never turned on for evaluation
-            return 1 - baseline * (1 - effectiveness * action) - action*10*(0.1)**((self.qhi)/0.2)
+                r = 1 - baseline - self.penalty
         else:
-            return 1 - baseline * (1 - effectiveness * action)
+            r = 1 - baseline * (1 - effectiveness * action)
+
+        if self.hi_penalty: # never turned on for evaluation
+            r -= action*10*(0.1)**((self.qhi)/0.2)
+        
+        return(r)
 
     def _get_info(self) -> dict:
         return {
