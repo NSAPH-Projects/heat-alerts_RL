@@ -51,43 +51,50 @@ nws
 
 ### Make a table, updated:
 
-these<- c("TRPO", "LSTM", "PPO", "DQN", "QRDQN")
+these<- c("TRPO", "PPO", "DQN") # "LSTM", "QRDQN"
 Algo<- rep(these, 4)
 # Model<- append(Model, rep(model, length(these)*4))
 Type<- rep(c("eval", "eval_samp", "train", "train_samp"), each=length(these))
 Random<- rep(random, each=length(these))
 NWS<- rep(nws, each=length(these))
 
+prefix<- c("T0")
+folders<- list.files("logs/SB", pattern=paste0(prefix, "_fips-", county))
+splitvar<- "LR"
+Models<- sapply(folders, function(s){strsplit(s, splitvar)[[1]][2]})
+Models<- paste0(splitvar, as.vector(unique(Models)))
+
 # for(model in c("0", "p1", "p0", "p-01", "p-005", "p-001", "p-001_ee25")){
 # for(model in c("p-05_ME", "p-001_ME", "p-0_ME")){ # "p-0"
-for(model in c("p_decay", "small", "ND_small")){
+# for(model in c("p_decay", "small", "ND_small")){
 # for(model in c("p_decay", "small_4013", "ND_small_4013")){
 # for(model in c("obs-W_decay-false", "obs-W_decay-true")){
+for(model in Models){
   ## Read in data and calculate estimated rewards:
-  PPO_eval_samp<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_ppo_", model, "_fips_", county, ".csv"))
-  PPO_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_ppo_", model, "_fips_", county, ".csv"))
-  PPO_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_ppo_", model, "_fips_", county, ".csv"))
-  PPO_train<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_ppo_", model, "_fips_", county, ".csv"))
+  PPO_eval_samp<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county,"_ppo_", model, "_fips_", county, ".csv"))
+  PPO_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county,"_ppo_", model, "_fips_", county, ".csv"))
+  PPO_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county,"_ppo_", model, "_fips_", county, ".csv"))
+  PPO_train<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", prefix, "_fips-", county,"_ppo_", model, "_fips_", county, ".csv"))
   
-  TRPO_eval_samp<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_trpo_", model, "_fips_", county, ".csv"))
-  TRPO_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_trpo_", model, "_fips_", county, ".csv"))
-  TRPO_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_trpo_", model, "_fips_", county, ".csv"))
-  TRPO_train<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_trpo_", model, "_fips_", county, ".csv"))
+  TRPO_eval_samp<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county,"_trpo_", model, "_fips_", county, ".csv"))
+  TRPO_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county,"_trpo_", model, "_fips_", county, ".csv"))
+  TRPO_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county,"_trpo_", model, "_fips_", county, ".csv"))
+  TRPO_train<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", prefix, "_fips-", county,"_trpo_", model, "_fips_", county, ".csv"))
   
-  DQN_eval_samp<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_dqn_", model, "_fips_", county, ".csv"))
-  DQN_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_dqn_", model, "_fips_", county, ".csv"))
-  DQN_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_dqn_", model, "_fips_", county, ".csv"))
-  DQN_train<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_dqn_", model, "_fips_", county, ".csv"))
+  DQN_eval_samp<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county,"_dqn_", model, "_fips_", county, ".csv"))
+  DQN_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county,"_dqn_", model, "_fips_", county, ".csv"))
+  DQN_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county,"_dqn_", model, "_fips_", county, ".csv"))
+  DQN_train<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", prefix, "_fips-", county,"_dqn_", model, "_fips_", county, ".csv"))
   
-  QRDQN_eval_samp<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_qrdqn_", model, "_fips_", county, ".csv"))
-  QRDQN_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_qrdqn_", model, "_fips_", county, ".csv"))
-  QRDQN_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_qrdqn_", model, "_fips_", county, ".csv"))
-  QRDQN_train<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_qrdqn_", model, "_fips_", county, ".csv"))
-  
-  LSTM_eval_samp<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_lstm_", model, "_fips_", county, ".csv"))
-  LSTM_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_lstm_", model, "_fips_", county, ".csv"))
-  LSTM_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_lstm_", model, "_fips_", county, ".csv"))
-  LSTM_train<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_lstm_", model, "_fips_", county, ".csv"))
+  # QRDQN_eval_samp<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county,"_qrdqn_", model, "_fips_", county, ".csv"))
+  # QRDQN_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county,"_qrdqn_", model, "_fips_", county, ".csv"))
+  # QRDQN_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county,"_qrdqn_", model, "_fips_", county, ".csv"))
+  # QRDQN_train<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", prefix, "_fips-", county,"_qrdqn_", model, "_fips_", county, ".csv"))
+  # 
+  # LSTM_eval_samp<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
+  # LSTM_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
+  # LSTM_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
+  # LSTM_train<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
   
   ## Format for table:
   r<- sapply(these, function(x){
@@ -96,7 +103,7 @@ for(model in c("p_decay", "small", "ND_small")){
   })
   Reward<- round(as.vector(t(r)),3)
   
-  if(model == "p_decay"){
+  if(model == Models[1]){
     DF<- data.frame(Type, Random, NWS, Algo, Reward)
     names(DF)[which(names(DF) == "Reward")]<- paste0("R_", model)
     df<- DF

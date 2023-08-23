@@ -68,7 +68,7 @@ class AlertLoggingCallback(BaseCallback):
         self.num_over_budget = 0
         self.num_alerts = 0
         self.num_steps = 0
-        self.rolled_rewards = 0.0
+        self.rolled_rewards = np.zeros(self.n_envs, dtype=float)
 
 
 class FinalEvalCallback(BaseCallback):
