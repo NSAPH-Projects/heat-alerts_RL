@@ -19,7 +19,7 @@ from heat_alerts.online_rl.datautils import load_rl_states_by_county
 from heat_alerts.online_rl.env import HeatAlertEnv
 from heat_alerts.online_rl.callbacks import AlertLoggingCallback
 
-from old_evaluation_SB3 import custom_eval
+from evaluation_functions_SB3 import custom_eval
 
 
 def make_env(rank: int, seed: int, **kwargs) -> HeatAlertEnv:
