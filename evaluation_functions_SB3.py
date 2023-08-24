@@ -158,6 +158,7 @@ def custom_eval(cfg: DictConfig, dm, samples):
     results.to_csv(f"Summer_results/ORL_{cfg.policy_type}_{year_set}_{posterior}_{weather}_{cfg.model_name}_fips_{cfg.county}.csv")
 
 if __name__ == "__main__":
+    # Note: these configs are NOT overwritten by command line!
     hydra.initialize(config_path="conf/online_rl/sb3", version_base=None)
     cfg = hydra.compose(config_name="config")
     dm, samples = prep_data(cfg)

@@ -57,7 +57,7 @@ assess<- function(filename){
       # return(list(agg_df, estimated_reward))
       x<- c(num_alerts, as.vector(summary_dos), num_streaks, avg_streak_length, avg_streak_length_overall)
       result<- data.frame(t(x))
-      names(result)<- c("AvNAl", "Min_dos", "Q1_dos", "Median_dos", "Mean_dos", "Q3_dos", "Max_dos", "NStrk", "AvStrkLn", "AvStrkLn_all")
+      names(result)<- c("AvNAl", "Min_dos", "Q1_dos", "Median_dos", "Mean_dos", "Q3_dos", "Max_dos", "AvNStrk", "AvStrkLn", "AvStrkLn_all")
       return(result)
     }else{
       return(rep(NA,10))
@@ -142,7 +142,7 @@ for(model in Models){
   print(model)
 }
 
-proc_df
+proc_df[,c(1:4, 9, 10, 5:8)]
 
 ## Now to get alert statistics:
 
@@ -176,6 +176,8 @@ as_NWS$Model<- ""
 
 as_Type<- rep(type, length(these))
 as_Algo<- rep(these, each=4)
+
+Models<- Models[5:6]
 
 for(model in Models){
   ## Read in data and calculate estimated rewards:

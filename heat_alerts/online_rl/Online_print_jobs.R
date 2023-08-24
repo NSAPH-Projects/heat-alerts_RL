@@ -10,10 +10,11 @@ eval.match_similar<- c("true", "false")
 learning_rate<- c(0.001) #, 0.0001
 eval.episodes<- c(100) # 25
 policy_kwargs.net_arch<- c("[16]") # ,"[16,16]"
-penalty_decay<- c("true", "false") # "true", "false"
+penalty_decay<- c("false") # "true", "false"
 explore_budget<- c("false") # "true", "false"
 restrict_alerts<- c("true") # "true"
-hi_penalty<- c("false") # "true", 
+hi_penalty<- c("false") # "true",
+HI_restriction<- c(0.7, 0.75, 0.85, 0.9)
 
 
 training<- expand.grid(county, 
@@ -24,7 +25,8 @@ training<- expand.grid(county,
                        policy_kwargs.net_arch,
                        penalty_decay,
                        restrict_alerts,
-                       hi_penalty,
+                       HI_restriction,
+                       # hi_penalty,
                        # eval.match_similar,
                        learning_rate)
 colnames(training)<- c("county", 
@@ -35,7 +37,8 @@ colnames(training)<- c("county",
                        "algo.policy_kwargs.net_arch", 
                        "penalty_decay",
                        "restrict_alerts",
-                       "hi_penalty",
+                       "HI_restriction",
+                       # "hi_penalty",
                        # "eval.match_similar",
                        "algo.learning_rate")
 
@@ -52,8 +55,8 @@ training$model_name<- paste0("T2", "_fips-", training$county,
                              # "_LR-", training$algo.learning_rate,
                              # "_EB-", training$explore_budget, 
                              # "_EE-", training$eval.episodes
-                             "_Rstr-HI",
-                             "_PD-", training$penalty_decay #,
+                             "_Rstr-HI-", training$HI_restriction #,
+                             # "_PD-", training$penalty_decay #,
                              # "_HIP-", training$hi_penalty #,
                              # "_arch-", training$algo.policy_kwargs.net_arch
                              ) 
