@@ -21,6 +21,9 @@ class AlertLoggingCallback(BaseCallback):
             self.last_alert = np.zeros(self.n_envs, dtype=int)
             self.current_streak = np.zeros(self.n_envs, dtype=int)
             self.rolled_rewards = np.zeros(self.n_envs, dtype=float)
+            self.a_50 = np.full(self.n_envs, np.nan)
+            self.a_80 = np.full(self.n_envs, np.nan)
+            self.a_100 = np.full(self.n_envs, np.nan)
 
         for i, env in enumerate(self.training_env.envs):
             self.num_steps += 1
@@ -39,6 +42,12 @@ class AlertLoggingCallback(BaseCallback):
                     self.streaks.append(self.current_streak[i])
                     self.current_streak[i] = 0
                 self.last_alert[i] = this_alert
+                if np.isnan(self.a_100[i]) and sum(env.allowed_alert_buffer) == env.budget:
+                    self.a_100[i] = env.t - 1 # -1 is because callback occurs after step
+                elif np.isnan(self.a_80[i]) and sum(env.allowed_alert_buffer) >= 0.8*env.budget:
+                    self.a_80[i] = env.t - 1
+                elif np.isnan(self.a_50[i]) and sum(env.allowed_alert_buffer) >= 0.5*env.budget:
+                    self.a_50[i] = env.t - 1
             
             if env.t == env.n_days - 2: # if done on last day, cum_reward will already have been reset to 0
                 self.rolled_rewards[i] += env.cum_reward
@@ -55,6 +64,9 @@ class AlertLoggingCallback(BaseCallback):
             "stdev_t_alerts": np.std(self.when_alerted) if self.when_alerted else 0,
             "average_streak": np.mean(self.streaks) if self.streaks else 0,
             "stdev_streak": np.std(self.streaks) if self.streaks else 0,
+            "alert_t_50%": np.nanmean(self.a_50),
+            "alert_t_80%": np.nanmean(self.a_80),
+            "alert_t_100%": np.nanmean(self.a_100),
         }
 
         for k, v in summary.items():
