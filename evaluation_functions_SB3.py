@@ -131,33 +131,85 @@ def custom_eval(cfg: DictConfig, dm, samples):
     actions = []
     year = []
     budget = []
+    B_50 = []
+    B_80 = []
+    B_100 = []
+    above_thresh_skipped = []
+    HI_threshold = cfg.HI_restriction if cfg.restrict_alerts else 0.0
 
     logging.info("Evaluating policy")
     for i in range(0, cfg.final_eval_episodes):
         obs, info = eval_env.reset()
         terminal = False
+        b_50 = []
+        b_80 = []
+        b_100 = []
         if cfg.policy_type == "random":
             random_alerts = np.random.choice(int(eval_env.n_days), int(eval_env.budget), replace=False)
             action = 1 if eval_env.t in random_alerts else 0
             while terminal == False:
                 obs, reward, terminal, trunc, info = eval_env.step(action)
+                a = sum(eval_env.allowed_alert_buffer)
+                if sum(b_100) == 0 and a == eval_env.budget:
+                    b_100.append(1) 
+                    b_80.append(0)
+                    b_50.append(0)
+                elif sum(b_80) == 0 and a >= 0.8*eval_env.budget:
+                    b_80.append(1)
+                    b_100.append(0)
+                    b_50.append(0)
+                elif sum(b_50) == 0 and a >= 0.5*eval_env.budget:
+                    b_50.append(1)
+                    b_100.append(0)
+                    b_80.append(0)
+                else: 
+                    b_100.append(0)
+                    b_80.append(0)
+                    b_50.append(0)
                 rewards.append(reward)
                 year.append(eval_env.other_data["y"][eval_env.feature_ep_index, eval_env.t].item())
                 budget.append(eval_env.other_data["budget"][eval_env.feature_ep_index, eval_env.t].item())
                 action = 1 if eval_env.t in random_alerts else 0
+            above_thresh_skipped.extend([0]*eval_env.n_days)
         else:
             action = get_action(cfg.policy_type, obs, eval_env, rl_model)
             while terminal == False:
                 obs, reward, terminal, trunc, info = eval_env.step(action)
+                if (not eval_env.at_budget) and (eval_env.allowed_alert_buffer[-1] == 0) and (eval_env.qhi >= HI_threshold):
+                    above_thresh_skipped.append(1)
+                else:
+                    above_thresh_skipped.append(0)
+                a = sum(eval_env.allowed_alert_buffer)
+                if sum(b_100) == 0 and a == eval_env.budget:
+                    b_100.append(1) 
+                    b_80.append(0)
+                    b_50.append(0)
+                elif sum(b_80) == 0 and a >= 0.8*eval_env.budget:
+                    b_80.append(1)
+                    b_100.append(0)
+                    b_50.append(0)
+                elif sum(b_50) == 0 and a >= 0.5*eval_env.budget:
+                    b_50.append(1)
+                    b_100.append(0)
+                    b_80.append(0)
+                else: 
+                    b_100.append(0)
+                    b_80.append(0)
+                    b_50.append(0)
                 rewards.append(reward)
                 year.append(eval_env.other_data["y"][eval_env.feature_ep_index, eval_env.t].item())
                 budget.append(eval_env.other_data["budget"][eval_env.feature_ep_index, eval_env.t].item())
                 action = get_action(cfg.policy_type, obs, eval_env, rl_model)
         actions.extend([x.item() if torch.is_tensor(x) else x for x in eval_env.allowed_alert_buffer])
+        B_50.extend(b_50)
+        B_80.extend(b_80)
+        B_100.extend(b_100)
         print(i)
 
     results = pd.DataFrame(
-        {'Year': year, 'Budget': budget, 'Actions': actions, 'Rewards': rewards}
+        {'Year': year, 'Budget': budget, 'Actions': actions, 'Rewards': rewards,
+         'Above_Thresh_Skipped': above_thresh_skipped, 
+         'B_50': B_50, 'B_80': B_80, 'B_100': B_100}
     )
 
     year_set = "eval" if cfg.eval.val_years else "train"

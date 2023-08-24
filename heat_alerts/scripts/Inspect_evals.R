@@ -5,7 +5,7 @@ library(dplyr)
 ## Manually change:
 county<- 36005 
 
-prefix<- c("T2")
+prefix<- c("T3")
 folders<- list.files("logs/SB", pattern=paste0(prefix, "_fips-", county))
 splitvar<- "Rstr-HI-" # "PD"
 Models<- sapply(folders, function(s){strsplit(s, splitvar)[[1]][2]})
@@ -43,22 +43,33 @@ assess<- function(filename){
   f<- file.exists(filename)
   if(f){
     df<- read.csv(filename)[,-1]
-    eps<- nrow(df)/(n_days-1)
-    Days<- rep(1:(n_days-1),eps)
+    n_eps<- nrow(df)/(n_days-1)
+    Days<- rep(1:(n_days-1),n_eps)
     D<- Days[which(df$Actions == 1)]
     if(length(D)>0){
-      num_alerts<- length(D)/eps
+      num_alerts<- length(D)/n_eps
       summary_dos<- summary(D)
       diffs<- D[2:length(D)] - D[1:(length(D)-1)]
       L<- rle(diffs)
       streaks<- L$lengths[which(L$values == 1)]
-      num_streaks<- length(streaks)/eps
+      num_streaks<- length(streaks)/n_eps
       avg_streak_length<- mean(streaks + 1)
       avg_streak_length_overall<- mean(c(streaks + 1, rep(1,length(D)-length(streaks))))
+      b_50<- mean(D[which(df$B_50 == 1)], na.rm=TRUE)
+      b_80<- mean(D[which(df$B_80 == 1)], na.rm=TRUE)
+      b_100<- mean(D[which(df$B_100 == 1)], na.rm=TRUE)
+      above_thresh_skipped<- sum(df$Above_Thresh_Skipped)/n_eps
+      fraction_skipped<- above_thresh_skipped / num_alerts
       # return(list(agg_df, estimated_reward))
-      x<- c(num_alerts, as.vector(summary_dos), num_streaks, avg_streak_length, avg_streak_length_overall)
+      # x<- c(num_alerts, as.vector(summary_dos), num_streaks, avg_streak_length, avg_streak_length_overall)
+      x<- c(num_alerts, summary_dos["Min."], b_50, b_80, b_100, 
+            num_streaks, avg_streak_length, avg_streak_length_overall,
+            above_thresh_skipped, fraction_skipped)
       result<- data.frame(t(x))
-      names(result)<- c("AvNAl", "Min_dos", "Q1_dos", "Median_dos", "Mean_dos", "Q3_dos", "Max_dos", "AvNStrk", "AvStrkLn", "AvStrkLn_all")
+      # names(result)<- c("AvNAl", "Min_dos", "Q1_dos", "Median_dos", "Mean_dos", "Q3_dos", "Max_dos", "AvNStrk", "AvStrkLn", "AvStrkLn_all")
+      names(result)<- c("AvNAl", "Min_dos", "B_50pct", "B_80pct", "B_last", 
+                            "AvNStrk", "AvStrkLn", "AvStrkLn_all",
+                            "Abv_Skp", "Frac_Abv_Skp")
       return(result)
     }else{
       return(rep(NA,10))

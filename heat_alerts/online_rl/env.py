@@ -133,6 +133,7 @@ class HeatAlertEnv(gym.Env):
                 self.budget = self.rng.integers(0.5*b, 1.5*b + 1)
         else:
             self.budget = b
+        self.at_budget = False
         self.cum_reward = 0.0
         self.penalize = False
         self.observation = self._get_obs()
@@ -214,7 +215,8 @@ class HeatAlertEnv(gym.Env):
                     action = 0
         self.attempted_alert_buffer.append(action)
         # Enforcing the alert budget:
-        if action == 1 and sum(self.allowed_alert_buffer) == self.budget:
+        self.at_budget = sum(self.allowed_alert_buffer) == self.budget
+        if action == 1 and self.at_budget:
             self.penalize = True
             action = 0
         else:
