@@ -1,6 +1,6 @@
 
 county<- c(36005, 4013) # 36005, 4013
-algos<- c("trpo", "ppo", "dqn") # , "lstm", "qrdqn"
+algos<- c("trpo", "ppo", "dqn", "lstm") # , "lstm", "qrdqn"
 # match_similar<- c("true") # "false"
 eval.val_years<- c("true", "false")
 eval.match_similar<- c("true", "false") 
@@ -80,8 +80,8 @@ training_script<- "python train_online_rl_sb3.py"
 evaluation_script<- "python old_evaluation_SB3.py"
 
 Training<- sapply(1:ncol(training), function(i){paste0(colnames(training)[i], "=", training[,i])})
-Short<- Training[which(training$training_timesteps < 100000000),]
-Long<- Training[which(training$training_timesteps >= 100000000),]
+Short<- Training[which(training$training_timesteps < 100000000 & training$algo != "lstm"),]
+Long<- Training[which(training$training_timesteps >= 100000000 | training$algo == "lstm"),]
 
 sink("Run_jobs/Online_tests_short")
 for(i in 1:nrow(Short)){
@@ -149,6 +149,7 @@ cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true 
     paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false ", "county=", county, "\n"),
     paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=true ", "county=", county, "\n"),
     paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=false ", "county=", county, "\n"))
+
 
 
 ################################## Out of date...
