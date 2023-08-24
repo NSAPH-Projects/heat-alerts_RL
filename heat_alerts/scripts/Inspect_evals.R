@@ -7,11 +7,12 @@ county<- 36005
 
 prefix<- c("T2")
 folders<- list.files("logs/SB", pattern=paste0(prefix, "_fips-", county))
-splitvar<- "PD" # "Rstr-HI"
+splitvar<- "Rstr-HI-" # "PD"
 Models<- sapply(folders, function(s){strsplit(s, splitvar)[[1]][2]})
 Models<- paste0(splitvar, as.vector(unique(Models)))
 
-Models[5:6]<- paste0("Rstr-HI_", Models[5:6])
+# Models[5:6]<- paste0("Rstr-HI_", Models[5:6])
+Models<- Models[-1]
 
 these<- c("TRPO", "PPO", "DQN") # "LSTM", "QRDQN"
 Algo<- rep(these, 4)
@@ -142,7 +143,7 @@ for(model in Models){
   print(model)
 }
 
-proc_df[,c(1:4, 9, 10, 5:8)]
+proc_df#[,c(1:4, 9, 10, 5:8)]
 
 ## Now to get alert statistics:
 

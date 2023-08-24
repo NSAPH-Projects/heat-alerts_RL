@@ -191,7 +191,7 @@ class HeatAlertEnv(gym.Env):
             r = 1 - baseline * (1 - effectiveness * action)
 
         if self.hi_penalty: # never turned on for evaluation
-            r -= action*10*(0.1)**((self.qhi)/0.2)
+            r -= action*(0.1)**((self.qhi)/0.2)
         
         return(r)
 

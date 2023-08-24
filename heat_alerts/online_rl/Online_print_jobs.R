@@ -14,7 +14,9 @@ penalty_decay<- c("false") # "true", "false"
 explore_budget<- c("false") # "true", "false"
 restrict_alerts<- c("true") # "true"
 hi_penalty<- c("false") # "true",
-HI_restriction<- c(0.7, 0.75, 0.85, 0.9)
+# HI_restriction<- c(0.7, 0.75, 0.85, 0.9)
+hi_rstr_decay<- c("true", "false")
+
 
 
 training<- expand.grid(county, 
@@ -25,7 +27,8 @@ training<- expand.grid(county,
                        policy_kwargs.net_arch,
                        penalty_decay,
                        restrict_alerts,
-                       HI_restriction,
+                       # HI_restriction,
+                       hi_rstr_decay,
                        # hi_penalty,
                        # eval.match_similar,
                        learning_rate)
@@ -37,7 +40,8 @@ colnames(training)<- c("county",
                        "algo.policy_kwargs.net_arch", 
                        "penalty_decay",
                        "restrict_alerts",
-                       "HI_restriction",
+                       # "HI_restriction",
+                       "hi_rstr_decay",
                        # "hi_penalty",
                        # "eval.match_similar",
                        "algo.learning_rate")
@@ -49,13 +53,16 @@ training[which(training$eval.episodes == 100), "eval.freq"]<- 2500 # rather than
 training$training_timesteps<- 15000000 # original is 10 million
 training[which(training$algo.learning_rate == 0.0001), "training_timesteps"]<- 100000000
 
+training$HI_restriction<- 0.8
+training[which(training$county == 4013), "HI_restriction"]<- 0.7
 
-training$model_name<- paste0("T2", "_fips-", training$county, 
+training$model_name<- paste0("T3", "_fips-", training$county, 
                              "_", training$algo,
                              # "_LR-", training$algo.learning_rate,
                              # "_EB-", training$explore_budget, 
                              # "_EE-", training$eval.episodes
-                             "_Rstr-HI-", training$HI_restriction #,
+                             # "_Rstr-HI-", training$HI_restriction,
+                             "_Rstr-HI-decay-", training$hi_rstr_decay
                              # "_PD-", training$penalty_decay #,
                              # "_HIP-", training$hi_penalty #,
                              # "_arch-", training$algo.policy_kwargs.net_arch
