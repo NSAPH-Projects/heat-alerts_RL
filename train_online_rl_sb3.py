@@ -119,6 +119,8 @@ def main(cfg: DictConfig):
         penalty_decay = cfg.penalty_decay,
         restrict_alerts = cfg.restrict_alerts,
         HI_restriction = cfg.HI_restriction,
+        hi_rstr_decay = cfg.hi_rstr_decay,
+        N_timesteps = cfg.training_timesteps,
         hi_penalty = cfg.hi_penalty,
     )
     val_kwargs = dict(
@@ -135,6 +137,8 @@ def main(cfg: DictConfig):
         explore_budget = False,
         restrict_alerts = cfg.restrict_alerts,
         HI_restriction = cfg.HI_restriction,
+        hi_rstr_decay = cfg.hi_rstr_decay,
+        N_timesteps = cfg.training_timesteps / cfg.eval.freq, # intermediate hack
         hi_penalty = False,
     )
     env_promise = [make_env(i, cfg.seed, **kwargs) for i in range(cfg.num_envs)]

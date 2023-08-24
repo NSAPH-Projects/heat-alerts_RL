@@ -21,7 +21,9 @@ class HeatAlertEnv(gym.Env):
         penalty_decay: bool = False,
         restrict_alerts: bool = False,
         HI_restriction: float = 0.8,
+        hi_rstr_decay: bool = False,
         hi_penalty: bool = False,
+        N_timesteps: int = 10000,
         years = [],
         prev_alert_mean = 0,
         prev_alert_std = 1,
@@ -70,6 +72,9 @@ class HeatAlertEnv(gym.Env):
         self.penalty_decay = penalty_decay
         self.restrict_alerts = restrict_alerts
         self.HI_restriction = HI_restriction
+        self.hi_rstr_decay = hi_rstr_decay
+        self.total_timesteps = N_timesteps
+        self.timestep = 0
         self.hi_penalty = hi_penalty
         self.eval_mode = eval_mode
         self.sample_budget = sample_budget
@@ -203,7 +208,10 @@ class HeatAlertEnv(gym.Env):
         if self.restrict_alerts: # just restricting, not penalizing 
             hot_day = self.qhi >= self.HI_restriction 
             if action == 1 and not hot_day: 
-                action = 0
+                if self.hi_rstr_decay:
+                    action = np.random.binomial(1, self.timestep/self.total_timesteps)
+                else:
+                    action = 0
         self.attempted_alert_buffer.append(action)
         # Enforcing the alert budget:
         if action == 1 and sum(self.allowed_alert_buffer) == self.budget:
@@ -226,6 +234,7 @@ class HeatAlertEnv(gym.Env):
         self.t += 1
         self.observation = self._get_obs()
         done = self.t == self.n_days - 1
+        self.timestep += 1
 
         return self.observation, reward, done, False, self._get_info()
 
