@@ -122,8 +122,6 @@ def main(cfg: DictConfig):
             return(0)
         elif policy_type == "NWS":
             return(env.other_data["nws_alert"][env.feature_ep_index, env.t])
-        elif policy_type == "random":
-            return(np.random.binomial(1, env.budget/env.n_days))
 
     rewards = []
     actions = []
@@ -132,14 +130,24 @@ def main(cfg: DictConfig):
 
     for i in range(0, cfg.final_eval_episodes):
         obs, info = eval_env.reset()
-        action = get_action(cfg.policy_type, obs, eval_env, rl_model)
         terminal = False
-        while terminal == False:
-            obs, reward, terminal, trunc, info = eval_env.step(action)
-            rewards.append(reward)
-            year.append(eval_env.other_data["y"][eval_env.feature_ep_index, eval_env.t].item())
-            budget.append(eval_env.other_data["budget"][eval_env.feature_ep_index, eval_env.t].item())
+        if cfg.policy_type == "random":
+            random_alerts = np.random.choice(int(eval_env.n_days), int(eval_env.budget), replace=False)
+            action = 1 if eval_env.t in random_alerts else 0
+            while terminal == False:
+                obs, reward, terminal, trunc, info = eval_env.step(action)
+                rewards.append(reward)
+                year.append(eval_env.other_data["y"][eval_env.feature_ep_index, eval_env.t].item())
+                budget.append(eval_env.other_data["budget"][eval_env.feature_ep_index, eval_env.t].item())
+                action = 1 if eval_env.t in random_alerts else 0
+        else:
             action = get_action(cfg.policy_type, obs, eval_env, rl_model)
+            while terminal == False:
+                obs, reward, terminal, trunc, info = eval_env.step(action)
+                rewards.append(reward)
+                year.append(eval_env.other_data["y"][eval_env.feature_ep_index, eval_env.t].item())
+                budget.append(eval_env.other_data["budget"][eval_env.feature_ep_index, eval_env.t].item())
+                action = get_action(cfg.policy_type, obs, eval_env, rl_model)
         actions.extend([x.item() if torch.is_tensor(x) else x for x in eval_env.allowed_alert_buffer])
         print(i)
 
