@@ -199,11 +199,12 @@ def subset_rl_states(
     base_dict = {k: v.loc[idxs] for k, v in base_dict.items()}
     eff_dict = {k: v.loc[idxs] for k, v in eff_dict.items()}
     extra_dict = {k: v.loc[idxs] for k, v in extra_dict.items()}
+    other_dict = {k: v.loc[idxs] for k, v in other_dict.items()}
 
-    ## Ensure all the budgets are just for the county of interest:
-    counties = [county]*len(counties)
-    new_idxs = list(itertools.product(counties, years))
-    other_dict = {k: v.loc[new_idxs] for k, v in other_dict.items()}
+    # ## Ensure all the budgets are just for the county of interest:
+    # counties = [county]*len(counties)
+    # new_idxs = list(itertools.product(counties, years))
+    # other_dict = {k: v.loc[new_idxs] for k, v in other_dict.items()}
 
     return base_dict, eff_dict, extra_dict, other_dict
 
