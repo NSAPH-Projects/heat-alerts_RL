@@ -12,9 +12,9 @@ Models<- sapply(folders, function(s){strsplit(s, splitvar)[[1]][2]})
 Models<- paste0(splitvar, as.vector(unique(Models)))
 
 # Models[5:6]<- paste0("Rstr-HI_", Models[5:6])
-Models<- Models[-1]
+# Models<- Models[-1]
 
-these<- c("TRPO", "PPO", "DQN") # "LSTM", "QRDQN"
+these<- c("TRPO", "PPO", "DQN", "LSTM") # "LSTM", "QRDQN"
 Algo<- rep(these, 4)
 type<- c("eval", "eval_samp", "train", "train_samp")
 Type<- rep(type, each=length(these))
@@ -129,12 +129,12 @@ for(model in Models){
   # proc_QRDQN_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county,"_qrdqn_", model, "_fips_", county, ".csv"))
   # proc_QRDQN_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county,"_qrdqn_", model, "_fips_", county, ".csv"))
   # proc_QRDQN_train<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", prefix, "_fips-", county,"_qrdqn_", model, "_fips_", county, ".csv"))
-  # 
-  # proc_LSTM_eval_samp<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
-  # proc_LSTM_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
-  # proc_LSTM_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
-  # proc_LSTM_train<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
-  
+
+  proc_LSTM_eval_samp<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
+  proc_LSTM_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
+  proc_LSTM_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
+  proc_LSTM_train<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
+
   ## Format for table:
   r<- sapply(these, function(x){
     return(c(get(paste0("proc_", x, "_eval")), get(paste0("proc_", x, "_eval_samp")),
@@ -212,12 +212,12 @@ for(model in Models){
   # as_QRDQN_train_samp<- assess(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county,"_qrdqn_", model, "_fips_", county, ".csv"))
   # as_QRDQN_eval<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county,"_qrdqn_", model, "_fips_", county, ".csv"))
   # as_QRDQN_train<- assess(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", prefix, "_fips-", county,"_qrdqn_", model, "_fips_", county, ".csv"))
-  # 
-  # as_LSTM_eval_samp<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
-  # as_LSTM_train_samp<- assess(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
-  # as_LSTM_eval<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
-  # as_LSTM_train<- assess(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
-  
+
+  as_LSTM_eval_samp<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
+  as_LSTM_train_samp<- assess(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
+  as_LSTM_eval<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
+  as_LSTM_train<- assess(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
+
   ## Format for table:
   cols<- names(as_TRPO_eval)
   r<- matrix(0, nrow=0, ncol=length(cols))
