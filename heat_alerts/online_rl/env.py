@@ -28,6 +28,7 @@ class HeatAlertEnv(gym.Env):
         prev_alert_mean = 0,
         prev_alert_std = 1,
         global_seed: int = 0,
+        name: str = "env"
     ):
         """Initialize the environment.
 
@@ -63,6 +64,7 @@ class HeatAlertEnv(gym.Env):
         """
         super().__init__()
 
+        self.name = name
         self.global_seed = global_seed
         self.rng = np.random.default_rng(self.global_seed)
         self.baseline_dim = len(baseline_states)
@@ -210,7 +212,9 @@ class HeatAlertEnv(gym.Env):
             hot_day = self.qhi >= self.HI_restriction 
             if action == 1 and not hot_day: 
                 if self.hi_rstr_decay:
-                    action = np.random.binomial(1, self.timestep/self.total_timesteps)
+                    # print(self.name + ": timestep = " + str(self.timestep) + " / total = " + str(self.total_timesteps))
+                    p = self.timestep/self.total_timesteps
+                    action = np.random.binomial(1, p if p <= 1 else 1)
                 else:
                     action = 0
         self.attempted_alert_buffer.append(action)

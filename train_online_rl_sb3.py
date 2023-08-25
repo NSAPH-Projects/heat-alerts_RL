@@ -120,8 +120,9 @@ def main(cfg: DictConfig):
         restrict_alerts = cfg.restrict_alerts,
         HI_restriction = cfg.HI_restriction,
         hi_rstr_decay = cfg.hi_rstr_decay,
-        N_timesteps = cfg.training_timesteps,
+        N_timesteps = cfg.training_timesteps / cfg.num_envs,
         hi_penalty = cfg.hi_penalty,
+        name = "train"
     )
     val_kwargs = dict(
         posterior_coefficient_samples=samples,
@@ -138,8 +139,9 @@ def main(cfg: DictConfig):
         restrict_alerts = cfg.restrict_alerts,
         HI_restriction = cfg.HI_restriction,
         hi_rstr_decay = cfg.hi_rstr_decay,
-        N_timesteps = cfg.training_timesteps / cfg.eval.freq, # intermediate hack
+        N_timesteps = cfg.training_timesteps / cfg.num_envs / (cfg.eval.freq / next(iter(base_dict_val.values())).shape[1]),
         hi_penalty = False,
+        name = "eval"
     )
     env_promise = [make_env(i, cfg.seed, **kwargs) for i in range(cfg.num_envs)]
     env_promise_val = [make_env(i, cfg.seed, **val_kwargs) for i in range(cfg.num_envs)]
