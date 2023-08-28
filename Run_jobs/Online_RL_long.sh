@@ -3,7 +3,7 @@
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH -p fasse # test
-#SBATCH -t 0-30:00
+#SBATCH -t 0-40:00
 #SBATCH --mem 8G
 #SBATCH --array 0-5
 #SBATCH -o ./Run_jobs/slurm/orl_long.%a.out
