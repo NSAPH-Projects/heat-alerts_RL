@@ -2,17 +2,18 @@
 from argparse import ArgumentParser
 import numpy as np
 from matplotlib import pyplot as plt
+import json
 
 import pyro
 import pytorch_lightning as pl
 import torch
 
-from pyro_heat_alert import (HeatAlertDataModule, HeatAlertLightning,
+from heat_alerts.bayesian_model.pyro_heat_alert import (HeatAlertDataModule, HeatAlertLightning,
                              HeatAlertModel)
 from pyro.infer import Predictive, predictive
 
 def main(params):
-    # params = {"model_name": "Full_8-14", "n_samples": 1}
+    # params = {"model_name": "FullFast_8-16", "n_samples": 100, "SC": "F", "county": 36005}
     ## Read in data:
     n_days = 153
     years = set(range(2006, 2017))
@@ -54,9 +55,11 @@ def main(params):
     predictive_outputs = Predictive(
             model,
             guide=guide, # including the guide includes all sites by default
-            num_samples= 1,#params["n_samples"],  
+            num_samples= params["n_samples"],  
             return_sites=["_RETURN"],
         )
+    
+    ### Observed data:
     inputs = [
         hosps, 
         loc_ind, 
@@ -66,7 +69,66 @@ def main(params):
         eff_features, 
         index
     ]
-    outputs = predictive_outputs(*inputs, condition=False, return_outcomes=True)["_RETURN"][0]
+    
+    ### Custom data:
+    new_alert = torch.ones(alert.shape)
+    new_base = baseline_features.detach().clone()
+    new_base[:, dm.baseline_feature_names.index("alert_lag1")] = torch.zeros(alert.shape)
+    # new_base[:, dm.baseline_feature_names.index("alert_lag1")] = torch.ones(alert.shape)
+    p = torch.tensor((0 - dm.prev_alert_mean)/(2 * dm.prev_alert_std), dtype=torch.float32)
+    # p = torch.tensor((1 - dm.prev_alert_mean)/(2 * dm.prev_alert_std), dtype=torch.float32)
+    # p = torch.tensor((2 - dm.prev_alert_mean)/(2 * dm.prev_alert_std), dtype=torch.float32)
+    new_base[:, dm.baseline_feature_names.index("previous_alerts")] = p.repeat(alert.shape)
+    new_eff = eff_features.detach().clone()
+    new_eff[:, dm.effectiveness_feature_names.index("alert_lag1")] = torch.zeros(alert.shape)
+    # new_eff[:, dm.effectiveness_feature_names.index("alert_lag1")] = torch.ones(alert.shape)
+    new_eff[:, dm.effectiveness_feature_names.index("previous_alerts")] = p.repeat(alert.shape)
+
+    inputs = [
+        hosps, 
+        loc_ind, 
+        county_summer_mean, 
+        new_alert,
+        new_base, 
+        new_eff, 
+        index
+    ]
+
+    outputs = predictive_outputs(*inputs, condition=False, return_outcomes=True)["_RETURN"]
+    # outputs = torch.mean(outputs, dim=0)
+    r0 = outputs[:, :, 1]
+    r1 = r0*(1-outputs[:, :, 0])
+    N = int(r0.shape[1]/n_days)
+    dos = torch.tensor(np.repeat(np.arange(0,n_days), N))
+    effect = r1-r0
+    Effect = torch.mean(effect, dim=0)
+
+    fig, ax = plt.subplots(1, 1, figsize=(8, 5))
+    if params["SC"] == "F":
+        for s in np.unique(loc_ind):
+            county_dos = torch.reshape(Effect[loc_ind == s], (n_years, n_days))
+            ax.plot(county_dos.mean(0), color="k", alpha=0.05, lw=0.5)
+        Effect = torch.reshape(Effect, (N, n_days))
+        ax.plot(Effect.mean(0), color="b", lw=2)
+        ax.set_xlabel("Day of summer")
+        ax.set_title("Effect of Issuing an Alert")
+        fig.savefig("heat_alerts/bayesian_model/Plots_params/Overall_effect_" + params["model_name"] + ".png", bbox_inches="tight")
+        # fig.savefig("heat_alerts/bayesian_model/Plots_params/Lagged_effect_" + params["model_name"] + ".png", bbox_inches="tight")
+        # fig.savefig("heat_alerts/bayesian_model/Plots_params/Prev_alerts-2_effect_" + params["model_name"] + ".png", bbox_inches="tight")
+    else:
+        with open("data/processed/fips2idx.json", "r") as f:
+            fips2ix = json.load(f)
+            fips2ix = {int(k): v for k, v in fips2ix.items()}
+        s = fips2ix[params["county"]]
+        county_dos = torch.reshape(Effect[loc_ind == s], (n_years, n_days))
+        ax.plot(county_dos.mean(0), color="k")
+        ax.set_xlabel("Day of summer")
+        ax.set_title("Effect of Issuing an Alert: County " + str(params["county"]))
+        fig.savefig("heat_alerts/bayesian_model/Plots_params/Overall_effect_county-" + str(params["county"]) + "_" + params["model_name"] + ".png", bbox_inches="tight")
+    
+    
+    #### OLD code:
+
     eff, baseline, outcome_mean = (
                     outputs[:, 0],
                     outputs[:, 1],
@@ -126,5 +188,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--model_name", type=str, default="Full_8-7", help="model name")
     parser.add_argument("--n_samples", type=int, default=1000, help="number of samples to take")
+    parser.add_argument("--SC", type=str, default="F", help="Make plot for single county?")
+    parser.add_argument("--county", type=int, default=36005, help="county to make plots for")
     args = parser.parse_args()
     main(args)
