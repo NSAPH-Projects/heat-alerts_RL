@@ -9,13 +9,13 @@ eval.match_similar<- c("true", "false")
 
 learning_rate<- c(0.001) #, 0.0001
 eval.episodes<- c(100) # 25
-policy_kwargs.net_arch<- c("[16]") # ,"[16,16]"
+policy_kwargs.net_arch<- c("[16,16]") # "[16]" , "[16,16]"
 penalty_decay<- c("false") # "true", "false"
 explore_budget<- c("false") # "true", "false"
 restrict_alerts<- c("true") # "true"
 hi_penalty<- c("false") # "true",
 # HI_restriction<- c(0.7, 0.75, 0.85, 0.9)
-hi_rstr_decay<- c("true", "false")
+hi_rstr_decay<- c("true", "false") # "true", 
 
 
 
@@ -29,7 +29,7 @@ training<- expand.grid(county,
                        restrict_alerts,
                        # HI_restriction,
                        hi_rstr_decay,
-                       # hi_penalty,
+                       hi_penalty,
                        # eval.match_similar,
                        learning_rate)
 colnames(training)<- c("county", 
@@ -42,7 +42,7 @@ colnames(training)<- c("county",
                        "restrict_alerts",
                        # "HI_restriction",
                        "hi_rstr_decay",
-                       # "hi_penalty",
+                       "hi_penalty",
                        # "eval.match_similar",
                        "algo.learning_rate")
 
@@ -56,25 +56,25 @@ training[which(training$algo.learning_rate == 0.0001), "training_timesteps"]<- 1
 training$HI_restriction<- 0.8
 training[which(training$county == 4013), "HI_restriction"]<- 0.7
 
-training$model_name<- paste0("T3", "_fips-", training$county, 
+training$model_name<- paste0("T4", "_fips-", training$county, 
                              "_", training$algo,
                              # "_LR-", training$algo.learning_rate,
                              # "_EB-", training$explore_budget, 
                              # "_EE-", training$eval.episodes
                              # "_Rstr-HI-", training$HI_restriction,
-                             "_Rstr-HI-decay-", training$hi_rstr_decay
-                             # "_PD-", training$penalty_decay #,
-                             # "_HIP-", training$hi_penalty #,
-                             # "_arch-", training$algo.policy_kwargs.net_arch
+                             "_Rstr-HI-decay-", training$hi_rstr_decay,
+                             # "_PD-", training$penalty_decay,
+                             # "_HIP-", training$hi_penalty,
+                             "_arch-", training$algo.policy_kwargs.net_arch
                              ) 
-# training$model_name<- sapply(training$model_name, function(s){
-#   x<- strsplit(s, "\\[")[[1]]
-#   if(nchar(x[2]) < 4){
-#     return(paste0(x[1], "small"))
-#   }else{
-#     return(paste0(x[1], "large"))
-#   }
-# })
+training$model_name<- sapply(training$model_name, function(s){
+  x<- strsplit(s, "\\[")[[1]]
+  if(nchar(x[2]) < 4){
+    return(paste0(x[1], "small"))
+  }else{
+    return(paste0(x[1], "large"))
+  }
+})
 
 training_script<- "python train_online_rl_sb3.py"
 evaluation_script<- "python old_evaluation_SB3.py"

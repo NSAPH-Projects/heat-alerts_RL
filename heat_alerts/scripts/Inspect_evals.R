@@ -2,6 +2,10 @@
 library(dplyr)
 
 
+library(reticulate)
+np<- import("numpy")
+
+
 ## Manually change:
 county<- 36005 
 
@@ -109,6 +113,7 @@ proc_Random<- rep(proc_random, each=length(these))
 proc_NWS<- rep(proc_nws, each=length(these))
 
 for(model in Models){
+  
   ## Read in data and calculate estimated rewards:
   proc_PPO_eval_samp<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county,"_ppo_", model, "_fips_", county, ".csv"))
   proc_PPO_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county,"_ppo_", model, "_fips_", county, ".csv"))
@@ -192,17 +197,27 @@ as_Algo<- rep(these, each=4)
 # Models<- Models[5:6]
 
 for(model in Models){
-  ## Read in data and calculate estimated rewards:
+  
+  ## Read in data and calculate estimated rewards, also get iteration of best model from eval:
+  ppo_npz<- np$load(paste0("logs/SB/", prefix, "_fips-", county,"_ppo_", model, "/results/evaluations.npz")) 
+  ppo_iters<- ppo_npz$f[["timesteps"]]
+  ppo_evals<- rowMeans(ppo_npz$f[["results"]])
   as_PPO_eval_samp<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county,"_ppo_", model, "_fips_", county, ".csv"))
   as_PPO_train_samp<- assess(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county,"_ppo_", model, "_fips_", county, ".csv"))
   as_PPO_eval<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county,"_ppo_", model, "_fips_", county, ".csv"))
   as_PPO_train<- assess(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", prefix, "_fips-", county,"_ppo_", model, "_fips_", county, ".csv"))
   
+  trpo_npz<- np$load(paste0("logs/SB/", prefix, "_fips-", county,"_trpo_", model, "/results/evaluations.npz")) 
+  trpo_iters<- trpo_npz$f[["timesteps"]]
+  trpo_evals<- rowMeans(trpo_npz$f[["results"]])
   as_TRPO_eval_samp<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county,"_trpo_", model, "_fips_", county, ".csv"))
   as_TRPO_train_samp<- assess(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county,"_trpo_", model, "_fips_", county, ".csv"))
   as_TRPO_eval<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county,"_trpo_", model, "_fips_", county, ".csv"))
   as_TRPO_train<- assess(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", prefix, "_fips-", county,"_trpo_", model, "_fips_", county, ".csv"))
   
+  dqn_npz<- np$load(paste0("logs/SB/", prefix, "_fips-", county,"_dqn_", model, "/results/evaluations.npz")) 
+  dqn_iters<- dqn_npz$f[["timesteps"]]
+  dqn_evals<- rowMeans(dqn_npz$f[["results"]])
   as_DQN_eval_samp<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county,"_dqn_", model, "_fips_", county, ".csv"))
   as_DQN_train_samp<- assess(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county,"_dqn_", model, "_fips_", county, ".csv"))
   as_DQN_eval<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county,"_dqn_", model, "_fips_", county, ".csv"))
@@ -213,11 +228,14 @@ for(model in Models){
   # as_QRDQN_eval<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county,"_qrdqn_", model, "_fips_", county, ".csv"))
   # as_QRDQN_train<- assess(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", prefix, "_fips-", county,"_qrdqn_", model, "_fips_", county, ".csv"))
 
+  lstm_npz<- np$load(paste0("logs/SB/", prefix, "_fips-", county,"_lstm_", model, "/results/evaluations.npz")) 
+  lstm_iters<- lstm_npz$f[["timesteps"]]
+  lstm_evals<- rowMeans(lstm_npz$f[["results"]])
   as_LSTM_eval_samp<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
   as_LSTM_train_samp<- assess(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
   as_LSTM_eval<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
   as_LSTM_train<- assess(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
-
+  
   ## Format for table:
   cols<- names(as_TRPO_eval)
   r<- matrix(0, nrow=0, ncol=length(cols))
@@ -236,17 +254,39 @@ for(model in Models){
     r$Algo<- as_Algo
     r$Model<- model
     as_df<- rbind(as_df, r)
+    saved_iter<- c(NA, NA, # for random and NWS
+                   ppo_iters[which.max(ppo_evals)], 
+                   trpo_iters[which.max(trpo_evals)],
+                   dqn_iters[which.max(dqn_evals)],
+                   lstm_iters[which.max(lstm_evals)])
+    saved_eval<- c(NA, NA, # for random and NWS
+                   max(ppo_evals), 
+                   max(trpo_evals),
+                   max(dqn_evals),
+                   max(lstm_evals))
+    as_df$Best_iter<- rep(saved_iter, each=4)
+    as_df$Best_eval<- rep(saved_eval, each=4)
     
   }else{
     r$Type<- as_Type
     r$Algo<- as_Algo
     r$Model<- model
+    saved_iter<- c(ppo_iters[which.max(ppo_evals)], 
+                   trpo_iters[which.max(trpo_evals)],
+                   dqn_iters[which.max(dqn_evals)],
+                   lstm_iters[which.max(lstm_evals)])
+    saved_eval<- c(max(ppo_evals), 
+                   max(trpo_evals),
+                   max(dqn_evals),
+                   max(lstm_evals))
+    r$Best_iter<- rep(saved_iter, each=4)
+    r$Best_eval<- rep(saved_eval, each=4)
     as_df<- rbind(as_df, r)
   }
   print(model)
 }
 
-as_df[,c( "Model", "Algo", "Type", cols)]
+as_df[,c( "Model", "Algo", "Best_iter", "Best_eval", "Type", cols)]
 
 
 
