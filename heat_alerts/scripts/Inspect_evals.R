@@ -189,7 +189,7 @@ as_NWS$Model<- ""
 as_Type<- rep(type, length(these))
 as_Algo<- rep(these, each=4)
 
-Models<- Models[5:6]
+# Models<- Models[5:6]
 
 for(model in Models){
   ## Read in data and calculate estimated rewards:

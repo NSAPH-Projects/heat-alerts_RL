@@ -170,7 +170,7 @@ def custom_eval(cfg: DictConfig, dm, samples):
                 year.append(eval_env.other_data["y"][eval_env.feature_ep_index, eval_env.t].item())
                 budget.append(eval_env.other_data["budget"][eval_env.feature_ep_index, eval_env.t].item())
                 action = 1 if eval_env.t in random_alerts else 0
-            above_thresh_skipped.extend([0]*eval_env.n_days)
+            above_thresh_skipped.extend([0]*len(b_100))
         else:
             action = get_action(cfg.policy_type, obs, eval_env, rl_model)
             while terminal == False:
