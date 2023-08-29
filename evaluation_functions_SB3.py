@@ -141,36 +141,20 @@ def custom_eval(cfg: DictConfig, dm, samples):
     for i in range(0, cfg.final_eval_episodes):
         obs, info = eval_env.reset()
         terminal = False
-        b_50 = []
-        b_80 = []
-        b_100 = []
+        b_50 = np.zeros(eval_env.n_days)
+        b_80 = np.zeros(eval_env.n_days)
+        b_100 = np.zeros(eval_env.n_days)
         if cfg.policy_type == "random":
             random_alerts = np.random.choice(int(eval_env.n_days), int(eval_env.budget), replace=False)
             action = 1 if eval_env.t in random_alerts else 0
             while terminal == False:
                 obs, reward, terminal, trunc, info = eval_env.step(action)
                 a = sum(eval_env.allowed_alert_buffer)
-                if sum(b_100) == 0 and a == eval_env.budget:
-                    b_100.append(1) 
-                    b_80.append(0)
-                    b_50.append(0)
-                elif sum(b_80) == 0 and a >= 0.8*eval_env.budget:
-                    b_80.append(1)
-                    b_100.append(0)
-                    b_50.append(0)
-                elif sum(b_50) == 0 and a >= 0.5*eval_env.budget:
-                    b_50.append(1)
-                    b_100.append(0)
-                    b_80.append(0)
-                else: 
-                    b_100.append(0)
-                    b_80.append(0)
-                    b_50.append(0)
                 rewards.append(reward)
                 year.append(eval_env.other_data["y"][eval_env.feature_ep_index, eval_env.t].item())
                 budget.append(eval_env.other_data["budget"][eval_env.feature_ep_index, eval_env.t].item())
                 action = 1 if eval_env.t in random_alerts else 0
-            above_thresh_skipped.extend([0]*len(b_100))
+            above_thresh_skipped.extend([0]*eval_env.n_days)
         else:
             action = get_action(cfg.policy_type, obs, eval_env, rl_model)
             while terminal == False:
@@ -180,27 +164,27 @@ def custom_eval(cfg: DictConfig, dm, samples):
                 else:
                     above_thresh_skipped.append(0)
                 a = sum(eval_env.allowed_alert_buffer)
-                if sum(b_100) == 0 and a == eval_env.budget:
-                    b_100.append(1) 
-                    b_80.append(0)
-                    b_50.append(0)
-                elif sum(b_80) == 0 and a >= 0.8*eval_env.budget:
-                    b_80.append(1)
-                    b_100.append(0)
-                    b_50.append(0)
-                elif sum(b_50) == 0 and a >= 0.5*eval_env.budget:
-                    b_50.append(1)
-                    b_100.append(0)
-                    b_80.append(0)
-                else: 
-                    b_100.append(0)
-                    b_80.append(0)
-                    b_50.append(0)
                 rewards.append(reward)
                 year.append(eval_env.other_data["y"][eval_env.feature_ep_index, eval_env.t].item())
                 budget.append(eval_env.other_data["budget"][eval_env.feature_ep_index, eval_env.t].item())
                 action = get_action(cfg.policy_type, obs, eval_env, rl_model)
         actions.extend([x.item() if torch.is_tensor(x) else x for x in eval_env.allowed_alert_buffer])
+        s = sum(eval_env.allowed_alert_buffer)
+        if s > 0:
+            fracs = np.cumsum(eval_env.allowed_alert_buffer)/s
+            for k in range(0,len(fracs)):
+                if b_100.sum() == 0 and fracs[k] == 1:
+                    b_100[k] = 1
+                    b_80[k] = 0
+                    b_50[k] = 0
+                if b_80.sum() == 0 and fracs[k] >= 0.8:
+                    b_100[k] = 0
+                    b_80[k] = 1
+                    b_50[k] = 0
+                if b_50.sum() == 0 and fracs[k] >= 0.5:
+                    b_100[k] = 0
+                    b_80[k] = 0
+                    b_50[k] = 1
         B_50.extend(b_50)
         B_80.extend(b_80)
         B_100.extend(b_100)

@@ -14,6 +14,11 @@ from heat_alerts.bayesian_model import (
     HeatAlertModel,
 )
 
+# hydra.initialize(config_path="conf/bayesian_model", version_base=None)
+# cfg = hydra.compose(config_name="config")
+# cfg.model.name = "FullFast_8-16"
+# cfg.training.num_particles = 1 # for full_fast
+# cfg.training.batch_size = None
 
 @hydra.main(config_path="conf/bayesian_model", config_name="config", version_base=None)
 def main(cfg: DictConfig):
@@ -83,7 +88,9 @@ def main(cfg: DictConfig):
     with open(f"ckpts/{cfg.model.name}_cfg.yaml", "w") as f:
         OmegaConf.save(cfg, f)
 
-    # save average predictions for comparison to Y:
+    ## save average predictions for comparison to Y:
+    # model.load_state_dict(torch.load(ckpt_model, map_location=torch.device("cpu")))
+    # guide.load_state_dict(torch.load(ckpt_guide, map_location=torch.device("cpu")))
     sample = guide(*dm.dataset.tensors)
     sites = list(sample.keys()) + ["_RETURN"]
     predictive = pyro.infer.Predictive(

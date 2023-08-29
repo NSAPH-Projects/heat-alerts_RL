@@ -1,6 +1,7 @@
 
-county<- c(36005, 4013) # 36005, 4013
-algos<- c("trpo", "ppo", "dqn", "lstm") # , "lstm", "qrdqn"
+county<- c(41067, 53015, 20161, 37085, 48157, 
+           28049, 19153, 17167, 31153, 6071, 4013) # 36005, 4013
+algos<- c("trpo") # , "ppo", "dqn", "lstm" "qrdqn"
 # match_similar<- c("true") # "false"
 eval.val_years<- c("true", "false")
 eval.match_similar<- c("true", "false") 
@@ -9,13 +10,13 @@ eval.match_similar<- c("true", "false")
 
 learning_rate<- c(0.001) #, 0.0001
 eval.episodes<- c(100) # 25
-policy_kwargs.net_arch<- c("[16,16]") # "[16]" , "[16,16]"
+policy_kwargs.net_arch<- c("[16]") # , "[16,16]", "[32,32]", "[16,16,16]"
 penalty_decay<- c("false") # "true", "false"
 explore_budget<- c("false") # "true", "false"
-restrict_alerts<- c("true") # "true"
-hi_penalty<- c("false") # "true",
-# HI_restriction<- c(0.7, 0.75, 0.85, 0.9)
-hi_rstr_decay<- c("true", "false") # "true", 
+restrict_alerts<- c("true") # "true", "false"
+hi_penalty<- c("false") # "true", "false"
+HI_restriction<- c(0.7, 0.75, 0.8, 0.85, 0.9)
+hi_rstr_decay<- c("false") # "true", "false"
 
 
 
@@ -27,7 +28,7 @@ training<- expand.grid(county,
                        policy_kwargs.net_arch,
                        penalty_decay,
                        restrict_alerts,
-                       # HI_restriction,
+                       HI_restriction,
                        hi_rstr_decay,
                        hi_penalty,
                        # eval.match_similar,
@@ -40,7 +41,7 @@ colnames(training)<- c("county",
                        "algo.policy_kwargs.net_arch", 
                        "penalty_decay",
                        "restrict_alerts",
-                       # "HI_restriction",
+                       "HI_restriction",
                        "hi_rstr_decay",
                        "hi_penalty",
                        # "eval.match_similar",
@@ -53,28 +54,39 @@ training[which(training$eval.episodes == 100), "eval.freq"]<- 2500 # rather than
 training$training_timesteps<- 15000000 # original is 10 million
 training[which(training$algo.learning_rate == 0.0001), "training_timesteps"]<- 100000000
 
-training$HI_restriction<- 0.8
-training[which(training$county == 4013), "HI_restriction"]<- 0.7
+# training$HI_restriction<- 0.8
+# training[which(training$county == 4013), "HI_restriction"]<- 0.7
 
-training$model_name<- paste0("T4", "_fips-", training$county, 
-                             "_", training$algo,
+training$model_name<- paste0("T5", "_fips-", training$county, 
+                             # "_", training$algo,
                              # "_LR-", training$algo.learning_rate,
                              # "_EB-", training$explore_budget, 
                              # "_EE-", training$eval.episodes
-                             # "_Rstr-HI-", training$HI_restriction,
-                             "_Rstr-HI-decay-", training$hi_rstr_decay,
+                             "_Rstr-HI-", training$HI_restriction #,
+                             # "_Rstr-HI-decay-", training$hi_rstr_decay,
                              # "_PD-", training$penalty_decay,
                              # "_HIP-", training$hi_penalty,
-                             "_arch-", training$algo.policy_kwargs.net_arch
+                             # "_arch-", training$algo.policy_kwargs.net_arch
                              ) 
-training$model_name<- sapply(training$model_name, function(s){
-  x<- strsplit(s, "\\[")[[1]]
-  if(nchar(x[2]) < 4){
-    return(paste0(x[1], "small"))
-  }else{
-    return(paste0(x[1], "large"))
-  }
-})
+# training$model_name<- sapply(training$model_name, function(s){
+#   x<- strsplit(s, "\\[")[[1]]
+#   if(nchar(x[2]) < 4){
+#     return(paste0(x[1], "small"))
+#   }else{
+#     return(paste0(x[1], "large"))
+#   }
+# })
+
+# training$model_name<- sapply(training$model_name, function(s){
+#   x<- strsplit(s, "arch-")[[1]]
+#   if(x[2] == "[16,16]"){
+#     return(paste0(x[1], "2-16"))
+#   }else if(x[2] == "[16,16,16]"){
+#     return(paste0(x[1], "3-16"))
+#   }else if(x[2] == "[32,32]"){
+#     return(paste0(x[1], "2-32"))
+#   }
+# })
 
 training_script<- "python train_online_rl_sb3.py"
 evaluation_script<- "python old_evaluation_SB3.py"

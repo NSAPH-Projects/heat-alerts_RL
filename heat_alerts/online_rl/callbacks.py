@@ -42,15 +42,19 @@ class AlertLoggingCallback(BaseCallback):
                     self.streaks.append(self.current_streak[i])
                     self.current_streak[i] = 0
                 self.last_alert[i] = this_alert
-                if np.isnan(self.a_100[i]) and sum(env.allowed_alert_buffer) == env.budget:
-                    self.a_100[i] = env.t - 1 # -1 is because callback occurs after step
-                elif np.isnan(self.a_80[i]) and sum(env.allowed_alert_buffer) >= 0.8*env.budget:
-                    self.a_80[i] = env.t - 1
-                elif np.isnan(self.a_50[i]) and sum(env.allowed_alert_buffer) >= 0.5*env.budget:
-                    self.a_50[i] = env.t - 1
             
             if env.t == env.n_days - 2: # if done on last day, cum_reward will already have been reset to 0
                 self.rolled_rewards[i] += env.cum_reward
+                s = sum(env.allowed_alert_buffer)
+                if s > 0:
+                    fracs = np.cumsum(env.allowed_alert_buffer)/s
+                    for k in range(0,len(fracs)):
+                        if np.isnan(self.a_100[i]) and fracs[k] == 1:
+                            self.a_100[i] = k
+                        if np.isnan(self.a_80[i]) and fracs[k] >= 0.8:
+                            self.a_80[i] = k
+                        if np.isnan(self.a_50[i]) and fracs[k] >= 0.5:
+                            self.a_50[i] = k
 
         return True
 
