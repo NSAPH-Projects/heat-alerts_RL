@@ -6,10 +6,13 @@ library(reticulate)
 np<- import("numpy")
 
 
-## Manually change:
-county<- 36005 
+counties<- c(41067, 53015, 20161, 37085, 48157, 
+             28049, 19153, 17167, 31153, 6071, 4013)
+k<-1 # Manually change
 
-prefix<- c("T4")
+county<- counties[k] 
+
+prefix<- c("T5")
 folders<- list.files("logs/SB", pattern=paste0(prefix, "_fips-", county))
 splitvar<- "Rstr-HI-"
 # splitvar<- "PD-"
@@ -21,7 +24,7 @@ Models<- paste0(splitvar, as.vector(unique(Models)))
 # Models[5:6]<- paste0("Rstr-HI_", Models[5:6])
 # Models<- Models[-1]
 
-these<- c("TRPO", "PPO", "DQN") # "LSTM", "QRDQN"
+these<- c("TRPO") # , "PPO", "DQN", "LSTM", "QRDQN"
 Algo<- rep(these, 4)
 type<- c("eval", "eval_samp", "train", "train_samp")
 Type<- rep(type, each=length(these))

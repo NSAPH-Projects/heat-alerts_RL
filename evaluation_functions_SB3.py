@@ -141,9 +141,9 @@ def custom_eval(cfg: DictConfig, dm, samples):
     for i in range(0, cfg.final_eval_episodes):
         obs, info = eval_env.reset()
         terminal = False
-        b_50 = np.zeros(eval_env.n_days)
-        b_80 = np.zeros(eval_env.n_days)
-        b_100 = np.zeros(eval_env.n_days)
+        b_50 = np.zeros(eval_env.n_days-1)
+        b_80 = np.zeros(eval_env.n_days-1)
+        b_100 = np.zeros(eval_env.n_days-1)
         if cfg.policy_type == "random":
             random_alerts = np.random.choice(int(eval_env.n_days), int(eval_env.budget), replace=False)
             action = 1 if eval_env.t in random_alerts else 0
@@ -154,7 +154,7 @@ def custom_eval(cfg: DictConfig, dm, samples):
                 year.append(eval_env.other_data["y"][eval_env.feature_ep_index, eval_env.t].item())
                 budget.append(eval_env.other_data["budget"][eval_env.feature_ep_index, eval_env.t].item())
                 action = 1 if eval_env.t in random_alerts else 0
-            above_thresh_skipped.extend([0]*eval_env.n_days)
+            above_thresh_skipped.extend([0]*(eval_env.n_days-1))
         else:
             action = get_action(cfg.policy_type, obs, eval_env, rl_model)
             while terminal == False:
