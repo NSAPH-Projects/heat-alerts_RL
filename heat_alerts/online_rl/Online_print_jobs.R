@@ -15,7 +15,8 @@ penalty_decay<- c("false") # "true", "false"
 explore_budget<- c("false") # "true", "false"
 restrict_alerts<- c("true") # "true", "false"
 hi_penalty<- c("false") # "true", "false"
-HI_restriction<- c(0.7, 0.75, 0.8, 0.85, 0.9)
+# HI_restriction<- c(0.7, 0.75, 0.8, 0.85, 0.9)
+HI_restriction<- c(0.5, 0.55, 0.6, 0.65)
 hi_rstr_decay<- c("false") # "true", "false"
 
 
@@ -31,8 +32,8 @@ training<- expand.grid(county,
                        HI_restriction,
                        hi_rstr_decay,
                        hi_penalty,
-                       eval.match_similar,
-                       eval.val_years,
+                       # eval.match_similar,
+                       # eval.val_years,
                        learning_rate)
 colnames(training)<- c("county", 
                        "algo", 
@@ -45,8 +46,8 @@ colnames(training)<- c("county",
                        "HI_restriction",
                        "hi_rstr_decay",
                        "hi_penalty",
-                       "eval.match_similar",
-                       "eval.val_years",
+                       # "eval.match_similar",
+                       # "eval.val_years",
                        "algo.learning_rate")
 
 training$penalty<- 0.01
@@ -99,8 +100,8 @@ Long<- Training[which(training$training_timesteps >= 100000000 | training$algo =
 
 sink("Run_jobs/Online_tests_short")
 for(i in 1:nrow(Short)){
-  cat(evaluation_script,
-    # training_script,
+  cat(# evaluation_script,
+    training_script,
       paste(
         Short[i,]
       ), " \n")
@@ -156,21 +157,21 @@ counties<- c(41067, 53015, 20161, 37085, 48157,
 for(k in counties){
   county<- k
   
-  cat(paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=true ", "county=", county, "\n"),
-      paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=false ", "county=", county, "\n"),
-      paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=false eval.match_similar=true ", "county=", county, "\n"),
-      paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=false eval.match_similar=false ", "county=", county, "\n"))
-  
+  # cat(paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=true ", "county=", county, "\n"),
+  #     paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=false ", "county=", county, "\n"),
+  #     paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=false eval.match_similar=true ", "county=", county, "\n"),
+  #     paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=false eval.match_similar=false ", "county=", county, "\n"))
+
   # cat(paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=true ", "county=", county, "\n"),
   #     paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=false ", "county=", county, "\n"),
   #     paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=true ", "county=", county, "\n"),
   #     paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=false ", "county=", county, "\n"))
 
-  # cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=true ", "county=", county, "\n"),
-  #     paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false ", "county=", county, "\n"),
-  #     paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=true ", "county=", county, "\n"),
-  #     paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=false ", "county=", county, "\n"))
-  
+  cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=true ", "county=", county, "\n"),
+      paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false ", "county=", county, "\n"),
+      paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=true ", "county=", county, "\n"),
+      paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=false ", "county=", county, "\n"))
+
 }
 
 
