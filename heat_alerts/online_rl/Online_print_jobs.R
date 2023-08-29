@@ -31,7 +31,8 @@ training<- expand.grid(county,
                        HI_restriction,
                        hi_rstr_decay,
                        hi_penalty,
-                       # eval.match_similar,
+                       eval.match_similar,
+                       eval.val_years,
                        learning_rate)
 colnames(training)<- c("county", 
                        "algo", 
@@ -44,7 +45,8 @@ colnames(training)<- c("county",
                        "HI_restriction",
                        "hi_rstr_decay",
                        "hi_penalty",
-                       # "eval.match_similar",
+                       "eval.match_similar",
+                       "eval.val_years",
                        "algo.learning_rate")
 
 training$penalty<- 0.01
@@ -97,7 +99,8 @@ Long<- Training[which(training$training_timesteps >= 100000000 | training$algo =
 
 sink("Run_jobs/Online_tests_short")
 for(i in 1:nrow(Short)){
-  cat(training_script,
+  cat(evaluation_script,
+    # training_script,
       paste(
         Short[i,]
       ), " \n")
