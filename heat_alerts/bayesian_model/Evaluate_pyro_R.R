@@ -30,7 +30,7 @@ cor(Y, pred_Y)^2
 
 effectiveness<- bayes$V1
 
-locs<- read_parquet("data/processed/location_indicator.parquet")[,1]#$sind
+locs<- read_parquet("data/processed/location_indicator.parquet")[,1]$sind
 
 crosswalk<- unlist(fromJSON(file="data/processed/fips2idx.json"))
 fips<- names(crosswalk)
@@ -48,16 +48,19 @@ DF<- data.frame(County = fips[locs+1],
                 Region = Region[locs+1],
                 Eff = effectiveness,
                 Alerts = rep(sum_alerts$A, each=length(A)/761))
-DF<- DF[A==1,]
+# DF<- DF[A==1,]
 
 DF[order(DF$Eff, decreasing=TRUE),][0:20,]
 
 agg_DF<- aggregate(. ~ County + Region + Alerts, DF, mean)
 var_DF<- aggregate(Eff ~ County + Region + Alerts, DF, sd)
-agg_DF$Var_Eff<- var_DF$Eff
+var_DF$Mean_Eff<- agg_DF$Eff
+var_DF$Eff<- round(var_DF$Eff, 4)
 
-many_a<- agg_DF[which(agg_DF$Alerts >= 75),]
-many_a[order(many_a$Var_Eff, decreasing=TRUE),]
+# many_a<- var_DF[which(var_DF$Alerts >= 75),]
+many_a<- var_DF[which(var_DF$Alerts >= 55),]
+O<- many_a[order(many_a$Eff, decreasing=TRUE),]
+O[which(O$Region == "Marine"),]
 
 agg_DF[order(agg_DF$Eff, decreasing=TRUE),]
 agg_DF[order(agg_DF$Eff, decreasing=TRUE),][0:100,]
