@@ -125,11 +125,11 @@ for(k in 1:length(counties)){
 results<- data.frame(Fips=counties, Random, NWS, Eval, opt_HI_thr) # Eval_samp
 results[,c("Random", "NWS", "Eval")]<- apply(results[,c("Random", "NWS", "Eval")],
                                                           MARGIN=2, function(x){round(x,3)})
-
+results
 
 ### Make table of alert issuance characteristics for the best models:
 
-df_list<- list()
+alerts_results<- data.frame(matrix(ncol = 10, nrow = 0))
 
 for(k in 1:length(counties)){
   county<- counties[k]
@@ -147,15 +147,18 @@ for(k in 1:length(counties)){
   as_df<- rbind(as_random_eval, as_NWS_eval)
   
   if(opt_HI_thr[k] %% 0.1 == 0.1){
-    rl<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county, "_", splitvar, round(opt_HI_thr[k],1), "_fips_", county, ".csv"))
+    rl<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county, "_", splitvar, round(opt_HI_thr[k],1), "_fips_", county, ".csv"))
   }else{
-    rl<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county, "_", splitvar, opt_HI_thr[k], "_fips_", county, ".csv"))
+    rl<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county, "_", splitvar, opt_HI_thr[k], "_fips_", county, ".csv"))
   }
   rl$Policy<- "TRPO"
   as_df<- rbind(as_df, rl)
   
-  df_list<- append(df_list, as_df)
+  alerts_results<- rbind(alerts_results, as_df)
   print(county) 
 }
+
+alerts_results$Fips<- rep(counties, each=3)
+alerts_results[,c(12, 11, 1:10)]
 
 

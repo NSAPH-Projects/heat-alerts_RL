@@ -157,16 +157,24 @@ sink()
 
 
 ## For NWS and NA:
+
+# cd heat-alerts_mortality_RL/
+# source activate heatrl
+
 counties<- c(41067, 53015, 20161, 37085, 48157, 
              28049, 19153, 17167, 31153, 6071, 4013)
+
+counties<- c(34021, 19155, 17115, 29021, 29019, 5045, 40017, 21059,
+             47113, 42017, 22109, 45015, 13031, 48367, 22063, 41053, 
+             32003, 4015, 6025)
 
 for(k in counties){
   county<- k
   
-  # cat(paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=true ", "county=", county, "\n"),
-  #     paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=false ", "county=", county, "\n"),
-  #     paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=false eval.match_similar=true ", "county=", county, "\n"),
-  #     paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=false eval.match_similar=false ", "county=", county, "\n"))
+  cat(paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=true ", "county=", county, "\n"),
+      paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=false ", "county=", county, "\n"),
+      paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=false eval.match_similar=true ", "county=", county, "\n"),
+      paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=false eval.match_similar=false ", "county=", county, "\n"))
 
   # cat(paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=true ", "county=", county, "\n"),
   #     paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=false ", "county=", county, "\n"),
