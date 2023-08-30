@@ -65,7 +65,7 @@ assess<- function(filename){
 }
 
 
-### Get results:
+### Identify optimal HI threshold and save the associated eval:
 
 prefix<- c("T5")
 splitvar<- "Rstr-HI-"
@@ -125,5 +125,37 @@ for(k in 1:length(counties)){
 results<- data.frame(Fips=counties, Random, NWS, Eval, opt_HI_thr) # Eval_samp
 results[,c("Random", "NWS", "Eval")]<- apply(results[,c("Random", "NWS", "Eval")],
                                                           MARGIN=2, function(x){round(x,3)})
+
+
+### Make table of alert issuance characteristics for the best models:
+
+df_list<- list()
+
+for(k in 1:length(counties)){
+  county<- counties[k]
+  
+  folders<- list.files("logs/SB", pattern=paste0(prefix, "_fips-", county))
+  Models<- sapply(folders, function(s){strsplit(s, splitvar)[[1]][2]})
+  Models<- paste0(splitvar, as.vector(unique(Models)))
+  
+  as_NWS_eval<- assess(paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_test_fips_", county, ".csv"))
+  as_random_eval<- assess(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_test_fips_", county, ".csv"))
+  
+  as_random_eval$Policy<- "random"
+  as_NWS_eval$Policy<- "NWS"
+  
+  as_df<- rbind(as_random_eval, as_NWS_eval)
+  
+  if(opt_HI_thr[k] %% 0.1 == 0.1){
+    rl<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county, "_", splitvar, round(opt_HI_thr[k],1), "_fips_", county, ".csv"))
+  }else{
+    rl<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county, "_", splitvar, opt_HI_thr[k], "_fips_", county, ".csv"))
+  }
+  rl$Policy<- "TRPO"
+  as_df<- rbind(as_df, rl)
+  
+  df_list<- append(df_list, as_df)
+  print(county) 
+}
 
 
