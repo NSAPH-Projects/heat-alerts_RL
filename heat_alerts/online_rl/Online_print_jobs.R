@@ -21,7 +21,8 @@ explore_budget<- c("false") # "true", "false"
 restrict_alerts<- c("true") # "true", "false"
 hi_penalty<- c("false") # "true", "false"
 # HI_restriction<- c(0.7, 0.75, 0.8, 0.85, 0.9)
-HI_restriction<- c(0.5, 0.55, 0.6, 0.65)
+# HI_restriction<- c(0.5, 0.55, 0.6, 0.65)
+HI_restriction<- seq(0.5, 0.9, 0.05)
 hi_rstr_decay<- c("false") # "true", "false"
 
 
