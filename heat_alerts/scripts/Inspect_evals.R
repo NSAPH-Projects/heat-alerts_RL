@@ -67,6 +67,8 @@ assess<- function(filename){
 
 ### Get results:
 
+counties<- c(36005, 4013)
+
 counties<- c(41067, 53015, 20161, 37085, 48157, 
              28049, 19153, 17167, 31153, 6071, 4013)
 
@@ -74,7 +76,7 @@ sink("Fall_results/Tuning_10-set.txt")
 for(k in 1:length(counties)){
   county<- counties[k] 
   
-  prefix<- c("T5")
+  prefix<- c("T3")
   folders<- list.files("logs/SB", pattern=paste0(prefix, "_fips-", county))
   splitvar<- "Rstr-HI-"
   # splitvar<- "PD-"
@@ -86,7 +88,7 @@ for(k in 1:length(counties)){
   # Models[5:6]<- paste0("Rstr-HI_", Models[5:6])
   # Models<- Models[-1]
   
-  these<- c("TRPO") # , "PPO", "DQN", "LSTM", "QRDQN"
+  these<- c("LSTM") # "TRPO", "PPO", "DQN", "LSTM", "QRDQN"
   Algo<- rep(these, 4)
   type<- c("eval", "eval_samp", "train", "train_samp")
   Type<- rep(type, each=length(these))
@@ -148,10 +150,10 @@ for(k in 1:length(counties)){
     # proc_QRDQN_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county,"_qrdqn_", model, "_fips_", county, ".csv"))
     # proc_QRDQN_train<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", prefix, "_fips-", county,"_qrdqn_", model, "_fips_", county, ".csv"))
     
-    # proc_LSTM_eval_samp<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
-    # proc_LSTM_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
-    # proc_LSTM_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
-    # proc_LSTM_train<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
+    proc_LSTM_eval_samp<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
+    proc_LSTM_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
+    proc_LSTM_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
+    proc_LSTM_train<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", prefix, "_fips-", county,"_lstm_", model, "_fips_", county, ".csv"))
     
     ## Format for table:
     r<- sapply(these, function(x){

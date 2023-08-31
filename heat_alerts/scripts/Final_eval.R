@@ -74,12 +74,12 @@ Algo<- rep(these, 4)
 type<- c("eval", "eval_samp", "train", "train_samp")
 Type<- rep(type, each=length(these))
 
-counties<- c(41067, 53015, 20161, 37085, 48157, 
+counties<- c(41067, 53015, 20161, 37085, 48157,
              28049, 19153, 17167, 31153, 6071, 4013)
 
-# counties<- c(34021, 19155, 17115, 29021, 29019, 5045, 40017, 21059,
-#              47113, 42017, 22109, 45015, 13031, 48367, 22063, 41053, 
-#              32003, 4015, 6025)
+counties<- c(34021, 19155, 17115, 29021, 29019, 5045, 40017, 21059,
+             47113, 42017, 22109, 45015, 13031, 48367, 22063, 41053,
+             32003, 4015, 6025)
 
 HI_thresholds<- seq(0.5, 0.9, 0.05)
 opt_HI_thr<- rep(0, length(counties))
@@ -126,6 +126,8 @@ results<- data.frame(Fips=counties, Random, NWS, Eval, opt_HI_thr) # Eval_samp
 results[,c("Random", "NWS", "Eval")]<- apply(results[,c("Random", "NWS", "Eval")],
                                                           MARGIN=2, function(x){round(x,3)})
 results
+
+write.csv(results, "Fall_results/Final_eval_30.csv")
 
 ### Make table of alert issuance characteristics for the best models:
 
