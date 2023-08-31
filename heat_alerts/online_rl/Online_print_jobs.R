@@ -24,13 +24,13 @@ eval.episodes<- c(100) # 25
 policy_kwargs.net_arch<- c("[16]") # , "[16,16]", "[32,32]", "[16,16,16]"
 penalty_decay<- c("false") # "true", "false"
 explore_budget<- c("false") # "true", "false"
-restrict_alerts<- c("false") # "true", "false"
+restrict_alerts<- c("true") # "true", "false"
 hi_penalty<- c("false") # "true", "false"
 # HI_restriction<- c(0.7, 0.75, 0.8, 0.85, 0.9)
 # HI_restriction<- c(0.5, 0.55, 0.6, 0.65)
 HI_restriction<- seq(0.5, 0.9, 0.05)
 hi_rstr_decay<- c("false") # "true", "false"
-penalty<- c(0.0, 0.01)
+penalty<- c(0.0) # , 0.01
 
 
 training<- expand.grid(county, 
@@ -71,15 +71,19 @@ training[which(training$eval.episodes == 100), "eval.freq"]<- 2500 # rather than
 training$training_timesteps<- 15000000 # original is 10 million
 training[which(training$algo.learning_rate == 0.0001), "training_timesteps"]<- 100000000
 
+results<- read.csv("Fall_results/Final_eval_30.csv")
+training$HI_restriction<- results$opt_HI_thr
+
 # training$HI_restriction<- 0.8
 # training[which(training$county == 4013), "HI_restriction"]<- 0.7
 
 training$model_name<- paste0("E0", "_fips-", training$county, 
-                             "_P-", training$penalty #,
+                             "_P-", training$penalty,
                              # "_", training$algo,
                              # "_LR-", training$algo.learning_rate,
                              # "_EB-", training$explore_budget, 
                              # "_EE-", training$eval.episodes
+                             "_Rstr-HI-opt"
                              # "_Rstr-HI-", training$HI_restriction #,
                              # "_Rstr-HI-decay-", training$hi_rstr_decay,
                              # "_PD-", training$penalty_decay,
