@@ -120,8 +120,8 @@ Long<- Training[which(training$training_timesteps >= 100000000 | training$algo =
 
 sink("Run_jobs/Online_tests_short")
 for(i in 1:nrow(Short)){
-  cat(# evaluation_script,
-    training_script,
+  cat(evaluation_script,
+    # training_script,
       paste(
         Short[i,]
       ), " \n")
@@ -290,4 +290,14 @@ for(i in 1:nrow(tests)){
 }
 
 sink()
+
+
+####### Scratch:
+
+for(n in training$model_name){
+  df<- read.csv(paste0("logs/SB/", n, "/training_metrics/progress.csv"))
+  print(df[nrow(df),"time.total_timesteps"])
+}
+
+
 
