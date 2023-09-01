@@ -77,7 +77,7 @@ training[which(training$algo.learning_rate == 0.0001), "training_timesteps"]<- 1
 # training$HI_restriction<- 0.8
 # training[which(training$county == 4013), "HI_restriction"]<- 0.7
 
-training$model_name<- paste0("T6", "_fips-", training$county, 
+training$model_name<- paste0("T7", "_fips-", training$county, 
                              # "_P-", training$penalty,
                              # "_", training$algo,
                              # "_obs-W",
@@ -120,8 +120,8 @@ Long<- Training[which(training$training_timesteps >= 100000000 | training$algo =
 
 sink("Run_jobs/Online_tests_short")
 for(i in 1:nrow(Short)){
-  cat(evaluation_script,
-    # training_script,
+  cat(# evaluation_script,
+    training_script,
       paste(
         Short[i,]
       ), " \n")

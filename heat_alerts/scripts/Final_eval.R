@@ -67,7 +67,7 @@ assess<- function(filename){
 
 ### Identify optimal HI threshold and save the associated eval:
 
-prefix<- c("T5") # 
+prefix<- c("T6") # 
 splitvar<- "Rstr-HI-"
 these<- c("TRPO") # , "PPO", "DQN", "LSTM", "QRDQN"
 Algo<- rep(these, 4)
@@ -133,7 +133,7 @@ results[,c("Random", "NWS", "Eval")]<- apply(results[,c("Random", "NWS", "Eval")
                                                           MARGIN=2, function(x){round(x,3)})
 results
 
-write.csv(results, "Fall_results/Final_eval_30.csv")
+write.csv(results, "Fall_results/Final_eval_30_T6.csv")
 
 ### Make table of alert issuance characteristics for the best models:
 
