@@ -64,7 +64,7 @@ colnames(training)<- c("county",
                        # "eval.val_years",
                        "algo.learning_rate")
 
-training$penalty<- c(0.1) # 0.01
+training$penalty<- c(0.0) # 0.01
 # training[which(training$penalty_decay == "true"), "penalty"]<- 0.1
 training$eval.freq<- 1000
 training[which(training$eval.episodes == 100), "eval.freq"]<- 2500 # rather than 4000
