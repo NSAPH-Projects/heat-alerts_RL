@@ -21,10 +21,10 @@ eval.match_similar<- c("true", "false")
 
 learning_rate<- c(0.001) #, 0.0001
 eval.episodes<- c(100) # 25
-policy_kwargs.net_arch<- c("[16,16]") # "[16]", "[16,16]", "[32,32]", "[16,16,16]"
+policy_kwargs.net_arch<- c("[16]", "[16,16]") # "[16]", "[16,16]", "[32,32]", "[16,16,16]"
 penalty_decay<- c("false") # "true", "false"
 explore_budget<- c("false") # "true", "false"
-restrict_alerts<- c("true") # "true", "false"
+restrict_alerts<- c("false") # "true", "false"
 hi_penalty<- c("false") # "true", "false"
 # HI_restriction<- c(0.7, 0.75, 0.8, 0.85, 0.9)
 # HI_restriction<- c(0.5, 0.55, 0.6, 0.65)
@@ -77,14 +77,14 @@ training$HI_restriction<- results$opt_HI_thr
 # training$HI_restriction<- 0.8
 # training[which(training$county == 4013), "HI_restriction"]<- 0.7
 
-training$model_name<- paste0("T7", "_fips-", training$county, 
+training$model_name<- paste0("E0g1", "_fips-", training$county, 
                              # "_P-", training$penalty,
                              # "_", training$algo,
                              # "_obs-W",
                              # "_LR-", training$algo.learning_rate,
                              # "_EB-", training$explore_budget, 
                              # "_EE-", training$eval.episodes
-                             "_Rstr-HI-opt",
+                             # "_Rstr-HI-opt",
                              # "_Rstr-HI-", training$HI_restriction #,
                              # "_Rstr-HI-decay-", training$hi_rstr_decay,
                              # "_PD-", training$penalty_decay,
@@ -108,6 +108,8 @@ training$model_name<- sapply(training$model_name, function(s){
     return(paste0(x[1], "3-16"))
   }else if(x[2] == "[32,32]"){
     return(paste0(x[1], "2-32"))
+  }else{
+    return(paste0(x[1], "1-16"))
   }
 })
 
