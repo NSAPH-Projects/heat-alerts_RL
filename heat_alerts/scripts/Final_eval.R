@@ -170,20 +170,22 @@ alerts_results$Fips<- rep(counties, each=3)
 alerts_results[,c(12, 11, 1:10)]
 
 ### Making an expanded table to compare across experiments:
-earlier<- read.csv("Fall_results/Final_eval_30.csv")
+earlier<- read.csv("Fall_results/Final_eval_30_T7.csv")
 earlier<- earlier[,c(2:4,6,5)]
 
-P_0<- rep(0, length(counties))
-Obs_W<- rep(0, length(counties))
+# P_0<- rep(0, length(counties))
+# Obs_W<- rep(0, length(counties))
+NN_2l<- rep(0, length(counties))
 Saved_Iter<- rep(0, length(counties))
 
 for(k in 1:length(counties)){
   county<- counties[k]
   
-  P_0[k]<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", "E1", "_fips-", county, "_P-0_Rstr-HI-opt", "_fips_", county, ".csv"))
-  Obs_W[k]<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", "E1", "_fips-", county, "_obs-W_Rstr-HI-opt", "_fips_", county, ".csv"))
+  # P_0[k]<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", "E1", "_fips-", county, "_P-0_Rstr-HI-opt", "_fips_", county, ".csv"))
+  # Obs_W[k]<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", "E1", "_fips-", county, "_obs-W_Rstr-HI-opt", "_fips_", county, ".csv"))
+  NN_2l[k]<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", "T7", "_fips-", county, "_Rstr-HI-opt_", "2-16", "_fips_", county, ".csv"))
   
-  trpo_npz<- np$load(paste0("logs/SB/", "T5", "_fips-", county, "_Rstr-HI-", earlier$opt_HI_thr[k], "/results/evaluations.npz")) 
+  trpo_npz<- np$load(paste0("logs/SB/", "T7", "_fips-", county, "_Rstr-HI-", earlier$opt_HI_thr[k], "/results/evaluations.npz")) 
   trpo_iters<- trpo_npz$f[["timesteps"]]
   trpo_evals<- rowMeans(trpo_npz$f[["results"]])
   Saved_Iter[k]<- trpo_iters[which.max(trpo_evals)]
@@ -191,7 +193,8 @@ for(k in 1:length(counties)){
   print(county)
 }
 
-results<- data.frame(earlier, Saved_Iter, P_0, Obs_W)
+# results<- data.frame(earlier, Saved_Iter, P_0, Obs_W)
+results<- data.frame(earlier, Saved_Iter, NN_2l)
 results[,-1]<- apply(results[,-1], MARGIN=2, function(x){round(x,3)})
 results
 
