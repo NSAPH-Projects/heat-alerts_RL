@@ -21,7 +21,7 @@ eval.match_similar<- c("true", "false")
 
 learning_rate<- c(0.001) #, 0.0001
 eval.episodes<- c(100) # 25
-policy_kwargs.net_arch<- c("[16]") # , "[16,16]", "[32,32]", "[16,16,16]"
+policy_kwargs.net_arch<- c("[16,16]") # "[16]", "[16,16]", "[32,32]", "[16,16,16]"
 penalty_decay<- c("false") # "true", "false"
 explore_budget<- c("false") # "true", "false"
 restrict_alerts<- c("true") # "true", "false"
@@ -42,7 +42,7 @@ training<- expand.grid(county,
                        # penalty,
                        penalty_decay,
                        restrict_alerts,
-                       HI_restriction,
+                       # HI_restriction,
                        hi_rstr_decay,
                        hi_penalty,
                        # eval.match_similar,
@@ -57,7 +57,7 @@ colnames(training)<- c("county",
                        # "penalty",
                        "penalty_decay",
                        "restrict_alerts",
-                       "HI_restriction",
+                       # "HI_restriction",
                        "hi_rstr_decay",
                        "hi_penalty",
                        # "eval.match_similar",
@@ -71,8 +71,8 @@ training[which(training$eval.episodes == 100), "eval.freq"]<- 2500 # rather than
 training$training_timesteps<- 15000000 # original is 10 million
 training[which(training$algo.learning_rate == 0.0001), "training_timesteps"]<- 100000000
 
-# results<- read.csv("Fall_results/Final_eval_30.csv")
-# training$HI_restriction<- results$opt_HI_thr
+results<- read.csv("Fall_results/Final_eval_30.csv")
+training$HI_restriction<- results$opt_HI_thr
 
 # training$HI_restriction<- 0.8
 # training[which(training$county == 4013), "HI_restriction"]<- 0.7
@@ -84,12 +84,12 @@ training$model_name<- paste0("T7", "_fips-", training$county,
                              # "_LR-", training$algo.learning_rate,
                              # "_EB-", training$explore_budget, 
                              # "_EE-", training$eval.episodes
-                             # "_Rstr-HI-opt"
-                             "_Rstr-HI-", training$HI_restriction #,
+                             "_Rstr-HI-opt",
+                             # "_Rstr-HI-", training$HI_restriction #,
                              # "_Rstr-HI-decay-", training$hi_rstr_decay,
                              # "_PD-", training$penalty_decay,
                              # "_HIP-", training$hi_penalty,
-                             # "_arch-", training$algo.policy_kwargs.net_arch
+                             "_arch-", training$algo.policy_kwargs.net_arch
                              ) 
 # training$model_name<- sapply(training$model_name, function(s){
 #   x<- strsplit(s, "\\[")[[1]]
@@ -100,16 +100,16 @@ training$model_name<- paste0("T7", "_fips-", training$county,
 #   }
 # })
 
-# training$model_name<- sapply(training$model_name, function(s){
-#   x<- strsplit(s, "arch-")[[1]]
-#   if(x[2] == "[16,16]"){
-#     return(paste0(x[1], "2-16"))
-#   }else if(x[2] == "[16,16,16]"){
-#     return(paste0(x[1], "3-16"))
-#   }else if(x[2] == "[32,32]"){
-#     return(paste0(x[1], "2-32"))
-#   }
-# })
+training$model_name<- sapply(training$model_name, function(s){
+  x<- strsplit(s, "arch-")[[1]]
+  if(x[2] == "[16,16]"){
+    return(paste0(x[1], "2-16"))
+  }else if(x[2] == "[16,16,16]"){
+    return(paste0(x[1], "3-16"))
+  }else if(x[2] == "[32,32]"){
+    return(paste0(x[1], "2-32"))
+  }
+})
 
 training_script<- "python train_online_rl_sb3.py"
 evaluation_script<- "python old_evaluation_SB3.py"
