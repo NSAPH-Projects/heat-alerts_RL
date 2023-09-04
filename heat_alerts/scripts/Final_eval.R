@@ -144,6 +144,7 @@ Best_Eval_Samp<- rep(0, length(counties))
 Eval<- rep(0, length(counties))
 opt_HI_thr<- rep(0, length(counties))
 NWS_samp<- rep(0, length(counties))
+Best_Iter<- rep(0, length(counties))
 
 for(k in 1:nrow(T7_results)){
   NWS_samp[k]<- my_proc(paste0("Summer_results/ORL_NWS_eval_samp-R_samp-W_test_fips_", T7_results[k,"Fips"], ".csv"))
@@ -156,16 +157,26 @@ for(k in 1:nrow(T7_results)){
     Best_Eval_Samp[k]<- t8
     Eval[k]<- T8_results[k, "Eval"]
     opt_HI_thr[k]<- T8_results[k, "opt_HI_thr"]
+    
+    npz<- np$load(paste0("logs/SB/", "T8", "_fips-", T8_results[k,"Fips"], "_", "Rstr-HI-", T8_results[k,"opt_HI_thr"], "/results/evaluations.npz")) 
+    iters<- npz$f[["timesteps"]]
+    evals<- rowMeans(npz$f[["results"]])
+    Best_Iter[k]<- iters[which.max(evals)]
   }else{
     Best_Model[k]<- "NN_1-16"
     Best_Eval_Samp[k]<- t7
     Eval[k]<- T7_results[k, "Eval"]
     opt_HI_thr[k]<- T7_results[k, "opt_HI_thr"]
+    
+    npz<- np$load(paste0("logs/SB/", "T7", "_fips-", T7_results[k,"Fips"], "_", "Rstr-HI-", T7_results[k,"opt_HI_thr"], "/results/evaluations.npz")) 
+    iters<- npz$f[["timesteps"]]
+    evals<- rowMeans(npz$f[["results"]])
+    Best_Iter[k]<- iters[which.max(evals)]
   }
   print(T7_results[k,"Fips"])
 }
 results<- data.frame(T7_results[,c("Fips", "Random", "NWS")], 
-                     Best_Model, Eval, opt_HI_thr, NWS_samp, Best_Eval_Samp)
+                     Best_Model, Eval, opt_HI_thr, NWS_samp, Best_Eval_Samp, Best_Iter)
 results[,c("Random", "NWS", "Eval", "NWS_samp", "Best_Eval_Samp")]<- apply(results[,c("Random", "NWS", "Eval", "NWS_samp", "Best_Eval_Samp")],
                                              MARGIN=2, function(x){round(x,3)})
 results

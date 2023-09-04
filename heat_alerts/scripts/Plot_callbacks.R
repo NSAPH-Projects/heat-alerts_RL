@@ -2,10 +2,11 @@
 library(ggplot2)
 library(cowplot, lib.loc = "~/apps/R_4.2.2")
 
-model<- "trpo_0"
-model<- "ppo_0"
-model<- "qrdqn_0"
-model<- "dqn_0"
+# model<- "trpo_0"
+# model<- "ppo_0"
+# model<- "qrdqn_0"
+# model<- "dqn_0"
+model<- "T7_fips-41067_Rstr-HI-0.7"
 
 df<- read.csv(paste0("logs/SB/", model, "/training_metrics/progress.csv"))
 
@@ -15,11 +16,12 @@ my_plot<- function(var, title){
   p<- ggplot(DF, aes(x = Iterations, y = Y)) + ylab(title) +
     geom_line() + 
     geom_smooth(span=0.3) +
+    xlab("Evaluation Epochs") +
       ggtitle(title)
   return(p)
 }
 
-emr<- my_plot("eval.mean_reward", "Eval Mean Reward")
+emr<- my_plot("eval.mean_reward", "Evaluation Mean Reward")
 tr<- my_plot("custom.training_rewards", "Training Rewards")
 a_freq<- my_plot("custom.alerts_freq", "Alert Frequency")
 over_b<- my_plot( "custom.over_budget_freq", "Over Budget Frequency")

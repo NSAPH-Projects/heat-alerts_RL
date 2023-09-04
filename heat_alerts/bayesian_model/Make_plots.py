@@ -99,7 +99,7 @@ def main(params):
     r0 = outputs[:, :, 1]
     r1 = r0*(1-outputs[:, :, 0])
     N = int(r0.shape[1]/n_days)
-    dos = torch.tensor(np.repeat(np.arange(0,n_days), N))
+    # dos = torch.tensor(np.repeat(np.arange(0,n_days), N))
     effect = r1-r0
     Effect = torch.mean(effect, dim=0)
 
@@ -107,12 +107,17 @@ def main(params):
     if params["SC"] == "F":
         for s in np.unique(loc_ind):
             county_dos = torch.reshape(Effect[loc_ind == s], (n_years, n_days))
-            ax.plot(county_dos.mean(0), color="k", alpha=0.05, lw=0.5)
+            ax.plot(county_dos.mean(0), color="k", alpha=0.1, lw=0.5)
         Effect = torch.reshape(Effect, (N, n_days))
+        ax.set_ylim(-0.1,0)
+        # Upper = torch.quantile(Effect, 0.975, dim = 0)
+        # Lower = torch.quantile(Effect, 0.025, dim = 0)
         ax.plot(Effect.mean(0), color="b", lw=2)
-        ax.set_xlabel("Day of summer")
+        # ax.plot(Upper, color="k", alpha = 0.1, lw=2)
+        # ax.plot(Lower, color="k", alpha = 0.1, lw=2)
+        ax.set_xlabel("Day of Summer")
         ax.set_title("Effect of Issuing an Alert")
-        fig.savefig("heat_alerts/bayesian_model/Plots_params/Overall_effect_" + params["model_name"] + ".png", bbox_inches="tight")
+        fig.savefig("heat_alerts/bayesian_model/Plots_params/Overall_effect_w-CI_" + params["model_name"] + ".png", bbox_inches="tight")
         # fig.savefig("heat_alerts/bayesian_model/Plots_params/Lagged_effect_" + params["model_name"] + ".png", bbox_inches="tight")
         # fig.savefig("heat_alerts/bayesian_model/Plots_params/Prev_alerts-2_effect_" + params["model_name"] + ".png", bbox_inches="tight")
     else:
@@ -122,42 +127,85 @@ def main(params):
         s = fips2ix[params["county"]]
         county_dos = torch.reshape(Effect[loc_ind == s], (n_years, n_days))
         ax.plot(county_dos.mean(0), color="k")
-        ax.set_xlabel("Day of summer")
+        ax.set_xlabel("Day of Summer")
         ax.set_title("Effect of Issuing an Alert: County " + str(params["county"]))
         fig.savefig("heat_alerts/bayesian_model/Plots_params/Overall_effect_county-" + str(params["county"]) + "_" + params["model_name"] + ".png", bbox_inches="tight")
     
     
     #### OLD code:
-
+    Outputs = torch.mean(outputs, dim=0)
     eff, baseline, outcome_mean = (
-                    outputs[:, 0],
-                    outputs[:, 1],
-                    outputs[:, 2],
+                    Outputs[:, 0],
+                    Outputs[:, 1],
+                    Outputs[:, 2],
                 )
     sample = guide(*inputs)
-    keys = [k for k in sample.keys() if not "dos_" in k]
-    base_keys = [k for k in keys if not "eff" in k]
-    eff_keys = [k for k in keys if not "base" in k]
-    base_means = [sample[k].mean().detach().numpy() for k in base_keys]
-    base_stddevs = [sample[k].std().detach().numpy() for k in base_keys]
-    eff_means = [sample[k].mean().detach().numpy() for k in eff_keys]
-    eff_stddevs = [sample[k].std().detach().numpy() for k in eff_keys]
-    
-    fig, ax = plt.subplots(1, 1, figsize=(5, 5))
-    ax.errorbar(x=base_keys, y=base_means, yerr=base_stddevs, fmt="o")
-    plt.xticks(rotation=90)
-    ax.set_title("Baseline Coeff Distribution")
-    ax.set_ylabel("Coeff Value")
-    plt.subplots_adjust(bottom=0.6)
-    fig.savefig("Plots_params/Baseline_Coefficients_" + params["model_name"] + ".png", bbox_inches="tight")
 
-    fig, ax = plt.subplots(1, 1, figsize=(5, 5))
-    ax.errorbar(x=eff_keys, y=eff_means, yerr=eff_stddevs, fmt="o")
-    plt.xticks(rotation=90)
-    ax.set_title("Effectiveness Coeff Distribution")
-    ax.set_ylabel("Coeff Value")
+    keys0 = [k for k in sample.keys() if k.startswith("effectiveness_")]
+    keys1 = [k for k in sample.keys() if k.startswith("baseline_")]
+    medians_0 = np.array(
+        [torch.quantile(sample[k], 0.5).item() for k in keys0]
+    )
+    medians_1 = np.array(
+        [torch.quantile(sample[k], 0.5).item() for k in keys1]
+    )
+    q25_0 = np.array(
+        [torch.quantile(sample[k], 0.25).item() for k in keys0]
+    )
+    q25_1 = np.array(
+        [torch.quantile(sample[k], 0.25).item() for k in keys1]
+    )
+    q75_0 = np.array(
+        [torch.quantile(sample[k], 0.75).item() for k in keys0]
+    )
+    q75_1 = np.array(
+        [torch.quantile(sample[k], 0.75).item() for k in keys1]
+    )
+    l0, u0 = medians_0 - q25_0, q75_0 - medians_0
+    l1, u1 = medians_1 - q25_1, q75_1 - medians_1
+    base_names = [k.split("baseline_")[1] for k in keys1]
+    eff_names = [k.split("effectiveness_")[1] for k in keys0]
+    base_names = ["HQI", "HQI>25", "HQI>75", "Excess QHI", "Alert Lag1", "Alerts 2wks", "Weekend",
+                  "DOS_0", "DOS_1", "DOS_2", "Bias"]
+    eff_names = ["QHI", "Excess QHI", "Alert Lag1", "Alerts 2wks", "Weekend", 
+                 "DOS_0", "DOS_1", "DOS_2", "Bias"]
+
+    # make coefficient distribution plots for coefficients, error bars are iqr
+    fig, ax = plt.subplots(1, 2, figsize=(8, 4))
+    ax[0].errorbar(x=eff_names, y=medians_0, yerr=[l0, u0], fmt="o")
+    plt.setp(ax[0].get_xticklabels(), rotation=90)
+    ax[0].set_title("Effectiveness Coefs Distribution")
+    # ax[0].set_ylabel("Coef Value")
+    ax[1].errorbar(x=base_names, y=medians_1, yerr=[l1, u1], fmt="o")
+    plt.setp(ax[1].get_xticklabels(), rotation=90)
+    ax[1].set_title("Baseline Coefs Distribution")
+    # ax[1].set_ylabel("Coef Value")
     plt.subplots_adjust(bottom=0.6)
-    fig.savefig("Plots_params/Effectiveness_Coefficients_" + params["model_name"] + ".png", bbox_inches="tight")
+    fig.savefig("heat_alerts/bayesian_model/Plots_params/Coefficients_" + params["model_name"] + ".png", bbox_inches="tight")
+
+    # keys = [k for k in sample.keys() if not "dos_" in k]
+    # base_keys = [k for k in keys if not "eff" in k]
+    # eff_keys = [k for k in keys if not "base" in k]
+    # base_means = [sample[k].mean().detach().numpy() for k in base_keys]
+    # base_stddevs = [sample[k].std().detach().numpy() for k in base_keys]
+    # eff_means = [sample[k].mean().detach().numpy() for k in eff_keys]
+    # eff_stddevs = [sample[k].std().detach().numpy() for k in eff_keys]
+    
+    # fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+    # ax.errorbar(x=base_keys, y=base_means, yerr=base_stddevs, fmt="o")
+    # plt.xticks(rotation=90)
+    # ax.set_title("Baseline Coeff Distribution")
+    # ax.set_ylabel("Coeff Value")
+    # plt.subplots_adjust(bottom=0.6)
+    # fig.savefig("Plots_params/Baseline_Coefficients_" + params["model_name"] + ".png", bbox_inches="tight")
+
+    # fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+    # ax.errorbar(x=eff_keys, y=eff_means, yerr=eff_stddevs, fmt="o")
+    # plt.xticks(rotation=90)
+    # ax.set_title("Effectiveness Coeff Distribution")
+    # ax.set_ylabel("Coeff Value")
+    # plt.subplots_adjust(bottom=0.6)
+    # fig.savefig("Plots_params/Effectiveness_Coefficients_" + params["model_name"] + ".png", bbox_inches="tight")
 
     # now a plot of the effect of day of summer
     n_basis = dm.dos_spline_basis.shape[1]
