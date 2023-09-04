@@ -165,7 +165,7 @@ def main(params):
     l1, u1 = medians_1 - q25_1, q75_1 - medians_1
     base_names = [k.split("baseline_")[1] for k in keys1]
     eff_names = [k.split("effectiveness_")[1] for k in keys0]
-    base_names = ["HQI", "HQI>25", "HQI>75", "Excess QHI", "Alert Lag1", "Alerts 2wks", "Weekend",
+    base_names = ["QHI", "QHI>25", "QHI>75", "Excess QHI", "Alert Lag1", "Alerts 2wks", "Weekend",
                   "DOS_0", "DOS_1", "DOS_2", "Bias"]
     eff_names = ["QHI", "Excess QHI", "Alert Lag1", "Alerts 2wks", "Weekend", 
                  "DOS_0", "DOS_1", "DOS_2", "Bias"]
