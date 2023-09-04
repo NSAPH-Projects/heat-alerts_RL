@@ -50,13 +50,6 @@ DF<- data.frame(County = fips[locs+1],
                 Alerts = rep(sum_alerts$A, each=length(A)/761))
 # DF<- DF[A==1,]
 
-# library(dplyr)
-# library(xtable)
-# df<- distinct(DF[,c( "Region", "County", "Alerts")])
-# df<- df[order(df$Region, decreasing=TRUE),]
-# data<- df[which(df$County %in% counties),]
-# print(xtable(data, hline.after = 1:nrow(data)), include.rownames=FALSE)
-
 DF[order(DF$Eff, decreasing=TRUE),][0:20,]
 
 agg_DF<- aggregate(. ~ County + Region + Alerts, DF, mean)

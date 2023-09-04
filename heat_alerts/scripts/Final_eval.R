@@ -67,7 +67,7 @@ assess<- function(filename){
 
 ### Identify optimal HI threshold and save the associated eval:
 
-prefix<- c("T7") # 
+prefix<- c("T8") # 
 splitvar<- "Rstr-HI-"
 these<- c("TRPO") # , "PPO", "DQN", "LSTM", "QRDQN"
 Algo<- rep(these, 4)
@@ -133,7 +133,43 @@ results[,c("Random", "NWS", "Eval")]<- apply(results[,c("Random", "NWS", "Eval")
                                                           MARGIN=2, function(x){round(x,3)})
 results
 
-write.csv(results, "Fall_results/Final_eval_30_T7.csv")
+write.csv(results, "Fall_results/Final_eval_30_T8.csv")
+
+## Choosing best size of net_arch based on eval_samp:
+T7_results<- read.csv("Fall_results/Final_eval_30_T7.csv")
+T8_results<- read.csv("Fall_results/Final_eval_30_T8.csv")
+
+Best_Model<- rep("", length(counties))
+Best_Eval_Samp<- rep(0, length(counties))
+Eval<- rep(0, length(counties))
+opt_HI_thr<- rep(0, length(counties))
+NWS_samp<- rep(0, length(counties))
+
+for(k in 1:nrow(T7_results)){
+  NWS_samp[k]<- my_proc(paste0("Summer_results/ORL_NWS_eval_samp-R_samp-W_test_fips_", T7_results[k,"Fips"], ".csv"))
+  
+  t7<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", "T7", "_fips-", T7_results[k,"Fips"], "_", "Rstr-HI-", T7_results[k,"opt_HI_thr"], "_fips_", T7_results[k,"Fips"], ".csv"))
+  t8<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", "T8", "_fips-", T8_results[k,"Fips"], "_", "Rstr-HI-", T8_results[k,"opt_HI_thr"], "_fips_", T8_results[k,"Fips"], ".csv"))
+  
+  if(t8 > t7){
+    Best_Model[k]<- "NN_2-16"
+    Best_Eval_Samp[k]<- t8
+    Eval[k]<- T8_results[k, "Eval"]
+    opt_HI_thr[k]<- T8_results[k, "opt_HI_thr"]
+  }else{
+    Best_Model[k]<- "NN_1-16"
+    Best_Eval_Samp[k]<- t7
+    Eval[k]<- T7_results[k, "Eval"]
+    opt_HI_thr[k]<- T7_results[k, "opt_HI_thr"]
+  }
+  print(T7_results[k,"Fips"])
+}
+results<- data.frame(T7_results[,c("Fips", "Random", "NWS")], 
+                     Best_Model, Eval, opt_HI_thr, NWS_samp, Best_Eval_Samp)
+results[,c("Random", "NWS", "Eval", "NWS_samp", "Best_Eval_Samp")]<- apply(results[,c("Random", "NWS", "Eval", "NWS_samp", "Best_Eval_Samp")],
+                                             MARGIN=2, function(x){round(x,3)})
+results
+write.csv(results, "Fall_results/Final_eval_30_best-T7-T8.csv")
 
 ### Make table of alert issuance characteristics for the best models:
 
@@ -202,8 +238,8 @@ results
 
 ###### Baseline comparisons:
 
-prefix<- "E0"
-splitvar<- "P-"
+prefix<- "E0g1"
+splitvar<-"_"  # "P-"
 
 Eval<- data.frame(matrix(ncol = 2, nrow = length(counties)))
 NWS<- rep(0, length(counties))
@@ -213,8 +249,10 @@ for(k in 1:length(counties)){
   county<- counties[k]
   
   folders<- list.files("logs/SB", pattern=paste0(prefix, "_fips-", county))
-  Models<- sapply(folders, function(s){strsplit(s, splitvar)[[1]][2]})
-  Models<- paste0(splitvar, as.vector(unique(Models)))
+  # Models<- sapply(folders, function(s){strsplit(s, splitvar)[[1]][2]})
+  Models<- sapply(folders, function(s){strsplit(s, splitvar)[[1]][3]})
+  # Models<- paste0(splitvar, as.vector(unique(Models)))
+  Models<- as.vector(unique(Models))
   
   proc_NWS_eval<- my_proc(paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_test_fips_", county, ".csv"))
   proc_random_eval<- my_proc(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_test_fips_", county, ".csv"))
@@ -230,7 +268,8 @@ for(k in 1:length(counties)){
 }
 
 results<- data.frame(Fips=counties, Random, NWS, Eval)
-names(results)[4:5]<- c("Eval_P-0", "Eval_P-0.01")
+# names(results)[4:5]<- c("Eval_P-0", "Eval_P-0.01")
+names(results)[4:5]<- c("Eval_NN-1-16", "Eval_NN-2-16")
 results[,-1]<- apply(results[,-1], MARGIN=2, function(x){round(x,3)})
 results
 
