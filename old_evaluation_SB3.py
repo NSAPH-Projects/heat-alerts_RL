@@ -145,12 +145,16 @@ def main(cfg: DictConfig):
             action = 1 if eval_env.t in random_alerts else 0
             while terminal == False:
                 obs, reward, terminal, trunc, info = eval_env.step(action)
+                if (not eval_env.at_budget) and (eval_env.allowed_alert_buffer[-1] == 0) and (eval_env.qhi >= HI_threshold):
+                    above_thresh_skipped.append(1)
+                else:
+                    above_thresh_skipped.append(0)
                 a = sum(eval_env.allowed_alert_buffer)
                 rewards.append(reward)
                 year.append(eval_env.other_data["y"][eval_env.feature_ep_index, eval_env.t].item())
                 budget.append(eval_env.other_data["budget"][eval_env.feature_ep_index, eval_env.t].item())
                 action = 1 if eval_env.t in random_alerts else 0
-            above_thresh_skipped.extend([0]*(eval_env.n_days-1))
+            # above_thresh_skipped.extend([0]*(eval_env.n_days-1))
         else:
             action = get_action(cfg.policy_type, obs, eval_env, rl_model)
             while terminal == False:
