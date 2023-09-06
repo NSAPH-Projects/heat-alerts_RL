@@ -24,6 +24,7 @@ from heat_alerts.online_rl.callbacks import AlertLoggingCallback
 # cfg = hydra.compose(config_name="config")
 # cfg.policy_type="NWS"
 # cfg.policy_type="NA"
+# cfg.restrict_alerts="true"
 
 @hydra.main(config_path="conf/online_rl/sb3", config_name="config", version_base=None)
 def main(cfg: DictConfig):
@@ -141,7 +142,15 @@ def main(cfg: DictConfig):
         b_80 = np.zeros(eval_env.n_days-1)
         b_100 = np.zeros(eval_env.n_days-1)
         if cfg.policy_type == "random":
-            random_alerts = np.random.choice(int(eval_env.n_days), int(eval_env.budget), replace=False)
+            if cfg.restrict_alerts:
+                qhi = eval_env.baseline_states['baseline_heat_qi'][eval_env.feature_ep_index, 0:eval_env.n_days]
+                eligible = np.where(qhi >= HI_threshold)[0]
+                if len(eligible) > eval_env.budget:
+                    random_alerts = np.random.choice(eligible, int(eval_env.budget), replace=False)
+                else: 
+                    random_alerts = eligible
+            else:
+                random_alerts = np.random.choice(int(eval_env.n_days), int(eval_env.budget), replace=False)
             action = 1 if eval_env.t in random_alerts else 0
             while terminal == False:
                 obs, reward, terminal, trunc, info = eval_env.step(action)
@@ -149,7 +158,7 @@ def main(cfg: DictConfig):
                     above_thresh_skipped.append(1)
                 else:
                     above_thresh_skipped.append(0)
-                a = sum(eval_env.allowed_alert_buffer)
+                # a = sum(eval_env.allowed_alert_buffer)
                 rewards.append(reward)
                 year.append(eval_env.other_data["y"][eval_env.feature_ep_index, eval_env.t].item())
                 budget.append(eval_env.other_data["budget"][eval_env.feature_ep_index, eval_env.t].item())
@@ -163,7 +172,7 @@ def main(cfg: DictConfig):
                     above_thresh_skipped.append(1)
                 else:
                     above_thresh_skipped.append(0)
-                a = sum(eval_env.allowed_alert_buffer)
+                # a = sum(eval_env.allowed_alert_buffer)
                 rewards.append(reward)
                 year.append(eval_env.other_data["y"][eval_env.feature_ep_index, eval_env.t].item())
                 budget.append(eval_env.other_data["budget"][eval_env.feature_ep_index, eval_env.t].item())

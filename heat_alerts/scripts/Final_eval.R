@@ -283,7 +283,7 @@ for(k in 1:length(counties)){
 }
 
 results<- data.frame(Fips=counties, Eval, opt_HI_thr) # Eval_samp
-results[,c("Eval")]<- apply(results[,c("Eval")], MARGIN=2, function(x){round(x,3)})
+results[,c("Eval")]<- round(results[,c("Eval")],3)
 results
 write.csv(results, "Fall_results/Final_eval_30_random-w-rstr-hi.csv")
 
