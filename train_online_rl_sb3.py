@@ -116,6 +116,7 @@ def main(cfg: DictConfig):
         prev_alert_std = dm.prev_alert_std,
         sample_budget = cfg.sample_budget,
         explore_budget = cfg.explore_budget,
+        penalty_effect = cfg.penalty_effect,
         penalty_decay = cfg.penalty_decay,
         restrict_alerts = cfg.restrict_alerts,
         HI_restriction = cfg.HI_restriction,

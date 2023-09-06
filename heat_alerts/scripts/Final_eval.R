@@ -287,6 +287,18 @@ results[,c("Eval")]<- round(results[,c("Eval")],3)
 results
 write.csv(results, "Fall_results/Final_eval_30_random-w-rstr-hi.csv")
 
+earlier<- read.csv("Fall_results/Final_eval_30_best-T7-T8.csv")
+earlier$Random_QHI<- results$Eval
+earlier$R_QHI_opt<- results$opt_HI_thr
+
+x<- (earlier$Eval - earlier$Random)/ abs(earlier$Random)
+y<- (earlier$Random_QHI - earlier$Random)/ abs(earlier$Random)
+z<- (earlier$NWS - earlier$Random)/ abs(earlier$Random)
+
+t.test(x,y,alternative="two.sided")
+t.test(x,z,alternative="g")
+t.test(y,z,alternative="g")
+
 ## No HI restriction:
 
 prefix<- "E0g1"
