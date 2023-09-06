@@ -249,6 +249,46 @@ results
 
 ###### Baseline comparisons:
 
+## Random policy with HI restriction:
+
+HI_thresholds<- seq(0.5, 0.9, 0.05)
+opt_HI_thr<- rep(0, length(counties))
+Eval_samp<- rep(0, length(counties))
+Eval<- rep(0, length(counties))
+
+for(k in 1:length(counties)){
+  county<- counties[k]
+  
+  Models<- paste0("Rstr-HI-", HI_thresholds)
+  
+  for(i in 1:length(Models)){
+    model<- Models[i]
+    proc_random_eval_samp<- my_proc(paste0("Summer_results/ORL_random_eval_samp-R_samp-W_", model, "_fips_", county, ".csv"))
+    proc_random_eval<- my_proc(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_", model, "_fips_", county, ".csv"))
+    
+    if(i == 1){
+      Eval_samp[k]<- proc_random_eval_samp
+      Eval[k]<- proc_random_eval
+      j<- 1
+    }else{
+      if(proc_random_eval_samp > Eval_samp[k]){
+        Eval_samp[k]<- proc_random_eval_samp
+        Eval[k]<- proc_random_eval
+        j<- i
+      }
+    }
+  }
+  opt_HI_thr[k]<- HI_thresholds[j]
+  print(county) 
+}
+
+results<- data.frame(Fips=counties, Eval, opt_HI_thr) # Eval_samp
+results[,c("Eval")]<- apply(results[,c("Eval")], MARGIN=2, function(x){round(x,3)})
+results
+write.csv(results, "Fall_results/Final_eval_30_random-w-rstr-hi.csv")
+
+## No HI restriction:
+
 prefix<- "E0g1"
 splitvar<-"_"  # "P-"
 
