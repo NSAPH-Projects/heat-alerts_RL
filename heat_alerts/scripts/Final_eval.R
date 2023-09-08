@@ -280,6 +280,7 @@ write.csv(results, paste0("Fall_results/Final_eval_30_TK.csv"))
 
 ## AA or random policy with HI restriction:
 
+r_model<- "NC_model" # test
 pol<- "AA" # "random"
 
 HI_thresholds<- seq(0.5, 0.9, 0.05)
@@ -290,7 +291,7 @@ Eval<- rep(0, length(counties))
 for(k in 1:length(counties)){
   county<- counties[k]
   
-  Models<- paste0("Rstr-HI-", HI_thresholds)
+  Models<- paste0(r_model, "_Rstr-HI-", HI_thresholds)
   
   for(i in 1:length(Models)){
     model<- Models[i]
@@ -316,7 +317,7 @@ for(k in 1:length(counties)){
 results<- data.frame(Fips=counties, Eval, opt_HI_thr) # Eval_samp
 results[,c("Eval")]<- round(results[,c("Eval")],3)
 results
-write.csv(results, paste0("Fall_results/Final_eval_30_", pol, "-w-rstr-hi.csv"))
+write.csv(results, paste0("Fall_results/Final_eval_30_", r_model, "_", pol, "-w-rstr-hi.csv"))
 
 
 earlier<- read.csv("Fall_results/Final_eval_30_best-T7-T8.csv")

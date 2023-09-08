@@ -104,3 +104,72 @@ print(xtable(Final[,c("Fips_ST","Region","SD_Eff", "Alerts","Random","NWS",
                       "TRPO", "Std_diff", "QHI_thr", "HI_thr", "Best_Iter")], 
              digits=3, hline.after = 1:nrow(Final)), include.rownames=FALSE)
 
+
+
+############################# Make benchmark comparisons tables:
+
+n_days<- 153
+
+my_proc<- function(filename){
+  f<- file.exists(filename)
+  if(f){
+    df<- read.csv(filename)[,-1]
+    df$Count = 1
+    agg_df<- aggregate(. ~ Year, df, sum)
+    agg_df$Budget<- agg_df$Budget/(n_days-1)
+    agg_df$budget_frac<- agg_df$Actions/agg_df$Budget
+    agg_df$Frac<- agg_df$Count/sum(agg_df$Count)
+    estimated_reward<- sum(agg_df$Rewards*(1/nrow(agg_df))/agg_df$Frac)/1000
+    # return(list(agg_df, estimated_reward))
+    return(estimated_reward)
+  }else{
+    return(NA)
+  }
+}
+
+counties<- c(41067, 53015, 20161, 37085, 48157, 
+             28049, 19153, 17167, 31153, 6071, 4013,
+             34021, 19155, 17115, 29021, 29019, 5045, 40017, 21059,
+             47113, 42017, 22109, 45015, 13031, 48367, 22063, 41053, 
+             32003, 4015, 6025)
+
+r_model<- "NC_model" # "test
+
+Zero<- rep(0,length(counties))
+NWS<- rep(0,length(counties))
+Random<- rep(0,length(counties))
+Top_K<- rep(0,length(counties))
+
+for(k in 1:length(counties)){
+  county<- counties[k]
+  
+  Zero[k]<- my_proc(paste0("Summer_results/ORL_NA_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
+  NWS[k]<- my_proc(paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
+  Random[k]<- my_proc(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
+  Top_K[k]<- my_proc(paste0("Summer_results/ORL_TK_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
+  
+  print(county)
+}
+
+results<- round(data.frame(County=counties, Zero, NWS, Random, Top_K),3)
+
+Random_QHI<- read.csv(paste0("Fall_results/Final_eval_30_", r_model, "_random-w-rstr-hi.csv"))
+AA_QHI<- read.csv(paste0("Fall_results/Final_eval_30_", r_model, "_AA-w-rstr-hi.csv"))
+
+results$Random_QHI<- round(Random_QHI$Eval,3)
+results$RQ_thr<- Random_QHI$opt_HI_thr
+
+results$AA_QHI<- round(AA_QHI$Eval,3)
+results$AA_thr<- AA_QHI$opt_HI_thr
+
+results
+
+Benchmark<- c("Zero", "NWS", "Top_K", "Random_QHI", "AA_QHI")
+Mean<- c()
+
+for(y in Benchmark){
+  Mean<- append(Mean, mean((results[,y] - results$Random)/abs(results$Random)))
+}
+
+data.frame(Benchmark, Mean=round(Mean,3))
+

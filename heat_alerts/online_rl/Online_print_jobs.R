@@ -22,12 +22,12 @@ eval.match_similar<- c("true", "false")
 
 learning_rate<- c(0.001) #, 0.0001
 eval.episodes<- c(100) # 25
-policy_kwargs.net_arch<- c("[16,16,16]") # "[16]", "[16,16]", "[32,32]", "[16,16,16]"
+policy_kwargs.net_arch<- c("[16]", "[16,16]") # "[16]", "[16,16]", "[32,32]", "[16,16,16]"
 penalty_decay<- c("false") # "true", "false"
 explore_budget<- c("false") # "true", "false"
 restrict_alerts<- c("true") # "true", "false"
 hi_penalty<- c("false") # "true", "false"
-penalty_effect<- c("true")
+penalty_effect<- c("false")
 # HI_restriction<- c(0.7, 0.75, 0.8, 0.85, 0.9)
 # HI_restriction<- c(0.5, 0.55, 0.6, 0.65)
 HI_restriction<- seq(0.5, 0.9, 0.05)
@@ -37,39 +37,41 @@ hi_rstr_decay<- c("false") # "true", "false"
 
 training<- expand.grid(county, 
                        algos, 
+                       ckpt,
                        # match_similar,
                        # explore_budget,
                        eval.episodes, 
                        policy_kwargs.net_arch,
                        # penalty,
-                       penalty_effect,
-                       penalty_decay,
+                       # penalty_effect,
+                       # penalty_decay,
                        restrict_alerts,
                        HI_restriction,
-                       hi_rstr_decay,
-                       hi_penalty,
+                       # hi_rstr_decay,
+                       # hi_penalty,
                        # eval.match_similar,
                        # eval.val_years,
                        learning_rate)
 colnames(training)<- c("county", 
                        "algo", 
+                       "guide_ckpt",
                        # "match_similar",
                        # "explore_budget",
                        "eval.episodes",
                        "algo.policy_kwargs.net_arch", 
                        # "penalty",
-                       "penalty_effect",
-                       "penalty_decay",
+                       # "penalty_effect",
+                       # "penalty_decay",
                        "restrict_alerts",
                        "HI_restriction",
-                       "hi_rstr_decay",
-                       "hi_penalty",
+                       # "hi_rstr_decay",
+                       # "hi_penalty",
                        # "eval.match_similar",
                        # "eval.val_years",
                        "algo.learning_rate")
 
-training$penalty<- c(0.0) # 0.01
-# training[which(training$penalty_decay == "true"), "penalty"]<- 0.1
+# training$penalty<- c(0.0) # 0.01
+# # training[which(training$penalty_decay == "true"), "penalty"]<- 0.1
 training$eval.freq<- 1000
 training[which(training$eval.episodes == 100), "eval.freq"]<- 2500 # rather than 4000
 training$training_timesteps<- 15000000 # original is 10 million
@@ -81,20 +83,20 @@ training[which(training$algo.learning_rate == 0.0001), "training_timesteps"]<- 1
 # training$HI_restriction<- 0.8
 # training[which(training$county == 4013), "HI_restriction"]<- 0.7
 
-training$model_name<- paste0("T10", "_fips-", training$county, 
+training$model_name<- paste0("NC1", "_fips-", training$county, 
                              # "_P-", training$penalty,
-                             "_PE",
+                             # "_PE",
                              # "_", training$algo,
                              # "_obs-W",
                              # "_LR-", training$algo.learning_rate,
                              # "_EB-", training$explore_budget, 
                              # "_EE-", training$eval.episodes
                              # "_Rstr-HI-opt",
-                             "_Rstr-HI-", training$HI_restriction #,
+                             "_Rstr-HI-", training$HI_restriction,
                              # "_Rstr-HI-decay-", training$hi_rstr_decay,
                              # "_PD-", training$penalty_decay,
                              # "_HIP-", training$hi_penalty,
-                             # "_arch-", training$algo.policy_kwargs.net_arch
+                             "_arch-", training$algo.policy_kwargs.net_arch
                              ) 
 # training$model_name<- sapply(training$model_name, function(s){
 #   x<- strsplit(s, "\\[")[[1]]
@@ -194,41 +196,42 @@ counties<- c(41067, 53015, 20161, 37085, 48157,
              34021, 19155, 17115, 29021, 29019, 5045, 40017, 21059,
              47113, 42017, 22109, 45015, 13031, 48367, 22063, 41053, 
              32003, 4015, 6025)
-ckpt<- c("ckpts/FF_NC_9-6_guide.pt")
+ckpt<- c("ckpts/FF_NC_9-6_guide.pt") # "ckpts/FullFast_8-16_guide.pt"
+r_model<- "NC_model" # "test"
 HI_restriction<- seq(0.5, 0.9, 0.05)
 
 sink("Run_jobs/Online_tests_short")
 for(k in counties){
   county<- k
   
-  cat(paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, "\n"),
-      paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, "\n")#,
-      # paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, "\n"),
-      # paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, "\n")
+  cat(paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, "\n"),
+      paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, "\n")#,
+      # paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, "\n"),
+      # paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, "\n")
   )
   
-  cat(paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, "\n"),
-      paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, "\n"))
+  cat(paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, "\n"),
+      paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, "\n"))
   
-  cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, "\n"),
-      paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, "\n"))
+  cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, "\n"),
+      paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, "\n"))
   
-  cat(paste0("python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, "\n"),
-      paste0("python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, "\n"))
+  cat(paste0("python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, "\n"),
+      paste0("python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, "\n"))
   
   for(h in HI_restriction){
     cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=true restrict_alerts=true ",
-               "county=", county, " HI_restriction=", h, " model_name=", "Rstr-HI-", h, " guide_ckpt=", ckpt, " \n"),
+               "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " \n"),
         paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false restrict_alerts=true ",
-               "county=", county, " HI_restriction=", h, " model_name=", "Rstr-HI-", h, " guide_ckpt=", ckpt, " \n")
+               "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " \n")
     )
   }
   
   for(h in HI_restriction){
     cat(paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=true eval.match_similar=true restrict_alerts=true ",
-               "county=", county, " HI_restriction=", h, " model_name=", "Rstr-HI-", h, " guide_ckpt=", ckpt, " \n"),
+               "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " \n"),
         paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=true eval.match_similar=false restrict_alerts=true ",
-               "county=", county, " HI_restriction=", h, " model_name=", "Rstr-HI-", h, " guide_ckpt=", ckpt, " \n"))
+               "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " \n"))
   }
   
 }
