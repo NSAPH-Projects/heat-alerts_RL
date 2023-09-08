@@ -260,6 +260,24 @@ results
 
 ###### Baseline comparisons:
 
+## Top k QHI days:
+Eval_samp<- rep(0, length(counties))
+Eval<- rep(0, length(counties))
+
+for(k in 1:length(counties)){
+  county<- counties[k]
+  
+  Eval_samp[k]<- my_proc(paste0("Summer_results/ORL_TK_eval_samp-R_samp-W_test_fips_", county, ".csv"))
+  Eval[k]<- my_proc(paste0("Summer_results/ORL_TK_eval_samp-R_obs-W_test_fips_", county, ".csv"))
+  
+  print(county)
+}
+
+results<- data.frame(Fips=counties, Eval) # Eval_samp
+results[,c("Eval")]<- round(results[,c("Eval")],3)
+results
+write.csv(results, paste0("Fall_results/Final_eval_30_TK.csv"))
+
 ## AA or random policy with HI restriction:
 
 pol<- "AA" # "random"
