@@ -21,11 +21,12 @@ eval.match_similar<- c("true", "false")
 
 learning_rate<- c(0.001) #, 0.0001
 eval.episodes<- c(100) # 25
-policy_kwargs.net_arch<- c("[16,16]") # "[16]", "[16,16]", "[32,32]", "[16,16,16]"
+policy_kwargs.net_arch<- c("[16,16,16]") # "[16]", "[16,16]", "[32,32]", "[16,16,16]"
 penalty_decay<- c("false") # "true", "false"
 explore_budget<- c("false") # "true", "false"
 restrict_alerts<- c("true") # "true", "false"
 hi_penalty<- c("false") # "true", "false"
+penalty_effect<- c("true")
 # HI_restriction<- c(0.7, 0.75, 0.8, 0.85, 0.9)
 # HI_restriction<- c(0.5, 0.55, 0.6, 0.65)
 HI_restriction<- seq(0.5, 0.9, 0.05)
@@ -40,6 +41,7 @@ training<- expand.grid(county,
                        eval.episodes, 
                        policy_kwargs.net_arch,
                        # penalty,
+                       penalty_effect,
                        penalty_decay,
                        restrict_alerts,
                        HI_restriction,
@@ -55,6 +57,7 @@ colnames(training)<- c("county",
                        "eval.episodes",
                        "algo.policy_kwargs.net_arch", 
                        # "penalty",
+                       "penalty_effect",
                        "penalty_decay",
                        "restrict_alerts",
                        "HI_restriction",
@@ -71,14 +74,15 @@ training[which(training$eval.episodes == 100), "eval.freq"]<- 2500 # rather than
 training$training_timesteps<- 15000000 # original is 10 million
 training[which(training$algo.learning_rate == 0.0001), "training_timesteps"]<- 100000000
 
-results<- read.csv("Fall_results/Final_eval_30.csv")
-training$HI_restriction<- results$opt_HI_thr
+# results<- read.csv("Fall_results/Final_eval_30.csv")
+# training$HI_restriction<- results$opt_HI_thr
 
 # training$HI_restriction<- 0.8
 # training[which(training$county == 4013), "HI_restriction"]<- 0.7
 
-training$model_name<- paste0("T8", "_fips-", training$county, 
+training$model_name<- paste0("T10", "_fips-", training$county, 
                              # "_P-", training$penalty,
+                             "_PE",
                              # "_", training$algo,
                              # "_obs-W",
                              # "_LR-", training$algo.learning_rate,

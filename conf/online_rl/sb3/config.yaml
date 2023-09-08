@@ -1,6 +1,6 @@
 defaults:
   - _self_
-  - algo: ppo
+  - algo: trpo
 
 datadir: data/processed
 county: 36005 # bronx

@@ -67,8 +67,8 @@ assess<- function(filename){
 
 ### Identify optimal HI threshold and save the associated eval:
 
-prefix<- c("T8") # 
-splitvar<- "Rstr-HI-"
+prefix<- c("T10") # 
+splitvar<- "PE_Rstr-HI-"
 these<- c("TRPO") # , "PPO", "DQN", "LSTM", "QRDQN"
 Algo<- rep(these, 4)
 type<- c("eval", "eval_samp", "train", "train_samp")
@@ -133,11 +133,11 @@ results[,c("Random", "NWS", "Eval")]<- apply(results[,c("Random", "NWS", "Eval")
                                                           MARGIN=2, function(x){round(x,3)})
 results
 
-write.csv(results, "Fall_results/Final_eval_30_T8.csv")
+write.csv(results, paste0("Fall_results/Final_eval_30_", prefix, ".csv"))
 
 ## Choosing best size of net_arch based on eval_samp:
-T7_results<- read.csv("Fall_results/Final_eval_30_T7.csv")
-T8_results<- read.csv("Fall_results/Final_eval_30_T8.csv")
+old_results<- read.csv("Fall_results/Final_eval_30_best-T7-T8.csv") # "Fall_results/Final_eval_30_T7.csv"
+new_results<- read.csv("Fall_results/Final_eval_30_T9.csv") # "Fall_results/Final_eval_30_T8.csv"
 
 Best_Model<- rep("", length(counties))
 Best_Eval_Samp<- rep(0, length(counties))
@@ -146,41 +146,52 @@ opt_HI_thr<- rep(0, length(counties))
 NWS_samp<- rep(0, length(counties))
 Best_Iter<- rep(0, length(counties))
 
-for(k in 1:nrow(T7_results)){
-  NWS_samp[k]<- my_proc(paste0("Summer_results/ORL_NWS_eval_samp-R_samp-W_test_fips_", T7_results[k,"Fips"], ".csv"))
+for(k in 1:nrow(old_results)){
+  NWS_samp[k]<- my_proc(paste0("Summer_results/ORL_NWS_eval_samp-R_samp-W_test_fips_", old_results[k,"Fips"], ".csv"))
   
-  t7<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", "T7", "_fips-", T7_results[k,"Fips"], "_", "Rstr-HI-", T7_results[k,"opt_HI_thr"], "_fips_", T7_results[k,"Fips"], ".csv"))
-  t8<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", "T8", "_fips-", T8_results[k,"Fips"], "_", "Rstr-HI-", T8_results[k,"opt_HI_thr"], "_fips_", T8_results[k,"Fips"], ".csv"))
+  if(old_results[k,"Best_Model"] == "NN_1-16"){
+    prefix<- "T7"
+  }else{
+    prefix<- "T8"
+  }
+  old<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", old_results[k,"Fips"], "_", "Rstr-HI-", old_results[k,"opt_HI_thr"], "_fips_", old_results[k,"Fips"], ".csv"))
+  print(old)
+  new<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", "T9", "_fips-", new_results[k,"Fips"], "_", "PE_Rstr-HI-", new_results[k,"opt_HI_thr"], "_fips_", new_results[k,"Fips"], ".csv"))
+  print(new)
   
-  if(t8 > t7){
-    Best_Model[k]<- "NN_2-16"
-    Best_Eval_Samp[k]<- t8
-    Eval[k]<- T8_results[k, "Eval"]
-    opt_HI_thr[k]<- T8_results[k, "opt_HI_thr"]
+  if(new > old){
+    Best_Model[k]<- "PE"
+    Best_Eval_Samp[k]<- new
+    Eval[k]<- new_results[k, "Eval"]
+    opt_HI_thr[k]<- new_results[k, "opt_HI_thr"]
     
-    npz<- np$load(paste0("logs/SB/", "T8", "_fips-", T8_results[k,"Fips"], "_", "Rstr-HI-", T8_results[k,"opt_HI_thr"], "/results/evaluations.npz")) 
+    npz<- np$load(paste0("logs/SB/", "T9", "_fips-", new_results[k,"Fips"], "_", "PE_Rstr-HI-", new_results[k,"opt_HI_thr"], "/results/evaluations.npz")) 
     iters<- npz$f[["timesteps"]]
     evals<- rowMeans(npz$f[["results"]])
     Best_Iter[k]<- iters[which.max(evals)]
   }else{
-    Best_Model[k]<- "NN_1-16"
-    Best_Eval_Samp[k]<- t7
-    Eval[k]<- T7_results[k, "Eval"]
-    opt_HI_thr[k]<- T7_results[k, "opt_HI_thr"]
+    Best_Model[k]<- "No_PE"
+    Best_Eval_Samp[k]<- old
+    Eval[k]<- old_results[k, "Eval"]
+    opt_HI_thr[k]<- old_results[k, "opt_HI_thr"]
     
-    npz<- np$load(paste0("logs/SB/", "T7", "_fips-", T7_results[k,"Fips"], "_", "Rstr-HI-", T7_results[k,"opt_HI_thr"], "/results/evaluations.npz")) 
+    npz<- np$load(paste0("logs/SB/", prefix, "_fips-", old_results[k,"Fips"], "_", "Rstr-HI-", old_results[k,"opt_HI_thr"], "/results/evaluations.npz")) 
     iters<- npz$f[["timesteps"]]
     evals<- rowMeans(npz$f[["results"]])
     Best_Iter[k]<- iters[which.max(evals)]
   }
-  print(T7_results[k,"Fips"])
+  print(old_results[k,"Fips"])
 }
-results<- data.frame(T7_results[,c("Fips", "Random", "NWS")], 
+results<- data.frame(old_results[,c("Fips", "Random", "NWS")], 
                      Best_Model, Eval, opt_HI_thr, NWS_samp, Best_Eval_Samp, Best_Iter)
 results[,c("Random", "NWS", "Eval", "NWS_samp", "Best_Eval_Samp")]<- apply(results[,c("Random", "NWS", "Eval", "NWS_samp", "Best_Eval_Samp")],
                                              MARGIN=2, function(x){round(x,3)})
 results
-write.csv(results, "Fall_results/Final_eval_30_best-T7-T8.csv")
+write.csv(results, "Fall_results/Final_eval_30_best-T7-T8-T9.csv") # "Fall_results/Final_eval_30_best-T7-T8.csv"
+
+x<- (results$Eval - results$Random)/results$Random
+y<- (results$NWS - results$Random)/results$Random
+t.test(x,y,alternative="g")
 
 ### Make table of alert issuance characteristics for the best models:
 

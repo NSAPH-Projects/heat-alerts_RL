@@ -119,8 +119,10 @@ def main(cfg: DictConfig):
     def get_action(policy_type, obs, env, rl_model=None):
         if policy_type == "RL":
             return(rl_model.predict(obs)[0].item())
-        elif policy_type == "NA":
+        elif policy_type == "NA": # no alerts
             return(0)
+        elif policy_type == "AA": # always alert, combine with restrict_alerts=true
+            return(1)
         elif policy_type == "NWS":
             return(env.other_data["nws_alert"][env.feature_ep_index, env.t])
 
@@ -141,17 +143,21 @@ def main(cfg: DictConfig):
         b_50 = np.zeros(eval_env.n_days-1)
         b_80 = np.zeros(eval_env.n_days-1)
         b_100 = np.zeros(eval_env.n_days-1)
-        if cfg.policy_type == "random":
-            if cfg.restrict_alerts:
-                qhi = eval_env.baseline_states['baseline_heat_qi'][eval_env.feature_ep_index, 0:eval_env.n_days]
-                eligible = np.where(qhi >= HI_threshold)[0]
-                if len(eligible) > eval_env.budget:
-                    random_alerts = np.random.choice(eligible, int(eval_env.budget), replace=False)
-                else: 
-                    random_alerts = eligible
-            else:
-                random_alerts = np.random.choice(int(eval_env.n_days), int(eval_env.budget), replace=False)
-            action = 1 if eval_env.t in random_alerts else 0
+        if cfg.policy_type in ["TK", "random"]:
+            qhi = eval_env.baseline_states['baseline_heat_qi'][eval_env.feature_ep_index, 0:eval_env.n_days]
+            if cfg.policy_type == "TK": # top k qhi days
+                sorted = torch.sort(qhi, descending=True)[1] # getting indices
+                alert_days = sorted[0:int(eval_env.budget)]
+            elif cfg.policy_type == "random":
+                if cfg.restrict_alerts:
+                    eligible = np.where(qhi >= HI_threshold)[0]
+                    if len(eligible) > eval_env.budget:
+                        alert_days = np.random.choice(eligible, int(eval_env.budget), replace=False)
+                    else: 
+                        alert_days = eligible
+                else:
+                    alert_days = np.random.choice(int(eval_env.n_days), int(eval_env.budget), replace=False)
+            action = 1 if eval_env.t in alert_days else 0
             while terminal == False:
                 obs, reward, terminal, trunc, info = eval_env.step(action)
                 if (not eval_env.at_budget) and (eval_env.allowed_alert_buffer[-1] == 0) and (eval_env.qhi >= HI_threshold):
@@ -162,7 +168,7 @@ def main(cfg: DictConfig):
                 rewards.append(reward)
                 year.append(eval_env.other_data["y"][eval_env.feature_ep_index, eval_env.t].item())
                 budget.append(eval_env.other_data["budget"][eval_env.feature_ep_index, eval_env.t].item())
-                action = 1 if eval_env.t in random_alerts else 0
+                action = 1 if eval_env.t in alert_days else 0
             # above_thresh_skipped.extend([0]*(eval_env.n_days-1))
         else:
             action = get_action(cfg.policy_type, obs, eval_env, rl_model)
