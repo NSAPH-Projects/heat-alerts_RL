@@ -24,7 +24,7 @@ match_similar: true
 sample_budget: true
 explore_budget: false
 penalty: 0.0 # 0.1
-penalty_effect: true
+penalty_effect: false
 penalty_decay: false
 restrict_alerts: false
 HI_restriction: 0.8

@@ -185,7 +185,7 @@ def main(cfg: DictConfig):
 
     logging.info("Performing evaluations")
     new_cfg = cfg
-    for v in [True, False]:
+    for v in [True]: # [True, False]
         for m in [True, False]:
             new_cfg.eval.val_years = v
             new_cfg.eval.match_similar = m
