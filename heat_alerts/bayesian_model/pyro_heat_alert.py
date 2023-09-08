@@ -318,10 +318,10 @@ class HeatAlertDataModule(pl.LightningDataModule):
         }
         self.effectiveness_feature_names = list(effectiveness_features.keys())
         self.effectiveness_constraints = dict(
-            # heat_qi="positive",  # more heat more effective
-            # excess_heat="positive",  # more excess here more effective
-            # alert_lag1="negative",  # alert yesterday less effective
-            # previous_alerts="negative",  # more alerts less effective
+            heat_qi="positive",  # more heat more effective
+            excess_heat="positive",  # more excess here more effective
+            alert_lag1="negative",  # alert yesterday less effective
+            previous_alerts="negative",  # more alerts less effective
         )
         # note: contraints are passed to the heat alert model
 
@@ -342,11 +342,11 @@ class HeatAlertDataModule(pl.LightningDataModule):
         }
         self.baseline_feature_names = list(baseline_features.keys())
         self.baseline_constraints = dict(
-            # heat_qi1_above_25="positive",  # heat could have any slope at first
-            # heat_qi2_above_75="positive",  #    but should be increasingly worst
-            # excess_heat="positive",  # more excess heat more hospitalizations
-            # alert_lag1="negative",  # alert yesterday less hospitalizations
-            # previous_alerts="negative",  # more trailing alerts less hospitalizations
+            heat_qi1_above_25="positive",  # heat could have any slope at first
+            heat_qi2_above_75="positive",  #    but should be increasingly worst
+            excess_heat="positive",  # more excess heat more hospitalizations
+            alert_lag1="negative",  # alert yesterday less hospitalizations
+            previous_alerts="negative",  # more trailing alerts less hospitalizations
         )
 
         baseline_features_tensor = torch.stack(

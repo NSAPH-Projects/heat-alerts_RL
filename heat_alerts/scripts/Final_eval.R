@@ -260,7 +260,9 @@ results
 
 ###### Baseline comparisons:
 
-## Random policy with HI restriction:
+## AA or random policy with HI restriction:
+
+pol<- "AA" # "random"
 
 HI_thresholds<- seq(0.5, 0.9, 0.05)
 opt_HI_thr<- rep(0, length(counties))
@@ -274,8 +276,8 @@ for(k in 1:length(counties)){
   
   for(i in 1:length(Models)){
     model<- Models[i]
-    proc_random_eval_samp<- my_proc(paste0("Summer_results/ORL_random_eval_samp-R_samp-W_", model, "_fips_", county, ".csv"))
-    proc_random_eval<- my_proc(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_", model, "_fips_", county, ".csv"))
+    proc_random_eval_samp<- my_proc(paste0("Summer_results/ORL_", pol, "_eval_samp-R_samp-W_", model, "_fips_", county, ".csv"))
+    proc_random_eval<- my_proc(paste0("Summer_results/ORL_", pol, "_eval_samp-R_obs-W_", model, "_fips_", county, ".csv"))
     
     if(i == 1){
       Eval_samp[k]<- proc_random_eval_samp
@@ -296,7 +298,8 @@ for(k in 1:length(counties)){
 results<- data.frame(Fips=counties, Eval, opt_HI_thr) # Eval_samp
 results[,c("Eval")]<- round(results[,c("Eval")],3)
 results
-write.csv(results, "Fall_results/Final_eval_30_random-w-rstr-hi.csv")
+write.csv(results, paste0("Fall_results/Final_eval_30_", pol, "-w-rstr-hi.csv"))
+
 
 earlier<- read.csv("Fall_results/Final_eval_30_best-T7-T8.csv")
 earlier$Random_QHI<- results$Eval

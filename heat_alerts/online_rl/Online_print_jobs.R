@@ -213,17 +213,30 @@ for(k in counties){
   #     paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=true ", "county=", county, "\n"),
   #     paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=false ", "county=", county, "\n"))
 
-  for(h in HI_restriction){
-    cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=true restrict_alerts=true ",
-               "county=", county, " HI_restriction=", h, " model_name=", "Rstr-HI-", h, " \n"),
-        paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false restrict_alerts=true ",
-               "county=", county, " HI_restriction=", h, " model_name=", "Rstr-HI-", h, " \n") #,
-        # paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=true restrict_alerts=true ",
-        #        "county=", county, " HI_restriction=", h, " \n"),
-        # paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=false restrict_alerts=true ",
-        #        "county=", county, " HI_restriction=", h, " \n")
-        )
-  }
+  # for(h in HI_restriction){
+  #   cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=true restrict_alerts=true ",
+  #              "county=", county, " HI_restriction=", h, " model_name=", "Rstr-HI-", h, " \n"),
+  #       paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false restrict_alerts=true ",
+  #              "county=", county, " HI_restriction=", h, " model_name=", "Rstr-HI-", h, " \n") #,
+  #       # paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=true restrict_alerts=true ",
+  #       #        "county=", county, " HI_restriction=", h, " \n"),
+  #       # paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=false restrict_alerts=true ",
+  #       #        "county=", county, " HI_restriction=", h, " \n")
+  #       )
+  # }
+  
+  # for(h in HI_restriction){
+  #   cat(paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=true eval.match_similar=true restrict_alerts=true ",
+  #              "county=", county, " HI_restriction=", h, " model_name=", "Rstr-HI-", h, " \n"),
+  #       paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=true eval.match_similar=false restrict_alerts=true ",
+  #              "county=", county, " HI_restriction=", h, " model_name=", "Rstr-HI-", h, " \n"))
+  # }
+  
+  cat(paste0("python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true ", "county=", county, "\n"),
+      paste0("python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false ", "county=", county, "\n"),
+      paste0("python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true ", "county=", county, "\n"),
+      paste0("python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false ", "county=", county, "\n"))
+  
 }
 sink()
 
