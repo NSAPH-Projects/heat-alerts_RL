@@ -1,5 +1,6 @@
 import argparse
 import logging
+import numpy as np
 
 import pyro
 import torch
@@ -56,12 +57,16 @@ def main(args: argparse.Namespace):
     logging.info("Sampling from posterior predictive (10 samples)")
     sites = list(sample.keys()) + ["_RETURN"]
     predictive = pyro.infer.Predictive(
-        model, guide=guide, num_samples=10, return_sites=sites
+        model, guide=guide, num_samples=1000, return_sites=sites
     )
     pp_sample = predictive(*dm.dataset.tensors, return_outcomes=True)
     shapes = {k: v.shape for k, v in pp_sample.items()}
     logging.info(f"Obtain samples using Pyro's posterior predictive: \n{shapes}")
 
+    # # save average predictions for comparison to Y:
+    # preds = predictive(*dm.dataset.tensors, return_outcomes=True)["_RETURN"]
+    # Preds = torch.mean(preds, dim=0).numpy()
+    # np.savetxt("../Bayesian_models/Bayesian_R_8-4.csv", Preds, delimiter=",")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

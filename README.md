@@ -1,6 +1,6 @@
-# heat-alerts_mortality_RL
+# Heat Alerts Sequential Decision Making 
 
-This is code for investigating applicability of RL to environmental health, specifically issuance of heat alerts.
+This is code for investigating applicability of reinforcement learning (RL) to environmental health, specifically issuance of heat alerts in the United States.
 
 ### Data Processing:
 1. Merging mortality data and heat alerts data: Explore_merged_data.R
@@ -8,15 +8,33 @@ This is code for investigating applicability of RL to environmental health, spec
 3. Merge together: Merge-finalize_county_data.R
 4. Include hospitalizations: Get_hosp_data.R
 5. Add more covariates to address confounding: More_confounders.R
-6. Separate and finish cleaning the train and test sets: Make_train_test_sets.R
-7. Export to csv (for Python) and create standardized dataset for further analyses in R: Data_for_Python.R
+6. Finalize and select only counties with population > 65,000: Single_county_prep_data.R
 
-### Installing necessary packages:
-Terminal commands to install the conda environment:
-```bash
+### Installing the conda environment and getting the data ready for modeling:
+```
 conda env create -f ../envs/heatrl/env-linux.yaml
 conda activate heatrl
 ```
-*Note: you have to be on a gpu-enabled partition for pytorch to install the cuda requirements.*
+Then run the script heat_alerts/scripts/prepare_bayesian_model_data.py to get everything in the right format for the Bayesian model and gym environment.
 
-### Analysis:
+### Bayesian rewards modeling:
+1. Run train_bayesian_model.py using Hydra arguments. Configurations are in the conf directory. For example:
+```
+python train_nn.py training=full model.name="Full_8-1"
+```
+See [here](https://hydra.cc/docs/intro/) for an introduction to Hydra. <br>
+2. Evaluate the accuracy of these predictions with the script heat_alerts/bayesian_model/Evaluate_pyro_R.R
+
+### Online RL:
+1. Run the script train_online_rl_sb3.py OR train_online_rl_d3rlpy.py -- note that there are many possible arguments, passed using Hydra / config files. For the base configurations:
+```
+python train_online_rl_sb3.py --algo=ppo,qrdqn,trpo,dqn --multirun
+```
+ * The script heat_alerts/Online_print_jobs.R can be used to write out the terminal commands for many experiments, and the script Run_jobs/Online_RL.sh can be used to start a job array to run these using SLURM.
+2. The gym environment is detailed in several scripts within the directory heat_alerts/online_rl
+ * env.py contains the overall mechanics of stepping through and resetting the gym environment.
+ * datautils.py contains several functions for data formatting, which is performed before calling the environment instantiation.
+ * callbacks.py contains the calculation of custom metrics that we wish to save from each episode through the environment.
+3. 
+
+

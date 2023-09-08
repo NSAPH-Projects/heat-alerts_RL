@@ -1,13 +1,11 @@
 # %%
-import os
 import json
+import os
 
 import numpy as np
 import pandas as pd
 from patsy import dmatrix
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import OneHotEncoder
-
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 # %%
 data_raw = pd.read_csv("../data/Summer23_Train_smaller-for-Python.csv")
@@ -22,9 +20,8 @@ subfips = unique_fips[fips_ix]
 # %%
 
 # make a plot panel of 16 counties with a scatter plot
-# each panel create a scatter plot with a fitted loess curve 
+# each panel create a scatter plot with a fitted loess curve
 # of hospitalizations vs. heat index (HI)
-
 
 
 # import seaborn as sns
@@ -51,8 +48,7 @@ subfips = unique_fips[fips_ix]
 #         sharey=False,
 #         scatter=False,
 #     )
-    # plt.savefig(f"preprocessing_{hi_var}_vs_{hosps_var}.png", dpi=300)
-    
+# plt.savefig(f"preprocessing_{hi_var}_vs_{hosps_var}.png", dpi=300)
 
 
 # %%
@@ -62,8 +58,9 @@ all_cols = [
     "year",
     "quant_HI_county",
     "quant_HI_3d_county",
+    "HI_mean",
     "alert",
-    # "alert_lag1", # if doing online or hybrid RL
+    "alert_lag1",  # if doing online or hybrid RL
     "alerts_2wks",
     "alert_sum",
     "other_hosps",
@@ -72,11 +69,13 @@ all_cols = [
     "dos",
     "dow",
     "Population",
+    "total_count",  # Medicare enrollees
     "Pop_density",
     "Med_HH_Income",
     "broadband_usage",
     "Democrat",
-    "BA_zone"
+    "BA_zone",
+    "state",
 ]
 
 # drop rows with missing values
@@ -111,31 +110,40 @@ W = (
     .set_index("fips")
     .groupby("fips")
     .mean()
-    .assign(Lop_Pop_density=lambda x: np.log(x["Pop_density"]))
+    .assign(Log_Pop_density=lambda x: np.log(x["Pop_density"]))
     .assign(Log_Med_HH_Income=lambda x: np.log(x["Med_HH_Income"]))
     .drop(columns=["Pop_density", "Med_HH_Income"])
 )
 
 
-
-
 # %% standardize W
 wscaler = StandardScaler()
-wscaler_cols = ["broadband_usage", "Democrat", "Lop_Pop_density", "Log_Med_HH_Income", "pm25"]
+wscaler_cols = [
+    "broadband_usage",
+    "Democrat",
+    "Log_Pop_density",
+    "Log_Med_HH_Income",
+    "pm25",
+]
 W[wscaler_cols] = wscaler.fit_transform(W[wscaler_cols])
 W["intercept"] = 1.0
 
+fips = data["fips"].unique()
+W = W.loc[fips]  # needed to ensure they have the same ordering!
 
-fips = W.index.values
-fips2idx = {fips: idx for idx, fips in enumerate(data["fips"].unique())}
+fips2idx = {fips: idx for idx, fips in enumerate(fips)}
 
-W.head()
+# W.head()
 
 # %% make splines of time of summer, use patsy to make bspline basis for dos, degree 3, df 5
 dos = data["dos"] - 1
 M = dos.max()
 
-Bdos = dmatrix(f"bs(dos, df=3, degree=3, lower_bound=0, upper_bound={M}) - 1", {"dos": dos}, return_type="dataframe")
+Bdos = dmatrix(
+    f"bs(dos, df=3, degree=3, lower_bound=0, upper_bound={M}) - 1",
+    {"dos": dos},
+    return_type="dataframe",
+)
 Bdos.columns = [f"dos_{i}" for i in range(Bdos.shape[1])]
 print("Bdos.shape: ", Bdos.shape)
 
@@ -144,23 +152,41 @@ print("Bdos.shape: ", Bdos.shape)
 time_keys = [
     "fips",
     "Date",
-    # "year",
     "quant_HI_county",
     "quant_HI_3d_county",
+    "HI_mean",
+    "alert_lag1",
     "alerts_2wks",
     "holiday",
 ]
+
 X = (
-    data[time_keys].set_index(["fips", "Date"])
+    data[time_keys]
+    .set_index(["fips", "Date"])
     .assign(weekend=data.dow.isin(["Saturday", "Sunday"]).values.astype(int))
     # insert the square of quant_HI after quant_HI
     # make sure it is the third column
-    .assign(quant_HI_county_pow2=lambda x: (x["quant_HI_county"]  - 0.5)** 2)
-    .assign(quant_HI_3d_county_pow2=lambda x: (x["quant_HI_3d_county"]  - 0.5)** 2)
+    .assign(quant_HI_county_pow2=lambda x: (x["quant_HI_county"] - 0.5) ** 2)
+    .assign(quant_HI_3d_county_pow2=lambda x: (x["quant_HI_3d_county"] - 0.5) ** 2)
+    .assign(heat_qi_above_25=lambda x: (x["quant_HI_county"] - 0.25) * (x["quant_HI_county"] > 0.25))
+    .assign(heat_qi_above_75=lambda x: (x["quant_HI_county"] - 0.75) * (x["quant_HI_county"] > 0.75))
+    .assign(excess_heat=lambda x: x["quant_HI_county"] - x["quant_HI_3d_county"])
     .assign(intercept=1.0)
 )
-reorder = ["intercept", "quant_HI_county", "quant_HI_county_pow2", "quant_HI_3d_county", "quant_HI_3d_county_pow2",
-           "weekend", "alerts_2wks"] # "year", 
+reorder = [
+    "intercept",
+    "quant_HI_county",
+    "quant_HI_county_pow2",
+    "quant_HI_3d_county",
+    "quant_HI_3d_county_pow2",
+    "heat_qi_above_25",
+    "heat_qi_above_75",
+    "excess_heat",
+    "HI_mean",
+    "weekend",
+    "alert_lag1",
+    "alerts_2wks",
+]  # "year",
 X = X[reorder]
 
 # paste splines onto X
@@ -182,9 +208,9 @@ year = data[["fips", "Date", "year"]].set_index(["fips", "Date"])
 
 alert_sum = data[["fips", "Date", "alert_sum"]]
 n_days = 153
-end_seq = range(n_days-1, len(alert_sum), n_days)
+end_seq = range(n_days - 1, len(alert_sum), n_days)
 budget = alert_sum["alert_sum"][end_seq]
-Budget = pd.DataFrame(np.repeat(budget.values,n_days,axis=0))
+Budget = pd.DataFrame(np.repeat(budget.values, n_days, axis=0))
 Budget["fips"] = data["fips"]
 Budget["Date"] = data["Date"]
 Budget = Budget.set_index(["fips", "Date"])
@@ -204,17 +230,25 @@ Y.loc[A.values == 1].mean() - Y.loc[A.values == 0].mean()
 # %% location indicator and population
 sind = data.fips.map(fips2idx).values
 sind = pd.DataFrame({"sind": sind}, Y.index)
-P = data[["Population"]] / 1000 # better to work on thousands
+P = data[["Population"]] / 1000  # better to work on thousands
+Enrolled = data[["total_count"]]
+State = data[["state"]]
 
 # %% offset = location means
-df = pd.DataFrame({"other_hosps": Y.values[:, 0], "sind": sind.values[:, 0], "year": year.values[:, 0]})
+df = pd.DataFrame(
+    {
+        "other_hosps": Y.values[:, 0],
+        "sind": sind.values[:, 0],
+        "year": year.values[:, 0],
+    }
+)
 tmp = (
-    df.groupby(["sind","year"])
+    df.groupby(["sind", "year"])
     .mean()
     .reset_index()
     .rename(columns={"other_hosps": "mean_other_hosps"})
 )
-offset = df.merge(tmp, on=["sind","year"], how="left")[["mean_other_hosps"]]
+offset = df.merge(tmp, on=["sind", "year"], how="left")[["mean_other_hosps"]]
 
 
 # %% save time varying features, treatment, outcomes
@@ -235,7 +269,9 @@ A.to_parquet("data/processed/actions.parquet")
 W.to_parquet("data/processed/spatial_feats.parquet")
 sind.to_parquet("data/processed/location_indicator.parquet")
 P.to_parquet("data/processed/population.parquet")
+Enrolled.to_parquet("data/processed/Medicare_denominator.parquet")
 offset.to_parquet("data/processed/offset.parquet")
+State.to_parquet("data/processed/state.parquet")
 year.to_parquet("data/processed/year.parquet")
 Budget.to_parquet("data/processed/budget.parquet")
 
@@ -266,7 +302,10 @@ with open("data/processed/fips2idx.json", "w") as f:
 # %% save splines
 t_dos = np.arange(0, M + 1)
 # t_dow = np.arange(0, 7)
-Btdos = dmatrix(f"bs(t_dos, df=3, degree=3, lower_bound=0, upper_bound={M}) - 1", return_type="dataframe")
+Btdos = dmatrix(
+    f"bs(t_dos, df=3, degree=3, lower_bound=0, upper_bound={M}) - 1",
+    return_type="dataframe",
+)
 # Btdow = dmatrix("bs(t_dow, df=5, degree=3, lower_bound=0, upper_bound=6) - 1", return_type="dataframe")
 Btdos.columns = [f"dos_{i}" for i in range(Btdos.shape[1])]
 # Btdow.columns = [f"dow_{i}" for i in range(Btdow.shape[1])]

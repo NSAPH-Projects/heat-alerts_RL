@@ -2,24 +2,171 @@
 library(dplyr)
 library(ggplot2)
 library(cowplot, lib.loc = "~/apps/R_4.2.2")
+library(stringr)
 
-model<- "test_4013_lr-01"
+model<- "Test_DoubleDQN"
+model<- "Test_SAC"
+# model<- "Online-0_DoubleDQN"
+# model<- "Online-0_SAC"
+# 
+# these_plots<- 1:24
+# these_plots<- c(1:12) # LR constant, comparing P
+# these_plots<- c(13:24) # LR constant, comparing P
+# these_plots<- c(1:3, 13:15, 4:6, 16:18) # comparing LR
+# these_plots<- c(7:9, 19:21, 10:12, 22:24) # comparing LR
+# these_plots<- c(1:3, 7:9, 13:15, 19:21) # comparing n_layers
+# these_plots<- c(4:6, 10:12, 16:18, 22:24) # comparing n_layers
 
-plot_metric<- function(df, metric){
-  DF<- data.frame(df$V1, df$V3)
+########### Final evaluations:
+
+## Benchmarks:
+df<- read.csv("Summer_results/ORL_eval_NWS.csv")[,-1]
+df<- read.csv("Summer_results/ORL_eval_zero.csv")[,-1]
+
+DF<- aggregate(. ~ County + Year
+               , df, sum)
+fips<- c(36005, 41067, 28035, 6071, 4013)
+eval_years<- c(2015, 2011, 2007)
+
+eval<- matrix(0, ncol=3, nrow=length(fips))
+for(i in 1:length(fips)){
+  # print(DF[which(DF$County == fips[i] & DF$Year %in% eval_years),])
+  eval[i,]<- as.vector(unlist(aggregate(. ~ County, 
+            DF[which(DF$County == fips[i] & 
+                       DF$Year %in% eval_years),
+               c("County", "Actions", "Rewards")], sum)))
+}
+Eval<- as.data.frame(eval)
+names(Eval)<- c("County", "Actions", "Rewards")
+Eval
+
+# ggplot(DF, aes(x=County,y=Rewards
+#                    # ,color=as.factor(Year)
+#                )) + geom_line() + geom_smooth() + ggtitle("NWS")
+
+## Actual models:
+train_files<- list.files("Summer_results",
+                         pattern = paste0("ORL_training_", model))[these_plots]
+train_files<- list.files("Summer_results", 
+                         pattern = paste0("ORL_training_penalty_", model))[these_plots]
+eval_files<- list.files("Summer_results", 
+                         pattern = paste0("ORL_eval_", model))[these_plots]
+# Order = 28035, 36005, 4013, 41067, 6071
+eval_NWS<- c(-5161.3184)#[i]
+eval_zero<- c(-5263.3250)
+
+for(f in train_files){
+  df<- read.csv(paste0("Summer_results/",f))[,-1]
+  print(sum(df$Actions))
+  DF<- aggregate(. ~ Model, df, sum)
+  r<- ggplot(DF[-nrow(DF),], aes(x=Model,y=Rewards
+                     # ,color=as.factor(Year)
+             )) + geom_line() + geom_smooth() + ggtitle(f)# +
+    # ylim(-1400, -1100)
+  print(r)
+}
+
+for(f in eval_files){
+  df<- read.csv(paste0("Summer_results/",f))[,-1]
+  print(sum(df$Actions))
+  rDF<- aggregate(. ~ Model, df, sum)
+  r<- ggplot(rDF, aes(x=Model,y=Rewards
+                     # ,color=as.factor(Year)
+  )) + geom_line() + geom_smooth() + ggtitle(f) +
+    geom_hline(yintercept=eval_NWS,
+               color="orange", lwd=1, lty=2) +
+    geom_hline(yintercept=eval_zero,
+               color="red", lwd=1, lty=2) +
+  ylim(-5275, -5150)
+
+  dDF<- aggregate(Actions ~ Model, df, function(a){
+    if(sum(a) > 0){
+      return(mean(which(a==1)%%153))
+    }else{
+      return(0)
+    }
+  })
+  d<- ggplot(dDF, aes(x=Model,y=Actions
+                      # ,color=as.factor(Year)
+  )) + geom_line() + geom_smooth() + ggtitle(f) +
+    ylab("Average DOS")
+  print(plot_grid(r,d))
+  # print(r)
+}
+
+########### Getting insight into training:
+
+plot_metric<- function(df, metric, title, meanline=FALSE){
+  DF<- data.frame(df[,1], df[,3])
   names(DF)<- c("Epoch", "M")
-  p<- ggplot(DF, aes(x=Epoch, y=M)) + geom_line() +
-    ylab(metric)
+  if(!meanline){
+    p<- ggplot(DF, aes(x=Epoch, y=M)) + geom_line() +
+      ylab(metric) + ggtitle(title)
+  }else{
+    p<- ggplot(DF, aes(x=Epoch, y=M)) + geom_line() +
+      ylab(metric) + ggtitle(title) + geom_smooth()
+  }
   return(p)
 }
 
-# eval<- read.csv(paste0("d3rlpy_logs/",model,"/evaluation.csv"), header = FALSE)
-rollout<- read.csv(paste0("d3rlpy_logs/",model,"/rollout_return.csv"), header = FALSE)
-loss<- read.csv(paste0("d3rlpy_logs/",model,"/loss.csv"), header = FALSE)
+folders<- list.files("d3rlpy_logs", pattern = model)#[these_plots]
 
-plot_metric(loss, "Loss")
-plot_metric(rollout, "Rollout Return")
-# plot_metric(eval, "Evaluation")
+for(f in folders){
+  loss<- read.csv(paste0("d3rlpy_logs/",f,"/loss.csv"), header = FALSE)
+  print(plot_metric(loss, "Loss", f))
+}
 
-custom<- read.csv(paste0("d3rlpy_logs/",model,"/custom_metrics.csv"))
+## For SAC:
+for(f in folders){
+  actor_loss<- read.csv(paste0("d3rlpy_logs/",f,"/actor_loss.csv"), header = FALSE)
+  print(plot_metric(actor_loss, "Actor Loss", f))
+  critic_loss<- read.csv(paste0("d3rlpy_logs/",f,"/critic_loss.csv"), header = FALSE)
+  print(plot_metric(critic_loss, "Critic Loss", f))
+  temp_loss<- read.csv(paste0("d3rlpy_logs/",f,"/temp_loss.csv"), header = FALSE)
+  print(plot_metric(temp_loss, "Temp. Loss", f))
+}
+
+for(f in folders){
+  Rollout<- read.csv(paste0("d3rlpy_logs/",f,"/rollout_return.csv"), header = FALSE)
+  rollout<- Rollout
+  rollout$V3<- sapply(Rollout$V3, function(x){
+    x2<- gsub("tensor\\(\\[\\[","",x)
+    x3<- as.numeric(gsub("\\]\\]\\)","",x2))
+  })
+  print(plot_metric(rollout, "Rollout Return", f))
+}
+
+# for(f in folders){
+#   eval<- read.csv(paste0("d3rlpy_logs/",f,"/evaluation.csv"), header = FALSE)
+#   plot_metric(loss, "Evaluation")
+# }
+
+for(f in folders){
+  custom<- read.csv(paste0("d3rlpy_logs/",f,"/custom_metrics.csv"))
+  # print(sum(custom$Alert_sum))
+  custom$budget_frac<- custom$Alert_sum/custom$Budget
+  print(plot_metric(custom[,c("X", "Alert_sum", "budget_frac")], "Fraction of Budget Used", f))
+}
+
+for(f in folders){
+  custom<- read.csv(paste0("d3rlpy_logs/",f,"/custom_metrics.csv"))
+  print(plot_metric(custom[,c("X", "Alert_sum", "Avg_DOS")],
+                    "Average Day of Summer", f, meanline=TRUE))
+}
+
+for(f in folders){
+  custom<- read.csv(paste0("d3rlpy_logs/",f,"/custom_metrics.csv"))
+  print(plot_metric(custom[,c("X", "Alert_sum", "Avg_StrkLn")], 
+                    "Average Alert Streak Length", f, meanline=TRUE))
+  # print(summary(custom$Avg_StrkLn))
+}
+
+for(f in folders){
+  custom<- read.csv(paste0("d3rlpy_logs/",f,"/custom_metrics.csv"))
+  custom$strk_frac<- custom$Avg_StrkLn/custom$Budget
+  print(plot_metric(custom[,c("X", "Alert_sum", "strk_frac")], 
+                    "Average Alert Streak Length / Budget", f, meanline=TRUE))
+}
+
+
 

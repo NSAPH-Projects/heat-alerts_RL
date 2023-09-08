@@ -1,0 +1,3 @@
+num_hidden_layers: 0
+hidden_dim: 0
+name: linear

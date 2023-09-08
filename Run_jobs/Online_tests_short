@@ -1,0 +1,120 @@
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=41067
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=41067
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=41067
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=41067
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=53015
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=53015
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=53015
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=53015
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=20161
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=20161
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=20161
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=20161
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=37085
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=37085
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=37085
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=37085
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=48157
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=48157
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=48157
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=48157
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=28049
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=28049
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=28049
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=28049
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=19153
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=19153
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=19153
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=19153
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=17167
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=17167
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=17167
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=17167
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=31153
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=31153
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=31153
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=31153
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=6071
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=6071
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=6071
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=6071
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=4013
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=4013
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=4013
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=4013
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=34021
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=34021
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=34021
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=34021
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=19155
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=19155
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=19155
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=19155
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=17115
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=17115
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=17115
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=17115
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=29021
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=29021
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=29021
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=29021
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=29019
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=29019
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=29019
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=29019
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=5045
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=5045
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=5045
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=5045
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=40017
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=40017
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=40017
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=40017
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=21059
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=21059
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=21059
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=21059
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=47113
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=47113
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=47113
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=47113
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=42017
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=42017
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=42017
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=42017
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=22109
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=22109
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=22109
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=22109
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=45015
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=45015
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=45015
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=45015
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=13031
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=13031
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=13031
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=13031
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=48367
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=48367
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=48367
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=48367
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=22063
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=22063
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=22063
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=22063
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=41053
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=41053
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=41053
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=41053
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=32003
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=32003
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=32003
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=32003
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=4015
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=4015
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=4015
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=4015
+python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true county=6025
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false county=6025
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true county=6025
+ python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=false county=6025

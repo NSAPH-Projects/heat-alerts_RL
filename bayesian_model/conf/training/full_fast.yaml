@@ -1,0 +1,3 @@
+epochs: 80
+num_particles: 1
+lr: 0.001
