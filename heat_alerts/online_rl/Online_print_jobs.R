@@ -25,7 +25,7 @@ eval.episodes<- c(100) # 25
 policy_kwargs.net_arch<- c("[16]", "[16,16]") # "[16]", "[16,16]", "[32,32]", "[16,16,16]"
 penalty_decay<- c("false") # "true", "false"
 explore_budget<- c("false") # "true", "false"
-restrict_alerts<- c("true") # "true", "false"
+restrict_alerts<- c("false") # "true", "false"
 hi_penalty<- c("false") # "true", "false"
 penalty_effect<- c("false")
 # HI_restriction<- c(0.7, 0.75, 0.8, 0.85, 0.9)
@@ -46,7 +46,7 @@ training<- expand.grid(county,
                        # penalty_effect,
                        # penalty_decay,
                        restrict_alerts,
-                       HI_restriction,
+                       # HI_restriction,
                        # hi_rstr_decay,
                        # hi_penalty,
                        # eval.match_similar,
@@ -63,7 +63,7 @@ colnames(training)<- c("county",
                        # "penalty_effect",
                        # "penalty_decay",
                        "restrict_alerts",
-                       "HI_restriction",
+                       # "HI_restriction",
                        # "hi_rstr_decay",
                        # "hi_penalty",
                        # "eval.match_similar",
@@ -83,7 +83,7 @@ training[which(training$algo.learning_rate == 0.0001), "training_timesteps"]<- 1
 # training$HI_restriction<- 0.8
 # training[which(training$county == 4013), "HI_restriction"]<- 0.7
 
-training$model_name<- paste0("NC1", "_fips-", training$county, 
+training$model_name<- paste0("NC0", "_fips-", training$county, 
                              # "_P-", training$penalty,
                              # "_PE",
                              # "_", training$algo,
@@ -92,7 +92,7 @@ training$model_name<- paste0("NC1", "_fips-", training$county,
                              # "_EB-", training$explore_budget, 
                              # "_EE-", training$eval.episodes
                              # "_Rstr-HI-opt",
-                             "_Rstr-HI-", training$HI_restriction,
+                             # "_Rstr-HI-", training$HI_restriction,
                              # "_Rstr-HI-decay-", training$hi_rstr_decay,
                              # "_PD-", training$penalty_decay,
                              # "_HIP-", training$hi_penalty,

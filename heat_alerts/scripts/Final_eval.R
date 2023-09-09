@@ -67,8 +67,9 @@ assess<- function(filename){
 
 ### Identify optimal HI threshold and save the associated eval:
 
-prefix<- c("T10") # 
-splitvar<- "PE_Rstr-HI-"
+r_model<- "NC_model"
+prefix<- c("NC1") # 
+splitvar<- "Rstr-HI-"
 these<- c("TRPO") # , "PPO", "DQN", "LSTM", "QRDQN"
 Algo<- rep(these, 4)
 type<- c("eval", "eval_samp", "train", "train_samp")
@@ -88,9 +89,12 @@ counties<- c(41067, 53015, 20161, 37085, 48157,
              32003, 4015, 6025)
 
 HI_thresholds<- seq(0.5, 0.9, 0.05)
-opt_HI_thr<- rep(0, length(counties))
-Eval_samp<- rep(0, length(counties))
-Eval<- rep(0, length(counties))
+opt_HI_thr_1_16<- rep(0, length(counties))
+opt_HI_thr_2_16<- rep(0, length(counties))
+Eval_samp_1_16<- rep(0, length(counties))
+Eval_samp_2_16<- rep(0, length(counties))
+Eval_1_16<- rep(0, length(counties))
+Eval_2_16<- rep(0, length(counties))
 NWS<- rep(0, length(counties))
 Random<- rep(0, length(counties))
 
@@ -101,8 +105,8 @@ for(k in 1:length(counties)){
   Models<- sapply(folders, function(s){strsplit(s, splitvar)[[1]][2]})
   Models<- paste0(splitvar, as.vector(unique(Models)))
   
-  proc_NWS_eval<- my_proc(paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_test_fips_", county, ".csv"))
-  proc_random_eval<- my_proc(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_test_fips_", county, ".csv"))
+  proc_NWS_eval<- my_proc(paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
+  proc_random_eval<- my_proc(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
   
   NWS[k]<- proc_NWS_eval
   Random[k]<- proc_random_eval
@@ -112,28 +116,66 @@ for(k in 1:length(counties)){
     proc_TRPO_eval_samp<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", prefix, "_fips-", county, "_", model, "_fips_", county, ".csv"))
     proc_TRPO_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county, "_", model, "_fips_", county, ".csv"))
   
-    if(i == 1){
-      Eval_samp[k]<- proc_TRPO_eval_samp
-      Eval[k]<- proc_TRPO_eval
-      j<- 1
+    if(substr(model, nchar(model)-3, nchar(model)-3) == "1"){
+      if(i == 1){
+        Eval_samp_1_16[k]<- proc_TRPO_eval_samp
+        Eval_1_16[k]<- proc_TRPO_eval
+        j1<- 1
+      }else{
+        if(proc_TRPO_eval_samp > Eval_samp_1_16[k]){
+          Eval_samp_1_16[k]<- proc_TRPO_eval_samp
+          Eval_1_16[k]<- proc_TRPO_eval
+          j1<- (i+1)/2
+        }
+      }
     }else{
-      if(proc_TRPO_eval_samp > Eval_samp[k]){
-        Eval_samp[k]<- proc_TRPO_eval_samp
-        Eval[k]<- proc_TRPO_eval
-        j<- i
+      if(i == 2){
+        Eval_samp_2_16[k]<- proc_TRPO_eval_samp
+        Eval_2_16[k]<- proc_TRPO_eval
+        j2<- 1
+      }else{
+        if(proc_TRPO_eval_samp > Eval_samp_2_16[k]){
+          Eval_samp_2_16[k]<- proc_TRPO_eval_samp
+          Eval_2_16[k]<- proc_TRPO_eval
+          j2<- i/2
+        }
       }
     }
   }
-  opt_HI_thr[k]<- HI_thresholds[j]
+  opt_HI_thr_1_16[k]<- HI_thresholds[j1]
+  opt_HI_thr_2_16[k]<- HI_thresholds[j2]
   print(county) 
 }
 
-results<- data.frame(Fips=counties, Random, NWS, Eval, opt_HI_thr) # Eval_samp
-results[,c("Random", "NWS", "Eval")]<- apply(results[,c("Random", "NWS", "Eval")],
+results<- data.frame(Fips=counties, Random, NWS, 
+                     Eval_1_16, opt_HI_thr_1_16, Eval_samp_1_16,
+                     Eval_2_16, opt_HI_thr_2_16,  Eval_samp_2_16) # Eval_samp
+results[,c("Random", "NWS", 
+           "Eval_1_16", "Eval_2_16",
+           "Eval_samp_1_16", "Eval_samp_2_16")]<- apply(results[,c("Random", "NWS", 
+                                                         "Eval_1_16", "Eval_2_16",
+                                                         "Eval_samp_1_16", "Eval_samp_2_16")],
                                                           MARGIN=2, function(x){round(x,3)})
 results
 
+names(results)
+
+best<- t(apply(results, MARGIN=1, function(x){
+  first<- x[6] > x[9]
+  if(first){
+    return(c(x[4], x[5], "NN_1-16"))
+  }else{
+    return(c(x[7], x[8], "NN_2-16"))
+  }
+}))
+
+results$Eval<- as.numeric(best[,1])
+results$opt_HI_thr<- as.numeric(best[,2])
+results$Best_model<- best[,3]
+
 write.csv(results, paste0("Fall_results/Final_eval_30_", prefix, ".csv"))
+
+results[,c("Fips", "Random", "NWS", "Eval", "opt_HI_thr", "Best_model")]
 
 ## Choosing best size of net_arch based on eval_samp:
 old_results<- read.csv("Fall_results/Final_eval_30_best-T7-T8.csv") # "Fall_results/Final_eval_30_T7.csv"
