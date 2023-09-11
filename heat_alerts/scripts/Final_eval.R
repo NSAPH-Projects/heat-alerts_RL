@@ -177,6 +177,16 @@ write.csv(results, paste0("Fall_results/Final_eval_30_", prefix, ".csv"))
 
 results[,c("Fips", "Random", "NWS", "Eval", "opt_HI_thr", "Best_model")]
 
+s<- t(apply(results[,c("Random", "Eval", "Eval_1_16", "Eval_2_16")], MARGIN=1, 
+            function(x){
+              a<- (x[2]-x[1])/abs(x[1])
+              b<- (x[3]-x[1])/abs(x[1])
+              c<- (x[4]-x[1])/abs(x[1])
+              return(c(a,b,c))
+            }))
+
+colMeans(s)
+
 ## Choosing best size of net_arch based on eval_samp:
 old_results<- read.csv("Fall_results/Final_eval_30_best-T7-T8.csv") # "Fall_results/Final_eval_30_T7.csv"
 new_results<- read.csv("Fall_results/Final_eval_30_T9.csv") # "Fall_results/Final_eval_30_T8.csv"
@@ -376,7 +386,8 @@ t.test(y,z,alternative="g")
 
 ## No HI restriction:
 
-prefix<- "E0g1"
+r_model<- "NC_model"
+prefix<-"NC0"  # "E0g1"
 splitvar<-"_"  # "P-"
 
 Eval<- data.frame(matrix(ncol = 2, nrow = length(counties)))
@@ -392,8 +403,8 @@ for(k in 1:length(counties)){
   # Models<- paste0(splitvar, as.vector(unique(Models)))
   Models<- as.vector(unique(Models))
   
-  proc_NWS_eval<- my_proc(paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_test_fips_", county, ".csv"))
-  proc_random_eval<- my_proc(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_test_fips_", county, ".csv"))
+  proc_NWS_eval<- my_proc(paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
+  proc_random_eval<- my_proc(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
   
   NWS[k]<- proc_NWS_eval
   Random[k]<- proc_random_eval
@@ -410,6 +421,15 @@ results<- data.frame(Fips=counties, Random, NWS, Eval)
 names(results)[4:5]<- c("Eval_NN-1-16", "Eval_NN-2-16")
 results[,-1]<- apply(results[,-1], MARGIN=2, function(x){round(x,3)})
 results
+
+s<- t(apply(results[,c("Random", "Eval_NN-1-16", "Eval_NN-2-16")], MARGIN=1, 
+          function(x){
+            a<- (x[2]-x[1])/abs(x[1])
+            b<- (x[3]-x[1])/abs(x[1])
+            return(c(a,b))
+          }))
+
+colMeans(s)
 
 
 alerts_results<- data.frame(matrix(ncol = 10, nrow = 0))
