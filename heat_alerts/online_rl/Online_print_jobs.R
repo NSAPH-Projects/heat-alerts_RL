@@ -12,6 +12,7 @@ county<- c(41067, 53015, 20161, 37085, 48157,
            47113, 42017, 22109, 45015, 13031, 48367, 22063, 41053, 
            32003, 4015, 6025)
 
+constrain<- c("none")
 ckpt<- c("ckpts/FF_NC_9-6_guide.pt") # "ckpts/FullFast_8-16_guide.pt"
 algos<- c("trpo") # , "ppo", "dqn", "lstm" "qrdqn"
 # match_similar<- c("false") # "true"
@@ -25,7 +26,7 @@ eval.episodes<- c(100) # 25
 policy_kwargs.net_arch<- c("[16]", "[16,16]") # "[16]", "[16,16]", "[32,32]", "[16,16,16]"
 penalty_decay<- c("false") # "true", "false"
 explore_budget<- c("false") # "true", "false"
-restrict_alerts<- c("false") # "true", "false"
+restrict_alerts<- c("true") # "true", "false"
 hi_penalty<- c("false") # "true", "false"
 penalty_effect<- c("false")
 # HI_restriction<- c(0.7, 0.75, 0.8, 0.85, 0.9)
@@ -38,6 +39,7 @@ hi_rstr_decay<- c("false") # "true", "false"
 training<- expand.grid(county, 
                        algos, 
                        ckpt,
+                       constrain,
                        # match_similar,
                        # explore_budget,
                        eval.episodes, 
@@ -46,7 +48,7 @@ training<- expand.grid(county,
                        # penalty_effect,
                        # penalty_decay,
                        restrict_alerts,
-                       # HI_restriction,
+                       HI_restriction,
                        # hi_rstr_decay,
                        # hi_penalty,
                        # eval.match_similar,
@@ -55,6 +57,7 @@ training<- expand.grid(county,
 colnames(training)<- c("county", 
                        "algo", 
                        "guide_ckpt",
+                       "constrain",
                        # "match_similar",
                        # "explore_budget",
                        "eval.episodes",
@@ -63,7 +66,7 @@ colnames(training)<- c("county",
                        # "penalty_effect",
                        # "penalty_decay",
                        "restrict_alerts",
-                       # "HI_restriction",
+                       "HI_restriction",
                        # "hi_rstr_decay",
                        # "hi_penalty",
                        # "eval.match_similar",
@@ -83,7 +86,7 @@ training[which(training$algo.learning_rate == 0.0001), "training_timesteps"]<- 1
 # training$HI_restriction<- 0.8
 # training[which(training$county == 4013), "HI_restriction"]<- 0.7
 
-training$model_name<- paste0("NC0", "_fips-", training$county, 
+training$model_name<- paste0("NC1", "_fips-", training$county, 
                              # "_P-", training$penalty,
                              # "_PE",
                              # "_", training$algo,
@@ -92,7 +95,7 @@ training$model_name<- paste0("NC0", "_fips-", training$county,
                              # "_EB-", training$explore_budget, 
                              # "_EE-", training$eval.episodes
                              # "_Rstr-HI-opt",
-                             # "_Rstr-HI-", training$HI_restriction,
+                             "_Rstr-HI-", training$HI_restriction,
                              # "_Rstr-HI-decay-", training$hi_rstr_decay,
                              # "_PD-", training$penalty_decay,
                              # "_HIP-", training$hi_penalty,
@@ -107,18 +110,18 @@ training$model_name<- paste0("NC0", "_fips-", training$county,
 #   }
 # })
 
-# training$model_name<- sapply(training$model_name, function(s){
-#   x<- strsplit(s, "arch-")[[1]]
-#   if(x[2] == "[16,16]"){
-#     return(paste0(x[1], "2-16"))
-#   }else if(x[2] == "[16,16,16]"){
-#     return(paste0(x[1], "3-16"))
-#   }else if(x[2] == "[32,32]"){
-#     return(paste0(x[1], "2-32"))
-#   }else{
-#     return(paste0(x[1], "1-16"))
-#   }
-# })
+training$model_name<- sapply(training$model_name, function(s){
+  x<- strsplit(s, "arch-")[[1]]
+  if(x[2] == "[16,16]"){
+    return(paste0(x[1], "2-16"))
+  }else if(x[2] == "[16,16,16]"){
+    return(paste0(x[1], "3-16"))
+  }else if(x[2] == "[32,32]"){
+    return(paste0(x[1], "2-32"))
+  }else{
+    return(paste0(x[1], "1-16"))
+  }
+})
 
 training_script<- "python train_online_rl_sb3.py"
 evaluation_script<- "python old_evaluation_SB3.py"
