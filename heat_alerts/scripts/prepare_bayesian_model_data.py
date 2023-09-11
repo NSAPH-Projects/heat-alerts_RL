@@ -24,31 +24,32 @@ subfips = unique_fips[fips_ix]
 # of hospitalizations vs. heat index (HI)
 
 
-# import seaborn as sns
-# minq = 0.0
-# maxq = 1.0
-# subdata = data_raw[data_raw["fips"].isin(subfips) & (data_raw["quant_HI"] > minq) & (data_raw["quant_HI"] < maxq)]
+import matplotlib.pyplot as plt
+import seaborn as sns
+minq = 0.0
+maxq = 1.0
+subdata = data_raw[data_raw["fips"].isin(subfips) & (data_raw["quant_HI"] > minq) & (data_raw["quant_HI"] < maxq)]
 
-# hosps_var = "other_hosps"
-# for hi_var in ("HImaxF_PopW", "quant_HI"):
-#     sns.lmplot(
-#         x=hi_var,
-#         y=hosps_var,
-#         col="fips",
-#         col_wrap=4,
-#         data=subdata,
-#         order=2,
-#         # lowess=True,
-#         # no ci
-#         # ci=None,
-#         # scatter_kws={"alpha": 0.1},
-#         line_kws={"color": "red"},
-#         height=1.5,
-#         aspect=1.5,
-#         sharey=False,
-#         scatter=False,
-#     )
-# plt.savefig(f"preprocessing_{hi_var}_vs_{hosps_var}.png", dpi=300)
+hosps_var = "other_hosps"
+for hi_var in ("HImaxF_PopW", "quant_HI"):
+    sns.lmplot(
+        x=hi_var,
+        y=hosps_var,
+        col="fips",
+        col_wrap=4,
+        data=subdata,
+        order=2,
+        # lowess=True,
+        # no ci
+        # ci=None,
+        # scatter_kws={"alpha": 0.1},
+        line_kws={"color": "red"},
+        height=1.5,
+        aspect=1.5,
+        sharey=False,
+        scatter=False,
+    )
+    plt.savefig(f"preprocessing_{hi_var}_vs_{hosps_var}.png", dpi=300)
 
 
 # %%

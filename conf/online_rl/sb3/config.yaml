@@ -7,6 +7,7 @@ county: 36005 # bronx
 # county: 4013 # maricopa
 seed: 12345
 num_posterior_samples: 100
+constrain: all
 guide_ckpt: ckpts/FullFast_8-16_guide.pt # ckpts/Full_8-16_guide.pt
 model:  # must match exactly the model used when producing the guide
         # in the future linking them will be automatic

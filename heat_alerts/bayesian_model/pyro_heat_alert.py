@@ -251,6 +251,8 @@ class HeatAlertDataModule(pl.LightningDataModule):
         batch_size: int | None = None,
         num_workers: int = 8,
         load_outcome: bool = True,
+        sampled_Y: bool = False,
+        constrain: str = "all",
         for_gym: bool = False,
     ):
         super().__init__()
@@ -262,7 +264,10 @@ class HeatAlertDataModule(pl.LightningDataModule):
         X = pd.read_parquet(f"{dir}/states.parquet").drop(columns="intercept")
         A = pd.read_parquet(f"{dir}/actions.parquet")
         if load_outcome:
-            Y = pd.read_parquet(f"{dir}/outcomes.parquet")
+            if not sampled_Y:
+                Y = pd.read_parquet(f"{dir}/outcomes.parquet")
+            else:
+                Y = pd.read_parquet(f"{dir}/sampled_outcomes.parquet")
         else:
             Y = pd.DataFrame({"outcome": np.full(A.shape[0], np.nan)}, index=A.index)
         W = pd.read_parquet(f"{dir}/spatial_feats.parquet")
@@ -317,13 +322,6 @@ class HeatAlertDataModule(pl.LightningDataModule):
             **{f"dos_{i}": v for i, v in enumerate(dos)},
         }
         self.effectiveness_feature_names = list(effectiveness_features.keys())
-        self.effectiveness_constraints = dict(
-            heat_qi="positive",  # more heat more effective
-            excess_heat="positive",  # more excess here more effective
-            alert_lag1="negative",  # alert yesterday less effective
-            previous_alerts="negative",  # more alerts less effective
-        )
-        # note: contraints are passed to the heat alert model
 
         # baseline rate features
         # for now just use a simple 3-step piecewise linear function
@@ -341,13 +339,45 @@ class HeatAlertDataModule(pl.LightningDataModule):
             **{f"dos_{i}": v for i, v in enumerate(dos)},
         }
         self.baseline_feature_names = list(baseline_features.keys())
-        self.baseline_constraints = dict(
-            heat_qi1_above_25="positive",  # heat could have any slope at first
-            heat_qi2_above_75="positive",  #    but should be increasingly worst
-            excess_heat="positive",  # more excess heat more hospitalizations
-            alert_lag1="negative",  # alert yesterday less hospitalizations
-            previous_alerts="negative",  # more trailing alerts less hospitalizations
-        )
+
+        ## note: contraints are passed to the heat alert model
+        if constrain == "all":
+            self.effectiveness_constraints = dict(
+                heat_qi="positive",  # more heat more effective
+                excess_heat="positive",  # more excess here more effective
+                alert_lag1="negative",  # alert yesterday less effective
+                previous_alerts="negative",  # more alerts less effective
+            )
+            self.baseline_constraints = dict(
+                heat_qi1_above_25="positive",  # heat could have any slope at first
+                heat_qi2_above_75="positive",  #    but should be increasingly worst
+                excess_heat="positive",  # more excess heat more hospitalizations
+                alert_lag1="negative",  # alert yesterday less hospitalizations
+                previous_alerts="negative",  # more trailing alerts less hospitalizations
+            )
+        elif constrain == "none":
+            self.effectiveness_constraints = dict()
+            self.baseline_constraints = dict()
+        elif constrain == "HI":
+            self.effectiveness_constraints = dict(
+                heat_qi="positive",  # more heat more effective
+                excess_heat="positive",  # more excess here more effective
+            )
+            self.baseline_constraints = dict(
+                heat_qi1_above_25="positive",  # heat could have any slope at first
+                heat_qi2_above_75="positive",  #    but should be increasingly worst
+                excess_heat="positive",  # more excess heat more hospitalizations
+            )
+        elif constrain == "alerts":
+            self.effectiveness_constraints = dict(
+                alert_lag1="negative",  # alert yesterday less effective
+                previous_alerts="negative",  # more alerts less effective
+            )
+            self.baseline_constraints = dict(
+                alert_lag1="negative",  # alert yesterday less hospitalizations
+                previous_alerts="negative",  # more trailing alerts less hospitalizations
+            )
+
 
         baseline_features_tensor = torch.stack(
             [baseline_features[k] for k in self.baseline_feature_names], dim=1

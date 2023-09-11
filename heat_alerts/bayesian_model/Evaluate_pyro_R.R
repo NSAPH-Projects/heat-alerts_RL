@@ -29,6 +29,7 @@ cor(Y, pred_Y)^2
 
 #### Obtain locations with highest effectiveness:
 
+baseline<- bayes$V2
 effectiveness<- bayes$V1
 
 locs<- read_parquet("data/processed/location_indicator.parquet")[,1]#$sind

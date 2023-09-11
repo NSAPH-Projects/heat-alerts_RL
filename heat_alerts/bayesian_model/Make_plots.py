@@ -3,8 +3,11 @@ from argparse import ArgumentParser
 import numpy as np
 from matplotlib import pyplot as plt
 import json
+import csv
+import pandas as pd
 
 import pyro
+from pyro.distributions import Poisson
 import pytorch_lightning as pl
 import torch
 
@@ -132,7 +135,7 @@ def main(params):
         ax.set_title("Effect of Issuing an Alert: County " + str(params["county"]))
         fig.savefig("heat_alerts/bayesian_model/Plots_params/Overall_effect_county-" + str(params["county"]) + "_" + params["model_name"] + ".png", bbox_inches="tight")
     
-    
+
     #### OLD code:
     Outputs = torch.mean(outputs, dim=0)
     eff, baseline, outcome_mean = (
@@ -141,7 +144,7 @@ def main(params):
                     Outputs[:, 2],
                 )
     sample = guide(*inputs)
-
+    
     keys0 = [k for k in sample.keys() if k.startswith("effectiveness_")]
     keys1 = [k for k in sample.keys() if k.startswith("baseline_")]
     medians_0 = np.array(
@@ -232,6 +235,36 @@ def main(params):
     ax[1].set_title("Heat alert effectiveness")
     fig.savefig("Plots_params/DOS_" + params["model_name"] + ".png", bbox_inches="tight")
 
+    ## Saving one sample to test model identification:
+    w = csv.writer(open("data/processed/Coef_sample.csv", "w"))
+    for key, val in sample.items():
+        w.writerow([key, val])
+
+    baseline_contribs = []
+    for i, name in enumerate(dm.baseline_feature_names):
+        coef = sample["baseline_" + name][loc_ind]
+        baseline_contribs.append(coef * baseline_features[:, i])
+
+    # compute baseline hospitalizations
+    baseline_bias = sample['baseline_bias']
+    baseline = torch.exp(sum(baseline_contribs) + baseline_bias[loc_ind])
+    baseline = baseline.clamp(max=1e6)
+
+    effectiveness_contribs = []
+    for i, name in enumerate(dm.effectiveness_feature_names):
+        coef = sample["effectiveness_" + name][loc_ind]
+        effectiveness_contribs.append(coef * eff_features[:, i])
+
+    eff_bias = sample['effectiveness_bias']
+    effectiveness = torch.sigmoid(sum(effectiveness_contribs) + eff_bias[loc_ind])
+    effectiveness = effectiveness.clamp(1e-6, 1 - 1e-6)
+
+    outcome_mean = county_summer_mean * baseline * (1 - alert * effectiveness)
+    with pyro.plate("data", outputs.shape[1], subsample=index):
+        obs = pyro.sample("hospitalizations", Poisson(outcome_mean + 1e-3), obs=hosps)
+
+    df = pd.DataFrame(obs.numpy())
+    df.to_parquet("data/processed/sampled_outcomes.parquet")
 
 if __name__ == "__main__":
     parser = ArgumentParser()

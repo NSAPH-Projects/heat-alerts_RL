@@ -31,7 +31,7 @@ def prep_data(cfg: DictConfig):
     # instantiate guide
     # TODO: I wish the guide could be loaded more elegantly!
     logging.info("Instantiating guide")
-    dm = HeatAlertDataModule(dir=cfg.datadir, load_outcome=False)
+    dm = HeatAlertDataModule(dir=cfg.datadir, load_outcome=False, constrain=cfg.constrain)
 
     # Load model
     logging.info("Creating model")

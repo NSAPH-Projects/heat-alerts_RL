@@ -19,3 +19,5 @@ training:
   jit: true
 
 datadir: data/processed 
+sample_Y: false
+constrain: all
