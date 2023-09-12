@@ -16,8 +16,8 @@ from heat_alerts.bayesian_model.pyro_heat_alert import (HeatAlertDataModule, Hea
 from pyro.infer import Predictive, predictive
 
 def main(params):
-    # params = {"model_name": "FullFast_8-16", "n_samples": 100, "SC": "F", "county": 36005}
-    # params = {"model_name": "FF_NC_9-6", "n_samples": 100, "SC": "F", "county": 36005}
+    # params = {"model_name": "FullFast_8-16", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "all"}
+    # params = {"model_name": "FF_NC_9-6", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "none"}
     ## Read in data:
     n_days = 153
     years = set(range(2006, 2017))
@@ -26,7 +26,8 @@ def main(params):
             dir="data/processed", # dir="data/processed",
             batch_size=n_days*n_years,
             num_workers=4,
-            for_gym=True
+            for_gym=True,
+            constrain=params["constrain"]
         )
     data = dm.gym_dataset
     hosps = data[0]
@@ -147,6 +148,8 @@ def main(params):
     
     keys0 = [k for k in sample.keys() if k.startswith("effectiveness_")]
     keys1 = [k for k in sample.keys() if k.startswith("baseline_")]
+    keys0.remove("effectiveness_bias")
+    keys1.remove("baseline_bias")
     medians_0 = np.array(
         [torch.quantile(sample[k], 0.5).item() for k in keys0]
     )
@@ -170,9 +173,11 @@ def main(params):
     base_names = [k.split("baseline_")[1] for k in keys1]
     eff_names = [k.split("effectiveness_")[1] for k in keys0]
     base_names = ["QHI", "QHI>25", "QHI>75", "Excess QHI", "Alert Lag1", "Alerts 2wks", "Weekend",
-                  "DOS_0", "DOS_1", "DOS_2", "Bias"]
+                  "DOS_0", "DOS_1", "DOS_2" #, "Bias"
+                  ]
     eff_names = ["QHI", "Excess QHI", "Alert Lag1", "Alerts 2wks", "Weekend", 
-                 "DOS_0", "DOS_1", "DOS_2", "Bias"]
+                 "DOS_0", "DOS_1", "DOS_2" #, "Bias"
+                 ]
 
     # make coefficient distribution plots for coefficients, error bars are iqr
     fig, ax = plt.subplots(1, 2, figsize=(8, 4))
@@ -235,36 +240,7 @@ def main(params):
     ax[1].set_title("Heat alert effectiveness")
     fig.savefig("Plots_params/DOS_" + params["model_name"] + ".png", bbox_inches="tight")
 
-    ## Saving one sample to test model identification:
-    w = csv.writer(open("data/processed/Coef_sample.csv", "w"))
-    for key, val in sample.items():
-        w.writerow([key, val])
-
-    baseline_contribs = []
-    for i, name in enumerate(dm.baseline_feature_names):
-        coef = sample["baseline_" + name][loc_ind]
-        baseline_contribs.append(coef * baseline_features[:, i])
-
-    # compute baseline hospitalizations
-    baseline_bias = sample['baseline_bias']
-    baseline = torch.exp(sum(baseline_contribs) + baseline_bias[loc_ind])
-    baseline = baseline.clamp(max=1e6)
-
-    effectiveness_contribs = []
-    for i, name in enumerate(dm.effectiveness_feature_names):
-        coef = sample["effectiveness_" + name][loc_ind]
-        effectiveness_contribs.append(coef * eff_features[:, i])
-
-    eff_bias = sample['effectiveness_bias']
-    effectiveness = torch.sigmoid(sum(effectiveness_contribs) + eff_bias[loc_ind])
-    effectiveness = effectiveness.clamp(1e-6, 1 - 1e-6)
-
-    outcome_mean = county_summer_mean * baseline * (1 - alert * effectiveness)
-    with pyro.plate("data", outputs.shape[1], subsample=index):
-        obs = pyro.sample("hospitalizations", Poisson(outcome_mean + 1e-3), obs=hosps)
-
-    df = pd.DataFrame(obs.numpy())
-    df.to_parquet("data/processed/sampled_outcomes.parquet")
+    
 
 if __name__ == "__main__":
     parser = ArgumentParser()

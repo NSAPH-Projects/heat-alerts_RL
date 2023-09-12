@@ -156,7 +156,7 @@ results[,c("Random", "NWS",
                                                          "Eval_1_16", "Eval_2_16",
                                                          "Eval_samp_1_16", "Eval_samp_2_16")],
                                                           MARGIN=2, function(x){round(x,3)})
-results
+# results
 
 names(results)
 
