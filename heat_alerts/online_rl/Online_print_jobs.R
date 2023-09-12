@@ -16,7 +16,7 @@ constrain<- c("none")
 ckpt<- c("ckpts/FF_NC_9-6_guide.pt") # "ckpts/FullFast_8-16_guide.pt"
 algos<- c("trpo") # , "ppo", "dqn", "lstm" "qrdqn"
 # match_similar<- c("false") # "true"
-eval.val_years<- c("true", "false")
+eval.val_years<- c("true") # , "false"
 eval.match_similar<- c("true", "false") 
 # eval_mode<- c("true") # , "false"
 # eval.eval_mode<- c("true") # , "false"
@@ -51,8 +51,8 @@ training<- expand.grid(county,
                        HI_restriction,
                        # hi_rstr_decay,
                        # hi_penalty,
-                       # eval.match_similar,
-                       # eval.val_years,
+                       eval.match_similar,
+                       eval.val_years,
                        learning_rate)
 colnames(training)<- c("county", 
                        "algo", 
@@ -69,8 +69,8 @@ colnames(training)<- c("county",
                        "HI_restriction",
                        # "hi_rstr_decay",
                        # "hi_penalty",
-                       # "eval.match_similar",
-                       # "eval.val_years",
+                       "eval.match_similar",
+                       "eval.val_years",
                        "algo.learning_rate")
 
 # training$penalty<- c(0.0) # 0.01
@@ -132,8 +132,8 @@ Long<- Training[which(training$training_timesteps >= 100000000 | training$algo =
 
 sink("Run_jobs/Online_tests_short")
 for(i in 1:nrow(Short)){
-  cat(# evaluation_script,
-    training_script,
+  cat(evaluation_script,
+    # training_script,
       paste(
         Short[i,]
       ), " \n")
