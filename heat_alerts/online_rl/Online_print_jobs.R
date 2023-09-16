@@ -12,9 +12,9 @@ county<- c(41067, 53015, 20161, 37085, 48157,
            47113, 42017, 22109, 45015, 13031, 48367, 22063, 41053, 
            32003, 4015, 6025)
 
-constrain<- c("none")
-ckpt<- c("ckpts/FF_NC_9-6_guide.pt") # "ckpts/FullFast_8-16_guide.pt"
-algos<- c("trpo") # , "ppo", "dqn", "lstm" "qrdqn"
+constrain<- c("all") # "none"
+ckpt<- c("ckpts/FullFast_8-16_guide.pt") # "ckpts/FF_NC_9-6_guide.pt"
+algos<- c("dqn") # "trpo", "ppo", "dqn", "lstm" "qrdqn"
 # match_similar<- c("false") # "true"
 eval.val_years<- c("true") # , "false"
 eval.match_similar<- c("true", "false") 
@@ -51,8 +51,8 @@ training<- expand.grid(county,
                        HI_restriction,
                        # hi_rstr_decay,
                        # hi_penalty,
-                       eval.match_similar,
-                       eval.val_years,
+                       # eval.match_similar,
+                       # eval.val_years,
                        learning_rate)
 colnames(training)<- c("county", 
                        "algo", 
@@ -69,8 +69,8 @@ colnames(training)<- c("county",
                        "HI_restriction",
                        # "hi_rstr_decay",
                        # "hi_penalty",
-                       "eval.match_similar",
-                       "eval.val_years",
+                       # "eval.match_similar",
+                       # "eval.val_years",
                        "algo.learning_rate")
 
 # training$penalty<- c(0.0) # 0.01
@@ -86,10 +86,10 @@ training[which(training$algo.learning_rate == 0.0001), "training_timesteps"]<- 1
 # training$HI_restriction<- 0.8
 # training[which(training$county == 4013), "HI_restriction"]<- 0.7
 
-training$model_name<- paste0("NC1", "_fips-", training$county, 
+training$model_name<- paste0("D1", "_fips-", training$county, 
                              # "_P-", training$penalty,
                              # "_PE",
-                             # "_", training$algo,
+                             "_", training$algo,
                              # "_obs-W",
                              # "_LR-", training$algo.learning_rate,
                              # "_EB-", training$explore_budget, 
@@ -132,8 +132,8 @@ Long<- Training[which(training$training_timesteps >= 100000000 | training$algo =
 
 sink("Run_jobs/Online_tests_short")
 for(i in 1:nrow(Short)){
-  cat(evaluation_script,
-    # training_script,
+  cat(# evaluation_script,
+    training_script,
       paste(
         Short[i,]
       ), " \n")

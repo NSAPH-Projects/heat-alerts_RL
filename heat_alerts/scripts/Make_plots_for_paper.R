@@ -73,7 +73,7 @@ for(k in counties){
   
   
   ## Calculate stats:
-  n_eps<- nrow(p_train)/(n_days-1)
+  n_eps<- nrow(p_eval)/(n_days-1)
   Days<- rep(1:(n_days-1),n_eps)
   
   # ptD<- Days[which(p_train$Actions == 1)]

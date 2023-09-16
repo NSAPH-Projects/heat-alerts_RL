@@ -177,15 +177,18 @@ write.csv(results, paste0("Fall_results/Final_eval_30_", prefix, ".csv"))
 
 results[,c("Fips", "Random", "NWS", "Eval", "opt_HI_thr", "Best_model")]
 
-s<- t(apply(results[,c("Random", "Eval", "Eval_1_16", "Eval_2_16")], MARGIN=1, 
+s<- t(apply(results[,c("Random", "NWS", "Eval", "Eval_1_16", "Eval_2_16")], MARGIN=1, 
             function(x){
               a<- (x[2]-x[1])/abs(x[1])
               b<- (x[3]-x[1])/abs(x[1])
               c<- (x[4]-x[1])/abs(x[1])
-              return(c(a,b,c))
+              d<- (x[5]-x[1])/abs(x[1])
+              return(c(a,b,c,d))
             }))
 
 colMeans(s)
+
+t.test(s[,2], s[,1], alternative="g")
 
 ## Choosing best size of net_arch based on eval_samp:
 old_results<- read.csv("Fall_results/Final_eval_30_best-T7-T8.csv") # "Fall_results/Final_eval_30_T7.csv"

@@ -133,7 +133,8 @@ counties<- c(41067, 53015, 20161, 37085, 48157,
              47113, 42017, 22109, 45015, 13031, 48367, 22063, 41053, 
              32003, 4015, 6025)
 
-r_model<- "NC_model" # "test
+# r_model<- "NC_model"
+r_model<- "test"
 
 Zero<- rep(0,length(counties))
 NWS<- rep(0,length(counties))
@@ -162,14 +163,37 @@ results$RQ_thr<- Random_QHI$opt_HI_thr
 results$AA_QHI<- round(AA_QHI$Eval,3)
 results$AA_thr<- AA_QHI$opt_HI_thr
 
-results
-
-Benchmark<- c("Zero", "NWS", "Top_K", "Random_QHI", "AA_QHI")
-Mean<- c()
-
-for(y in Benchmark){
-  Mean<- append(Mean, mean((results[,y] - results$Random)/abs(results$Random)))
+if(r_model == "test"){
+  RL<- read.csv("Fall_results/Final_eval_30_best-T7-T8.csv")
+  rl0<- read.csv("Fall_results/Final_eval_30_best-T7-T8.csv")
+}else if(r_model == "NC_model"){
+  RL<- read.csv("Fall_results/Final_eval_30_NC1.csv")
 }
 
-data.frame(Benchmark, Mean=round(Mean,3))
+results$RL<- RL$Eval
+results$RL_thr<- RL$opt_HI_thr
+results
+
+write.csv(results, paste0("Fall_results/All_evals_", r_model, ".csv"))
+
+# Benchmark<- c("Zero", "NWS", "Top_K", "Random_QHI", "AA_QHI", "RL")
+Benchmark<- c("Zero", "Random", "Top_K", "Random_QHI", "AA_QHI", "RL")
+Mean<- c()
+# SD<- c()
+
+for(y in Benchmark){
+  # Mean<- append(Mean, mean((results[,y] - results$Random)/abs(results$Random)))
+  # Mean<- append(Mean, mean((results[,y] - results$NWS)/abs(results$NWS)))
+  Mean<- append(Mean, mean((results[,y] - results$NWS)))
+  # SD<- append(SD, sd((results[,y] - results$NWS)))
+}
+
+d<- data.frame(Benchmark, Mean=round(Mean,3) #, SD=round(SD,3)
+)
+d
+
+t.test(results$RL - results$NWS, alternative="g")
+
+print(xtable(d, digits=3),include.rownames=FALSE)
+
 
