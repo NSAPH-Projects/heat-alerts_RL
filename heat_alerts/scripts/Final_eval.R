@@ -67,10 +67,10 @@ assess<- function(filename){
 
 ### Identify optimal HI threshold and save the associated eval:
 
-r_model<- "NC_model"
-prefix<- c("NC1") # 
-splitvar<- "Rstr-HI-"
-these<- c("TRPO") # , "PPO", "DQN", "LSTM", "QRDQN"
+r_model<- "test" # "NC_model"
+prefix<-"D1"  # "NC1" 
+splitvar<- "dqn_Rstr-HI-" # "Rstr-HI-"
+these<- c("DQN") # "TRPO", "PPO", "DQN", "LSTM", "QRDQN"
 Algo<- rep(these, 4)
 type<- c("eval", "eval_samp", "train", "train_samp")
 Type<- rep(type, each=length(these))
@@ -177,18 +177,20 @@ write.csv(results, paste0("Fall_results/Final_eval_30_", prefix, ".csv"))
 
 results[,c("Fips", "Random", "NWS", "Eval", "opt_HI_thr", "Best_model")]
 
-s<- t(apply(results[,c("Random", "NWS", "Eval", "Eval_1_16", "Eval_2_16")], MARGIN=1, 
-            function(x){
-              a<- (x[2]-x[1])/abs(x[1])
-              b<- (x[3]-x[1])/abs(x[1])
-              c<- (x[4]-x[1])/abs(x[1])
-              d<- (x[5]-x[1])/abs(x[1])
-              return(c(a,b,c,d))
-            }))
+s<- results$Eval - results$NWS
 
-colMeans(s)
-
-t.test(s[,2], s[,1], alternative="g")
+# s<- t(apply(results[,c("Random", "NWS", "Eval", "Eval_1_16", "Eval_2_16")], MARGIN=1, 
+#             function(x){
+#               a<- (x[2]-x[1])/abs(x[1])
+#               b<- (x[3]-x[1])/abs(x[1])
+#               c<- (x[4]-x[1])/abs(x[1])
+#               d<- (x[5]-x[1])/abs(x[1])
+#               return(c(a,b,c,d))
+#             }))
+#
+# colMeans(s)
+# 
+# t.test(s[,2], s[,1], alternative="g")
 
 ## Choosing best size of net_arch based on eval_samp:
 old_results<- read.csv("Fall_results/Final_eval_30_best-T7-T8.csv") # "Fall_results/Final_eval_30_T7.csv"
