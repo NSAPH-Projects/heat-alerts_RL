@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import torch
 
+import matplotlib.pyplot as plt
+
 WESTERN_STATES = [
     "AZ",
     "CA",
@@ -69,7 +71,7 @@ def get_similar_counties(dir: str):
     return similar_counties
 
 
-def load_rl_states_data(dir: str):
+def load_rl_states_data(dir: str, HI_restriction: float):
     """Loads states RL training data for all counties and years.
 
     Args:
@@ -179,7 +181,28 @@ def load_rl_states_data(dir: str):
         D = other_vars[[f, "fips", "year", "dos_index"]]
         D = D.pivot(index=["fips", "year"], columns="dos_index", values=f)
         other_dict[f] = D
-
+    
+    ## Get / make "forecasts":
+    qhi = base_dict['baseline_heat_qi']
+    # Just the number of eligible days:
+    eligible_sum = np.cumsum(qhi >= HI_restriction, axis=1)
+    extra_dict["future_eligible"] = np.subtract(np.broadcast_to(np.max(eligible_sum, axis=1), (n_days, qhi.shape[0])).T, eligible_sum)
+    
+    AC = qhi.apply(pd.Series.autocorr, axis=1) # default is lag=1
+    err = np.zeros(qhi.shape)
+    sigma0 = 0.1  # initial noise
+    sigma1 = 1.0  # final noise
+    err[:,0] = sigma0 * np.random.randn(err.shape[0])
+    for t in range(1, n_days):
+        sigmat = sigma0 + (sigma1 - sigma0) * t / n_days
+        # sigmat=sigma0
+        err[:,t] = AC * err[:, t - 1] + sigmat * np.random.randn(err.shape[0])
+    forecast = qhi + err
+    # new_AC = pd.DataFrame(forecast).apply(pd.Series.autocorr, axis=1)
+    # new_AC.index = AC.index
+    # pd.concat([AC, new_AC], axis=1).corr()
+    extra_dict["forecast"] = forecast
+    
     return base_dict, eff_dict, extra_dict, other_dict
 
 
@@ -220,9 +243,10 @@ def load_rl_states_by_county(
     years: list[int] | None = None,
     match_similar: bool = False,
     as_tensors: bool = False,
+    HI_restriction: float = 0.8,
 ) -> tuple[dict, dict, dict, dict]:
     """Loads states RL training data for a single county and years"""
-    base_dict, eff_dict, extra_dict, other_dict = load_rl_states_data(dir)
+    base_dict, eff_dict, extra_dict, other_dict = load_rl_states_data(dir, HI_restriction)
 
     if match_similar:
         similar_counties = get_similar_counties(dir)
@@ -244,7 +268,7 @@ def load_rl_states_by_county(
 
 
 if __name__ == "__main__":
-    dir = "data/processed/bayesian_model"
+    dir = "data/processed"
     county = 48453
     years = None
     base_dict, eff_dict, extra_dict = load_rl_states_data(dir)
@@ -253,3 +277,5 @@ if __name__ == "__main__":
     base_dict, eff_dict, extra_dict = subset_rl_states(
         counties, years, base_dict, eff_dict, extra_dict
     )
+
+# %%

@@ -74,6 +74,7 @@ def main(cfg: DictConfig):
         years=cfg.train_years,
         match_similar=cfg.match_similar,
         as_tensors=True,
+        HI_restriction=cfg.HI_restriction,
     )
     base_dict_val, effect_dict_val, extra_dict_val, other_dict_val = load_rl_states_by_county(
         cfg.county,
@@ -81,6 +82,7 @@ def main(cfg: DictConfig):
         years=cfg.val_years if cfg.eval.val_years else cfg.train_years,
         match_similar=cfg.eval.match_similar,
         as_tensors=True,
+        HI_restriction=cfg.HI_restriction,
     )
 
     logging.info("Loading supporting county data (index mapping)")

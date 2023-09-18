@@ -396,11 +396,12 @@ t.test(y,z,alternative="g")
 
 ## No HI restriction:
 
-r_model<- "NC_model"
-prefix<-"NC0"  # "E0g1"
+r_model<- "test" # "NC_model"
+prefix<- "T0" # "NC0" 
 splitvar<-"_"  # "P-"
 
-Eval<- data.frame(matrix(ncol = 2, nrow = length(counties)))
+# Eval<- data.frame(matrix(ncol = 2, nrow = length(counties)))
+Eval<- data.frame(matrix(ncol = 4, nrow = length(counties)))
 NWS<- rep(0, length(counties))
 Random<- rep(0, length(counties))
 
@@ -409,7 +410,12 @@ for(k in 1:length(counties)){
   
   folders<- list.files("logs/SB", pattern=paste0(prefix, "_fips-", county))
   # Models<- sapply(folders, function(s){strsplit(s, splitvar)[[1]][2]})
-  Models<- sapply(folders, function(s){strsplit(s, splitvar)[[1]][3]})
+  # Models<- sapply(folders, function(s){strsplit(s, splitvar)[[1]][3]})
+  Models<- sapply(folders, function(s){
+    a<- strsplit(s, splitvar)[[1]][3]
+    b<- strsplit(s, splitvar)[[1]][4]
+    return(paste(a,b,sep=splitvar))
+  })
   # Models<- paste0(splitvar, as.vector(unique(Models)))
   Models<- as.vector(unique(Models))
   
@@ -428,9 +434,35 @@ for(k in 1:length(counties)){
 
 results<- data.frame(Fips=counties, Random, NWS, Eval)
 # names(results)[4:5]<- c("Eval_P-0", "Eval_P-0.01")
-names(results)[4:5]<- c("Eval_NN-1-16", "Eval_NN-2-16")
+# names(results)[4:5]<- c("Eval_NN-1-16", "Eval_NN-2-16")
+names(results)[4:7]<- c("DQN_NN-1-16", "DQN_NN-2-16",
+                        "TRPO_NN-1-16", "TRPO_NN-2-16")
 results[,-1]<- apply(results[,-1], MARGIN=2, function(x){round(x,3)})
 results
+
+best_dqn<- t(apply(results, MARGIN=1, function(x){
+  first<- x[4] > x[5]
+  if(first){
+    return(c(x[4], "NN_1-16"))
+  }else{
+    return(c(x[5], "NN_2-16"))
+  }
+}))
+best_trpo<- t(apply(results, MARGIN=1, function(x){
+  first<- x[6] > x[7]
+  if(first){
+    return(c(x[6], "NN_1-16"))
+  }else{
+    return(c(x[7], "NN_2-16"))
+  }
+}))
+
+results$Eval_DQN<- as.numeric(best_dqn[,1])
+results$Eval_TRPO<- as.numeric(best_trpo[,1])
+results$DQN_best<- best_dqn[,2]
+results$TRPO_best<- best_trpo[,2]
+
+write.csv(results, paste0("Fall_results/Final_eval_30_", prefix, ".csv"))
 
 s<- t(apply(results[,c("Random", "Eval_NN-1-16", "Eval_NN-2-16")], MARGIN=1, 
           function(x){

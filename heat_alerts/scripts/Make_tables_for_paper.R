@@ -184,8 +184,13 @@ Mean<- c()
 for(y in Benchmark){
   # Mean<- append(Mean, mean((results[,y] - results$Random)/abs(results$Random)))
   # Mean<- append(Mean, mean((results[,y] - results$NWS)/abs(results$NWS)))
-  Mean<- append(Mean, mean((results[,y] - results$NWS)))
+  # hist(results[,y] - results$NWS, main=paste(y, "plain"))
+  # hist((results[,y] - results$NWS)/abs(results$NWS), main=paste(y, "standardized"))
+  # Mean<- append(Mean, mean((results[,y] - results$NWS)))
   # SD<- append(SD, sd((results[,y] - results$NWS)))
+  print(y)
+  # print(wilcox.test(results[,y], results$NWS, paired = TRUE, alternative = "greater"))
+  print(wilcox.test(results[,y], results$NWS, paired = TRUE, alternative = "greater", exact=FALSE))
 }
 
 d<- data.frame(Benchmark, Mean=round(Mean,3) #, SD=round(SD,3)
