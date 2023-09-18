@@ -66,6 +66,8 @@ def main(cfg: DictConfig):
         years=cfg.val_years if cfg.eval.val_years else cfg.train_years,
         match_similar=cfg.eval.match_similar,
         as_tensors=True,
+        HI_restriction=cfg.HI_restriction,
+        forecast_error=cfg.forecast_error,
     )
 
     logging.info("Loading supporting county data (index mapping)")

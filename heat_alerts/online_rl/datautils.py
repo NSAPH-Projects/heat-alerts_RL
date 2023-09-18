@@ -71,7 +71,7 @@ def get_similar_counties(dir: str):
     return similar_counties
 
 
-def load_rl_states_data(dir: str, HI_restriction: float):
+def load_rl_states_data(dir: str, HI_restriction: float, forecast_error: bool):
     """Loads states RL training data for all counties and years.
 
     Args:
@@ -184,24 +184,33 @@ def load_rl_states_data(dir: str, HI_restriction: float):
     
     ## Get / make "forecasts":
     qhi = base_dict['baseline_heat_qi']
-    # Just the number of eligible days:
-    eligible_sum = np.cumsum(qhi >= HI_restriction, axis=1)
-    extra_dict["future_eligible"] = np.subtract(np.broadcast_to(np.max(eligible_sum, axis=1), (n_days, qhi.shape[0])).T, eligible_sum)
-    
-    AC = qhi.apply(pd.Series.autocorr, axis=1) # default is lag=1
-    err = np.zeros(qhi.shape)
-    sigma0 = 0.1  # initial noise
-    sigma1 = 1.0  # final noise
-    err[:,0] = sigma0 * np.random.randn(err.shape[0])
-    for t in range(1, n_days):
-        sigmat = sigma0 + (sigma1 - sigma0) * t / n_days
-        # sigmat=sigma0
-        err[:,t] = AC * err[:, t - 1] + sigmat * np.random.randn(err.shape[0])
-    forecast = qhi + err
-    # new_AC = pd.DataFrame(forecast).apply(pd.Series.autocorr, axis=1)
-    # new_AC.index = AC.index
-    # pd.concat([AC, new_AC], axis=1).corr()
-    extra_dict["forecast"] = forecast
+    if not forecast_error:
+        # Just the number of eligible days:
+        eligible_sum = np.cumsum(qhi >= HI_restriction, axis=1)
+        extra_dict["future_eligible"] = np.subtract(np.broadcast_to(np.max(eligible_sum, axis=1), (n_days, qhi.shape[0])).T, eligible_sum)
+        # Time series:
+        extra_dict["forecast"] = qhi
+    else:
+        # Time series:
+        AC = qhi.apply(pd.Series.autocorr, axis=1) # default is lag=1
+        err = np.zeros(qhi.shape)
+        sigma0 = 0.1  # initial noise
+        sigma1 = 1.0  # final noise
+        err[:,0] = sigma0 * np.random.randn(err.shape[0])
+        for t in range(1, n_days):
+            sigmat = sigma0 + (sigma1 - sigma0) * t / n_days
+            # sigmat=sigma0
+            err[:,t] = AC * err[:, t - 1] + sigmat * np.random.randn(err.shape[0])
+        forecast = qhi + err
+        # new_AC = pd.DataFrame(forecast).apply(pd.Series.autocorr, axis=1)
+        # new_AC.index = AC.index
+        # pd.concat([AC, new_AC], axis=1).corr()
+        extra_dict["forecast"] = forecast
+
+        # Just the number of eligible days:
+        eligible_sum = np.cumsum(forecast >= HI_restriction, axis=1)
+        extra_dict["future_eligible"] = np.subtract(np.broadcast_to(np.max(eligible_sum, axis=1), (n_days, qhi.shape[0])).T, eligible_sum)
+        
     
     return base_dict, eff_dict, extra_dict, other_dict
 
@@ -244,6 +253,7 @@ def load_rl_states_by_county(
     match_similar: bool = False,
     as_tensors: bool = False,
     HI_restriction: float = 0.8,
+    forecast_error: bool = False,
 ) -> tuple[dict, dict, dict, dict]:
     """Loads states RL training data for a single county and years"""
     base_dict, eff_dict, extra_dict, other_dict = load_rl_states_data(dir, HI_restriction)

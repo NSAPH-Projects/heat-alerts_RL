@@ -32,6 +32,7 @@ HI_restriction: 0.8
 hi_rstr_decay: false
 hi_penalty: false
 eval_mode: false
+forecast_error: false
 
 eval:
   penalty: 0.0 # no penalty during evaluation

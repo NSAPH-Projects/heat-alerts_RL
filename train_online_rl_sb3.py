@@ -75,6 +75,7 @@ def main(cfg: DictConfig):
         match_similar=cfg.match_similar,
         as_tensors=True,
         HI_restriction=cfg.HI_restriction,
+        forecast_error=cfg.forecast_error,
     )
     base_dict_val, effect_dict_val, extra_dict_val, other_dict_val = load_rl_states_by_county(
         cfg.county,
@@ -83,6 +84,7 @@ def main(cfg: DictConfig):
         match_similar=cfg.eval.match_similar,
         as_tensors=True,
         HI_restriction=cfg.HI_restriction,
+        forecast_error=cfg.forecast_error,
     )
 
     logging.info("Loading supporting county data (index mapping)")
