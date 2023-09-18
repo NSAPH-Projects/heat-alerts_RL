@@ -14,6 +14,8 @@ class HeatAlertEnv(gym.Env):
         effectiveness_states: dict[str, np.ndarray],
         extra_states: dict[str, np.ndarray] = {},
         other_data: dict[str, np.ndarray] = {},
+        incorp_forecasts: bool = True,
+        forecast_type: str = "N",
         penalty: float = 1.0,
         eval_mode: bool = False,
         sample_budget: bool = True,
@@ -90,6 +92,8 @@ class HeatAlertEnv(gym.Env):
         self.effectiveness_states = effectiveness_states
         self.extra_states = extra_states
         self.other_data = other_data
+        self.incorp_forecasts = incorp_forecasts
+        self.forecast_type = forecast_type
 
         self.prev_alert_mean = prev_alert_mean
         self.prev_alert_std = prev_alert_std
@@ -109,11 +113,19 @@ class HeatAlertEnv(gym.Env):
         #   - alert lag
         #   - number of prev alerts in all episode
         # TODO: we could try a generalizing better the alert lags
+        if not incorp_forecasts:
+            z = 1 # hi_mean
+        else:
+            if forecast_type == "N":
+                z = 2
+            elif forecast_type == "TS":
+                z = 15 # change this if we include more or less than 2 weeks out
+        
         obs_dim = (
-            self.baseline_dim
-            + self.extra_dim
-            + 3  # alert variables
-        )
+                self.baseline_dim
+                + z
+                + 3  # alert variables
+            )
 
         self.observation_space = spaces.Box(
             low=-np.inf,
@@ -149,10 +161,22 @@ class HeatAlertEnv(gym.Env):
             for k in self.baseline_states
         ]
 
-        extra_feats = [
-            self.extra_states[k][self.feature_ep_index, self.t]
-            for k in self.extra_states
-        ]
+        if self.incorp_forecasts: # need to specify which kind of forecasts and if time series, get next 2 weeks?
+            if self.forecast_type =="N":
+                extra_feats = [
+                    self.extra_states[k][self.feature_ep_index, self.t]
+                    for k in ["hi_mean", "future_eligible"]
+                ]
+            elif self.forecast_type == "TS":
+                extra_feats = [self.extra_states["hi_mean"][self.feature_ep_index, self.t]]
+                future = np.arange(self.t, self.t+14)
+                for d in future:
+                    if d <= self.n_days:
+                        extra_feats = extra_feats + [self.extra_states["forecast"][self.feature_ep_index, d]]
+                    else:
+                        extra_feats = extra_feats + [0.25] # when it goes past the end of the summer
+        else:
+            extra_feats = [self.extra_states["hi_mean"][self.feature_ep_index, self.t]]
 
         total_prev_alerts = sum(self.allowed_alert_buffer)
         remaining_alerts = self.budget - total_prev_alerts

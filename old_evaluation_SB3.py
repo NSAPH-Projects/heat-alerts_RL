@@ -97,6 +97,8 @@ def main(cfg: DictConfig):
         effectiveness_states=effect_dict_val,
         extra_states=extra_dict_val,
         other_data = other_dict_val,
+        incorp_forecasts=cfg.incorp_forecasts,
+        forecast_type=cfg.forecast_type,
         penalty=cfg.eval.penalty,
         prev_alert_mean = dm.prev_alert_mean,
         prev_alert_std = dm.prev_alert_std,
