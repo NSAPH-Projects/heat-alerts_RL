@@ -118,8 +118,10 @@ class HeatAlertEnv(gym.Env):
         else:
             if forecast_type == "N":
                 z = 1 + 2
+            if forecast_type == "Q":
+                z = 1 + 6
             elif forecast_type == "TS":
-                z = 1 + 14 # change this if we include more or less than 2 weeks out
+                z = 1 + 10
         
         obs_dim = (
                 self.baseline_dim
@@ -161,15 +163,20 @@ class HeatAlertEnv(gym.Env):
             for k in self.baseline_states
         ]
 
-        if self.incorp_forecasts: # need to specify which kind of forecasts and if time series, get next 2 weeks?
+        if self.incorp_forecasts: 
             if self.forecast_type =="N":
                 extra_feats = [
                     self.extra_states[k][self.feature_ep_index, self.t]
                     for k in ["hi_mean", "future_eligible", "future_rep_elig"]
                 ]
+            elif self.forecast_type =="Q":
+                extra_feats = [
+                    self.extra_states[k][self.feature_ep_index, self.t]
+                    for k in ["hi_mean", "q50", "q60", "q70", "q80", "q90", "q100"]
+                ]
             elif self.forecast_type == "TS":
                 extra_feats = [self.extra_states["hi_mean"][self.feature_ep_index, self.t]]
-                future = np.arange(self.t, self.t+14)
+                future = np.arange(self.t, self.t+10)
                 for d in future:
                     if d <= self.n_days:
                         extra_feats = extra_feats + [self.extra_states["forecast"][self.feature_ep_index, d]]
