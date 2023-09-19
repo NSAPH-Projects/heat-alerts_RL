@@ -32,7 +32,7 @@ HI_restriction: 0.8
 hi_rstr_decay: false
 hi_penalty: false
 eval_mode: false
-incorp_forecasts: true
+incorp_forecasts: false
 forecast_type: N # N for num days > QHI; TS for time series
 forecast_error: false
 

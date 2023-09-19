@@ -199,43 +199,53 @@ counties<- c(41067, 53015, 20161, 37085, 48157,
              34021, 19155, 17115, 29021, 29019, 5045, 40017, 21059,
              47113, 42017, 22109, 45015, 13031, 48367, 22063, 41053, 
              32003, 4015, 6025)
-ckpt<- c("ckpts/FF_NC_9-6_guide.pt") # "ckpts/FullFast_8-16_guide.pt"
-r_model<- "NC_model" # "test"
-constrain<- "none"
+# ckpt<- c("ckpts/FF_NC_9-6_guide.pt")
+ckpt<- c("ckpts/FullFast_8-16_guide.pt")
+# r_model<- "NC_model"
+r_model<- "test"
+# constrain<- "none"
+constrain<- "all"
 HI_restriction<- seq(0.5, 0.9, 0.05)
 
 sink("Run_jobs/Online_tests_short")
 for(k in counties){
   county<- k
   
-  cat(paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n"),
-      paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n")#,
-      # paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, "\n"),
-      # paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, "\n")
-  )
-  
-  cat(paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n"),
-      paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n"))
-  
-  cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n"),
-      paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n"))
-  
-  cat(paste0("python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n"),
-      paste0("python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n"))
-  
+  # cat(paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n"),
+  #     paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n")#,
+  #     # paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, "\n"),
+  #     # paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, "\n")
+  # )
+  # 
+  # cat(paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n"),
+  #     paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n"))
+  # 
+  # cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n"),
+  #     paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n"))
+  # 
+  # cat(paste0("python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n"),
+  #     paste0("python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n"))
+  # 
   for(h in HI_restriction){
-    cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=true restrict_alerts=true ",
-               "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n"),
-        paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false restrict_alerts=true ",
+    # cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=true restrict_alerts=true ",
+    #            "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n"),
+    #     paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false restrict_alerts=true ",
+    #            "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n")
+    # )
+    cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=true restrict_alerts=true ",
                "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n")
     )
   }
   
   for(h in HI_restriction){
-    cat(paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=true eval.match_similar=true restrict_alerts=true ",
-               "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n"),
-        paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=true eval.match_similar=false restrict_alerts=true ",
-               "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n"))
+    # cat(paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=true eval.match_similar=true restrict_alerts=true ",
+    #            "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n"),
+    #     paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=true eval.match_similar=false restrict_alerts=true ",
+    #            "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n")
+    #     )
+    cat(paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=false eval.match_similar=true restrict_alerts=true ",
+               "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n")
+    )
   }
   
 }

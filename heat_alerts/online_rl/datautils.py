@@ -242,6 +242,7 @@ def load_rl_states_by_county(
     years: list[int] | None = None,
     match_similar: bool = False,
     as_tensors: bool = False,
+    incorp_forecasts: bool = False,
     HI_restriction: float = 0.8,
     forecast_error: bool = False,
 ) -> tuple[dict, dict, dict, dict]:
@@ -258,21 +259,22 @@ def load_rl_states_by_county(
         county, counties, years, base_dict, eff_dict, extra_dict, other_dict
     )
 
-    # Calculating quantiles here rather than in load_rl_states_data because it takes a while
-    forecast = extra_dict["forecast"]
-    n_days = forecast.shape[1]
-    def QQ(x, q):
-        n = len(x)
-        for i in range(0,n-1):
-            x[i+n] = np.quantile(x[(i+1):n], q)
-        x[(n-1)+n] = x[(n-2)+n] # just repeating because we're at the end of the episode
-        return(x)
-    
-    for q in [5, 6, 7, 8, 9, 10]:
-        quant = forecast.apply(QQ, axis=1, args=(q*0.1,)).iloc[:, n_days:]
-        quant.columns = forecast.columns
-        extra_dict["q" + str(q) + "0"] = quant
-        # print(q)
+    if incorp_forecasts:
+        # Calculating quantiles here rather than in load_rl_states_data because it takes a while
+        forecast = extra_dict["forecast"]
+        n_days = forecast.shape[1]
+        def QQ(x, q):
+            n = len(x)
+            for i in range(0,n-1):
+                x[i+n] = np.quantile(x[(i+1):n], q)
+            x[(n-1)+n] = x[(n-2)+n] # just repeating because we're at the end of the episode
+            return(x)
+        
+        for q in [5, 6, 7, 8, 9, 10]:
+            quant = forecast.apply(QQ, axis=1, args=(q*0.1,)).iloc[:, n_days:]
+            quant.columns = forecast.columns
+            extra_dict["q" + str(q) + "0"] = quant
+            # print(q)
 
     if as_tensors:
         base_dict = dict_as_tensor(base_dict)

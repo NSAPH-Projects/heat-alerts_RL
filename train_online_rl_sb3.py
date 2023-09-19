@@ -74,6 +74,7 @@ def main(cfg: DictConfig):
         years=cfg.train_years,
         match_similar=cfg.match_similar,
         as_tensors=True,
+        incorp_forecasts=cfg.incorp_forecasts,
         HI_restriction=cfg.HI_restriction,
         forecast_error=cfg.forecast_error,
     )
@@ -83,6 +84,7 @@ def main(cfg: DictConfig):
         years=cfg.val_years if cfg.eval.val_years else cfg.train_years,
         match_similar=cfg.eval.match_similar,
         as_tensors=True,
+        incorp_forecasts=cfg.incorp_forecasts,
         HI_restriction=cfg.HI_restriction,
         forecast_error=cfg.forecast_error,
     )
