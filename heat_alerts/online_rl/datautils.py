@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import torch
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 WESTERN_STATES = [
     "AZ",
@@ -51,7 +51,6 @@ def get_similar_counties(dir: str):
         .assign(cold_east=lambda x: x["cold"] * ~x["western"])
         .drop(columns="cold")
     )
-
     zones = [
         "cold_west",
         "cold_east",
@@ -62,7 +61,6 @@ def get_similar_counties(dir: str):
         "very_cold",
     ]
     similar_counties = {}
-
     # groupby climate vars and collect indices in array
     grouped = spatial_feats.reset_index().groupby(zones).agg({"fips": list})
     for i, row in grouped.iterrows():
@@ -87,7 +85,6 @@ def load_rl_states_data(dir: str, HI_restriction: float, forecast_error: bool):
     """
     # we could use the HeatAlertDataModule here,
     # but used the appraoch of only loading what's needed
-
     states = pd.read_parquet(f"{dir}/states.parquet").drop(columns="intercept")
     states = states.rename({"quant_HI_county": "heat_qi"}, axis=1)
     states["hi_mean"] = (states.HI_mean - states.HI_mean.mean()) / states.HI_mean.std()
@@ -103,7 +100,6 @@ def load_rl_states_data(dir: str, HI_restriction: float, forecast_error: bool):
     n_years = len(year.unique())
     n_days = int(sum(year == 2006)/n_counties)
     dos_index = list(itertools.chain(*[np.arange(0,n_days) for i in np.arange(0,n_years*n_counties)]))
-
     base_feat_names = [
         "heat_qi",
         "heat_qi_above_25",
@@ -121,7 +117,6 @@ def load_rl_states_data(dir: str, HI_restriction: float, forecast_error: bool):
         .assign(dos_index=dos_index)
         .assign(year=year)
     )
-
     eff_feat_names = [
         "heat_qi",
         "excess_heat",
@@ -137,7 +132,6 @@ def load_rl_states_data(dir: str, HI_restriction: float, forecast_error: bool):
         .assign(dos_index=dos_index)
         .assign(year=year)
     )
-
     extra_feats = ["hi_mean"]
     extra = (
         states[extra_feats]
@@ -146,52 +140,39 @@ def load_rl_states_data(dir: str, HI_restriction: float, forecast_error: bool):
         .assign(dos_index=dos_index)
         .assign(year=year)
     )
-
     other = pd.concat([nws_alerts, budgets, year], axis=1)
     other.columns = ["nws_alert", "budget", "y"]
-    
     other_vars = (
         other.assign(fips=sind.map(idx2fips).astype(int))
         .assign(dos_index=dos_index)
         .assign(year=year)
     )
-
-    # baseline feats
     base_dict = {}
     for f in base_feat_names:
         D = base[[f, "fips", "year", "dos_index"]]
         # reshape where columns are dos_index and "loc, year" are the indices
         D = D.pivot(index=["fips", "year"], columns="dos_index", values=f)
         base_dict[f"baseline_{f}"] = D
-
     eff_dict = {}
     for f in eff_feat_names:
         D = eff[[f, "fips", "year", "dos_index"]]
         D = D.pivot(index=["fips", "year"], columns="dos_index", values=f)
         eff_dict[f"effectiveness_{f}"] = D
-
     extra_dict = {}
     for f in extra_feats:
         D = extra[[f, "fips", "year", "dos_index"]]
         D = D.pivot(index=["fips", "year"], columns="dos_index", values=f)
-        extra_dict[f"extra_{f}"] = D
-
+        extra_dict[f] = D
     other_dict = {}
     for f in other.columns:
         D = other_vars[[f, "fips", "year", "dos_index"]]
         D = D.pivot(index=["fips", "year"], columns="dos_index", values=f)
         other_dict[f] = D
-    
     ## Get / make "forecasts":
     qhi = base_dict['baseline_heat_qi']
     if not forecast_error:
-        # Just the number of eligible days:
-        eligible_sum = np.cumsum(qhi >= HI_restriction, axis=1)
-        extra_dict["future_eligible"] = np.subtract(np.broadcast_to(np.max(eligible_sum, axis=1), (n_days, qhi.shape[0])).T, eligible_sum)
-        # Time series:
-        extra_dict["forecast"] = qhi
+        forecast = qhi
     else:
-        # Time series:
         AC = qhi.apply(pd.Series.autocorr, axis=1) # default is lag=1
         err = np.zeros(qhi.shape)
         sigma0 = 0.1  # initial noise
@@ -205,13 +186,24 @@ def load_rl_states_data(dir: str, HI_restriction: float, forecast_error: bool):
         # new_AC = pd.DataFrame(forecast).apply(pd.Series.autocorr, axis=1)
         # new_AC.index = AC.index
         # pd.concat([AC, new_AC], axis=1).corr()
-        extra_dict["forecast"] = forecast
-
-        # Just the number of eligible days:
-        eligible_sum = np.cumsum(forecast >= HI_restriction, axis=1)
-        extra_dict["future_eligible"] = np.subtract(np.broadcast_to(np.max(eligible_sum, axis=1), (n_days, qhi.shape[0])).T, eligible_sum)
-        
-    
+    # Time series:
+    extra_dict["forecast"] = forecast
+    # Just the number of eligible days:
+    eligible = (forecast >= HI_restriction).astype("int")
+    eligible_sum = np.cumsum(eligible, axis=1)
+    extra_dict["future_eligible"] = np.subtract(np.broadcast_to(np.max(eligible_sum, axis=1), (n_days, qhi.shape[0])).T, eligible_sum)
+    # Number of repeated eligible days:
+    a = eligible.loc[:,0:(n_days-2)]
+    b = eligible.loc[:,1:]
+    b.columns = a.columns
+    rep_elig = (2*b - a) == 1
+    RE_sum = np.cumsum(rep_elig, axis=1)
+    RE_sum.columns = RE_sum.columns + 1
+    RE_sum[0] = 0
+    cols = RE_sum.columns.tolist()
+    RE_sum = RE_sum[cols[-1:] + cols[:-1]]
+    extra_dict["future_rep_elig"] = np.subtract(np.broadcast_to(np.max(RE_sum, axis=1), (n_days, qhi.shape[0])).T, RE_sum)
+    # Quantiles: get after subsetting counties because it takes a while
     return base_dict, eff_dict, extra_dict, other_dict
 
 
@@ -232,12 +224,10 @@ def subset_rl_states(
     eff_dict = {k: v.loc[idxs] for k, v in eff_dict.items()}
     extra_dict = {k: v.loc[idxs] for k, v in extra_dict.items()}
     other_dict = {k: v.loc[idxs] for k, v in other_dict.items()}
-
     # ## Ensure all the budgets are just for the county of interest:
     # counties = [county]*len(counties)
     # new_idxs = list(itertools.product(counties, years))
     # other_dict = {k: v.loc[new_idxs] for k, v in other_dict.items()}
-
     return base_dict, eff_dict, extra_dict, other_dict
 
 
@@ -256,7 +246,7 @@ def load_rl_states_by_county(
     forecast_error: bool = False,
 ) -> tuple[dict, dict, dict, dict]:
     """Loads states RL training data for a single county and years"""
-    base_dict, eff_dict, extra_dict, other_dict = load_rl_states_data(dir, HI_restriction)
+    base_dict, eff_dict, extra_dict, other_dict = load_rl_states_data(dir, HI_restriction, forecast_error)
 
     if match_similar:
         similar_counties = get_similar_counties(dir)
@@ -267,6 +257,22 @@ def load_rl_states_by_county(
     base_dict, eff_dict, extra_dict, other_dict = subset_rl_states(
         county, counties, years, base_dict, eff_dict, extra_dict, other_dict
     )
+
+    # Calculating quantiles here rather than in load_rl_states_data because it takes a while
+    forecast = extra_dict["forecast"]
+    n_days = forecast.shape[1]
+    def QQ(x, q):
+        n = len(x)
+        for i in range(0,n-1):
+            x[i+n] = np.quantile(x[(i+1):n], q)
+        x[(n-1)+n] = x[(n-2)+n] # just repeating because we're at the end of the episode
+        return(x)
+    
+    for q in [5, 6, 7, 8, 9, 10]:
+        quant = forecast.apply(QQ, axis=1, args=(q*0.1,)).iloc[:, n_days:]
+        quant.columns = forecast.columns
+        extra_dict["q" + str(q) + "0"] = quant
+        # print(q)
 
     if as_tensors:
         base_dict = dict_as_tensor(base_dict)
