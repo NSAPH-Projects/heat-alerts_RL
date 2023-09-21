@@ -1,0 +1,4 @@
+penalty_effect: true
+penalty_decay: false
+hi_rstr_decay: false
+hi_penalty: false
