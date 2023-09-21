@@ -16,6 +16,7 @@ class HeatAlertEnv(gym.Env):
         other_data: dict[str, np.ndarray] = {},
         incorp_forecasts: bool = True,
         forecast_type: str = "N",
+        forecast_error: str = "no",
         penalty: float = 1.0,
         eval_mode: bool = False,
         sample_budget: bool = True,
@@ -94,6 +95,8 @@ class HeatAlertEnv(gym.Env):
         self.other_data = other_data
         self.incorp_forecasts = incorp_forecasts
         self.forecast_type = forecast_type
+        self.forecast_error = forecast_error
+        self.MAE = np.arange(1,11)*0.5 + 2 # based on 2015 AMS report
 
         self.prev_alert_mean = prev_alert_mean
         self.prev_alert_std = prev_alert_std
@@ -179,7 +182,7 @@ class HeatAlertEnv(gym.Env):
                 future = np.arange(self.t, self.t+10)
                 for d in future:
                     if d <= self.n_days:
-                        extra_feats = extra_feats + [self.extra_states["forecast"][self.feature_ep_index, d]]
+                        extra_feats = extra_feats + [self.extra_states["future"][self.feature_ep_index, d]]
                     else:
                         extra_feats = extra_feats + [0.25] # when it goes past the end of the summer
         else:

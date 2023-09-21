@@ -89,7 +89,6 @@ def custom_eval(cfg: DictConfig, dm, samples):
         as_tensors=True,
         incorp_forecasts=cfg.incorp_forecasts,
         HI_restriction=cfg.HI_restriction,
-        forecast_error=cfg.forecast_error,
     )
 
     # make RL env
@@ -102,6 +101,7 @@ def custom_eval(cfg: DictConfig, dm, samples):
         other_data = other_dict_val,
         incorp_forecasts=cfg.incorp_forecasts,
         forecast_type=cfg.forecast_type,
+        forecast_error=cfg.forecast_error,
         penalty=cfg.eval.penalty,
         prev_alert_mean = dm.prev_alert_mean,
         prev_alert_std = dm.prev_alert_std,

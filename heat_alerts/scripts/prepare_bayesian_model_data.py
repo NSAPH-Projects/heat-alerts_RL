@@ -12,44 +12,44 @@ data_raw = pd.read_csv("data/Summer23_Train_smaller-for-Python.csv")
 data_raw.columns = [col.replace(".", "_") for col in data_raw.columns]
 data_raw.keys()
 
-# %%
-unique_fips = data_raw["fips"].unique()
-fips_ix = np.random.choice(len(unique_fips), 16, replace=False)
-subfips = unique_fips[fips_ix]
+# # %%
+# unique_fips = data_raw["fips"].unique()
+# fips_ix = np.random.choice(len(unique_fips), 16, replace=False)
+# subfips = unique_fips[fips_ix]
 
-# %%
+# # %%
 
-# make a plot panel of 16 counties with a scatter plot
-# each panel create a scatter plot with a fitted loess curve
-# of hospitalizations vs. heat index (HI)
+# # make a plot panel of 16 counties with a scatter plot
+# # each panel create a scatter plot with a fitted loess curve
+# # of hospitalizations vs. heat index (HI)
 
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-minq = 0.0
-maxq = 1.0
-subdata = data_raw[data_raw["fips"].isin(subfips) & (data_raw["quant_HI"] > minq) & (data_raw["quant_HI"] < maxq)]
+# import matplotlib.pyplot as plt
+# import seaborn as sns
+# minq = 0.0
+# maxq = 1.0
+# subdata = data_raw[data_raw["fips"].isin(subfips) & (data_raw["quant_HI"] > minq) & (data_raw["quant_HI"] < maxq)]
 
-hosps_var = "other_hosps"
-for hi_var in ("HImaxF_PopW", "quant_HI"):
-    sns.lmplot(
-        x=hi_var,
-        y=hosps_var,
-        col="fips",
-        col_wrap=4,
-        data=subdata,
-        order=2,
-        # lowess=True,
-        # no ci
-        # ci=None,
-        # scatter_kws={"alpha": 0.1},
-        line_kws={"color": "red"},
-        height=1.5,
-        aspect=1.5,
-        sharey=False,
-        scatter=False,
-    )
-    plt.savefig(f"preprocessing_{hi_var}_vs_{hosps_var}.png", dpi=300)
+# hosps_var = "other_hosps"
+# for hi_var in ("HImaxF_PopW", "quant_HI"):
+#     sns.lmplot(
+#         x=hi_var,
+#         y=hosps_var,
+#         col="fips",
+#         col_wrap=4,
+#         data=subdata,
+#         order=2,
+#         # lowess=True,
+#         # no ci
+#         # ci=None,
+#         # scatter_kws={"alpha": 0.1},
+#         line_kws={"color": "red"},
+#         height=1.5,
+#         aspect=1.5,
+#         sharey=False,
+#         scatter=False,
+#     )
+#     plt.savefig(f"preprocessing_{hi_var}_vs_{hosps_var}.png", dpi=300)
 
 
 # %%
@@ -60,6 +60,7 @@ all_cols = [
     "quant_HI_county",
     "quant_HI_3d_county",
     "HI_mean",
+    'HImaxF_PopW', # to provide "forecasts" to the RL
     "alert",
     "alert_lag1",  # if doing online or hybrid RL
     "alerts_2wks",
@@ -222,6 +223,8 @@ Budget["fips"] = data["fips"]
 Budget["Date"] = data["Date"]
 Budget = Budget.set_index(["fips", "Date"])
 
+abs_HI = data[["fips", "Date", 'HImaxF_PopW']].set_index(["fips", "Date"])
+
 # plot histograms of alerts and hospos in (1, 2) pane
 # fig, ax = plt.subplots(1, 2, figsize=(10, 5))
 # ax[0].hist(A.values, bins=20)
@@ -271,6 +274,7 @@ Y.to_parquet("data/processed/outcomes.parquet")
 A.to_parquet("data/processed/actions.parquet")
 
 # %% save time-varying features (W)
+abs_HI.to_parquet("data/processed/abs_HI.parquet")
 # loc indicator (sind)
 # Population (P)
 W.to_parquet("data/processed/spatial_feats.parquet")
@@ -323,3 +327,37 @@ Btdos.columns = [f"dos_{i}" for i in range(Btdos.shape[1])]
 Btdos.to_parquet("data/processed/Btdos.parquet")
 
 # %%
+
+#### Calculate future quantiles (for RL):
+import itertools
+
+def QQ(x, q):
+            n = len(x)
+            for i in range(0,n-1):
+                x[i+n] = np.quantile(x[(i+1):n], q)
+            x[(n-1)+n] = x[(n-2)+n] # just repeating because we're at the end of the episode
+            return(x)
+
+with open("data/processed/fips2idx.json", "r") as io:
+        fips2idx = json.load(io)
+
+idx2fips = {v: k for k, v in fips2idx.items()}
+sind=sind.sind
+n_counties = len(sind.unique())
+n_years = len(year.unique())
+dos_index = list(itertools.chain(*[np.arange(0,n_days) for i in np.arange(0,n_years*n_counties)]))
+
+qhi = data[["fips", "Date", "quant_HI_county"]].set_index(["fips", "Date"])
+qhi = qhi.assign(fips=sind.map(idx2fips).astype(int)).assign(dos_index=dos_index).assign(year=year)
+f = "quant_HI_county"
+D = qhi[[f, "fips", "year", "dos_index"]]
+future = D.pivot(index=["fips", "year"], columns="dos_index", values="quant_HI_county")
+
+for q in [5, 6, 7, 8, 9, 10]:
+    quant = future.apply(QQ, axis=1, args=(q*0.1,)).iloc[:, n_days:]
+    quant.columns = future.columns
+    Quant = data[["fips", "Date"]]
+    Quant["q" + str(q) + "0"] = quant.to_numpy().flatten()
+    Quant = Quant.set_index(["fips", "Date"])
+    Quant.to_parquet("data/processed/future_q" + str(q) + "0.parquet")
+

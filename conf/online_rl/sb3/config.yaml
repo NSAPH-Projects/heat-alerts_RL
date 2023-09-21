@@ -34,7 +34,7 @@ hi_penalty: false
 eval_mode: false
 incorp_forecasts: false
 forecast_type: N # N for num days > QHI; TS for time series
-forecast_error: false
+forecast_error: "no" # "idp" for independent errors (across days), "ac" for autocorrelated errors
 
 eval:
   penalty: 0.0 # no penalty during evaluation

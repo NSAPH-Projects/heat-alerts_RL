@@ -76,7 +76,6 @@ def main(cfg: DictConfig):
         as_tensors=True,
         incorp_forecasts=cfg.incorp_forecasts,
         HI_restriction=cfg.HI_restriction,
-        forecast_error=cfg.forecast_error,
     )
     base_dict_val, effect_dict_val, extra_dict_val, other_dict_val = load_rl_states_by_county(
         cfg.county,
@@ -86,7 +85,6 @@ def main(cfg: DictConfig):
         as_tensors=True,
         incorp_forecasts=cfg.incorp_forecasts,
         HI_restriction=cfg.HI_restriction,
-        forecast_error=cfg.forecast_error,
     )
 
     logging.info("Loading supporting county data (index mapping)")
@@ -118,6 +116,7 @@ def main(cfg: DictConfig):
         other_data = other_dict,
         incorp_forecasts=cfg.incorp_forecasts,
         forecast_type=cfg.forecast_type,
+        forecast_error=cfg.forecast_error,
         eval_mode=cfg.eval_mode,
         penalty=cfg.penalty,
         prev_alert_mean = dm.prev_alert_mean,
@@ -140,6 +139,8 @@ def main(cfg: DictConfig):
         extra_states=extra_dict_val,
         other_data = other_dict_val,
         incorp_forecasts=cfg.incorp_forecasts,
+        forecast_type=cfg.forecast_type,
+        forecast_error=cfg.forecast_error,
         eval_mode=cfg.eval.eval_mode,
         penalty=cfg.eval.penalty,
         prev_alert_mean = dm.prev_alert_mean,
