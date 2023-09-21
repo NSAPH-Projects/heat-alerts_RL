@@ -34,7 +34,7 @@ def main(cfg: DictConfig):
     # instantiate guide
     # TODO: I wish the guide could be loaded more elegantly!
     logging.info("Instantiating guide")
-    dm = HeatAlertDataModule(dir=cfg.datadir, load_outcome=False, constrain=cfg.constrain)
+    dm = HeatAlertDataModule(dir=cfg.datadir, load_outcome=False, constrain=cfg.r_model.constrain)
 
     # Load model
     logging.info("Creating model")
@@ -47,8 +47,8 @@ def main(cfg: DictConfig):
         baseline_feature_names=dm.baseline_feature_names,
         effectiveness_constraints=dm.effectiveness_constraints,
         effectiveness_feature_names=dm.effectiveness_feature_names,
-        hidden_dim=cfg.model.hidden_dim,
-        num_hidden_layers=cfg.model.num_hidden_layers,
+        hidden_dim=cfg.r_model.model.hidden_dim,
+        num_hidden_layers=cfg.r_model.model.num_hidden_layers,
     )
 
     guide = pyro.infer.autoguide.AutoLowRankMultivariateNormal(model)
@@ -56,7 +56,7 @@ def main(cfg: DictConfig):
 
     # Load checkpoint
     logging.info("Loading checkpoint")
-    guide.load_state_dict(torch.load(cfg.guide_ckpt, map_location=torch.device("cpu")))
+    guide.load_state_dict(torch.load(cfg.r_model.guide_ckpt, map_location=torch.device("cpu")))
 
     # Load states data
     logging.info("Loading RL states data")
@@ -66,8 +66,8 @@ def main(cfg: DictConfig):
         years=cfg.val_years if cfg.eval.val_years else cfg.train_years,
         match_similar=cfg.eval.match_similar,
         as_tensors=True,
-        incorp_forecasts=cfg.incorp_forecasts,
-        HI_restriction=cfg.HI_restriction,
+        incorp_forecasts=cfg.forecasts.incorp_forecasts,
+        HI_restriction=cfg.restrict_days.HI_restriction,
     )
 
     logging.info("Loading supporting county data (index mapping)")
@@ -97,17 +97,17 @@ def main(cfg: DictConfig):
         effectiveness_states=effect_dict_val,
         extra_states=extra_dict_val,
         other_data = other_dict_val,
-        incorp_forecasts=cfg.incorp_forecasts,
-        forecast_type=cfg.forecast_type,
-        forecast_error=cfg.forecast_error,
+        incorp_forecasts=cfg.forecasts.incorp_forecasts,
+        forecast_type=cfg.forecasts.forecast_type,
+        forecast_error=cfg.forecasts.forecast_error,
         penalty=cfg.eval.penalty,
         prev_alert_mean = dm.prev_alert_mean,
         prev_alert_std = dm.prev_alert_std,
         eval_mode = cfg.eval.eval_mode,
         sample_budget = False,
         years = cfg.val_years,
-        restrict_alerts = cfg.restrict_alerts,
-        HI_restriction = cfg.HI_restriction,
+        restrict_alerts = cfg.restrict_days.restrict_alerts,
+        HI_restriction = cfg.restrict_days.HI_restriction,
     )
 
     eval_env = HeatAlertEnv(**val_kwargs)
@@ -139,7 +139,7 @@ def main(cfg: DictConfig):
     B_80 = []
     B_100 = []
     above_thresh_skipped = []
-    HI_threshold = cfg.HI_restriction if cfg.restrict_alerts else 0.0
+    HI_threshold = cfg.restrict_days.HI_restriction if cfg.restrict_days.restrict_alerts else 0.0
 
     logging.info("Evaluating policy")
     for i in range(0, cfg.final_eval_episodes):
@@ -154,7 +154,7 @@ def main(cfg: DictConfig):
                 sorted = torch.sort(qhi, descending=True)[1] # getting indices
                 alert_days = sorted[0:int(eval_env.budget)]
             elif cfg.policy_type == "random":
-                if cfg.restrict_alerts:
+                if cfg.restrict_days.restrict_alerts:
                     eligible = np.where(qhi >= HI_threshold)[0]
                     if len(eligible) > eval_env.budget:
                         alert_days = np.random.choice(eligible, int(eval_env.budget), replace=False)
