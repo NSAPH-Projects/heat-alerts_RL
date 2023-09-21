@@ -14,10 +14,10 @@ county<- c(41067, 53015, 20161, 37085, 48157,
 
 constrain<- c("all") # "none"
 ckpt<- c("ckpts/FullFast_8-16_guide.pt") # "ckpts/FF_NC_9-6_guide.pt"
-algos<- c("trpo", "dqn") # "trpo", "ppo", "dqn", "lstm" "qrdqn"
+algos<- c("dqn") # "trpo", "ppo", "dqn", "lstm" "qrdqn"
 # match_similar<- c("false") # "true"
-eval.val_years<- c("true") # , "false"
-eval.match_similar<- c("true", "false") 
+eval.val_years<- c("false") # "true", "false"
+eval.match_similar<- c("true") # "true", "false"
 # eval_mode<- c("true") # , "false"
 # eval.eval_mode<- c("true") # , "false"
 
@@ -26,7 +26,7 @@ eval.episodes<- c(100) # 25
 policy_kwargs.net_arch<- c("[16]", "[16,16]") # "[16]", "[16,16]", "[32,32]", "[16,16,16]"
 penalty_decay<- c("false") # "true", "false"
 explore_budget<- c("false") # "true", "false"
-restrict_alerts<- c("false") # "true", "false"
+restrict_alerts<- c("true") # "true", "false"
 hi_penalty<- c("false") # "true", "false"
 penalty_effect<- c("false")
 # HI_restriction<- c(0.7, 0.75, 0.8, 0.85, 0.9)
@@ -48,11 +48,11 @@ training<- expand.grid(county,
                        # penalty_effect,
                        # penalty_decay,
                        restrict_alerts,
-                       # HI_restriction,
+                       HI_restriction,
                        # hi_rstr_decay,
                        # hi_penalty,
-                       # eval.match_similar,
-                       # eval.val_years,
+                       eval.match_similar,
+                       eval.val_years,
                        learning_rate)
 colnames(training)<- c("county", 
                        "algo", 
@@ -66,11 +66,11 @@ colnames(training)<- c("county",
                        # "penalty_effect",
                        # "penalty_decay",
                        "restrict_alerts",
-                       # "HI_restriction",
+                       "HI_restriction",
                        # "hi_rstr_decay",
                        # "hi_penalty",
-                       # "eval.match_similar",
-                       # "eval.val_years",
+                       "eval.match_similar",
+                       "eval.val_years",
                        "algo.learning_rate")
 
 # training$penalty<- c(0.0) # 0.01
@@ -86,7 +86,11 @@ training[which(training$algo.learning_rate == 0.0001), "training_timesteps"]<- 1
 # training$HI_restriction<- 0.8
 # training[which(training$county == 4013), "HI_restriction"]<- 0.7
 
-training$model_name<- paste0("T0", "_fips-", training$county, 
+# training$prefix<- "T7"
+# training$prefix[which(training$algo.policy_kwargs.net_arch == "[16,16]")]<- "T8"
+training$prefix<- "D1"
+
+training$model_name<- paste0(training$prefix, "_fips-", training$county, 
                              # "_P-", training$penalty,
                              # "_PE",
                              "_", training$algo,
@@ -95,12 +99,13 @@ training$model_name<- paste0("T0", "_fips-", training$county,
                              # "_EB-", training$explore_budget, 
                              # "_EE-", training$eval.episodes
                              # "_Rstr-HI-opt",
-                             # "_Rstr-HI-", training$HI_restriction,
+                             "_Rstr-HI-", training$HI_restriction,
                              # "_Rstr-HI-decay-", training$hi_rstr_decay,
                              # "_PD-", training$penalty_decay,
                              # "_HIP-", training$hi_penalty,
                              "_arch-", training$algo.policy_kwargs.net_arch
                              ) 
+training$prefix<- NULL
 # training$model_name<- sapply(training$model_name, function(s){
 #   x<- strsplit(s, "\\[")[[1]]
 #   if(nchar(x[2]) < 4){
@@ -132,8 +137,8 @@ Long<- Training[which(training$training_timesteps >= 100000000 | training$algo =
 
 sink("Run_jobs/Online_tests_short")
 for(i in 1:nrow(Short)){
-  cat(# evaluation_script,
-    training_script,
+  cat(evaluation_script,
+    # training_script,
       paste(
         Short[i,]
       ), " \n")
