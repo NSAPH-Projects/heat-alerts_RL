@@ -172,19 +172,29 @@ class HeatAlertEnv(gym.Env):
                     self.extra_states[k][self.feature_ep_index, self.t]
                     for k in ["hi_mean", "future_eligible", "future_rep_elig"]
                 ]
+                if self.forecast_error != "no":
+                    extra_feats[1:] = extra_feats[1:] + np.random.uniform(-5, 5, 2)
             elif self.forecast_type =="Q":
                 extra_feats = [
                     self.extra_states[k][self.feature_ep_index, self.t]
                     for k in ["hi_mean", "q50", "q60", "q70", "q80", "q90", "q100"]
                 ]
-            elif self.forecast_type == "TS":
+                if self.forecast_error != "no":
+                    extra_feats[1:] = extra_feats[1:] + np.random.uniform(-0.1, 0.1, 6)
+            elif self.forecast_type == "D10":
                 extra_feats = [self.extra_states["hi_mean"][self.feature_ep_index, self.t]]
-                future = np.arange(self.t, self.t+10)
+                future = np.arange(self.t+1, self.t+10+1)
+                today = self.extra_states["future"][self.feature_ep_index, self.t]
                 for d in future:
                     if d <= self.n_days:
-                        extra_feats = extra_feats + [self.extra_states["future"][self.feature_ep_index, d]]
+                        if self.forecast_error == "no":
+                            extra_feats = extra_feats + [self.extra_states["future"][self.feature_ep_index, d] - today] 
+                        elif self.forecast_error == "idp":
+                            U = np.random.uniform(-1, 1, 1).item()
+                            err = U*self.MAE[d-future[0]]
+                            extra_feats = extra_feats + [self.extra_states["future"][self.feature_ep_index, d] + err - today] 
                     else:
-                        extra_feats = extra_feats + [0.25] # when it goes past the end of the summer
+                        extra_feats = extra_feats + [0] # when it goes past the end of the summer
         else:
             extra_feats = [self.extra_states["hi_mean"][self.feature_ep_index, self.t]]
 

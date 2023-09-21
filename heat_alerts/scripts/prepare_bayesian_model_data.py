@@ -332,19 +332,19 @@ Btdos.to_parquet("data/processed/Btdos.parquet")
 import itertools
 
 def QQ(x, q):
-            n = len(x)
-            for i in range(0,n-1):
-                x[i+n] = np.quantile(x[(i+1):n], q)
-            x[(n-1)+n] = x[(n-2)+n] # just repeating because we're at the end of the episode
-            return(x)
+    n = len(x)
+    for i in range(0,n-1):
+        x[i+n] = np.quantile(x[(i+1):n], q)
+    x[(n-1)+n] = x[(n-2)+n] # just repeating because we're at the end of the episode
+    return(x)
 
 with open("data/processed/fips2idx.json", "r") as io:
-        fips2idx = json.load(io)
+    fips2idx = json.load(io)
 
 idx2fips = {v: k for k, v in fips2idx.items()}
 sind=sind.sind
 n_counties = len(sind.unique())
-n_years = len(year.unique())
+n_years = len(year.year.unique())
 dos_index = list(itertools.chain(*[np.arange(0,n_days) for i in np.arange(0,n_years*n_counties)]))
 
 qhi = data[["fips", "Date", "quant_HI_county"]].set_index(["fips", "Date"])
@@ -360,4 +360,5 @@ for q in [5, 6, 7, 8, 9, 10]:
     Quant["q" + str(q) + "0"] = quant.to_numpy().flatten()
     Quant = Quant.set_index(["fips", "Date"])
     Quant.to_parquet("data/processed/future_q" + str(q) + "0.parquet")
+    print(q)
 
