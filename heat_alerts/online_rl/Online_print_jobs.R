@@ -25,7 +25,7 @@ shaped_penalty<- "none"
 restrict_days<- "qhi"
 HI_restriction<- seq(0.5, 0.9, 0.05)
 
-forecasts<- "num_elig" # "quantiles", "ten_day"
+forecasts<- c("quantiles", "ten_day") # "num_elig" 
 
 
 training<- expand.grid(county, 
@@ -82,7 +82,8 @@ training$model_name<- paste0(training$prefix, "_fips-", training$county,
                              # "_EB-", training$explore_budget, 
                              # "_EE-", training$eval.episodes
                              # "_Rstr-HI-opt",
-                             "_Rstr-HI-", training$restrict_days.HI_restriction #,
+                             "_Rstr-HI-", training$restrict_days.HI_restriction,
+                             "_FC-", training$forecasts
                              # "_Rstr-HI-decay-", training$hi_rstr_decay,
                              # "_PD-", training$penalty_decay,
                              # "_HIP-", training$hi_penalty,
