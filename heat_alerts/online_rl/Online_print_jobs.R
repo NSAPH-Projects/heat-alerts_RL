@@ -14,7 +14,7 @@ county<- c(41067, 53015, 20161, 37085, 48157,
 
 constrain<- c("all") # "none"
 ckpt<- c("ckpts/FullFast_8-16_guide.pt") # "ckpts/FF_NC_9-6_guide.pt"
-algos<- c("dqn") # "trpo", "ppo", "dqn", "lstm" "qrdqn"
+algos<- c("trpo") # "trpo", "ppo", "dqn", "lstm" "qrdqn"
 # match_similar<- c("false") # "true"
 eval.val_years<- c("false") # "true", "false"
 eval.match_similar<- c("true") # "true", "false"
@@ -23,7 +23,7 @@ eval.match_similar<- c("true") # "true", "false"
 
 learning_rate<- c(0.001) #, 0.0001
 eval.episodes<- c(100) # 25
-policy_kwargs.net_arch<- c("[16]", "[16,16]") # "[16]", "[16,16]", "[32,32]", "[16,16,16]"
+policy_kwargs.net_arch<- c("[16,16]") # "[16]", "[16,16]", "[32,32]", "[16,16,16]"
 penalty_decay<- c("false") # "true", "false"
 explore_budget<- c("false") # "true", "false"
 restrict_alerts<- c("true") # "true", "false"
@@ -34,7 +34,9 @@ penalty_effect<- c("false")
 HI_restriction<- seq(0.5, 0.9, 0.05)
 hi_rstr_decay<- c("false") # "true", "false"
 # penalty<- c(0.0) # , 0.01
-
+incorp_forecasts<- c("true")
+forecast_type<- c("N")
+forecast_error<- c("no")
 
 training<- expand.grid(county, 
                        algos, 
@@ -49,10 +51,11 @@ training<- expand.grid(county,
                        # penalty_decay,
                        restrict_alerts,
                        HI_restriction,
+                       incorp_forecasts,
                        # hi_rstr_decay,
                        # hi_penalty,
-                       eval.match_similar,
-                       eval.val_years,
+                       # eval.match_similar,
+                       # eval.val_years,
                        learning_rate)
 colnames(training)<- c("county", 
                        "algo", 
@@ -67,10 +70,11 @@ colnames(training)<- c("county",
                        # "penalty_decay",
                        "restrict_alerts",
                        "HI_restriction",
+                       "incorp_forecasts",
                        # "hi_rstr_decay",
                        # "hi_penalty",
-                       "eval.match_similar",
-                       "eval.val_years",
+                       # "eval.match_similar",
+                       # "eval.val_years",
                        "algo.learning_rate")
 
 # training$penalty<- c(0.0) # 0.01
@@ -88,22 +92,23 @@ training[which(training$algo.learning_rate == 0.0001), "training_timesteps"]<- 1
 
 # training$prefix<- "T7"
 # training$prefix[which(training$algo.policy_kwargs.net_arch == "[16,16]")]<- "T8"
-training$prefix<- "D1"
+# training$prefix<- "D1"
+training$prefix<- "FC1"
 
 training$model_name<- paste0(training$prefix, "_fips-", training$county, 
                              # "_P-", training$penalty,
                              # "_PE",
-                             "_", training$algo,
+                             # "_", training$algo,
                              # "_obs-W",
                              # "_LR-", training$algo.learning_rate,
                              # "_EB-", training$explore_budget, 
                              # "_EE-", training$eval.episodes
                              # "_Rstr-HI-opt",
-                             "_Rstr-HI-", training$HI_restriction,
+                             "_Rstr-HI-", training$HI_restriction #,
                              # "_Rstr-HI-decay-", training$hi_rstr_decay,
                              # "_PD-", training$penalty_decay,
                              # "_HIP-", training$hi_penalty,
-                             "_arch-", training$algo.policy_kwargs.net_arch
+                             # "_arch-", training$algo.policy_kwargs.net_arch
                              ) 
 training$prefix<- NULL
 # training$model_name<- sapply(training$model_name, function(s){
@@ -115,18 +120,18 @@ training$prefix<- NULL
 #   }
 # })
 
-training$model_name<- sapply(training$model_name, function(s){
-  x<- strsplit(s, "arch-")[[1]]
-  if(x[2] == "[16,16]"){
-    return(paste0(x[1], "2-16"))
-  }else if(x[2] == "[16,16,16]"){
-    return(paste0(x[1], "3-16"))
-  }else if(x[2] == "[32,32]"){
-    return(paste0(x[1], "2-32"))
-  }else{
-    return(paste0(x[1], "1-16"))
-  }
-})
+# training$model_name<- sapply(training$model_name, function(s){
+#   x<- strsplit(s, "arch-")[[1]]
+#   if(x[2] == "[16,16]"){
+#     return(paste0(x[1], "2-16"))
+#   }else if(x[2] == "[16,16,16]"){
+#     return(paste0(x[1], "3-16"))
+#   }else if(x[2] == "[32,32]"){
+#     return(paste0(x[1], "2-32"))
+#   }else{
+#     return(paste0(x[1], "1-16"))
+#   }
+# })
 
 training_script<- "python train_online_rl_sb3.py"
 evaluation_script<- "python old_evaluation_SB3.py"
@@ -137,8 +142,8 @@ Long<- Training[which(training$training_timesteps >= 100000000 | training$algo =
 
 sink("Run_jobs/Online_tests_short")
 for(i in 1:nrow(Short)){
-  cat(evaluation_script,
-    # training_script,
+  cat(# evaluation_script,
+    training_script,
       paste(
         Short[i,]
       ), " \n")
