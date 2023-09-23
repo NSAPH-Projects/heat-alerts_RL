@@ -362,3 +362,48 @@ for q in [5, 6, 7, 8, 9, 10]:
     Quant.to_parquet("data/processed/future_q" + str(q) + "0.parquet")
     print(q)
 
+#### Calculate averages evenly split by remaining time (for RL):
+def avg_4ths(x):
+    n = len(x)
+    y1 = []
+    y2 = []
+    y3 = []
+    y4 = []
+    for i in range(0,n-5):
+        l = n - 1 - i
+        q = int(np.round(l/4))
+        j = i+1
+        y1.append(np.mean(x[j:(np.min([j+q, n-1]))]))
+        j += q
+        y2.append(np.mean(x[j:np.min([j+q, n-1])]))
+        j += q
+        y3.append(np.mean(x[j:np.min([j+q, n-1])]))
+        j += q
+        y4.append(np.mean(x[j:np.min([j+q, n-1])]))
+        # print(i)
+    for k in np.arange(0,5):
+        y1.append(y1[n-6]) # just repeating because we're at the end of the episode
+        y2.append(y2[n-6])
+        y3.append(y3[n-6])
+        y4.append(y4[n-6])
+    return(y1, y2, y3, y4)
+
+T1 = []
+T2 = []
+T3 = []
+T4 = []
+for i in np.arange(future.shape[0]):
+    t1, t2, t3, t4 = avg_4ths(future.iloc[i])
+    T1.append(t1)
+    T2.append(t2)
+    T3.append(t3)
+    T4.append(t4)
+    print(i)
+
+Avgs = data[["fips", "Date"]]
+Avgs["T4_1"] = np.array(T1).flatten()
+Avgs["T4_2"] = np.array(T2).flatten()
+Avgs["T4_3"] = np.array(T3).flatten()
+Avgs["T4_4"] = np.array(T4).flatten()
+Avgs = Avgs.set_index(["fips", "Date"])
+Avgs.to_parquet("data/processed/future_quarters.parquet")
