@@ -15,10 +15,8 @@ class HeatAlertEnv(gym.Env):
         extra_states: dict[str, np.ndarray] = {},
         other_data: dict[str, np.ndarray] = {},
         incorp_forecasts: bool = True,
-        forecast_type: str = "N",
-        forecast_error: str = "none",
-        fcNmae: int = 5,
-        fcQmae: float = 0.1,
+        forecast_type: list[int] | None = None,
+        forecast_error: float = 0.2,
         penalty: float = 1.0,
         eval_mode: bool = False,
         sample_budget: bool = True,
@@ -99,8 +97,6 @@ class HeatAlertEnv(gym.Env):
         self.forecast_type = forecast_type
         self.forecast_error = forecast_error
         self.MAE = np.arange(1,11)*0.5 + 2 # based on 2015 AMS report
-        self.fcNmae = fcNmae
-        self.fcQmae = fcQmae
 
         self.prev_alert_mean = prev_alert_mean
         self.prev_alert_std = prev_alert_std
@@ -120,15 +116,17 @@ class HeatAlertEnv(gym.Env):
         #   - alert lag
         #   - number of prev alerts in all episode
         # TODO: we could try a generalizing better the alert lags
-        if not incorp_forecasts:
-            z = 1 # hi_mean
-        else:
-            if forecast_type == "N":
-                z = 1 + 2
-            if forecast_type == "Q":
-                z = 1 + 6
-            elif forecast_type == "D10":
-                z = 1 + 10
+        
+        z = 1 # hi_mean
+        if incorp_forecasts:
+            if 1 in forecast_type:
+                z += 2
+            if 2 in forecast_type:
+                z += 4
+            if 3 in forecast_type:
+                z += 6
+            if 4 in forecast_type:
+                z += 10
         
         obs_dim = (
                 self.baseline_dim
@@ -169,38 +167,48 @@ class HeatAlertEnv(gym.Env):
             self.baseline_states[k][self.feature_ep_index, self.t]
             for k in self.baseline_states
         ]
-
+        extra_feats = [self.extra_states["hi_mean"][self.feature_ep_index, self.t]]
         if self.incorp_forecasts: 
-            if self.forecast_type =="N":
-                extra_feats = [
+            if 1 in self.forecast_type: 
+                ef = [
                     self.extra_states[k][self.feature_ep_index, self.t]
-                    for k in ["hi_mean", "future_eligible", "future_rep_elig"]
+                    for k in ["future_eligible", "future_rep_elig"]
                 ]
-                if self.forecast_error != "none":
-                    extra_feats[1:] = extra_feats[1:] + np.random.uniform(-self.fcNmae, self.fcNmae, 2)
-            elif self.forecast_type =="Q":
-                extra_feats = [
+                if self.forecast_error > 0:
+                    err = np.random.uniform(-self.forecast_error,self.forecast_error, 2)
+                    ef = ef*(1 + err)
+                extra_feats = extra_feats + ef
+            if 2 in self.forecast_type:
+                ef = [
                     self.extra_states[k][self.feature_ep_index, self.t]
-                    for k in ["hi_mean", "q50", "q60", "q70", "q80", "q90", "q100"]
+                    for k in ['T4_1', 'T4_2', 'T4_3', 'T4_4']
                 ]
-                if self.forecast_error != "none":
-                    extra_feats[1:] = extra_feats[1:] + np.random.uniform(-self.fcQmae, self.fcQmae, 6)
-            elif self.forecast_type == "D10":
-                extra_feats = [self.extra_states["hi_mean"][self.feature_ep_index, self.t]]
+                if self.forecast_error > 0:
+                    err = np.random.uniform(-self.forecast_error,self.forecast_error, 4)
+                    ef = ef*(1 + err) 
+                extra_feats = extra_feats + ef
+            if 3 in self.forecast_type:
+                ef = [
+                    self.extra_states[k][self.feature_ep_index, self.t]
+                    for k in ["q50", "q60", "q70", "q80", "q90", "q100"]
+                ]
+                if self.forecast_error > 0:
+                    err = np.random.uniform(-self.forecast_error,self.forecast_error, 6)
+                    ef = ef*(1 + err)
+                extra_feats = extra_feats + ef
+            if 4 in self.forecast_type:
                 future = np.arange(self.t+1, self.t+10+1)
                 today = self.extra_states["future"][self.feature_ep_index, self.t]
                 for d in future:
                     if d < self.n_days:
-                        if self.forecast_error == "none":
+                        if self.forecast_error == 0:
                             extra_feats = extra_feats + [self.extra_states["future"][self.feature_ep_index, d] - today] 
-                        elif self.forecast_error == "idp":
+                        elif self.forecast_error > 0:
                             U = np.random.uniform(-1, 1, 1).item()
                             err = U*self.MAE[d-future[0]]
                             extra_feats = extra_feats + [self.extra_states["future"][self.feature_ep_index, d] + err - today] 
                     else:
                         extra_feats = extra_feats + [0] # when it goes past the end of the summer
-        else:
-            extra_feats = [self.extra_states["hi_mean"][self.feature_ep_index, self.t]]
 
         total_prev_alerts = sum(self.allowed_alert_buffer)
         remaining_alerts = self.budget - total_prev_alerts
@@ -326,6 +334,8 @@ if __name__ == "__main__":
         effectiveness_fixed_features,
         budget_range=(10, 20),
         # penalty=0.1,
+        forecast_type=[1,2],
+        incorp_forecasts=True
     )
 
     # step through a full episode until done with random actions

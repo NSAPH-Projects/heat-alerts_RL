@@ -90,6 +90,8 @@ def load_rl_states_data(dir: str, HI_restriction: float, incorp_forecasts: bool)
     states["hi_mean"] = (states.HI_mean - states.HI_mean.mean()) / states.HI_mean.std()
     states["future"] = pd.read_parquet(f"{dir}/abs_HI.parquet") # using absolute HI here so we can apply known forecast accuracy
     states = states.rename({"quant_HI_county": "heat_qi"}, axis=1)
+    quarters = pd.read_parquet(f"{dir}/future_quarters.parquet")
+    states = pd.concat([states, quarters], axis=1)
     for q in range(5,11):
         states["q" + str(q) + "0"] = pd.read_parquet(f"{dir}/future_q" + str(q) + "0.parquet")
     nws_alerts = pd.read_parquet(f"{dir}/actions.parquet")
@@ -136,7 +138,10 @@ def load_rl_states_data(dir: str, HI_restriction: float, incorp_forecasts: bool)
         .assign(dos_index=dos_index)
         .assign(year=year)
     )
-    extra_feats = ["hi_mean", "future", "q50", "q60", "q70", "q80", "q90", "q100"]
+    extra_feats = [
+        "hi_mean", "future", 'T4_1', 'T4_2', 'T4_3', 'T4_4', 
+        "q50", "q60", "q70", "q80", "q90", "q100"
+    ]
     extra = (
         states[extra_feats]
         .assign(fips=sind.map(idx2fips).astype(int))
