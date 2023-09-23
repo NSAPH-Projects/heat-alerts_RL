@@ -296,6 +296,60 @@ wilcox.test(results$Eval, results$NWS, paired = TRUE, alternative = "greater", e
 # 
 # wilcox.test(results$Eval, results$NWS, paired = TRUE, alternative = "greater", exact=FALSE)
 
+#### Incorporating "forecasts":
+
+# r_model<- "NC_model"
+r_model<- "test"
+prefix<- "FC1"
+FC_type<- "FC-num_elig" # "num_elig", "FC-quantiles", "FC-ten_day"
+
+HI_thresholds<- seq(0.5, 0.9, 0.05)
+opt_HI_thr<- rep(0, length(counties))
+Eval_samp<- rep(0, length(counties))
+Eval<- rep(0, length(counties))
+
+for(k in 1:length(counties)){
+  county<- counties[k]
+  
+  # Models<- paste0(r_model, "_Rstr-HI-", HI_thresholds)
+  Models<- paste0("_Rstr-HI-", HI_thresholds)
+  
+  for(i in 1:length(Models)){
+    model<- Models[i]
+    if(FC_type == "FC-num_elig"){
+      proc_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county, model, "_fips_", county, ".csv"))
+      proc_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county, model, "_fips_", county, ".csv"))
+    }else{
+      proc_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county, model, "_", FC_type, "_fips_", county, ".csv"))
+      proc_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county, model, "_", FC_type, "_fips_", county, ".csv"))
+    }
+    
+    if(i == 1){
+      Eval_samp[k]<- proc_train_samp
+      Eval[k]<- proc_eval
+      j<- 1
+    }else{
+      if(proc_train_samp > Eval_samp[k]){
+        Eval_samp[k]<- proc_train_samp
+        Eval[k]<- proc_eval
+        j<- i
+      }
+    }
+  }
+  opt_HI_thr[k]<- HI_thresholds[j]
+  print(county) 
+}
+
+results<- data.frame(Fips=counties, Eval, opt_HI_thr) # Eval_samp
+results[,c("Eval")]<- round(results[,c("Eval")],3)
+results
+write.csv(results, paste0("Fall_results/Final_eval_30_", r_model, "_", FC_type, "-w-rstr-hi.csv"))
+
+earlier<- read.csv("Fall_results/Final_eval_30_T7-T8.csv")
+wilcox.test(results$Eval, earlier$NWS, paired = TRUE, alternative = "greater", exact=FALSE)
+
+
+###########################
 
 ## Choosing best size of net_arch based on eval_samp:
 old_results<- read.csv("Fall_results/Final_eval_30_best-T7-T8.csv") # "Fall_results/Final_eval_30_T7.csv"

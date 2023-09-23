@@ -190,7 +190,7 @@ class HeatAlertEnv(gym.Env):
                 future = np.arange(self.t+1, self.t+10+1)
                 today = self.extra_states["future"][self.feature_ep_index, self.t]
                 for d in future:
-                    if d <= self.n_days:
+                    if d < self.n_days:
                         if self.forecast_error == "none":
                             extra_feats = extra_feats + [self.extra_states["future"][self.feature_ep_index, d] - today] 
                         elif self.forecast_error == "idp":
