@@ -25,7 +25,7 @@ shaped_penalty<- "none"
 restrict_days<- "qhi"
 HI_restriction<- seq(0.5, 0.9, 0.05)
 
-forecasts<- c("ten_day") # "num_elig", "quantiles", "ten_day" 
+forecasts<- c("quarters", "all") # "num_elig", "quantiles", "three_day", "ten_day", "quarters", "N_Av4_Q" 
 
 
 training<- expand.grid(county, 

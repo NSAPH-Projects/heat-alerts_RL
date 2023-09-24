@@ -15,7 +15,7 @@ class HeatAlertEnv(gym.Env):
         extra_states: dict[str, np.ndarray] = {},
         other_data: dict[str, np.ndarray] = {},
         incorp_forecasts: bool = True,
-        forecast_type: list[int] | None = None,
+        forecast_type: list[str] | None = None,
         forecast_error: float = 0.2,
         penalty: float = 1.0,
         eval_mode: bool = False,
@@ -119,13 +119,15 @@ class HeatAlertEnv(gym.Env):
         
         z = 1 # hi_mean
         if incorp_forecasts:
-            if 1 in forecast_type:
+            if "N" in forecast_type:
                 z += 2
-            if 2 in forecast_type:
+            if "Av4" in forecast_type:
                 z += 4
-            if 3 in forecast_type:
+            if "Q" in forecast_type:
                 z += 6
-            if 4 in forecast_type:
+            if "D3" in forecast_type:
+                z += 3
+            if "D10" in forecast_type:
                 z += 10
         
         obs_dim = (
@@ -169,7 +171,7 @@ class HeatAlertEnv(gym.Env):
         ]
         extra_feats = [self.extra_states["hi_mean"][self.feature_ep_index, self.t]]
         if self.incorp_forecasts: 
-            if 1 in self.forecast_type: 
+            if "N" in self.forecast_type: 
                 ef = [
                     self.extra_states[k][self.feature_ep_index, self.t]
                     for k in ["future_eligible", "future_rep_elig"]
@@ -178,7 +180,7 @@ class HeatAlertEnv(gym.Env):
                     err = np.random.uniform(-self.forecast_error,self.forecast_error, 2)
                     ef = ef*(1 + err)
                 extra_feats = extra_feats + ef
-            if 2 in self.forecast_type:
+            if "Av4" in self.forecast_type:
                 ef = [
                     self.extra_states[k][self.feature_ep_index, self.t]
                     for k in ['T4_1', 'T4_2', 'T4_3', 'T4_4']
@@ -187,7 +189,7 @@ class HeatAlertEnv(gym.Env):
                     err = np.random.uniform(-self.forecast_error,self.forecast_error, 4)
                     ef = ef*(1 + err) 
                 extra_feats = extra_feats + ef
-            if 3 in self.forecast_type:
+            if "Q" in self.forecast_type:
                 ef = [
                     self.extra_states[k][self.feature_ep_index, self.t]
                     for k in ["q50", "q60", "q70", "q80", "q90", "q100"]
@@ -196,8 +198,11 @@ class HeatAlertEnv(gym.Env):
                     err = np.random.uniform(-self.forecast_error,self.forecast_error, 6)
                     ef = ef*(1 + err)
                 extra_feats = extra_feats + ef
-            if 4 in self.forecast_type:
-                future = np.arange(self.t+1, self.t+10+1)
+            if ("D3" in self.forecast_type) or ("D10" in self.forecast_type):
+                if "D3" in self.forecast_type:
+                    future = np.arange(self.t+1, self.t+3+1)
+                if "D10" in self.forecast_type:
+                    future = np.arange(self.t+1, self.t+10+1)
                 today = self.extra_states["future"][self.feature_ep_index, self.t]
                 for d in future:
                     if d < self.n_days:
@@ -209,7 +214,6 @@ class HeatAlertEnv(gym.Env):
                             extra_feats = extra_feats + [self.extra_states["future"][self.feature_ep_index, d] + err - today] 
                     else:
                         extra_feats = extra_feats + [0] # when it goes past the end of the summer
-
         total_prev_alerts = sum(self.allowed_alert_buffer)
         remaining_alerts = self.budget - total_prev_alerts
         prev_alerts_2wks = (sum(self.allowed_alert_buffer[-14:]) - self.prev_alert_mean)/(2 * self.prev_alert_std)

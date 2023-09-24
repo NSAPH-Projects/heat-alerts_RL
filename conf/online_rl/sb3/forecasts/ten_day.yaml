@@ -1,3 +1,3 @@
 incorp_forecasts: true
-forecast_type: [4] 
+forecast_type: [D10] 
 forecast_error: 0

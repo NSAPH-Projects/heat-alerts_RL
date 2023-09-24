@@ -371,15 +371,15 @@ def avg_4ths(x):
     y4 = []
     for i in range(0,n-5):
         l = n - 1 - i
-        q = int(np.round(l/4))
+        q = int(np.floor(l/4))
         j = i+1
-        y1.append(np.mean(x[j:(np.min([j+q, n-1]))]))
+        y1.append(np.mean(x[j:(np.min([j+q, n]))]))
         j += q
-        y2.append(np.mean(x[j:np.min([j+q, n-1])]))
+        y2.append(np.mean(x[j:np.min([j+q, n])]))
         j += q
-        y3.append(np.mean(x[j:np.min([j+q, n-1])]))
+        y3.append(np.mean(x[j:np.min([j+q, n])]))
         j += q
-        y4.append(np.mean(x[j:np.min([j+q, n-1])]))
+        y4.append(np.mean(x[j:n]))
         # print(i)
     for k in np.arange(0,5):
         y1.append(y1[n-6]) # just repeating because we're at the end of the episode
