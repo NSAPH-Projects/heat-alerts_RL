@@ -57,6 +57,7 @@ States$Fips<- as.numeric(States$Fips)
 DF$Fips<- as.numeric(DF$County)
 DF<- inner_join(distinct(DF[,c("Fips", "Region", "Alerts", "SD_Eff")]), States[,c("Fips", "State")])
 
+
 ## Add evaluation results:
 
 results<- read.csv("Fall_results/Final_eval_30_best-T7-T8.csv")

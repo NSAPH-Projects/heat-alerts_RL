@@ -3,17 +3,6 @@ library(cowplot, lib.loc = "~/apps/R_4.2.2")
 
 n_days<- 153
 
-streaks<- function(D){
-  if(length(D)>0){
-    diffs<- D[2:length(D)] - D[1:(length(D)-1)]
-    L<- rle(diffs)
-    streaks<- L$lengths[which(L$values == 1)] + 1
-    return(streaks)
-  }else{
-    return(NA)
-  }
-}
-
 counties<- c(41067, 53015, 20161, 37085, 48157,
              28049, 19153, 17167, 31153, 6071, 4013,
              34021, 19155, 17115, 29021, 29019, 5045, 40017, 21059,
@@ -32,6 +21,109 @@ fc_Q<- read.csv("Fall_results/Final_eval_30_test_FC-quantiles-w-rstr-hi.csv")
 fc_D10<- read.csv("Fall_results/Final_eval_30_test_FC-ten_day-w-rstr-hi.csv")
 fc_Av4<- read.csv("Fall_results/Final_eval_30_test_FC-quarters-w-rstr-hi.csv")
 fc_All<- read.csv("Fall_results/Final_eval_30_test_FC-all-w-rstr-hi.csv")
+
+
+########## Summary of returns across counties and years:
+
+my_proc<- function(filename){
+  f<- file.exists(filename)
+  if(f){
+    df<- read.csv(filename)[,-1]
+    df$Count = 1
+    # df$Budget<- df$Budget/(n_days-1)
+    # agg_df<- aggregate(. ~ Year, df, sum)
+    df$Alert<- df$Actions
+    agg_df<- aggregate(. ~ Year + Alert, df, sum)
+    # agg_df$Budget<- agg_df$Budget/(n_days-1)
+    # agg_df$budget_frac<- agg_df$Actions/agg_df$Budget
+    agg_df$Frac<- agg_df$Count/sum(agg_df$Count)
+    # estimated_reward<- sum(agg_df$Rewards*(1/nrow(agg_df))/agg_df$Frac)/1000
+    avg_reward_A.0<- mean(agg_df[agg_df$Alert == 0, "Rewards"]/agg_df[agg_df$Alert == 0, "Count"])
+    avg_reward_A.1<- mean(agg_df[agg_df$Alert == 1, "Rewards"]/agg_df[agg_df$Alert == 1, "Count"])
+    b<- mean(df$Budget)
+    estimated_reward<- b*avg_reward_A.1 + (n_days-1-b)*avg_reward_A.0
+    # return(list(agg_df, estimated_reward))
+    return(estimated_reward)
+  }else{
+    return(NA)
+  }
+}
+
+DF<- data.frame(matrix(ncol = 2, nrow = 0))
+names(DF)<- c("Policy", "Value")
+
+for(k in counties){
+  
+  i<- which(counties == k)
+  p_eval<- read.csv(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_", r_model, "_fips_", k, ".csv"))
+  a_eval<- read.csv(paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_", r_model, "_fips_", k, ".csv"))
+  
+  tk_eval<- read.csv(paste0("Summer_results/ORL_TopK_eval_samp-R_obs-W_", r_model, "_fips_", k, ".csv"))
+  
+  ph_eval<- read.csv(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_", r_model,"_Rstr-HI-", random_qhi[i,"opt_HI_thr"], "_fips_", k, ".csv"))
+  ah_eval<- read.csv(paste0("Summer_results/ORL_AA_eval_samp-R_obs-W_", r_model,"_Rstr-HI-", aa_qhi[i,"opt_HI_thr"], "_fips_", k, ".csv"))
+  
+  fc_n<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_FC1_fips-", k, "_Rstr-HI-", fc_N[i,"opt_HI_thr"], "_fips_", k, ".csv"))
+  fc_q<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_FC1_fips-", k, "_Rstr-HI-", fc_Q[i,"opt_HI_thr"], "_FC-quantiles_fips_", k, ".csv"))
+  fc_all<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_FC1_fips-", k, "_Rstr-HI-", fc_All[i,"opt_HI_thr"], "_FC-all_fips_", k, ".csv"))
+  
+  if(r_model == "test"){
+    if(results[i,"Best_Model"] == "NN_2-16"){
+      # q_train<- read.csv(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", "T8", "_fips-", k, "_", "Rstr-HI-", results[i,"opt_HI_thr"], "_fips_", k, ".csv"))
+      q_eval<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", "T8", "_fips-", k, "_", "Rstr-HI-", results[i,"opt_HI_thr"], "_fips_", k, ".csv"))
+    }else{
+      # q_train<- read.csv(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", "T7", "_fips-", k, "_", "Rstr-HI-", results[i,"opt_HI_thr"], "_fips_", k, ".csv"))
+      q_eval<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", "T7", "_fips-", k, "_", "Rstr-HI-", results[i,"opt_HI_thr"], "_fips_", k, ".csv"))
+    }
+  }else{
+    if(results[i,"Best_model"] == "NN_2-16"){
+      # q_train<- read.csv(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", "T8", "_fips-", k, "_", "Rstr-HI-", results[i,"opt_HI_thr"], "_fips_", k, ".csv"))
+      q_eval<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", "NC1", "_fips-", k, "_", "Rstr-HI-", results[i,"opt_HI_thr"], "_2-16", "_fips_", k, ".csv"))
+    }else{
+      # q_train<- read.csv(paste0("Summer_results/ORL_RL_train_samp-R_obs-W_", "T7", "_fips-", k, "_", "Rstr-HI-", results[i,"opt_HI_thr"], "_fips_", k, ".csv"))
+      q_eval<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", "NC1", "_fips-", k, "_", "Rstr-HI-", results[i,"opt_HI_thr"], "_1-16", "_fips_", k, ".csv"))
+    }
+  }
+  
+  NWS<- my_proc(a_eval)
+  
+  DF<- rbind(DF, data.frame(Policy="Random", Diff = NWS - my_proc(p_eval)))
+  DF<- rbind(DF, data.frame(Policy="TopK", Diff = NWS - my_proc(tk_eval)))
+  DF<- rbind(DF, data.frame(Policy="Rqhi", Diff = NWS - my_proc(ph_eval)))
+  DF<- rbind(DF, data.frame(Policy="Aqhi", Diff = NWS - my_proc(ah_eval)))
+  DF<- rbind(DF, data.frame(Policy="TRPOqhi", Diff = NWS - my_proc(q_eval)))
+  DF<- rbind(DF, data.frame(Policy="FC-Num", Diff = NWS - my_proc(fc_n)))
+  DF<- rbind(DF, data.frame(Policy="FC-Quant", Diff = NWS - my_proc(fc_q)))
+  DF<- rbind(DF, data.frame(Policy="FC-All", Diff = NWS - my_proc(fc_all)))
+  
+}
+
+DF$Region
+DF$State
+
+ggplot(DF, aes(x=Policy, y=Diff)) + geom_point(col = Region) + 
+  # facet_grid(rows = vars(Year)) + 
+  geom_text(
+    label=State, 
+    nudge_x = 0.25, nudge_y = 0.25, 
+    check_overlap = T
+  ) # +
+  # geom_errorbar()
+
+
+########## Histograms of DOS and Streak Lengths:
+
+streaks<- function(D){
+  if(length(D)>0){
+    diffs<- D[2:length(D)] - D[1:(length(D)-1)]
+    L<- rle(diffs)
+    streaks<- L$lengths[which(L$values == 1)] + 1
+    return(streaks)
+  }else{
+    return(NA)
+  }
+}
+
 
 Eval_DOS<- data.frame(matrix(ncol = 2, nrow = 0))
 names(Eval_DOS)<- c("Policy", "Value")
@@ -144,5 +236,6 @@ s2<- ggplot(Eval_Strk.Ln[which(Eval_Strk.Ln$Policy %in% c("Always-QHI", "FC-N", 
 
 plot_grid(d1, d2, nrow=1)
 plot_grid(s1, s2, nrow=1)
+
 
 
