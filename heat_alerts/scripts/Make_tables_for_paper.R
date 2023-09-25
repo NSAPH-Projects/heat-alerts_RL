@@ -57,6 +57,7 @@ States$Fips<- as.numeric(States$Fips)
 DF$Fips<- as.numeric(DF$County)
 DF<- inner_join(distinct(DF[,c("Fips", "Region", "Alerts", "SD_Eff")]), States[,c("Fips", "State")])
 
+write.csv(DF, "data/Final_30_W.csv")
 
 ## Add evaluation results:
 
@@ -112,15 +113,22 @@ print(xtable(Final[,c("Fips_ST","Region","SD_Eff", "Alerts","Random","NWS",
 n_days<- 153
 
 my_proc<- function(filename){
-  f<- file.exists(filename)
+  f<- file.exists(filename) # filename<- "Summer_results/ORL_RL_eval_samp-R_obs-W_T7_fips-6025_Rstr-HI-0.9_fips_6025.csv"
   if(f){
     df<- read.csv(filename)[,-1]
     df$Count = 1
-    agg_df<- aggregate(. ~ Year, df, sum)
-    agg_df$Budget<- agg_df$Budget/(n_days-1)
-    agg_df$budget_frac<- agg_df$Actions/agg_df$Budget
+    # df$Budget<- df$Budget/(n_days-1)
+    # agg_df<- aggregate(. ~ Year, df, sum)
+    df$Alert<- df$Actions
+    agg_df<- aggregate(. ~ Year + Alert, df, sum)
+    # agg_df$Budget<- agg_df$Budget/(n_days-1)
+    # agg_df$budget_frac<- agg_df$Actions/agg_df$Budget
     agg_df$Frac<- agg_df$Count/sum(agg_df$Count)
-    estimated_reward<- sum(agg_df$Rewards*(1/nrow(agg_df))/agg_df$Frac)/1000
+    # estimated_reward<- sum(agg_df$Rewards*(1/nrow(agg_df))/agg_df$Frac)/1000
+    avg_reward_A.0<- mean(agg_df[agg_df$Alert == 0, "Rewards"]/agg_df[agg_df$Alert == 0, "Count"])
+    avg_reward_A.1<- mean(agg_df[agg_df$Alert == 1, "Rewards"]/agg_df[agg_df$Alert == 1, "Count"])
+    b<- mean(df$Budget)
+    estimated_reward<- b*avg_reward_A.1 + (n_days-1-b)*avg_reward_A.0
     # return(list(agg_df, estimated_reward))
     return(estimated_reward)
   }else{
@@ -155,8 +163,8 @@ for(k in 1:length(counties)){
 
 results<- round(data.frame(County=counties, Zero, NWS, Random, Top_K),3)
 
-Random_QHI<- read.csv(paste0("Fall_results/Final_eval_30_", r_model, "_random-w-rstr-hi.csv"))
-AA_QHI<- read.csv(paste0("Fall_results/Final_eval_30_", r_model, "_AA-w-rstr-hi.csv"))
+Random_QHI<- read.csv(paste0("Fall_results/Alert-rate_Final_eval_30_", r_model, "_random-w-rstr-hi.csv"))
+AA_QHI<- read.csv(paste0("Fall_results/Alert-rate_Final_eval_30_", r_model, "_AA-w-rstr-hi.csv"))
 
 results$Random_QHI<- round(Random_QHI$Eval,3)
 results$RQ_thr<- Random_QHI$opt_HI_thr
@@ -165,24 +173,24 @@ results$AA_QHI<- round(AA_QHI$Eval,3)
 results$AA_thr<- AA_QHI$opt_HI_thr
 
 if(r_model == "test"){
-  RL<- read.csv("Fall_results/Final_eval_30_best-T7-T8.csv")
-  rl0<- read.csv("Fall_results/Final_eval_30_best-T7-T8.csv")
+  RL<- read.csv("Fall_results/Alert-rate_Final_eval_30_T7-T8.csv")
+  rl0<- read.csv("Fall_results/Alert-rate_Final_eval_30_T7-T8.csv")
 }else if(r_model == "NC_model"){
-  RL<- read.csv("Fall_results/Final_eval_30_NC1.csv")
+  RL<- read.csv("Fall_results/Alert-rate_Final_eval_30_NC1.csv")
 }
 
 results$RL<- RL$Eval
 results$RL_thr<- RL$opt_HI_thr
 results
 
-write.csv(results, paste0("Fall_results/All_evals_", r_model, ".csv"))
+write.csv(results, paste0("Fall_results/Alert-rate_All_evals_", r_model, ".csv"))
 
 # Benchmark<- c("Zero", "NWS", "Top_K", "Random_QHI", "AA_QHI", "RL")
 Benchmark<- c("Zero", "Random", "Top_K", "Random_QHI", "AA_QHI", "RL")
 Mean<- c()
 # SD<- c()
 
-for(y in Benchmark){
+for(y in Benchmark[-1]){
   # Mean<- append(Mean, mean((results[,y] - results$Random)/abs(results$Random)))
   # Mean<- append(Mean, mean((results[,y] - results$NWS)/abs(results$NWS)))
   # hist(results[,y] - results$NWS, main=paste(y, "plain"))
@@ -198,7 +206,7 @@ d<- data.frame(Benchmark, Mean=round(Mean,3) #, SD=round(SD,3)
 )
 d
 
-t.test(results$RL - results$NWS, alternative="g")
+# t.test(results$RL - results$NWS, alternative="g")
 
 print(xtable(d, digits=3),include.rownames=FALSE)
 

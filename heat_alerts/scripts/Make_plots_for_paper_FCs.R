@@ -22,35 +22,32 @@ fc_D10<- read.csv("Fall_results/Final_eval_30_test_FC-ten_day-w-rstr-hi.csv")
 fc_Av4<- read.csv("Fall_results/Final_eval_30_test_FC-quarters-w-rstr-hi.csv")
 fc_All<- read.csv("Fall_results/Final_eval_30_test_FC-all-w-rstr-hi.csv")
 
+stationary_W<- read.csv("data/Final_30_W.csv")[,-1]
+
 
 ########## Summary of returns across counties and years:
 
-my_proc<- function(filename){
-  f<- file.exists(filename)
-  if(f){
-    df<- read.csv(filename)[,-1]
-    df$Count = 1
-    # df$Budget<- df$Budget/(n_days-1)
-    # agg_df<- aggregate(. ~ Year, df, sum)
-    df$Alert<- df$Actions
-    agg_df<- aggregate(. ~ Year + Alert, df, sum)
-    # agg_df$Budget<- agg_df$Budget/(n_days-1)
-    # agg_df$budget_frac<- agg_df$Actions/agg_df$Budget
-    agg_df$Frac<- agg_df$Count/sum(agg_df$Count)
-    # estimated_reward<- sum(agg_df$Rewards*(1/nrow(agg_df))/agg_df$Frac)/1000
-    avg_reward_A.0<- mean(agg_df[agg_df$Alert == 0, "Rewards"]/agg_df[agg_df$Alert == 0, "Count"])
-    avg_reward_A.1<- mean(agg_df[agg_df$Alert == 1, "Rewards"]/agg_df[agg_df$Alert == 1, "Count"])
-    b<- mean(df$Budget)
-    estimated_reward<- b*avg_reward_A.1 + (n_days-1-b)*avg_reward_A.0
-    # return(list(agg_df, estimated_reward))
-    return(estimated_reward)
-  }else{
-    return(NA)
-  }
+this_proc<- function(x){
+  df<- x[,-1]
+  df$Count = 1
+  # df$Budget<- df$Budget/(n_days-1)
+  # agg_df<- aggregate(. ~ Year, df, sum)
+  df$Alert<- df$Actions
+  agg_df<- aggregate(. ~ Year + Alert, df, sum)
+  # agg_df$Budget<- agg_df$Budget/(n_days-1)
+  # agg_df$budget_frac<- agg_df$Actions/agg_df$Budget
+  agg_df$Frac<- agg_df$Count/sum(agg_df$Count)
+  # estimated_reward<- sum(agg_df$Rewards*(1/nrow(agg_df))/agg_df$Frac)/1000
+  avg_reward_A.0<- mean(agg_df[agg_df$Alert == 0, "Rewards"]/agg_df[agg_df$Alert == 0, "Count"])
+  avg_reward_A.1<- mean(agg_df[agg_df$Alert == 1, "Rewards"]/agg_df[agg_df$Alert == 1, "Count"])
+  b<- mean(df$Budget)
+  estimated_reward<- b*avg_reward_A.1 + (n_days-1-b)*avg_reward_A.0
+  # return(list(agg_df, estimated_reward))
+  return(estimated_reward)
 }
 
-DF<- data.frame(matrix(ncol = 2, nrow = 0))
-names(DF)<- c("Policy", "Value")
+DF<- data.frame(matrix(ncol = 4, nrow = 0))
+names(DF)<- c("Policy", "Diff", "State", "Region")
 
 for(k in counties){
   
@@ -58,7 +55,7 @@ for(k in counties){
   p_eval<- read.csv(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_", r_model, "_fips_", k, ".csv"))
   a_eval<- read.csv(paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_", r_model, "_fips_", k, ".csv"))
   
-  tk_eval<- read.csv(paste0("Summer_results/ORL_TopK_eval_samp-R_obs-W_", r_model, "_fips_", k, ".csv"))
+  tk_eval<- read.csv(paste0("Summer_results/ORL_TK_eval_samp-R_obs-W_", r_model, "_fips_", k, ".csv"))
   
   ph_eval<- read.csv(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_", r_model,"_Rstr-HI-", random_qhi[i,"opt_HI_thr"], "_fips_", k, ".csv"))
   ah_eval<- read.csv(paste0("Summer_results/ORL_AA_eval_samp-R_obs-W_", r_model,"_Rstr-HI-", aa_qhi[i,"opt_HI_thr"], "_fips_", k, ".csv"))
@@ -85,29 +82,45 @@ for(k in counties){
     }
   }
   
-  NWS<- my_proc(a_eval)
+  pos<- which(stationary_W$Fips == k)
+  state<- stationary_W[pos, "State"]
+  region<- stationary_W[pos, "Region"]
   
-  DF<- rbind(DF, data.frame(Policy="Random", Diff = NWS - my_proc(p_eval)))
-  DF<- rbind(DF, data.frame(Policy="TopK", Diff = NWS - my_proc(tk_eval)))
-  DF<- rbind(DF, data.frame(Policy="Rqhi", Diff = NWS - my_proc(ph_eval)))
-  DF<- rbind(DF, data.frame(Policy="Aqhi", Diff = NWS - my_proc(ah_eval)))
-  DF<- rbind(DF, data.frame(Policy="TRPOqhi", Diff = NWS - my_proc(q_eval)))
-  DF<- rbind(DF, data.frame(Policy="FC-Num", Diff = NWS - my_proc(fc_n)))
-  DF<- rbind(DF, data.frame(Policy="FC-Quant", Diff = NWS - my_proc(fc_q)))
-  DF<- rbind(DF, data.frame(Policy="FC-All", Diff = NWS - my_proc(fc_all)))
+  NWS<- this_proc(a_eval)
   
+  DF<- rbind(DF, data.frame(Policy="Random", Diff = this_proc(p_eval) - NWS,
+                            State = state, Region = region))
+  DF<- rbind(DF, data.frame(Policy="TopK", Diff = this_proc(tk_eval) - NWS,
+                            State = state, Region = region))
+  DF<- rbind(DF, data.frame(Policy="Rqhi", Diff = this_proc(ph_eval) - NWS,
+                            State = state, Region = region))
+  DF<- rbind(DF, data.frame(Policy="Aqhi", Diff = this_proc(ah_eval) - NWS,
+                            State = state, Region = region))
+  DF<- rbind(DF, data.frame(Policy="TRPOqhi", Diff = this_proc(q_eval) - NWS,
+                            State = state, Region = region))
+  DF<- rbind(DF, data.frame(Policy="FC-Num", Diff = this_proc(fc_n) - NWS,
+                            State = state, Region = region))
+  DF<- rbind(DF, data.frame(Policy="FC-Quant", Diff = this_proc(fc_q) - NWS,
+                            State = state, Region = region))
+  DF<- rbind(DF, data.frame(Policy="FC-All", Diff = this_proc(fc_all) - NWS,
+                            State = state, Region = region))
+  
+  print(k)
 }
 
-DF$Region
-DF$State
+write.csv(DF, "Fall_results/Final_30_summary_df.csv")
 
-ggplot(DF, aes(x=Policy, y=Diff)) + geom_point(col = Region) + 
+ggplot(DF, aes(x=Policy, y=Diff, color = Region, label = State)) +
+  geom_hline(yintercept=0) + 
+  geom_boxplot() +
+  geom_point(position = position_jitterdodge(), alpha=0.5) +
+  ylab("Policy Return - NWS Return") # + 
   # facet_grid(rows = vars(Year)) + 
-  geom_text(
-    label=State, 
-    nudge_x = 0.25, nudge_y = 0.25, 
-    check_overlap = T
-  ) # +
+  # geom_text(size = 2,
+  #   position=position_jitter(width=0.5,height=0)
+  #   # nudge_x = 0.3, nudge_y = 0 #,
+  #   # check_overlap = T
+  # ) # +
   # geom_errorbar()
 
 

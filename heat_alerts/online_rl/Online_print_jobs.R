@@ -197,11 +197,11 @@ sink("Run_jobs/Online_tests_short")
 for(k in counties){
   county<- k
   
-  # cat(paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n"),
-  #     paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n")#,
-  #     # paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, "\n"),
-  #     # paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, "\n")
-  # )
+  cat(paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=true ", "county=", county, " r_model=", r_model, "\n"),
+      paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=false ", "county=", county, " r_model=", r_model, "\n")#,
+      # paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=true ", "county=", county " r_model=", r_model, "\n"),
+      # paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=false ", "county=", county, " r_model=", r_model, "\n")
+  )
   # 
   # cat(paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n"),
   #     paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n"))
@@ -212,28 +212,28 @@ for(k in counties){
   # cat(paste0("python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=true ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n"),
   #     paste0("python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false ", "county=", county, " guide_ckpt=", ckpt, " model_name=", r_model, " constrain=", constrain, "\n"))
   # 
-  for(h in HI_restriction){
-    # cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=true restrict_alerts=true ",
-    #            "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n"),
-    #     paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false restrict_alerts=true ",
-    #            "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n")
-    # )
-    cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=true restrict_alerts=true ",
-               "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n")
-    )
-  }
-  
-  for(h in HI_restriction){
-    # cat(paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=true eval.match_similar=true restrict_alerts=true ",
-    #            "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n"),
-    #     paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=true eval.match_similar=false restrict_alerts=true ",
-    #            "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n")
-    #     )
-    cat(paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=false eval.match_similar=true restrict_alerts=true ",
-               "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n")
-    )
-  }
-  
+  # for(h in HI_restriction){
+  #   # cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=true restrict_alerts=true ",
+  #   #            "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n"),
+  #   #     paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false restrict_alerts=true ",
+  #   #            "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n")
+  #   # )
+  #   cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=true restrict_alerts=true ",
+  #              "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n")
+  #   )
+  # }
+  # 
+  # for(h in HI_restriction){
+  #   # cat(paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=true eval.match_similar=true restrict_alerts=true ",
+  #   #            "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n"),
+  #   #     paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=true eval.match_similar=false restrict_alerts=true ",
+  #   #            "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n")
+  #   #     )
+  #   cat(paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=false eval.match_similar=true restrict_alerts=true ",
+  #              "county=", county, " HI_restriction=", h, " model_name=", r_model, "_Rstr-HI-", h, " guide_ckpt=", ckpt, " constrain=", constrain, " \n")
+  #   )
+  # }
+  # 
 }
 sink()
 
