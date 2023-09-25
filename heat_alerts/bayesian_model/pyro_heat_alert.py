@@ -162,7 +162,8 @@ class HeatAlertModel(nn.Module):
             effectiveness_contribs.append(coef * eff_features[:, i])
 
         eff_bias = pyro.sample(
-            "effectiveness_bias", Uniform(-8, -5).expand([self.S]).to_event(1)
+            # "effectiveness_bias", Uniform(-8, -5).expand([self.S]).to_event(1)
+            "effectiveness_bias", Uniform(-10, 2).expand([self.S]).to_event(1)
         )
         effectiveness = torch.sigmoid(sum(effectiveness_contribs) + eff_bias[loc_ind])
         effectiveness = effectiveness.clamp(1e-6, 1 - 1e-6)

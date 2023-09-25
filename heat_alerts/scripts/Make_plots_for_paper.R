@@ -30,13 +30,13 @@ counties<- c(41067, 53015, 20161, 37085, 48157,
              47113, 42017, 22109, 45015, 13031, 48367, 22063, 41053,
              32003, 4015, 6025)
 
-r_model<- "NC_model" # "test"
-# results<- read.csv("Fall_results/Final_eval_30_best-T7-T8.csv")
-results<- read.csv("Fall_results/Final_eval_30_NC1.csv")
-# random_qhi<- read.csv("Fall_results/Final_eval_30_test_random-w-rstr-hi.csv")
-random_qhi<- read.csv("Fall_results/Final_eval_30_NC_model_random-w-rstr-hi.csv")
-# aa_qhi<- read.csv("Fall_results/Final_eval_30_test_AA-w-rstr-hi.csv")
-aa_qhi<- read.csv("Fall_results/Final_eval_30_NC_model_AA-w-rstr-hi.csv")
+r_model<-  "test" # "NC_model"
+results<- read.csv("Fall_results/Final_eval_30_best-T7-T8.csv")
+# results<- read.csv("Fall_results/Final_eval_30_NC1.csv")
+random_qhi<- read.csv("Fall_results/Final_eval_30_test_random-w-rstr-hi.csv")
+# random_qhi<- read.csv("Fall_results/Final_eval_30_NC_model_random-w-rstr-hi.csv")
+aa_qhi<- read.csv("Fall_results/Final_eval_30_test_AA-w-rstr-hi.csv")
+# aa_qhi<- read.csv("Fall_results/Final_eval_30_NC_model_AA-w-rstr-hi.csv")
 
 for(k in counties){
   ## Read in results:

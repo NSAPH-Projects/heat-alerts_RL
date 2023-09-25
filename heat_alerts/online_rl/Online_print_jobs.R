@@ -12,7 +12,7 @@ county<- c(41067, 53015, 20161, 37085, 48157,
            47113, 42017, 22109, 45015, 13031, 48367, 22063, 41053, 
            32003, 4015, 6025)
 
-r_model<- "all_constraints"
+r_model<- "hi_constraints" # "all_constraints"
 algos<- c("trpo") # "trpo", "ppo", "dqn", "lstm" "qrdqn"
 # match_similar<- c("false") # "true"
 eval.val_years<- c("false") # "true", "false"
@@ -25,7 +25,7 @@ shaped_penalty<- "none"
 restrict_days<- "qhi"
 HI_restriction<- seq(0.5, 0.9, 0.05)
 
-forecasts<- c("quarters", "all") # "num_elig", "quantiles", "three_day", "ten_day", "quarters", "N_Av4_Q" 
+forecasts<- c("none", "num_elig", "quantiles") # "num_elig", "quantiles", "three_day", "ten_day", "quarters", "N_Av4_Q" 
 
 
 training<- expand.grid(county, 
@@ -71,7 +71,7 @@ colnames(training)<- c("county",
 # training$prefix<- "T7"
 # training$prefix[which(training$algo.policy_kwargs.net_arch == "[16,16]")]<- "T8"
 # training$prefix<- "D1"
-training$prefix<- "FC1"
+training$prefix<- "FC2"
 
 training$model_name<- paste0(training$prefix, "_fips-", training$county, 
                              # "_P-", training$penalty,
@@ -189,12 +189,8 @@ counties<- c(41067, 53015, 20161, 37085, 48157,
              34021, 19155, 17115, 29021, 29019, 5045, 40017, 21059,
              47113, 42017, 22109, 45015, 13031, 48367, 22063, 41053, 
              32003, 4015, 6025)
-# ckpt<- c("ckpts/FF_NC_9-6_guide.pt")
-ckpt<- c("ckpts/FullFast_8-16_guide.pt")
-# r_model<- "NC_model"
-r_model<- "test"
-# constrain<- "none"
-constrain<- "all"
+
+r_model<- "hi_constraints" # "all_constraints"
 HI_restriction<- seq(0.5, 0.9, 0.05)
 
 sink("Run_jobs/Online_tests_short")

@@ -301,7 +301,7 @@ wilcox.test(results$Eval, results$NWS, paired = TRUE, alternative = "greater", e
 # r_model<- "NC_model"
 r_model<- "test"
 prefix<- "FC1"
-FC_type<- "FC-num_elig" # "num_elig", "FC-quantiles", "FC-ten_day"
+FC_type<- "FC-all" # "FC-num_elig", "FC-quantiles", "FC-ten_day", "FC-quarters"
 
 HI_thresholds<- seq(0.5, 0.9, 0.05)
 opt_HI_thr<- rep(0, length(counties))
@@ -411,6 +411,18 @@ t.test(x,y,alternative="g")
 
 ### Make table of alert issuance characteristics for the best models:
 
+r_model<- "test"
+prefix<- "FC1"
+splitvar<- "Rstr-HI-"
+aa_qhi<- read.csv(paste0("Fall_results/Final_eval_30_", r_model, "_AA-w-rstr-hi.csv"))
+
+split2<- "FC-"
+fc_N<- read.csv(paste0("Fall_results/Final_eval_30_", r_model, "_FC-num_elig-w-rstr-hi.csv"))
+fc_Q<- read.csv(paste0("Fall_results/Final_eval_30_", r_model, "_FC-quantiles-w-rstr-hi.csv"))
+fc_D10<- read.csv(paste0("Fall_results/Final_eval_30_", r_model, "_FC-ten_day-w-rstr-hi.csv"))
+fc_Av4<- read.csv(paste0("Fall_results/Final_eval_30_", r_model, "_FC-quarters-w-rstr-hi.csv"))
+fc_All<- read.csv(paste0("Fall_results/Final_eval_30_", r_model, "_FC-all-w-rstr-hi.csv"))
+
 alerts_results<- data.frame(matrix(ncol = 10, nrow = 0))
 
 for(k in 1:length(counties)){
@@ -419,29 +431,42 @@ for(k in 1:length(counties)){
   folders<- list.files("logs/SB", pattern=paste0(prefix, "_fips-", county))
   Models<- sapply(folders, function(s){strsplit(s, splitvar)[[1]][2]})
   Models<- paste0(splitvar, as.vector(unique(Models)))
+  types<- unique(sapply(Models, function(s){strsplit(s, split2)[[1]][2]}))
+  types[1]<- "num_elig"
   
-  as_NWS_eval<- assess(paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_test_fips_", county, ".csv"))
-  as_random_eval<- assess(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_test_fips_", county, ".csv"))
+  as_NWS_eval<- assess(paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
+  # as_random_eval<- assess(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
+  as_AQHI_eval<- assess(paste0("Summer_results/ORL_AA_eval_samp-R_obs-W_", r_model, "_Rstr-HI-",  aa_qhi[k,"opt_HI_thr"], "_fips_", county, ".csv"))
   
-  as_random_eval$Policy<- "random"
+  # as_random_eval$Policy<- "random"
   as_NWS_eval$Policy<- "NWS"
+  as_AQHI_eval$Policy<- "Aqhi"
   
-  as_df<- rbind(as_random_eval, as_NWS_eval)
+  as_df<- rbind( #as_random_eval, 
+                as_NWS_eval,
+                as_AQHI_eval)
   
-  if(opt_HI_thr[k] %% 0.1 == 0.1){
-    rl<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county, "_", splitvar, round(opt_HI_thr[k],1), "_fips_", county, ".csv"))
-  }else{
-    rl<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county, "_", splitvar, opt_HI_thr[k], "_fips_", county, ".csv"))
+  for(m in types){
+    oht<- read.csv(paste0("Fall_results/Final_eval_30_", r_model, "_FC-", m, "-w-rstr-hi.csv"))$opt_HI_thr[k]
+    if(oht %% 0.1 == 0.1){
+      y<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county, "_", splitvar, round(oht,1), "_fips_", county, ".csv"))
+    }else{
+      y<- assess(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county, "_", splitvar, oht, "_fips_", county, ".csv"))
+    }
+    y$Policy<- paste0("FC-", m)
+    as_df<- rbind(as_df, y)
   }
-  rl$Policy<- "TRPO"
-  as_df<- rbind(as_df, rl)
   
   alerts_results<- rbind(alerts_results, as_df)
   print(county) 
 }
 
-alerts_results$Fips<- rep(counties, each=3)
-alerts_results[,c(12, 11, 1:10)]
+# alerts_results$Fips<- rep(counties, each=3)
+alerts_results$Fips<- rep(counties, each=7)
+
+alerts_results[1:85,c(12, 11, 1:10)]
+alerts_results[85:161,c(12, 11, 1:10)]
+alerts_results[162:nrow(alerts_results),c(12, 11, 1:10)]
 
 ### Making an expanded table to compare across experiments:
 earlier<- read.csv("Fall_results/Final_eval_30_T7.csv")

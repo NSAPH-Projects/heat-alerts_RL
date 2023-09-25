@@ -18,6 +18,7 @@ from pyro.infer import Predictive, predictive
 def main(params):
     # params = {"model_name": "FullFast_8-16", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "all"}
     # params = {"model_name": "FF_NC_9-6", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "none"}
+    # params = {"model_name": "FF_C-HI_9-11", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "HI"}
     ## Read in data:
     n_days = 153
     years = set(range(2006, 2017))
@@ -114,7 +115,7 @@ def main(params):
             county_dos = torch.reshape(Effect[loc_ind == s], (n_years, n_days))
             ax.plot(county_dos.mean(0), color="k", alpha=0.1, lw=0.5)
         Effect = torch.reshape(Effect, (N, n_days))
-        # ax.set_ylim(-0.1,0)
+        ax.set_ylim(-0.1,0)
         # Upper = torch.quantile(Effect, 0.975, dim = 0)
         # Lower = torch.quantile(Effect, 0.025, dim = 0)
         ax.plot(Effect.mean(0), color="b", lw=2)
