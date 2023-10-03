@@ -5,9 +5,13 @@ library(rjson)
 # bayes<- read.csv("Bayesian_models/Bayesian_R_7-19.csv", header=FALSE)
 # bayes<- read.csv("Bayesian_models/Bayesian_Full_8-4.csv", header=FALSE)
 # bayes<- read.csv("Bayesian_models/Bayesian_Full_8-14.csv", header=FALSE)
-bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FullFast_8-16.csv", header=FALSE)
-bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_NC_9-6.csv", header=FALSE)
-bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-HI_9-11.csv", header=FALSE)
+
+# bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FullFast_8-16.csv", header=FALSE)
+# bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_NC_9-6.csv", header=FALSE)
+# bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-HI_9-11.csv", header=FALSE)
+
+bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-all_wide-EB-prior.csv", header=FALSE)
+bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-none_wide-EB-prior.csv", header=FALSE)
 bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-HI_wide-EB-prior.csv", header=FALSE)
 
 #### Compare to observations:

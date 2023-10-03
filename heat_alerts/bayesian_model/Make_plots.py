@@ -11,7 +11,9 @@ from pyro.distributions import Poisson
 import pytorch_lightning as pl
 import torch
 
-from heat_alerts.bayesian_model.pyro_heat_alert import (HeatAlertDataModule, HeatAlertLightning,
+# from heat_alerts.bayesian_model.pyro_heat_alert import (HeatAlertDataModule, HeatAlertLightning,
+#                              HeatAlertModel)
+from pyro_heat_alert import (HeatAlertDataModule, HeatAlertLightning,
                              HeatAlertModel)
 from pyro.infer import Predictive, predictive
 
@@ -20,6 +22,7 @@ def main(params):
     # params = {"model_name": "FF_NC_9-6", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "none"}
     # params = {"model_name": "FF_C-HI_9-11", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "HI"}
     # params = {"model_name": "FF_C-HI_wide-EB-prior", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "HI"}
+    params = vars(params)
     ## Read in data:
     n_days = 153
     years = set(range(2006, 2017))
@@ -117,6 +120,7 @@ def main(params):
     plt.subplots_adjust(bottom=0.6)
     fig.savefig("heat_alerts/bayesian_model/Plots_params/Coefficients_" + params["model_name"] + ".png", bbox_inches="tight")
 
+    print("Saved coef plot")
     
     ### Custom data:
     new_alert = torch.ones(alert.shape)
@@ -249,6 +253,7 @@ def main(params):
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--model_name", type=str, default="Full_8-7", help="model name")
+    parser.add_argument("--constrain", type=str, default="all", help="model constraints?")
     parser.add_argument("--n_samples", type=int, default=100, help="number of samples to take")
     parser.add_argument("--SC", type=str, default="F", help="Make plot for single county?")
     parser.add_argument("--county", type=int, default=36005, help="county to make plots for")

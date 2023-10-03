@@ -44,10 +44,10 @@ DF<- data.frame(County = fips[locs+1],
                 SD_Eff = rep(sd_eff$Eff, each=length(A)/761))
 
 counties<- str_pad(c(41067, 53015, 20161, 37085, 48157,
-             28049, 19153, 17167, 31153, 6071, 4013,
-             34021, 19155, 17115, 29021, 29019, 5045, 40017, 21059,
-             47113, 42017, 22109, 45015, 13031, 48367, 22063, 41053,
-             32003, 4015, 6025), 5, pad="0")
+                     28049, 19153, 17167, 31153, 6071, 4013,
+                     34021, 19155, 17115, 29021, 29019, 5045, 40017, 21059,
+                     47113, 42017, 22109, 45015, 13031, 48367, 22063, 41053,
+                     32003, 4015, 6025), 5, pad="0")
 
 States<- data.frame(Fips = counties,
                     State_fips = substr(counties, 1,2))
@@ -128,7 +128,11 @@ my_proc<- function(filename){
     avg_reward_A.0<- mean(agg_df[agg_df$Alert == 0, "Rewards"]/agg_df[agg_df$Alert == 0, "Count"])
     avg_reward_A.1<- mean(agg_df[agg_df$Alert == 1, "Rewards"]/agg_df[agg_df$Alert == 1, "Count"])
     b<- mean(df$Budget)
-    estimated_reward<- b*avg_reward_A.1 + (n_days-1-b)*avg_reward_A.0
+    if(is.na(avg_reward_A.1)){
+      estimated_reward<- (n_days-1)*avg_reward_A.0
+    }else{
+      estimated_reward<- b*avg_reward_A.1 + (n_days-1-b)*avg_reward_A.0
+    }
     # return(list(agg_df, estimated_reward))
     return(estimated_reward)
   }else{
@@ -154,12 +158,14 @@ for(k in 1:length(counties)){
   county<- counties[k]
   
   Zero[k]<- my_proc(paste0("Summer_results/ORL_NA_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
-  NWS[k]<- my_proc(paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
-  Random[k]<- my_proc(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
-  Top_K[k]<- my_proc(paste0("Summer_results/ORL_TK_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
-  
+  # NWS[k]<- my_proc(paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
+  # Random[k]<- my_proc(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
+  # Top_K[k]<- my_proc(paste0("Summer_results/ORL_TK_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
+  # 
   print(county)
 }
+
+wilcox.test(Zero, NWS, paired = TRUE, alternative = "greater", exact=FALSE)
 
 results<- round(data.frame(County=counties, Zero, NWS, Random, Top_K),3)
 
@@ -209,5 +215,4 @@ d
 # t.test(results$RL - results$NWS, alternative="g")
 
 print(xtable(d, digits=3),include.rownames=FALSE)
-
 

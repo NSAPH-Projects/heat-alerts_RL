@@ -84,7 +84,8 @@ counties<- c(41067, 53015, 20161, 37085, 48157,
              47113, 42017, 22109, 45015, 13031, 48367, 22063, 41053,
              32003, 4015, 6025)
 
-### Identify optimal HI threshold and save the associated eval:
+
+### Identify optimal HI threshold + optimal net_arch and save the associated eval:
 
 r_model<- "test" # "NC_model"
 prefix<-"D1"  # "NC1" 
@@ -307,9 +308,9 @@ wilcox.test(results$Eval, results$NWS, paired = TRUE, alternative = "greater", e
 #### Incorporating "forecasts":
 
 # r_model<- "NC_model"
-r_model<- "test"
-prefix<- "FC1"
-FC_type<- "FC-ten_day" # "FC-num_elig", "FC-quantiles", "FC-ten_day", "FC-quarters", "FC-all"
+r_model<- "CHI_model" # "test"
+prefix<- "FC2"
+FC_type<- "FC-none" # "FC-num_elig", "FC-quantiles", "FC-ten_day", "FC-quarters", "FC-all"
 
 HI_thresholds<- seq(0.5, 0.9, 0.05)
 opt_HI_thr<- rep(0, length(counties))
@@ -324,13 +325,17 @@ for(k in 1:length(counties)){
   
   for(i in 1:length(Models)){
     model<- Models[i]
-    if(FC_type == "FC-num_elig"){
-      proc_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county, model, "_fips_", county, ".csv"))
-      proc_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county, model, "_fips_", county, ".csv"))
-    }else{
-      proc_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county, model, "_", FC_type, "_fips_", county, ".csv"))
-      proc_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county, model, "_", FC_type, "_fips_", county, ".csv"))
-    }
+    ## For FC1:
+    # if(FC_type == "FC-num_elig"){
+    #   proc_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county, model, "_fips_", county, ".csv"))
+    #   proc_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county, model, "_fips_", county, ".csv"))
+    # }else{
+    #   proc_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county, model, "_", FC_type, "_fips_", county, ".csv"))
+    #   proc_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county, model, "_", FC_type, "_fips_", county, ".csv"))
+    # }
+    
+    proc_train_samp<- my_proc(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", prefix, "_fips-", county, model, "_", FC_type, "_fips_", county, ".csv"))
+    proc_eval<- my_proc(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_fips-", county, model, "_", FC_type, "_fips_", county, ".csv"))
     
     if(i == 1){
       Eval_samp[k]<- proc_train_samp
@@ -353,9 +358,9 @@ results[,c("Eval")]<- round(results[,c("Eval")],3)
 results
 write.csv(results, paste0("Fall_results/Alert-rate_Final_eval_30_", r_model, "_", FC_type, "-w-rstr-hi.csv"))
 
-earlier<- read.csv("Fall_results/Alert-rate_Final_eval_30_T7-T8.csv")
-wilcox.test(results$Eval, earlier$NWS, paired = TRUE, alternative = "greater", exact=FALSE)
-
+# earlier<- read.csv("Fall_results/Alert-rate_Final_eval_30_T7-T8.csv")
+# wilcox.test(results$Eval, earlier$NWS, paired = TRUE, alternative = "greater", exact=FALSE)
+# 
 
 ###########################
 
