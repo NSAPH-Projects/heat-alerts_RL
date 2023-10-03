@@ -29,17 +29,17 @@ for(k in counties){
     
     for(h in HI_restriction){
       cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=true restrict_days=qhi ",
-                 "county=", county, " HI_restriction=", h, " r_model=", r_model, " model_name=", r_model, "_Rstr-HI-", h, " \n"),
+                 "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, " model_name=", r_model, "_Rstr-HI-", h, " \n"),
           paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false restrict_days=qhi ",
-                 "county=", county, " HI_restriction=", h, " r_model=", r_model, " model_name=", r_model, "_Rstr-HI-", h, " \n")
+                 "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, " model_name=", r_model, "_Rstr-HI-", h, " \n")
       )
     }
     
     for(h in HI_restriction){
       cat(paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=false eval.match_similar=true restrict_days=qhi ",
-                 "county=", county, " HI_restriction=", h, " r_model=", r_model, " model_name=", r_model, "_Rstr-HI-", h, " \n"),
+                 "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, " model_name=", r_model, "_Rstr-HI-", h, " \n"),
           paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=true eval.match_similar=false restrict_days=qhi ",
-                 "county=", county, " HI_restriction=", h, " r_model=", r_model, " model_name=", r_model, "_Rstr-HI-", h, " \n")
+                 "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, " model_name=", r_model, "_Rstr-HI-", h, " \n")
       )
     }
   }

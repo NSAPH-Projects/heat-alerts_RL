@@ -22,7 +22,7 @@ for(k in counties){
                        " model_name=", r_model, "_dqn", "_F-", forecasts, " \n"))
             for(h in seq(0.5, 0.9, 0.05)){
               cat(paste0("python train_online_rl_sb3.py", " r_model=", r_model, " algo=dqn",
-                         " restrict_days=qhi", " forecasts=", forecasts, " HI_restriction=", h, 
+                         " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h, 
                          " model_name=", r_model, "_dqn", "_F-", forecasts, "_Rstr-HI-", h, " \n"))
             }
           }
@@ -37,7 +37,7 @@ for(k in counties){
                        " model_name=", r_model, "_trpo", "_F-", forecasts, " \n"))
             for(h in seq(0.5, 0.9, 0.05)){
               cat(paste0("python train_online_rl_sb3.py", " r_model=", r_model, " algo=trpo",
-                         " restrict_days=qhi", " forecasts=", forecasts, " HI_restriction=", h, 
+                         " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h, 
                          " model_name=", r_model, "_trpo", "_F-", forecasts, "_Rstr-HI-", h, " \n"))
             }
           }
@@ -48,7 +48,7 @@ for(k in counties){
                        " model_name=", r_model, "_trpo", "_F-", forecasts, " \n"))
             for(h in seq(0.5, 0.9, 0.05)){
               cat(paste0("python train_online_rl_sb3.py", " r_model=", r_model, " algo=trpo",
-                         " restrict_days=qhi", " forecasts=", forecasts, " HI_restriction=", h, 
+                         " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h, 
                          " model_name=", r_model, "_trpo", "_F-", forecasts, "_Rstr-HI-", h, " \n"))
             }
           }
