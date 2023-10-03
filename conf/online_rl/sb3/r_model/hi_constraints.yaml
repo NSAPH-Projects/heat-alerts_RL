@@ -1,5 +1,5 @@
 constrain: HI
-guide_ckpt: ckpts/FF_C-HI_9-11_guide.pt
+guide_ckpt: ckpts/FF_C-HI_wide-EB-prior_guide.pt # ckpts/FF_C-HI_9-11_guide.pt
 model:  # must match exactly the model used when producing the guide
         # in the future linking them will be automatic
   num_hidden_layers: 1
