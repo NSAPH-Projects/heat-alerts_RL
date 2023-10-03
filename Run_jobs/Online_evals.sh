@@ -5,7 +5,7 @@
 #SBATCH -p fasse 
 #SBATCH -t 0-0:30 
 #SBATCH --mem 3G 
-#SBATCH --array 0-1199 # 1319 
+#SBATCH --array 0-3599 # 1319 
 #SBATCH -o ./Run_jobs/slurm/orl_short.%a.out
 #SBATCH --mail-user=ellen_considine@g.harvard.edu
 #SBATCH --mail-type=BEGIN
