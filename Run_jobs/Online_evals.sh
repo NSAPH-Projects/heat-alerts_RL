@@ -15,4 +15,4 @@ source ~/.bashrc
 mymodules
 cd heat-alerts_mortality_RL
 source activate heatrl
-python Run_jobs/pylauncher.py --job_file="./Run_jobs/Online_tests_short" --i $SLURM_ARRAY_TASK_ID
+python Run_jobs/pylauncher.py --job_file="./Run_jobs/Eval_jobs" --i $SLURM_ARRAY_TASK_ID
