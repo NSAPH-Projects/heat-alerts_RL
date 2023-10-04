@@ -4,7 +4,7 @@ source("heat_alerts/scripts/Evaluation_functions.R")
 ## Change manually:
 eval_func_name<- "per_alert" # "compare_to_zero" # "avg_return"
 
-## Run evaluations:
+#### Run evaluations:
 
 if(eval_func_name == "per_alert"){
   eval_func<- per_alert
@@ -82,7 +82,7 @@ for(r_model in c( "alert_constraints"
 
 ## If eval_func == compare_to_zero:
 
-for(r_model in c( "alert_constraints"
+for(r_model in c("mixed_constraints", "alert_constraints"
                   , "all_constraints", "no_constraints", "hi_constraints"
 )){
   NWS<- rep(0,length(counties))

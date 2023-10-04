@@ -19,9 +19,8 @@ from heat_alerts.bayesian_model.pyro_heat_alert import (HeatAlertDataModule, Hea
 def main(params):
     # params = {"model_name": "FullFast_8-16", "n_samples": 1, "SC": "F", "county": 36005, "constrain": "all"}
     # params = {"model_name": "FF_sample", "n_samples": 1000, "SC": "F", "county": 36005, "constrain": "all"}
-    # params = {"model_name": "FF_NC_9-6", "n_samples": 1, "SC": "F", "county": 36005, "constrain": "none"}
-    # params = {"model_name": "FF_C-HI_wide-EB-prior", "n_samples": 1, "SC": "F", "county": 36005, "constrain": "HI"}
-    # params = {"model_name": "FF_C-HI_sample", "n_samples": 1000, "SC": "F", "county": 36005, "constrain": "HI"}
+    # params = {"model_name": "FF_C-M_wide-EB-prior", "n_samples": 1, "SC": "F", "county": 36005, "constrain": "mixed"}
+    # params = {"model_name": "FF_C-M_sample", "n_samples": 1000, "SC": "F", "county": 36005, "constrain": "mixed"}
     ## Read in data:
     n_days = 153
     years = set(range(2006, 2017))
@@ -103,6 +102,8 @@ def main(params):
     # df = pd.DataFrame(obs.numpy())
     # df.to_parquet("data/processed/sampled_outcomes.parquet")
 
+
+    #### Saving posterior samples:
     with torch.no_grad():
         samples = [guide(*inputs) for _ in range(params["n_samples"])]
     
