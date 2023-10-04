@@ -23,6 +23,7 @@ def main(params):
     # params = {"model_name": "FF_C-HI_9-11", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "HI"}
     # params = {"model_name": "FF_C-HI_wide-EB-prior", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "HI"}
     # params = {"model_name": "FF_C-A_wide-EB-prior", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "alerts"}
+    # params = {"model_name": "FF_C-M_wide-EB-prior", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "mixed"}
     params = vars(params)
     ## Read in data:
     n_days = 153
@@ -225,29 +226,29 @@ def main(params):
     # # plt.subplots_adjust(bottom=0.6)
     # # fig.savefig("Plots_params/Effectiveness_Coefficients_" + params["model_name"] + ".png", bbox_inches="tight")
 
-    # # now a plot of the effect of day of summer
-    # n_basis = dm.dos_spline_basis.shape[1]
-    # basis = dm.dos_spline_basis
-    # eff_coefs = [sample[f"effectiveness_dos_{i}"] for i in range(n_basis)]
-    # baseline_coefs = [sample[f"baseline_dos_{i}"] for i in range(n_basis)]
-    # eff_contribs = [
-    #     basis[:, i] * eff_coefs[i][:, None] for i in range(n_basis)
-    # ]  # list of len(n_basis) each of size (S, T)
-    # baseline_contribs = [
-    #     basis[:, i] * baseline_coefs[i][:, None] for i in range(n_basis)
-    # ]
-    # dos_beta_eff = sum(baseline_contribs).detach().numpy()
-    # dos_gamma_eff = sum(eff_contribs).detach().numpy()
-    # fig, ax = plt.subplots(1, 2, figsize=(8, 4))
-    # ax[0].plot(dos_beta_eff.T, color="k", alpha=0.05, lw=0.5)
-    # ax[0].plot(dos_beta_eff.mean(0), color="k", lw=2)
-    # ax[0].set_xlabel("Day of summer")
-    # ax[0].set_title("Baseline rate")
-    # ax[1].plot(dos_gamma_eff.T, color="k", alpha=0.05, lw=0.5)
-    # ax[1].plot(dos_gamma_eff.mean(0), color="k", lw=2)
-    # ax[1].set_xlabel("Day of summer")
-    # ax[1].set_title("Heat alert effectiveness")
-    # fig.savefig("Plots_params/DOS_" + params["model_name"] + ".png", bbox_inches="tight")
+    # now a plot of the effect of day of summer
+    n_basis = dm.dos_spline_basis.shape[1]
+    basis = dm.dos_spline_basis
+    eff_coefs = [sample[f"effectiveness_dos_{i}"] for i in range(n_basis)]
+    baseline_coefs = [sample[f"baseline_dos_{i}"] for i in range(n_basis)]
+    eff_contribs = [
+        basis[:, i] * eff_coefs[i][:, None] for i in range(n_basis)
+    ]  # list of len(n_basis) each of size (S, T)
+    baseline_contribs = [
+        basis[:, i] * baseline_coefs[i][:, None] for i in range(n_basis)
+    ]
+    dos_beta_eff = sum(baseline_contribs).detach().numpy()
+    dos_gamma_eff = sum(eff_contribs).detach().numpy()
+    fig, ax = plt.subplots(1, 2, figsize=(8, 4))
+    ax[0].plot(dos_beta_eff.T, color="k", alpha=0.05, lw=0.5)
+    ax[0].plot(dos_beta_eff.mean(0), color="k", lw=2)
+    ax[0].set_xlabel("Day of summer")
+    ax[0].set_title("Baseline rate")
+    ax[1].plot(dos_gamma_eff.T, color="k", alpha=0.05, lw=0.5)
+    ax[1].plot(dos_gamma_eff.mean(0), color="k", lw=2)
+    ax[1].set_xlabel("Day of summer")
+    ax[1].set_title("Heat alert effectiveness")
+    fig.savefig("heat_alerts/bayesian_model/Plots_params/DOS_" + params["model_name"] + ".png", bbox_inches="tight")
 
     
 
