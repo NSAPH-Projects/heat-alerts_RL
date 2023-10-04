@@ -62,8 +62,8 @@ for(r_model in c("alert_constraints"
   #       aqhi_ot[k]<- HI_thresholds[j]
   #     }
   #   }
-  #   print(county)
-  # }
+    print(county)
+  }
   DF<- round(data.frame(County=counties, Zero, NWS, Random, Top_K,
                         Random_QHI, AA_QHI, rqhi_ot, aqhi_ot),3)
   # write.csv(DF, paste0("Fall_results/Benchmarks_", r_model, "_", eval_func_name, ".csv"))
