@@ -378,7 +378,15 @@ class HeatAlertDataModule(pl.LightningDataModule):
                 alert_lag1="negative",  # alert yesterday less hospitalizations
                 previous_alerts="negative",  # more trailing alerts less hospitalizations
             )
-
+        elif constrain == "mixed":
+            self.effectiveness_constraints = dict(
+                heat_qi="positive",  # more heat more effective
+                excess_heat="positive",  # more excess here more effective
+            )
+            self.baseline_constraints = dict(
+                alert_lag1="negative",  # alert yesterday less hospitalizations
+                previous_alerts="negative",  # more trailing alerts less hospitalizations
+            )
 
         baseline_features_tensor = torch.stack(
             [baseline_features[k] for k in self.baseline_feature_names], dim=1
