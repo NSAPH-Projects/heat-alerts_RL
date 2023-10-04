@@ -22,6 +22,7 @@ def main(params):
     # params = {"model_name": "FF_NC_9-6", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "none"}
     # params = {"model_name": "FF_C-HI_9-11", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "HI"}
     # params = {"model_name": "FF_C-HI_wide-EB-prior", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "HI"}
+    # params = {"model_name": "FF_C-A_wide-EB-prior", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "alerts"}
     params = vars(params)
     ## Read in data:
     n_days = 153

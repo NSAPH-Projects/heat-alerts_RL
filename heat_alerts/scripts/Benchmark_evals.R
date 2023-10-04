@@ -1,8 +1,18 @@
 
 source("heat_alerts/scripts/Evaluation_functions.R")
 
-eval_func<- my_proc # compare_to_zero
-eval_func_name<- "my_proc"
+## Change manually:
+eval_func_name<- "per_alert" # "compare_to_zero" # "avg_return"
+
+## Run evaluations:
+
+if(eval_func_name == "per_alert"){
+  eval_func<- per_alert
+}else if(eval_func_name == "compare_to_zero"){ # if using compare_to_zero, need additional argument below
+  eval_func<- compare_to_zero 
+}else if(eval_func_name == "avg_return"){
+  eval_func<- avg_return
+}
 
 HI_thresholds<- seq(0.5, 0.9, 0.05)
 
@@ -57,4 +67,19 @@ for(r_model in c("all_constraints", "no_constraints", "hi_constraints")){
   write.csv(DF, paste0("Fall_results/Benchmarks_", r_model, "_", eval_func_name, ".csv"))
   print(paste("Finished with", r_model))
 }
+
+
+### Inspect results:
+
+for(r_model in c("all_constraints", "no_constraints", "hi_constraints")){
+  print(r_model)
+  DF<- read.csv(paste0("Fall_results/Benchmarks_", r_model, "_", eval_func_name, ".csv"))
+  # print(DF)
+  hist(DF$NWS - DF$Zero, main=r_model)
+  # print(wilcox.test(DF$Random, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE))
+  # print(wilcox.test(DF$Random_QHI, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE))
+  # print(wilcox.test(DF$AA_QHI, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE))
+  # print(wilcox.test(DF$Top_K, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE))
+}
+
 

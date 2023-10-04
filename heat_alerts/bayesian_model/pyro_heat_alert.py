@@ -351,7 +351,7 @@ class HeatAlertDataModule(pl.LightningDataModule):
             )
             self.baseline_constraints = dict(
                 heat_qi1_above_25="positive",  # heat could have any slope at first
-                heat_qi2_above_75="positive",  #    but should be increasingly worst
+                heat_qi2_above_75="positive",  #    but should be increasingly worse
                 excess_heat="positive",  # more excess heat more hospitalizations
                 alert_lag1="negative",  # alert yesterday less hospitalizations
                 previous_alerts="negative",  # more trailing alerts less hospitalizations

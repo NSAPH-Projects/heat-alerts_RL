@@ -13,6 +13,7 @@ library(rjson)
 bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-all_wide-EB-prior.csv", header=FALSE)
 bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-none_wide-EB-prior.csv", header=FALSE)
 bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-HI_wide-EB-prior.csv", header=FALSE)
+bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-A_wide-EB-prior.csv", header=FALSE)
 
 #### Compare to observations:
 Y<- read_parquet("data/processed/outcomes.parquet")$other_hosps

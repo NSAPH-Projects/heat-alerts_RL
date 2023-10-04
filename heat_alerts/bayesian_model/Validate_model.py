@@ -20,6 +20,8 @@ def main(params):
     # params = {"model_name": "FullFast_8-16", "n_samples": 1, "SC": "F", "county": 36005, "constrain": "all"}
     # params = {"model_name": "FF_sample", "n_samples": 1000, "SC": "F", "county": 36005, "constrain": "all"}
     # params = {"model_name": "FF_NC_9-6", "n_samples": 1, "SC": "F", "county": 36005, "constrain": "none"}
+    # params = {"model_name": "FF_C-HI_wide-EB-prior", "n_samples": 1, "SC": "F", "county": 36005, "constrain": "HI"}
+    # params = {"model_name": "FF_C-HI_sample", "n_samples": 1000, "SC": "F", "county": 36005, "constrain": "HI"}
     ## Read in data:
     n_days = 153
     years = set(range(2006, 2017))
@@ -100,12 +102,6 @@ def main(params):
 
     # df = pd.DataFrame(obs.numpy())
     # df.to_parquet("data/processed/sampled_outcomes.parquet")
-    
-    # w = csv.reader(open("data/processed/Coef_sample.csv"))
-    # truth = {rows[0]:rows[1] for rows in w}
-    # Truth = {}
-    # for k,v in truth:
-    #     Truth[k] = re.split(v, ', |\n |) |(') # not getting this to work, switching over to R
 
     with torch.no_grad():
         samples = [guide(*inputs) for _ in range(params["n_samples"])]

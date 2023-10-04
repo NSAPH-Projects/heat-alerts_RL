@@ -12,23 +12,17 @@ counties<- c(41067, 53015, 20161, 37085, 48157,
              47113, 42017, 22109, 45015, 13031, 48367, 22063, 41053,
              32003, 4015, 6025)
 
-my_proc<- function(filename){
-  f<- file.exists(filename) # filename<- "Summer_results/ORL_RL_eval_samp-R_obs-W_T7_fips-6025_Rstr-HI-0.9_fips_6025.csv"
+avg_return<- function(filename){
+  f<- file.exists(filename) 
   if(f){
     df<- read.csv(filename)[,-1]
-    df$Count = 1
+    df$Count<- 1
     # df$Budget<- df$Budget/(n_days-1)
-    # agg_df<- aggregate(. ~ Year, df, sum)
-    df$Alert<- df$Actions
-    agg_df<- aggregate(. ~ Year + Alert, df, sum)
+    agg_df<- aggregate(. ~ Year, df, sum)
     # agg_df$Budget<- agg_df$Budget/(n_days-1)
     # agg_df$budget_frac<- agg_df$Actions/agg_df$Budget
     agg_df$Frac<- agg_df$Count/sum(agg_df$Count)
-    # estimated_reward<- sum(agg_df$Rewards*(1/nrow(agg_df))/agg_df$Frac)/1000
-    avg_reward_A.0<- mean(agg_df[agg_df$Alert == 0, "Rewards"]/agg_df[agg_df$Alert == 0, "Count"])
-    avg_reward_A.1<- mean(agg_df[agg_df$Alert == 1, "Rewards"]/agg_df[agg_df$Alert == 1, "Count"])
-    b<- mean(df$Budget)
-    estimated_reward<- b*avg_reward_A.1 + (n_days-1-b)*avg_reward_A.0
+    estimated_reward<- sum(agg_df$Rewards*(1/nrow(agg_df))/agg_df$Frac)/1000
     # return(list(agg_df, estimated_reward))
     return(estimated_reward)
   }else{
@@ -36,8 +30,41 @@ my_proc<- function(filename){
   }
 }
 
+
+per_alert<- function(filename){
+  f<- file.exists(filename) 
+  if(f){
+    df<- read.csv(filename)[,-1]
+    df$Count<- 1
+    df$Alert<- df$Actions
+    agg_df<- aggregate(. ~ Year + Alert, df, sum)
+    agg_df$Frac<- agg_df$Count/sum(agg_df$Count)
+    avg_reward_A.0<- mean(agg_df[agg_df$Alert == 0, "Rewards"]/agg_df[agg_df$Alert == 0, "Count"])
+    avg_reward_A.1<- mean(agg_df[agg_df$Alert == 1, "Rewards"]/agg_df[agg_df$Alert == 1, "Count"])
+    b<- mean(df$Budget)
+    estimated_reward<- b*avg_reward_A.1 + (n_days-1-b)*avg_reward_A.0
+    return(estimated_reward)
+  }else{
+    return(NA)
+  }
+}
+
+
 compare_to_zero<- function(filename, Zero){
-  
+  f<- file.exists(filename) # filename<- "Summer_results/ORL_TK_eval_samp-R_obs-W_all_constraints_fips_41067.csv"
+  z<- file.exists(Zero) # Zero<- "Summer_results/ORL_NA_eval_samp-R_obs-W_all_constraints_fips_41067.csv"
+  if(f & z){
+    df<- read.csv(filename)[,-1]
+    zero<- read.csv(Zero)[,-1]
+    df$Count<- 1
+    # df$Budget<- df$Budget/(n_days-1)
+    agg_df<- aggregate(. ~ Year, df, sum)
+    agg_zero<- aggregate(. ~ Year, zero, sum)
+    diff_per_alert<- (agg_df$Rewards - agg_zero$Rewards)/agg_df$Actions
+    return(mean(diff_per_alert, na.rm=TRUE))
+  }else{
+    return(NA)
+  }
 }
 
 assess<- function(filename){

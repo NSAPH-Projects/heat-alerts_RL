@@ -10,7 +10,9 @@ HI_restriction<- seq(0.5, 0.9, 0.05)
 sink("Run_jobs/Eval_jobs")
 for(k in counties){
   county<- k
-  for(r_model in c("all_constraints", "no_constraints", "hi_constraints")){
+  for(r_model in c("alert_constraints"
+    # ,"all_constraints", "no_constraints", "hi_constraints"
+    )){
     cat(
       # paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=true ", "county=", county, " r_model=", r_model, " model_name=", r_model, "restrict_days=none", "\n"),
       paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=false ", "county=", county, " r_model=", r_model, " model_name=", r_model, "restrict_days=none", "\n"))
