@@ -60,8 +60,9 @@ compare_to_zero<- function(filename, Zero){
     # df$Budget<- df$Budget/(n_days-1)
     agg_df<- aggregate(. ~ Year, df, sum)
     agg_zero<- aggregate(. ~ Year, zero, sum)
+    pos<- which(agg_df$Actions > 0)
     diff_per_alert<- (agg_df$Rewards - agg_zero$Rewards)/agg_df$Actions
-    return(mean(diff_per_alert, na.rm=TRUE))
+    return(mean(diff_per_alert[pos]))
   }else{
     return(NA)
   }

@@ -82,7 +82,8 @@ for(r_model in c("mixed_constraints"
 
 ## If eval_func == compare_to_zero:
 
-for(r_model in c("mixed_constraints", "alert_constraints"
+for(r_model in c( # "mixed_constraints", 
+                 "alert_constraints"
                   , "all_constraints", "no_constraints", "hi_constraints"
 )){
   NWS<- rep(0,length(counties))
@@ -155,12 +156,12 @@ for(r_model in c("mixed_constraints"
 )){
   print(r_model)
   DF<- read.csv(paste0("Fall_results/Benchmarks_", r_model, "_", eval_func_name, ".csv"))
-  print(DF)
-  hist(DF$NWS - DF$Zero, main=r_model)
-  # print(paste("Random =", round(wilcox.test(DF$Random, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
-  # print(paste("Random_QHI =", round(wilcox.test(DF$Random_QHI, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
-  # print(paste("AA_QHI =", round(wilcox.test(DF$AA_QHI, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
-  # print(paste("Top_K =", round(wilcox.test(DF$Top_K, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
+  # print(DF)
+  # hist(DF$NWS - DF$Zero, main=r_model)
+  print(paste("Random =", round(wilcox.test(DF$Random, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
+  print(paste("Random_QHI =", round(wilcox.test(DF$Random_QHI, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
+  print(paste("AA_QHI =", round(wilcox.test(DF$AA_QHI, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
+  print(paste("Top_K =", round(wilcox.test(DF$Top_K, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
 }
 
 

@@ -16,26 +16,26 @@ for(k in counties){
   )){
       if(algo == "dqn"){
         for(forecasts in c("none", "all")){
-          cat(paste0("python train_online_rl_sb3.py", " r_model=", r_model, " algo=dqn",
+          cat(paste0("python train_online_rl_sb3.py", " county=", county, " r_model=", r_model, " algo=dqn",
                      " restrict_days=none", " forecasts=", forecasts, 
-                     " model_name=", r_model, "_dqn", "_F-", forecasts, " \n"))
+                     " model_name=", r_model, "_dqn", "_F-", forecasts, "_fips-", county, " \n"))
           for(h in seq(0.5, 0.9, 0.05)){
-            cat(paste0("python train_online_rl_sb3.py", " r_model=", r_model, " algo=dqn",
+            cat(paste0("python train_online_rl_sb3.py", " county=", county, " r_model=", r_model, " algo=dqn",
                        " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h, 
-                       " model_name=", r_model, "_dqn", "_F-", forecasts, "_Rstr-HI-", h, " \n"))
+                       " model_name=", r_model, "_dqn", "_F-", forecasts, "_Rstr-HI-", h, "_fips-", county, " \n"))
           }
         }
       }else{
         for(forecasts in c("none", "all"
                            # , "N", "Av4", "D3", "D10", "Q"
         )){
-          cat(paste0("python train_online_rl_sb3.py", " r_model=", r_model, " algo=trpo",
+          cat(paste0("python train_online_rl_sb3.py", " county=", county, " r_model=", r_model, " algo=trpo",
                      " restrict_days=none", " forecasts=", forecasts,
-                     " model_name=", r_model, "_trpo", "_F-", forecasts, " \n"))
+                     " model_name=", r_model, "_trpo", "_F-", forecasts, "_fips-", county, " \n"))
           for(h in seq(0.5, 0.9, 0.05)){
-            cat(paste0("python train_online_rl_sb3.py", " r_model=", r_model, " algo=trpo",
+            cat(paste0("python train_online_rl_sb3.py", " county=", county, " r_model=", r_model, " algo=trpo",
                        " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h, 
-                       " model_name=", r_model, "_trpo", "_F-", forecasts, "_Rstr-HI-", h, " \n"))
+                       " model_name=", r_model, "_trpo", "_F-", forecasts, "_Rstr-HI-", h, "_fips-", county, " \n"))
         }
       }
     }
