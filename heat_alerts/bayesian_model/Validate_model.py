@@ -12,7 +12,9 @@ from pyro.distributions import Poisson
 import pytorch_lightning as pl
 import torch
 
-from heat_alerts.bayesian_model.pyro_heat_alert import (HeatAlertDataModule, HeatAlertLightning,
+# from heat_alerts.bayesian_model.pyro_heat_alert import (HeatAlertDataModule, HeatAlertLightning,
+#                              HeatAlertModel)
+from pyro_heat_alert import (HeatAlertDataModule, HeatAlertLightning,
                              HeatAlertModel)
 
 
@@ -21,6 +23,7 @@ def main(params):
     # params = {"model_name": "FF_sample", "n_samples": 1000, "SC": "F", "county": 36005, "constrain": "all"}
     # params = {"model_name": "FF_C-M_wide-EB-prior", "n_samples": 1, "SC": "F", "county": 36005, "constrain": "mixed"}
     # params = {"model_name": "FF_C-M_sample", "n_samples": 1000, "SC": "F", "county": 36005, "constrain": "mixed"}
+    params=vars(params)
     ## Read in data:
     n_days = 153
     years = set(range(2006, 2017))
@@ -122,8 +125,6 @@ def main(params):
         for key, val in samples[i].items():
             w.writerow([key, val.numpy().tolist()]) 
     
-        
-
 
 
 if __name__ == "__main__":

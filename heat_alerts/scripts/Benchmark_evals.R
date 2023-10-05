@@ -18,8 +18,8 @@ HI_thresholds<- seq(0.5, 0.9, 0.05)
 
 ## If eval_func != compare_to_zero:
 
-for(r_model in c( "alert_constraints"
-  , "all_constraints", "no_constraints", "hi_constraints"
+for(r_model in c("mixed_constraints" 
+  # , "alert_constraints", "all_constraints", "no_constraints", "hi_constraints"
 )){
   Zero<- rep(0,length(counties))
   NWS<- rep(0,length(counties))
