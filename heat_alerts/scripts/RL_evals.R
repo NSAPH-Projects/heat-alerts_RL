@@ -163,10 +163,11 @@ for(r_model in c("mixed_constraints"
   # , "alert_constraints", "all_constraints", "no_constraints", "hi_constraints"
 )){
   print(r_model)
-  DF<- read.csv(paste0("Fall_results/RL_evals_", r_model, "_", eval_func_name, ".csv"))
+  DF<- read.csv(paste0("Fall_results/RL_evals_", r_model, "_", eval_func_name, ".csv"))[,-1]
   print(DF)
   bench_df<- read.csv(paste0("Fall_results/Benchmarks_", r_model, "_", eval_func_name, ".csv"))
   for(j in seq(1, ncol(DF))[-seq(3,ncol(DF),3)]){
+    # print(paste(names(DF)[j], " =", wilcox.test(DF[,j], bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$statistic))
     print(paste(names(DF)[j], " =", round(wilcox.test(DF[,j], bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
   }
 }
