@@ -11,8 +11,8 @@ sink("Run_jobs/Online_tests_short") # total = 2700; without DQN = 2100; without 
 for(k in counties){
   county<- k
   
-  for(algo in c("trpo"
-                # , "dqn"
+  for(algo in c( # "trpo",
+                "dqn"
   )){
       if(algo == "dqn"){
         for(forecasts in c("none", "all")){
