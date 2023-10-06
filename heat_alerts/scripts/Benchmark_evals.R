@@ -151,8 +151,8 @@ for(r_model in c( # "mixed_constraints",
 
 ### Inspect results:
 
-for(r_model in c("mixed_constraints"
-  # , "alert_constraints", "all_constraints", "no_constraints", "hi_constraints"
+for(r_model in c( # "mixed_constraints",
+  "alert_constraints", "all_constraints", "no_constraints", "hi_constraints"
 )){
   print(r_model)
   DF<- read.csv(paste0("Fall_results/Benchmarks_", r_model, "_", eval_func_name, ".csv"))
