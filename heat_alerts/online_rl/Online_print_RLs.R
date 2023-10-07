@@ -12,17 +12,18 @@ for(k in counties){
   county<- k
   
   for(algo in c( # "trpo",
-                "dqn"
+                # "dqn",
+                "ppo"
   )){
-      if(algo == "dqn"){
+      if(algo %in% c("dqn", "ppo")){
         for(forecasts in c("none", "all")){
-          cat(paste0("python train_online_rl_sb3.py", " county=", county, " r_model=", r_model, " algo=dqn",
+          cat(paste0("python train_online_rl_sb3.py", " county=", county, " r_model=", r_model, " algo=", algo,
                      " restrict_days=none", " forecasts=", forecasts, 
-                     " model_name=", r_model, "_dqn", "_F-", forecasts, "_fips-", county, " \n"))
+                     " model_name=", r_model, "_", algo, "_F-", forecasts, "_fips-", county, " \n"))
           for(h in seq(0.5, 0.9, 0.05)){
-            cat(paste0("python train_online_rl_sb3.py", " county=", county, " r_model=", r_model, " algo=dqn",
+            cat(paste0("python train_online_rl_sb3.py", " county=", county, " r_model=", r_model, " algo=", algo,
                        " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h, 
-                       " model_name=", r_model, "_dqn", "_F-", forecasts, "_Rstr-HI-", h, "_fips-", county, " \n"))
+                       " model_name=", r_model, "_", algo, "_F-", forecasts, "_Rstr-HI-", h, "_fips-", county, " \n"))
           }
         }
       }else{
