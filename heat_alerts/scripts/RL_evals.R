@@ -33,8 +33,8 @@ for(r_model in c("mixed_constraints"
     county<- counties[k]
     
     i<- 1 # column tracker
-    for(algo in c("trpo"
-                  # , "dqn"
+    for(algo in c( # "trpo",
+                  "dqn"
     )){
       if(algo == "dqn"){
         forecast_list<- c("none", "all")
@@ -79,7 +79,12 @@ for(r_model in c("mixed_constraints"
   DF<- round(data.frame(results),3)
   names(DF)<- my_names
   
-  write.csv(DF, paste0("Fall_results/RL_evals_", r_model, "_", eval_func_name, ".csv"))
+  f<- paste0("Fall_results/RL_evals_", r_model, "_", eval_func_name, ".csv")
+  if(file.exists(f)){
+    old<- read.csv(f)[,-1]
+    DF<- cbind(old, DF)
+  }
+  write.csv(DF, f)
   print(paste("Finished with", r_model))
 }
 
@@ -101,8 +106,8 @@ for(r_model in c("mixed_constraints"
     filename_zero_train<- paste0("Summer_results/ORL_NA_train_samp-R_samp-W_", r_model, "_fips_", county, ".csv")
     
     i<- 1 # column tracker
-    for(algo in c("trpo"
-                  # , "dqn"
+    for(algo in c( "trpo"
+                    # , "dqn"
     )){
       if(algo == "dqn"){
         forecast_list<- c("none", "all")
@@ -151,7 +156,12 @@ for(r_model in c("mixed_constraints"
   DF<- round(data.frame(results),3)
   names(DF)<- my_names
   
-  write.csv(DF, paste0("Fall_results/RL_evals_", r_model, "_", eval_func_name, ".csv"))
+  f<- paste0("Fall_results/RL_evals_", r_model, "_", eval_func_name, ".csv")
+  if(file.exists(f)){
+    old<- read.csv(f)[,-1]
+    DF<- cbind(old, DF)
+  }
+  write.csv(DF, f)
   print(paste("Finished with", r_model))
 }
 
