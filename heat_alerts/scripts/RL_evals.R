@@ -106,8 +106,8 @@ for(r_model in c("mixed_constraints"
     filename_zero_train<- paste0("Summer_results/ORL_NA_train_samp-R_samp-W_", r_model, "_fips_", county, ".csv")
     
     i<- 1 # column tracker
-    for(algo in c( "trpo"
-                    # , "dqn"
+    for(algo in c( # "trpo",
+                    "dqn"
     )){
       if(algo == "dqn"){
         forecast_list<- c("none", "all")

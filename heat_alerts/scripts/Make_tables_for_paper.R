@@ -75,6 +75,19 @@ DF<- inner_join(DF, more_W)
 
 write.csv(DF, "data/Final_30_W.csv")
 
+## Select one county from each climate region for hyperparameter tuning:
+
+regions<- unique(DF$Region)
+
+for(r in 1:length(regions)){
+  print(regions[r])
+  pos<- which(DF$Region==regions[r])
+  Z_vars<- apply(DF[pos, c("Alerts", "SD_Eff", "Pop_density", "Med.HH.Income", 
+                                              "Democrat", "broadband.usage", "pm25")], MARGIN=2, scale)
+  i<- which.min(rowSums(abs(Z_vars)))
+  print(paste0(DF$Fips[pos[i]], " (", DF$State[pos[i]], ")"))
+}
+
 # ## Add evaluation results:
 # 
 # results<- read.csv("Fall_results/Final_eval_30_best-T7-T8.csv")
