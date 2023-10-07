@@ -1,7 +1,7 @@
 defaults:
   - _self_
   - algo: trpo
-  - r_model: all_constraints
+  - r_model: mixed_constraints
   - restrict_days: qhi
   - forecasts: num_elig
   - shaped_penalty: none
