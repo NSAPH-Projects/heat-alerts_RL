@@ -11,9 +11,9 @@ sink("Run_jobs/Online_tests_short") # total = 2700; without DQN = 2100; without 
 for(k in counties){
   county<- k
   
-  for(algo in c( # "trpo",
+  for(algo in c( "trpo" #,
                 # "dqn",
-                "ppo"
+                # "ppo"
   )){
       if(algo %in% c("dqn", "ppo")){
         for(forecasts in c("none", "all")){
@@ -27,8 +27,8 @@ for(k in counties){
           }
         }
       }else{
-        for(forecasts in c("none", "all"
-                           # , "N", "Av4", "D3", "D10", "Q"
+        for(forecasts in c( # "none", "all",
+                           "N", "Av4", "D3", "D10", "Q", "N_Av4_D3"
         )){
           cat(paste0("python train_online_rl_sb3.py", " county=", county, " r_model=", r_model, " algo=trpo",
                      " restrict_days=none", " forecasts=", forecasts,

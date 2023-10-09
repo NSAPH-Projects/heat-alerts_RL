@@ -34,7 +34,8 @@ for(r_model in c("mixed_constraints"
     
     i<- 1 # column tracker
     for(algo in c( # "trpo",
-                  "dqn"
+                  #  "dqn",
+                    "ppo"
     )){
       if(algo == "dqn"){
         forecast_list<- c("none", "all")
@@ -107,7 +108,8 @@ for(r_model in c("mixed_constraints"
     
     i<- 1 # column tracker
     for(algo in c( # "trpo",
-                    "dqn"
+                    #  "dqn",
+                    "ppo"
     )){
       if(algo == "dqn"){
         forecast_list<- c("none", "all")
@@ -177,8 +179,9 @@ for(r_model in c("mixed_constraints"
   print(DF)
   bench_df<- read.csv(paste0("Fall_results/Benchmarks_", r_model, "_", eval_func_name, ".csv"))
   for(j in seq(1, ncol(DF))[-seq(3,ncol(DF),3)]){
-    # print(paste(names(DF)[j], " =", wilcox.test(DF[,j], bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$statistic))
-    print(paste(names(DF)[j], " =", round(wilcox.test(DF[,j], bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
+    # print(paste(names(DF)[j], " =", round(mean(DF[,j] - bench_df$NWS),4)))
+    print(paste(names(DF)[j], " =", wilcox.test(DF[,j], bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$statistic))
+    # print(paste(names(DF)[j], " =", round(wilcox.test(DF[,j], bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
   }
 }
 
