@@ -28,7 +28,7 @@ for(k in counties){
         }
       }else{
         for(forecasts in c( # "none", "all",
-                           "N", "Av4", "D3", "D10", "Q", "N_Av4_D3"
+                           "num_elig", "quarters", "three_day", "ten_day", "quantiles", "N_Av4_D3"
         )){
           cat(paste0("python train_online_rl_sb3.py", " county=", county, " r_model=", r_model, " algo=trpo",
                      " restrict_days=none", " forecasts=", forecasts,

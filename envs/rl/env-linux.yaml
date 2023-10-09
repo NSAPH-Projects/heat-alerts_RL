@@ -5,7 +5,7 @@ channels:
   - nvidia
 dependencies:
   - python=3.10
-  - pytorch-cuda=11.8
+  - pytorch-cuda=12.1
   - scipy
   - structlog=20.2.0
   - colorama=0.4.4
@@ -29,7 +29,7 @@ dependencies:
     - pyro-ppl
     - stable-baselines3>=0.10.0
     - sb3-contrib
-    - git+https://github.com/takuseno/d3rlpy@v1.1.1
+      #  - git+https://github.com/takuseno/d3rlpy@v1.1.1
     - graphviz
     - seaborn
     - statsmodels
