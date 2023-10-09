@@ -12,7 +12,7 @@ This is code for investigating applicability of reinforcement learning (RL) to e
 
 ### Installing the conda environment and getting the data ready for modeling:
 ```
-conda env create -f ../envs/heatrl/env-linux.yaml
+conda env create -f envs/rl/env-linux.yaml
 conda activate heatrl
 ```
 Then run the script heat_alerts/scripts/prepare_bayesian_model_data.py to get everything in the right format for the Bayesian model and gym environment.
