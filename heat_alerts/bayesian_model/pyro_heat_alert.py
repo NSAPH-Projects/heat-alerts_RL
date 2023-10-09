@@ -265,15 +265,16 @@ class HeatAlertDataModule(pl.LightningDataModule):
         X = pd.read_parquet(f"{dir}/states.parquet").drop(columns="intercept")
         A = pd.read_parquet(f"{dir}/actions.parquet")
         if load_outcome:
+            offset = pd.read_parquet(f"{dir}/offset.parquet")
             if not sampled_Y:
                 Y = pd.read_parquet(f"{dir}/outcomes.parquet")
             else:
                 Y = pd.read_parquet(f"{dir}/sampled_outcomes.parquet")
         else:
             Y = pd.DataFrame({"outcome": np.full(A.shape[0], np.nan)}, index=A.index)
+            offset = pd.DataFrame({"offset": np.full(A.shape[0], np.nan)}, index=A.index)
         W = pd.read_parquet(f"{dir}/spatial_feats.parquet")
         sind = pd.read_parquet(f"{dir}/location_indicator.parquet")
-        offset = pd.read_parquet(f"{dir}/offset.parquet")
         dos = pd.read_parquet(f"{dir}/Btdos.parquet")
         year = pd.read_parquet(f"{dir}/year.parquet")
         budget = pd.read_parquet(f"{dir}/budget.parquet")
@@ -394,18 +395,18 @@ class HeatAlertDataModule(pl.LightningDataModule):
         effectiveness_features_tensor = torch.stack(
             [effectiveness_features[k] for k in self.effectiveness_feature_names], dim=1
         )
-
+        
         self.dataset = torch.utils.data.TensorDataset(
-            hospitalizations,
-            location_indicator,
-            county_summer_mean,
-            alert,
-            baseline_features_tensor,
-            effectiveness_features_tensor,
-            torch.arange(X.shape[0]),
-            year,
-            budget,
-        )
+                hospitalizations,
+                location_indicator,
+                county_summer_mean,
+                alert,
+                baseline_features_tensor,
+                effectiveness_features_tensor,
+                torch.arange(X.shape[0]),
+                year,
+                budget,
+            )
         if for_gym:
             self.gym_dataset = [
                 hospitalizations,
