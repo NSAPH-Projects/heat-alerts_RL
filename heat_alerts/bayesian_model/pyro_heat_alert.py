@@ -272,7 +272,7 @@ class HeatAlertDataModule(pl.LightningDataModule):
                 Y = pd.read_parquet(f"{dir}/sampled_outcomes.parquet")
         else:
             Y = pd.DataFrame({"outcome": np.full(A.shape[0], np.nan)}, index=A.index)
-            offset = pd.DataFrame({"offset": np.full(A.shape[0], np.nan)}, index=A.index)
+            offset = pd.DataFrame({"offset": np.full(A.shape[0], 1)}, index=A.index)
         W = pd.read_parquet(f"{dir}/spatial_feats.parquet")
         sind = pd.read_parquet(f"{dir}/location_indicator.parquet")
         dos = pd.read_parquet(f"{dir}/Btdos.parquet")
