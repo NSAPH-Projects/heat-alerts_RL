@@ -2,7 +2,7 @@
 #SBATCH -J Orl_tune
 #SBATCH -N 1
 #SBATCH -n 1
-#SBATCH -p fasse # test
+#SBATCH -p shared # fasse # test
 #SBATCH -t 0-7:00
 #SBATCH --mem 6G
 #SBATCH --array 0-10934
