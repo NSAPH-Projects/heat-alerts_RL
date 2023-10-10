@@ -51,7 +51,7 @@ sink()
 
 tune_counties<- c(32003, 29019, 45015, 19153, 41053)
 tune_HI<- c(0.55, 0.7, 0.85)
-tune_forecasts<- c("none", "all", "quantiles")
+tune_forecasts<- c("none", "all") # , "quantiles"
 NHU<- c(16, 32, 64)
 NHL<- c(1, 2, 3)
 LR<- c(0.001, 0.0001, 0.01)
