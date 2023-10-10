@@ -25,7 +25,8 @@ for(r_model in c("mixed_constraints"
 )){
   results<- matrix(
     0, nrow=length(counties), 
-    ncol=6 # [trpo]*[none, all]*[none, qhi, qhi_ot]
+    # ncol=6 # [trpo]*[none, all]*[none, qhi, qhi_ot]
+    ncol=18 # [trpo]*[6 forecast options]*[none, qhi, qhi_ot]
   )
   my_names<- rep("", ncol(results))
   
@@ -33,16 +34,16 @@ for(r_model in c("mixed_constraints"
     county<- counties[k]
     
     i<- 1 # column tracker
-    for(algo in c( # "trpo",
+    for(algo in c( "trpo" #,
                   #  "dqn",
-                    "ppo"
+                    # "ppo"
     )){
       if(algo == "dqn"){
         forecast_list<- c("none", "all")
       }else{
         forecast_list<- c(
-          "none", "all" 
-          # , "N", "Av4", "D3", "D10", "Q"
+          # "none", "all",  
+          "num_elig", "quarters", "three_day", "ten_day", "quantiles", "N_Av4_D3"
         )
       }
       for(forecasts in forecast_list){
@@ -73,6 +74,7 @@ for(r_model in c("mixed_constraints"
         my_names[i]<- paste0("ot_", algo, "_qhi_F-", forecasts)
         results[k,i]<- HI_thresholds[j]
         i<- i+1
+        print(forecasts)
       }
     }
     print(county)
@@ -97,7 +99,8 @@ for(r_model in c("mixed_constraints"
 )){
   results<- matrix(
     0, nrow=length(counties), 
-    ncol=6 # [trpo]*[none, all]*[none, qhi, qhi_ot]
+    # ncol=6 # [trpo]*[none, all]*[none, qhi, qhi_ot]
+    ncol=18 # [trpo]*[6 forecast options]*[none, qhi, qhi_ot]
   )
   my_names<- rep("", ncol(results))
   
@@ -107,16 +110,16 @@ for(r_model in c("mixed_constraints"
     filename_zero_train<- paste0("Summer_results/ORL_NA_train_samp-R_samp-W_", r_model, "_fips_", county, ".csv")
     
     i<- 1 # column tracker
-    for(algo in c( # "trpo",
-                    #  "dqn",
-                    "ppo"
+    for(algo in c( "trpo" #,
+                   #  "dqn",
+                   # "ppo"
     )){
       if(algo == "dqn"){
         forecast_list<- c("none", "all")
       }else{
         forecast_list<- c(
-          "none", "all" 
-          # , "N", "Av4", "D3", "D10", "Q"
+          # "none", "all",  
+          "num_elig", "quarters", "three_day", "ten_day", "quantiles", "N_Av4_D3"
         )
       }
       for(forecasts in forecast_list){
@@ -176,12 +179,12 @@ for(r_model in c("mixed_constraints"
 )){
   print(r_model)
   DF<- read.csv(paste0("Fall_results/RL_evals_", r_model, "_", eval_func_name, ".csv"))[,-1]
-  print(DF)
+  # print(DF)
   bench_df<- read.csv(paste0("Fall_results/Benchmarks_", r_model, "_", eval_func_name, ".csv"))
   for(j in seq(1, ncol(DF))[-seq(3,ncol(DF),3)]){
     # print(paste(names(DF)[j], " =", round(mean(DF[,j] - bench_df$NWS),4)))
-    print(paste(names(DF)[j], " =", wilcox.test(DF[,j], bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$statistic))
-    # print(paste(names(DF)[j], " =", round(wilcox.test(DF[,j], bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
+    # print(paste(names(DF)[j], " =", wilcox.test(DF[,j], bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$statistic))
+    print(paste(names(DF)[j], " =", round(wilcox.test(DF[,j], bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
   }
 }
 

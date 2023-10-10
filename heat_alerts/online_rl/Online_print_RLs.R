@@ -51,7 +51,7 @@ sink()
 
 tune_counties<- c(32003, 29019, 45015, 19153, 41053)
 tune_HI<- c(0.55, 0.7, 0.85)
-tune_forecasts<- c("none", "N_Av4_D3") # change?
+tune_forecasts<- c("none", "all", "quantiles")
 NHU<- c(16, 32, 64)
 NHL<- c(1, 2, 3)
 LR<- c(0.001, 0.0001, 0.01)
@@ -63,8 +63,8 @@ sink("Run_jobs/Online_tuning")
 for(k in tune_counties){
   county<- k
   
-  for(algo in c( # "trpo",
-                  "ppo"
+  for(algo in c( "trpo"
+                 # , "ppo"
   )){
     for(forecasts in tune_forecasts){
       for(nhl in NHL){
