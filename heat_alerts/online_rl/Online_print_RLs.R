@@ -58,6 +58,8 @@ LR<- c(0.001, 0.0001, 0.01)
 gamma<- c(1, 0.999, 0.99)
 n_steps<- c(2048, 4096, 512)
 
+missing<- c()
+i<- 1
 
 sink("Run_jobs/Online_tuning") 
 for(k in tune_counties){
@@ -87,13 +89,20 @@ for(k in tune_counties){
                 #            " algo.gamma=", g, " algo.n_steps=", s,
                 #            " model_name=tune_F-", forecasts, "_fips-", county, " \n"))
                 for(h in tune_HI){
-                  cat(paste0("python train_online_rl_sb3.py", " county=", county,
-                             " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h, 
-                             " algo.policy_kwargs.net_arch=", arch, " algo.learning_rate=", lr, 
-                             " algo.gamma=", g, " algo.n_steps=", s,
-                             " model_name=tune_F-", forecasts, "_Rstr-HI-", h, 
+                  f<- paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", "tune_F-", forecasts, "_Rstr-HI-", h, 
                              "_arch-", nhl, "-", nhu, "_lr-", lr, "_g-", g, "_ns-", s,
-                             "_fips-", county, " \n"))
+                             "_fips-", county, "_fips_", county, ".csv")
+                  if(!file.exists(f)){
+                    missing<- append(missing, i)
+                    cat(paste0("python train_online_rl_sb3.py", " county=", county,
+                               " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h, 
+                               " algo.policy_kwargs.net_arch=", arch, " algo.learning_rate=", lr, 
+                               " algo.gamma=", g, " algo.n_steps=", s,
+                               " model_name=tune_F-", forecasts, "_Rstr-HI-", h, 
+                               "_arch-", nhl, "-", nhu, "_lr-", lr, "_g-", g, "_ns-", s,
+                               "_fips-", county, " \n"))
+                  }
+                  i<- i+1
                 }
               }
             }
@@ -104,9 +113,6 @@ for(k in tune_counties){
   }
 }
 sink()
-
-
-
 
 
 
