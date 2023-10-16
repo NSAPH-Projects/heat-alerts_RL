@@ -5,7 +5,7 @@
 #SBATCH -p shared # fasse # test
 #SBATCH -t 0-10:00 # 0-7:00 
 #SBATCH --mem 6G
-#SBATCH --array 0-3644 # 7289
+#SBATCH --array 0-22 # 3644 # 7289
 #SBATCH -o ./Run_jobs/slurm/orl_tune.%a.out
 #SBATCH --mail-user=ellen_considine@g.harvard.edu
 #SBATCH --mail-type=BEGIN
