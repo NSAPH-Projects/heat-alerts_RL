@@ -232,6 +232,7 @@ def load_rl_states_by_county(
     dir: str,
     years: list[int] | None = None,
     match_similar: bool = False,
+    include_COI: bool = True,
     as_tensors: bool = False,
     incorp_forecasts: bool = False,
     HI_restriction: float = 0.8,
@@ -242,6 +243,8 @@ def load_rl_states_by_county(
     if match_similar:
         similar_counties = get_similar_counties(dir)
         counties = similar_counties[county]
+        if not include_COI:
+            counties.remove(county)
     else:
         counties = [county]
 

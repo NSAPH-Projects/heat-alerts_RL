@@ -84,6 +84,7 @@ def main(cfg: DictConfig):
         cfg.datadir,
         years=cfg.val_years if cfg.eval.val_years else cfg.train_years,
         match_similar=cfg.eval.match_similar,
+        include_COI=False,
         as_tensors=True,
         incorp_forecasts=cfg.forecasts.incorp_forecasts,
         HI_restriction=cfg.restrict_days.HI_restriction,
@@ -197,17 +198,17 @@ def main(cfg: DictConfig):
 
     logging.info("Performing evaluations")
     new_cfg = cfg
-    for v in [True, False]: # [True, False]
+    for v in [True]: # [True, False]
         for m in [True, False]:
-            if v == True and m == True:
-                pass
-            elif v == False and m == False:
-                pass
-            else:
-                new_cfg.eval.val_years = v
-                new_cfg.eval.match_similar = m
-                custom_eval(new_cfg, dm=dm, samples=samples)
-                logging.info("Completed eval with eval.val_years="+str(v)+" and eval.match_similar="+str(m))
+            # if v == True and m == True:
+            #     pass
+            # elif v == False and m == False:
+            #     pass
+            # else:
+            new_cfg.eval.val_years = v
+            new_cfg.eval.match_similar = m
+            custom_eval(new_cfg, dm=dm, samples=samples)
+            logging.info("Completed eval with eval.val_years="+str(v)+" and eval.match_similar="+str(m))
 
 
 if __name__ == "__main__":

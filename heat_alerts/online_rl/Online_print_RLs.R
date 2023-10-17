@@ -7,7 +7,68 @@ counties<- c(41067, 53015, 20161, 37085, 48157,
 
 r_model<- "mixed_constraints"
 
-sink("Run_jobs/Online_tests_short") # total = 2700; without DQN = 2100; without individual forecast vars or DQN = 600
+HI_thresholds<- seq(0.5, 0.9, 0.05)
+Forecasts<- c("Q_D10") # "none"
+NHU<- c(16, 32, 64)
+NHL<- c(1, 2, 3)
+n_steps<- c(1024, 2048, 4096)
+
+missing<- c()
+i<- 1
+
+sink("Run_jobs/Online_tests_short") 
+for(k in counties){
+  county<- k
+  
+  for(algo in c( "trpo"
+                 # , "ppo"
+  )){
+    for(forecasts in Forecasts){
+      for(nhl in NHL){
+        for(nhu in NHU){
+          for(s in n_steps){
+            
+            if(nhl == 1){
+              arch<- paste0("[", nhu, "]")
+            }else if(nhl == 2){
+              arch<- paste0("[", nhu, ",", nhu, "]")
+            }else if(nhl == 3){
+              arch<- paste0("[", nhu, ",", nhu, ",", nhu, "]")
+            }
+            
+            # cat(paste0("python train_online_rl_sb3.py", " county=", county,
+            #            " restrict_days=none", " forecasts=", forecasts,
+            #            " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+            #            " model_name=Tune_F-", forecasts, "_fips-", county, " \n"))
+            for(h in HI_thresholds){
+              f<- paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", 
+                         "Tune_F-", forecasts, "_Rstr-HI-", h, 
+                         "_arch-", nhl, "-", nhu, "_ns-", s,
+                         "_fips-", county, "_fips_", county, ".csv")
+              if(!file.exists(f)){
+                missing<- append(missing, i)
+                cat(paste0("python train_online_rl_sb3.py", " county=", county,
+                           " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h, 
+                           " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+                           " model_name=Tune_F-", forecasts, "_Rstr-HI-", h, 
+                           "_arch-", nhl, "-", nhu, "_ns-", s,
+                           "_fips-", county, " \n"))
+              }
+              i<- i+1
+            }
+          }
+        }
+      }
+    }
+  }
+}
+sink()
+
+
+
+##########################################
+
+sink("Run_jobs/Online_tests_short") 
 for(k in counties){
   county<- k
   

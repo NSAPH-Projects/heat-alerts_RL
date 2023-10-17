@@ -1,13 +1,14 @@
 
 source("heat_alerts/scripts/Evaluation_functions.R")
 
+# type<- "training"
 type<- "evaluation"
 
 ## Change manually:
-eval_func_name<- "compare_to_zero" 
-# eval_func_name<- "avg_return"
+# eval_func_name<- "compare_to_zero" 
+eval_func_name<- "avg_return"
 
-#### Run evaluations:
+#### Run evaluations: 
 
 if(eval_func_name == "compare_to_zero"){ # if using compare_to_zero, need additional argument below
   eval_func<- compare_to_zero 
@@ -19,7 +20,9 @@ if(eval_func_name == "compare_to_zero"){ # if using compare_to_zero, need additi
 #### Expand grid:
 tune_counties<- c(32003, 29019, 45015, 19153, 41053)
 tune_HI<- c(0.55, 0.7, 0.85)
-tune_forecasts<- c("none", "all") # , "quantiles"
+# tune_forecasts<- c("none", "all")
+# tune_forecasts<- "quantiles"
+tune_forecasts<- c("none", "all", "quantiles")
 NHU<- c(16, 32, 64)
 NHL<- c(1, 2, 3)
 LR<- c(0.001, 0.0001, 0.01)
@@ -37,7 +40,7 @@ DF$Eval<- 0
 
 ## Filling in:
 filling<- TRUE
-DF<- read.csv(paste0("Fall_results/Tuning_evals_", eval_func_name, ".csv"))[,-1]
+DF<- read.csv(paste0("Fall_results/Tuning_evals_", type, "_", eval_func_name, ".csv"))[,-1]
 
 
 ## If eval_func != compare_to_zero:
@@ -50,39 +53,61 @@ for(i in 1:nrow(DF)){
              "_lr-", DF$LR[i], "_g-", DF$gamma[i], "_ns-", DF$n_steps[i],
              "_fips-", DF$tune_counties[i])
   if(filling & is.na(DF$Eval[i])){
-    DF$Eval[i]<- eval_func(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", m, "_fips_", DF$tune_counties[i], ".csv"))
+    # DF$Eval[i]<- eval_func(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", m, "_fips_", DF$tune_counties[i], ".csv"))
+    DF$Eval[i]<- eval_func(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", m, "_fips_", DF$tune_counties[i], ".csv"))
+    print(i)
+  }else if(!filling){
+    # DF$Eval[i]<- eval_func(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", m, "_fips_", DF$tune_counties[i], ".csv"))
+    DF$Eval[i]<- eval_func(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", m, "_fips_", DF$tune_counties[i], ".csv"))
     if(i %% 50 == 0){
       print(paste(i, "=", Sys.time() - start))
     }
   }
 }
 
-write.csv(DF, paste0("Fall_results/Tuning_evals_", type, "_", eval_func_name, ".csv"))
-
-
-## If eval_func == compare_to_zero:
-
-start<- Sys.time()
-
-for(i in 1:nrow(DF)){
-  m<- paste0("tune_F-", DF$tune_forecasts[i], "_Rstr-HI-", DF$tune_HI[i], 
-             "_arch-", DF$NHL[i], "-", DF$NHU[i], 
-             "_lr-", DF$LR[i], "_g-", DF$gamma[i], "_ns-", DF$n_steps[i],
-             "_fips-", DF$tune_counties[i])
-  
-  filename_zero_train<- paste0("Summer_results/ORL_NA_train_samp-R_samp-W_mixed_constraints_fips_", DF$tune_counties[i], ".csv")
-  
-  if(filling & is.na(DF$Eval[i])){
-    DF$Eval[i]<- eval_func(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", m, "_fips_", DF$tune_counties[i], ".csv"),
-                           filename_zero_train)
-    if(i %% 50 == 0){
-      print(paste(i, "=", Sys.time() - start))
-    }
-  }
+f<- paste0("Fall_results/Tuning_evals_", type, "_", eval_func_name, ".csv")
+if(file.exists(f)){
+  old<- read.csv(f)[,-1]
+  DF<- rbind(old, DF)
 }
+write.csv(DF, f)
 
-write.csv(DF, paste0("Fall_results/Tuning_evals_", type, "_", eval_func_name, ".csv"))
 
+#########################################
+
+# ## If eval_func == compare_to_zero:
+# 
+# start<- Sys.time()
+# 
+# for(i in 1:nrow(DF)){
+#   m<- paste0("tune_F-", DF$tune_forecasts[i], "_Rstr-HI-", DF$tune_HI[i], 
+#              "_arch-", DF$NHL[i], "-", DF$NHU[i], 
+#              "_lr-", DF$LR[i], "_g-", DF$gamma[i], "_ns-", DF$n_steps[i],
+#              "_fips-", DF$tune_counties[i])
+#   
+#   filename_zero_train<- paste0("Summer_results/ORL_NA_train_samp-R_samp-W_mixed_constraints_fips_", DF$tune_counties[i], ".csv")
+#   
+#   if(filling & is.na(DF$Eval[i])){
+#     DF$Eval[i]<- eval_func(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", m, "_fips_", DF$tune_counties[i], ".csv"),
+#                            filename_zero_train)
+#     if(i %% 50 == 0){
+#       print(paste(i, "=", Sys.time() - start))
+#     }
+#   }else if(!filling){
+#     DF$Eval[i]<- eval_func(paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", m, "_fips_", DF$tune_counties[i], ".csv"),
+#                            filename_zero_train)
+#     if(i %% 50 == 0){
+#       print(paste(i, "=", Sys.time() - start))
+#     }
+#   }
+# }
+# 
+# f<- paste0("Fall_results/Tuning_evals_", type, "_", eval_func_name, ".csv")
+# if(file.exists(f)){
+#   old<- read.csv(f)[,-1]
+#   DF<- rbind(old, DF)
+# }
+# write.csv(DF, f)
 
 #### Select the best HI threshold for each county-hyperparameter combo:
 
@@ -91,8 +116,8 @@ library(dplyr)
 tune_counties<- c(32003, 29019, 45015, 19153, 41053)
 
 ## Change manually:
-eval_func_name<- "compare_to_zero" 
-# eval_func_name<- "avg_return"
+# eval_func_name<- "compare_to_zero" 
+eval_func_name<- "avg_return"
 
 DF<- read.csv(paste0("Fall_results/Tuning_evals_", type, "_", eval_func_name, ".csv"))[,-1]
 
@@ -121,15 +146,19 @@ write.csv(opt_DF, paste0("Fall_results/Tuning_", type, "_opt-HI_", eval_func_nam
 
 library(ggplot2)
 
+opt_DF<- read.csv(paste0("Fall_results/Tuning_", type, "_opt-HI_", eval_func_name, ".csv"))
+
 # fit0<- lm(Eval ~ tune_counties + tune_forecasts + NHU + NHL +
 #             LR + gamma + n_steps, opt_DF)
 
 for(k in tune_counties){
-  print(k)
+  # print(k)
   
   pos<- which(opt_DF[,"tune_counties"] == k)
   m<- which.max(opt_DF[pos, "Eval"])
+  # m2<- which.max(opt_DF[pos[-m], "Eval"])
   print(opt_DF[pos[m],])
+  # print(opt_DF[pos[-m][m2],])
   print(summary(opt_DF[pos,"Eval"]))
   
   # fit<- lm(Eval ~ tune_forecasts + NHU + NHL + NHU*NHL +

@@ -65,6 +65,7 @@ def main(cfg: DictConfig):
         cfg.datadir,
         years=cfg.val_years if cfg.eval.val_years else cfg.train_years,
         match_similar=cfg.eval.match_similar,
+        include_COI=False,
         as_tensors=True,
         incorp_forecasts=cfg.forecasts.incorp_forecasts,
         HI_restriction=cfg.restrict_days.HI_restriction,
