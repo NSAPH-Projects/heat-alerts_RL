@@ -9,9 +9,12 @@ r_model<- "mixed_constraints"
 
 HI_thresholds<- seq(0.5, 0.9, 0.05)
 Forecasts<- c("Q_D10") # "none"
-NHU<- c(16, 32, 64)
-NHL<- c(1, 2, 3)
-n_steps<- c(1024, 2048, 4096)
+# NHU<- c(16, 32, 64)
+# NHL<- c(1, 2, 3)
+# n_steps<- c(1024, 2048, 4096)
+NHU<- c(32)
+NHL<- c(2)
+n_steps<- c(2048)
 
 missing<- c()
 i<- 1
