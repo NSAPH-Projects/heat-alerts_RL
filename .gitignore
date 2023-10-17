@@ -1,6 +1,7 @@
 # Data subfolder:
 data/*
 Run_jobs/slurm/*
+F_accuracy/*
 
 # Random folders to ignore:
 d3rlpy_logs/*
