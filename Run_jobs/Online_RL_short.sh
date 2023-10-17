@@ -5,7 +5,7 @@
 #SBATCH -p shared
 #SBATCH -t 0-10:00
 #SBATCH --mem 6G
-#SBATCH --array 0-260 # 7289
+#SBATCH --array 0-242 # 7289
 #SBATCH -o ./Run_jobs/slurm/orl_short.%a.out
 #SBATCH --mail-user=ellen_considine@g.harvard.edu
 #SBATCH --mail-type=BEGIN
