@@ -14,6 +14,7 @@ data<- read_csv("data/Summer23_Train_smaller-for-Python.csv")
 # bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FullFast_8-16.csv", header=FALSE)
 bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-M_wide-EB-prior.csv", header=FALSE)
 A<- read_parquet("data/processed/actions.parquet")$alert
+offset<- read_parquet("data/processed/offset.parquet")$mean_other_hosps
 
 # Set train_years to zero so they're not included in the sum:
 n_days<- 153
@@ -42,6 +43,7 @@ Region<- unlist(Region)
 
 DF<- data.frame(County = fips[locs+1],
                 Region = Region[locs+1],
+                Offset = offset,
                 Alerts = rep(sum_alerts$A, each=length(A)/761),
                 SD_Eff = rep(sd_eff$Eff, each=length(A)/761) #, 
                 # Pop_density = exp(W$Log_Pop_density)[locs+1],
@@ -65,6 +67,7 @@ States$Fips<- as.numeric(States$Fips)
 DF$Fips<- as.numeric(DF$County)
 DF$County<- NULL
 DF<- inner_join(distinct(DF), States[,c("Fips", "State")])
+DF<- aggregate(Offset ~ ., DF, mean)
 
 ## Get spatial covariates on their original scales:
 more_W<- aggregate(. ~ fips, data[which(data$fips %in% counties),c("fips", "Pop_density", "Med.HH.Income",  "Democrat", "broadband.usage", "pm25")], mean)

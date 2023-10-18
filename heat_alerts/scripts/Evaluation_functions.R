@@ -12,6 +12,8 @@ counties<- c(41067, 53015, 20161, 37085, 48157,
              47113, 42017, 22109, 45015, 13031, 48367, 22063, 41053,
              32003, 4015, 6025)
 
+filename<- "Summer_results/ORL_NWS_eval_samp-R_obs-W_mixed_constraints_fips_13031.csv"
+
 avg_return<- function(filename){
   f<- file.exists(filename) 
   if(f){

@@ -131,6 +131,17 @@ def main(cfg: DictConfig):
             return(1)
         elif policy_type == "NWS":
             return(env.other_data["nws_alert"][env.feature_ep_index, env.t])
+        elif policy_type == "basic_NWS":
+            if env.other_data["south"][env.feature_ep_index, env.t]:
+                if env.extra_dict["future"][env.feature_ep_index, env.t] >= 105:
+                    return(1)
+                else:
+                    return(0)
+            else:
+                if env.extra_dict["future"][env.feature_ep_index, env.t] >= 100:
+                    return(1)
+                else:
+                    return(0)
 
     rewards = []
     actions = []

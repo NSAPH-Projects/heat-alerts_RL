@@ -23,6 +23,12 @@ WESTERN_STATES = [
     "KS",
 ] # ND, SD, NE and KS together only add 10 counties to the cold western group
 
+SOUTHERN_STATES = [
+    "TX", "OK", "AR", "LA", "MS", "AL", "GA", "FL", "TN", "KY", "SC", "NC", 
+    "VA", "WV", "VA", "MD", "DE", 
+    "NM", "AZ", "CA" # including CA in South based on the specific counties in our final 30
+]
+
 
 def get_similar_counties(dir: str):
     """Returns a dictionary that assigns similar counties to each county based
@@ -96,6 +102,7 @@ def load_rl_states_data(dir: str, HI_restriction: float, incorp_forecasts: bool)
         states["q" + str(q) + "0"] = pd.read_parquet(f"{dir}/future_q" + str(q) + "0.parquet")
     nws_alerts = pd.read_parquet(f"{dir}/actions.parquet")
     budgets = pd.read_parquet(f"{dir}/budget.parquet")
+    st_ab = pd.read_parquet(f"{dir}/state.parquet").state
     sind = pd.read_parquet(f"{dir}/location_indicator.parquet").sind
     year = pd.read_parquet(f"{dir}/year.parquet").year
     with open(f"{dir}/fips2idx.json", "r") as io:
@@ -151,6 +158,7 @@ def load_rl_states_data(dir: str, HI_restriction: float, incorp_forecasts: bool)
     )
     other = pd.concat([nws_alerts, budgets, year], axis=1)
     other.columns = ["nws_alert", "budget", "y"]
+    other["south"] = [s.strip() in SOUTHERN_STATES for s in st_ab]
     other_vars = (
         other.assign(fips=sind.map(idx2fips).astype(int))
         .assign(dos_index=dos_index)

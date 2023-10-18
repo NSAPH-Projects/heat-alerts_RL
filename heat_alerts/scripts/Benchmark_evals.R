@@ -2,7 +2,7 @@
 source("heat_alerts/scripts/Evaluation_functions.R")
 
 ## Change manually:
-eval_func_name<- "per_alert" # "compare_to_zero" # "avg_return"
+eval_func_name<- "avg_return" # "per_alert" # "compare_to_zero"
 
 #### Run evaluations:
 
@@ -44,15 +44,15 @@ for(r_model in c("mixed_constraints"
     for(pol in c("random", "AA")){
       for(i in 1:length(Models)){
         m<- Models[i]
-        train_samp<- eval_func(paste0("Summer_results/ORL_", pol, "_train_samp-R_samp-W_", m, "_fips_", county, ".csv"))
+        eval_samp<- eval_func(paste0("Summer_results/ORL_", pol, "_eval_samp-R_samp-W_", m, "_fips_", county, ".csv"))
         eval<- eval_func(paste0("Summer_results/ORL_", pol, "_eval_samp-R_obs-W_", m, "_fips_", county, ".csv"))
         if(i == 1){
-          Eval_samp<- train_samp
+          Eval_samp<- eval_samp
           Eval<- eval
           j<- 1
         }else{
-          if(train_samp > Eval_samp){
-            Eval_samp<- train_samp
+          if(eval_samp > Eval_samp){
+            Eval_samp<- eval_samp
             Eval<- eval
             j<- i
           }
@@ -151,17 +151,22 @@ for(r_model in c( # "mixed_constraints",
 
 ### Inspect results:
 
-for(r_model in c( # "mixed_constraints",
-  "alert_constraints", "all_constraints", "no_constraints", "hi_constraints"
+for(r_model in c( "mixed_constraints"
+  # , "alert_constraints", "all_constraints", "no_constraints", "hi_constraints"
 )){
   print(r_model)
   DF<- read.csv(paste0("Fall_results/Benchmarks_", r_model, "_", eval_func_name, ".csv"))
   # print(DF)
   # hist(DF$NWS - DF$Zero, main=r_model)
-  print(paste("Random =", round(wilcox.test(DF$Random, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
-  print(paste("Random_QHI =", round(wilcox.test(DF$Random_QHI, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
-  print(paste("AA_QHI =", round(wilcox.test(DF$AA_QHI, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
-  print(paste("Top_K =", round(wilcox.test(DF$Top_K, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
+  for(j in which(names(DF) %in% c("Random", "Random_QHI", "AA_QHI", "Top_K"))){
+    wmw<- wilcox.test(DF[,j], DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE)
+    print(paste0(names(DF)[j], ": median_diff = ", round(median(DF[,j] - DF$NWS),3), 
+                 ", WMW = ", wmw$statistic, ", p_val = ", round(wmw$p.value, 5)))
+  }
+  # print(paste("Random =", round(wilcox.test(DF$Random, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
+  # print(paste("Random_QHI =", round(wilcox.test(DF$Random_QHI, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
+  # print(paste("AA_QHI =", round(wilcox.test(DF$AA_QHI, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
+  # print(paste("Top_K =", round(wilcox.test(DF$Top_K, DF$NWS, paired = TRUE, alternative = "greater", exact=FALSE)$p.value,8)))
 }
 
 
