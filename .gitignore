@@ -2,6 +2,7 @@
 data/*
 Run_jobs/slurm/*
 F_accuracy/*
+heat_alerts/time_series_data/*
 
 # Random folders to ignore:
 d3rlpy_logs/*
