@@ -3,7 +3,7 @@
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH -p shared
-#SBATCH -t 0-4:00 # 15:00
+#SBATCH -t 0-15:00
 #SBATCH --mem 6G
 #SBATCH --array 0-1 # 7289
 #SBATCH -o ./Run_jobs/slurm/orl_short.%a.out
