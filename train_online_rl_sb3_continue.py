@@ -98,8 +98,9 @@ def main(cfg: DictConfig):
     best_timestep = evals["timesteps"][np.argmax(results)]
     last_timestep = evals["timesteps"][-1]
     diff_timesteps = last_timestep - best_timestep
+    logging.info(f"Timestep difference = {diff_timesteps}")
 
-    if diff_timesteps < 5000000: # best model might still be coming?
+    if diff_timesteps < 3000000: # best model might still be coming?
 
         # Load states data
         logging.info("Loading RL states data")
