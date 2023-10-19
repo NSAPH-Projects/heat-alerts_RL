@@ -95,6 +95,7 @@ def main(cfg: DictConfig):
     ## Get number of remaining timesteps:
     evals = np.load(f"./logs/SB/{cfg.model_name}/results/evaluations.npz")
     results = np.mean(evals["results"], axis=1)
+    print(results)
     best_timestep = evals["timesteps"][np.argmax(results)]
     last_timestep = evals["timesteps"][-1]
     diff_timesteps = last_timestep - best_timestep

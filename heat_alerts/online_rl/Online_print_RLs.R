@@ -77,107 +77,52 @@ for(k in counties){
 sink()
 
 
-
-##########################################
-
+# sink("Run_jobs/Online_tuning")
 sink("Run_jobs/Online_tests_short")
 for(k in counties){
-  county<- k
-  
-  for(algo in c( "trpo" #,
-                # "dqn",
-                # "ppo"
-  )){
-      if(algo %in% c("dqn", "ppo")){
-        for(forecasts in c("none", "all")){
-          cat(paste0("python train_online_rl_sb3.py", " county=", county, " r_model=", r_model, " algo=", algo,
-                     " restrict_days=none", " forecasts=", forecasts, 
-                     " model_name=", r_model, "_", algo, "_F-", forecasts, "_fips-", county, " \n"))
-          for(h in seq(0.5, 0.9, 0.05)){
-            cat(paste0("python train_online_rl_sb3.py", " county=", county, " r_model=", r_model, " algo=", algo,
-                       " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h, 
-                       " model_name=", r_model, "_", algo, "_F-", forecasts, "_Rstr-HI-", h, "_fips-", county, " \n"))
-          }
-        }
-      }else{
-        for(forecasts in c( # "none", "all",
-                           "num_elig", "quarters", "three_day", "ten_day", "quantiles", "N_Av4_D3"
-        )){
-          cat(paste0("python train_online_rl_sb3.py", " county=", county, " r_model=", r_model, " algo=trpo",
-                     " restrict_days=none", " forecasts=", forecasts,
-                     " model_name=", r_model, "_trpo", "_F-", forecasts, "_fips-", county, " \n"))
-          for(h in seq(0.5, 0.9, 0.05)){
-            cat(paste0("python train_online_rl_sb3.py", " county=", county, " r_model=", r_model, " algo=trpo",
-                       " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h, 
-                       " model_name=", r_model, "_trpo", "_F-", forecasts, "_Rstr-HI-", h, "_fips-", county, " \n"))
-        }
-      }
-    }
-  }
-}
-sink()
-
-
-#### Hyperparameter tuning:
-
-# r_model<- "mixed_constraints"
-
-tune_counties<- c(32003, 29019, 45015, 19153, 41053)
-tune_HI<- c(0.55, 0.7, 0.85)
-# tune_forecasts<- c("none", "all")
-tune_forecasts<- c("quantiles")
-NHU<- c(16, 32, 64)
-NHL<- c(1, 2, 3)
-LR<- c(0.001, 0.0001, 0.01)
-gamma<- c(1, 0.999, 0.99)
-n_steps<- c(2048, 4096, 512)
-
-missing<- c()
-i<- 1
-
-sink("Run_jobs/Online_tuning") 
-for(k in tune_counties){
   county<- k
   
   for(algo in c( "trpo"
                  # , "ppo"
   )){
-    for(forecasts in tune_forecasts){
+    for(forecasts in Forecasts){
       for(nhl in NHL){
         for(nhu in NHU){
-          for(lr in LR){
-            for(g in gamma){
-              for(s in n_steps){
-                
-                if(nhl == 1){
-                  arch<- paste0("[", nhu, "]")
-                }else if(nhl == 2){
-                  arch<- paste0("[", nhu, ",", nhu, "]")
-                }else if(nhl == 3){
-                  arch<- paste0("[", nhu, ",", nhu, ",", nhu, "]")
+          for(s in n_steps){
+            
+            if(nhl == 1){
+              arch<- paste0("[", nhu, "]")
+            }else if(nhl == 2){
+              arch<- paste0("[", nhu, ",", nhu, "]")
+            }else if(nhl == 3){
+              arch<- paste0("[", nhu, ",", nhu, ",", nhu, "]")
+            }
+            
+            # cat(paste0("python train_online_rl_sb3.py", " county=", county,
+            #            " restrict_days=none", " forecasts=", forecasts,
+            #            " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+            #            " model_name=Tune_F-", forecasts, "_fips-", county, " \n"))
+            for(h in HI_thresholds){
+              f<- paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_",
+                         "Tune_F-", forecasts, "_Rstr-HI-", h,
+                         "_arch-", nhl, "-", nhu, "_ns-", s,
+                         "_fips-", county, "_fips_", county, ".csv")
+              if(!file.exists(f)){
+                # d<- paste0("logs/SB/Tune_F-", forecasts, "_Rstr-HI-", h,
+                #            "_arch-", nhl, "-", nhu, "_ns-", s,
+                #            "_fips-", county)
+                # if(!file.exists(d)){
+                if(!(nhl==2 & nhu==32 & s==2048)){
+                }else{
+                  missing<- append(missing, i)
+                  cat(paste0("python train_online_rl_sb3_continue.py", " county=", county,
+                             " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h, 
+                             " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+                             " model_name=Tune_F-", forecasts, "_Rstr-HI-", h, 
+                             "_arch-", nhl, "-", nhu, "_ns-", s,
+                             "_fips-", county, " \n"))
                 }
-                
-                # cat(paste0("python train_online_rl_sb3.py", " county=", county,
-                #            " restrict_days=none", " forecasts=", forecasts,
-                #            " algo.policy_kwargs.net_arch=", arch, " algo.learning_rate=", lr, 
-                #            " algo.gamma=", g, " algo.n_steps=", s,
-                #            " model_name=tune_F-", forecasts, "_fips-", county, " \n"))
-                for(h in tune_HI){
-                  f<- paste0("Summer_results/ORL_RL_train_samp-R_samp-W_", "tune_F-", forecasts, "_Rstr-HI-", h, 
-                             "_arch-", nhl, "-", nhu, "_lr-", lr, "_g-", g, "_ns-", s,
-                             "_fips-", county, "_fips_", county, ".csv")
-                  if(!file.exists(f)){
-                    missing<- append(missing, i)
-                    cat(paste0("python train_online_rl_sb3.py", " county=", county,
-                               " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h, 
-                               " algo.policy_kwargs.net_arch=", arch, " algo.learning_rate=", lr, 
-                               " algo.gamma=", g, " algo.n_steps=", s,
-                               " model_name=tune_F-", forecasts, "_Rstr-HI-", h, 
-                               "_arch-", nhl, "-", nhu, "_lr-", lr, "_g-", g, "_ns-", s,
-                               "_fips-", county, " \n"))
-                  }
-                  i<- i+1
-                }
+                i<- i+1
               }
             }
           }
@@ -190,7 +135,8 @@ sink()
 
 
 
-#### If we want to do a sensitivity analysis across r_models:
+
+############################ If we want to do a sensitivity analysis across r_models:
 
 # sink("Run_jobs/Online_tests_short") # 3900 models total; without DQN = 3300; without DQN or individual forecast vars = 1800
 # for(k in counties){
