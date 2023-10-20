@@ -131,6 +131,66 @@ for(k in counties){
 sink()
 
 
+### Re-running those that didn't make it far enough:
+
+sink("Run_jobs/Online_tuning")
+for(k in counties){
+  county<- k
+  
+  for(algo in c( "trpo"
+                 # , "ppo"
+  )){
+    for(forecasts in Forecasts){
+      for(nhl in NHL){
+        for(nhu in NHU){
+          for(s in n_steps){
+            if(nhl == 1){
+              arch<- paste0("[", nhu, "]")
+            }else if(nhl == 2){
+              arch<- paste0("[", nhu, ",", nhu, "]")
+            }else if(nhl == 3){
+              arch<- paste0("[", nhu, ",", nhu, ",", nhu, "]")
+            }
+            # cat(paste0("python train_online_rl_sb3.py", " county=", county,
+            #            " restrict_days=none", " forecasts=", forecasts,
+            #            " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+            #            " model_name=Tune_F-", forecasts, "_fips-", county, " \n"))
+            for(h in HI_thresholds){
+              f<- paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_",
+                         "Tune_F-", forecasts, "_Rstr-HI-", h,
+                         "_arch-", nhl, "-", nhu, "_ns-", s,
+                         "_fips-", county, "_fips_", county, ".csv")
+              if(!file.exists(f)){
+                progress<- read.csv(paste0("logs/SB/",
+                                           "Tune_F-", forecasts, "_Rstr-HI-", h,
+                                           "_arch-", nhl, "-", nhu, "_ns-", s,
+                                           "_fips-", county, "/training_metrics/progress.csv"))
+                last_t<- progress$time.total_timesteps[nrow(progress)]
+                over_13m<- last_t >= 13000000
+                best_eval_t<- progress$time.total_timesteps[which.max(progress$eval.mean_reward)]
+                
+                if((!over_13m) & (last_t - best_eval_t < 3000000)){
+                  cat(paste0("python train_online_rl_sb3_continue.py", " county=", county,
+                             " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h,
+                             " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+                             " model_name=Tune_F-", forecasts, "_Rstr-HI-", h,
+                             "_arch-", nhl, "-", nhu, "_ns-", s,
+                             "_fips-", county, " \n"))
+                }else{
+                  # print(paste0("Rstr-HI-", h,
+                  #              "_arch-", nhl, "-", nhu, "_ns-", s,
+                  #              "_fips-", county, ": last_t=", last_t/1000000, "m, diff=", (last_t - best_eval_t)))
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+sink()
+
 
 
 ############################ If we want to do a sensitivity analysis across r_models:
