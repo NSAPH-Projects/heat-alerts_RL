@@ -133,7 +133,8 @@ sink()
 
 ### Re-running those that didn't make it far enough:
 
-sink("Run_jobs/Online_tuning")
+# sink("Run_jobs/Online_tuning")
+sink("Run_jobs/Eval_jobs")
 for(k in counties){
   county<- k
   
@@ -161,25 +162,51 @@ for(k in counties){
                          "_arch-", nhl, "-", nhu, "_ns-", s,
                          "_fips-", county, "_fips_", county, ".csv")
               if(!file.exists(f)){
-                progress<- read.csv(paste0("logs/SB/",
-                                           "Tune_F-", forecasts, "_Rstr-HI-", h,
-                                           "_arch-", nhl, "-", nhu, "_ns-", s,
-                                           "_fips-", county, "/training_metrics/progress.csv"))
-                last_t<- progress$time.total_timesteps[nrow(progress)]
-                over_13m<- last_t >= 13000000
-                best_eval_t<- progress$time.total_timesteps[which.max(progress$eval.mean_reward)]
+                test<- tryCatch(read.csv(paste0("logs/SB/",
+                                                "Tune_F-", forecasts, "_Rstr-HI-", h,
+                                                "_arch-", nhl, "-", nhu, "_ns-", s,
+                                                "_fips-", county, "/training_metrics/progress.csv")), error=function(e){NULL})
+                if(is.null(test)){
+                  over_13m<- FALSE
+                  last_t<- 10
+                  best_eval_t<- 0
+                }else{
+                  progress<- read.csv(paste0("logs/SB/",
+                                             "Tune_F-", forecasts, "_Rstr-HI-", h,
+                                             "_arch-", nhl, "-", nhu, "_ns-", s,
+                                             "_fips-", county, "/training_metrics/progress.csv"))
+                  last_t<- progress$time.total_timesteps[nrow(progress)]
+                  over_13m<- last_t >= 13000000
+                  if(!is.null(progress$eval.mean_reward)){
+                    best_eval_t<- progress$time.total_timesteps[which.max(progress$eval.mean_reward)]
+                  }else{
+                    best_eval_t<- 0
+                  }
+                }
                 
                 if((!over_13m) & (last_t - best_eval_t < 3000000)){
-                  cat(paste0("python train_online_rl_sb3_continue.py", " county=", county,
+                  # cat(paste0("python train_online_rl_sb3.py", " county=", county,
+                  #            " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h,
+                  #            " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+                  #            " model_name=Tune_F-", forecasts, "_Rstr-HI-", h,
+                  #            "_arch-", nhl, "-", nhu, "_ns-", s,
+                  #            "_fips-", county, " \n"))
+                }else{
+                  # print(paste0("Rstr-HI-", h,
+                  #              "_arch-", nhl, "-", nhu, "_ns-", s,
+                  #              "_fips-", county, ": last_t=", last_t/1000000, "m, diff=", (last_t - best_eval_t)))
+                  cat(paste0("python old_evaluation_SB3.py eval.val_years=true eval.match_similar=true", " county=", county,
                              " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h,
                              " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
                              " model_name=Tune_F-", forecasts, "_Rstr-HI-", h,
                              "_arch-", nhl, "-", nhu, "_ns-", s,
                              "_fips-", county, " \n"))
-                }else{
-                  # print(paste0("Rstr-HI-", h,
-                  #              "_arch-", nhl, "-", nhu, "_ns-", s,
-                  #              "_fips-", county, ": last_t=", last_t/1000000, "m, diff=", (last_t - best_eval_t)))
+                  cat(paste0("python old_evaluation_SB3.py eval.val_years=true eval.match_similar=false", " county=", county,
+                             " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h,
+                             " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+                             " model_name=Tune_F-", forecasts, "_Rstr-HI-", h,
+                             "_arch-", nhl, "-", nhu, "_ns-", s,
+                             "_fips-", county, " \n"))
                 }
               }
             }
