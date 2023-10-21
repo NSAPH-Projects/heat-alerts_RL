@@ -11,7 +11,8 @@ counties<- c(41067, 53015, 20161, 37085, 48157,
              32003, 4015, 6025)
 
 Bench<- read.csv("Fall_results/Benchmarks_mixed_constraints_avg_return.csv")
-RL<- read.csv("Fall_results/RL_evals_mixed_constraints_avg_return.csv")
+# RL<- read.csv("Fall_results/RL_evals_mixed_constraints_avg_return.csv")
+RL<- read.csv("Fall_results/Main_analysis_trpo_F-Q-D10.csv")
 
 stationary_W<- read.csv("data/Final_30_W.csv")[,-1]
 state<- stationary_W$State[match(Bench$County, stationary_W$Fips)]

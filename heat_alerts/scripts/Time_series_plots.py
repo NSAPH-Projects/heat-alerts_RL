@@ -2,6 +2,7 @@
 import numpy as np
 import json
 import pandas as pd
+from scipy.special import expit as sigmoid
 
 from heat_alerts.bayesian_model.pyro_heat_alert import (HeatAlertDataModule, HeatAlertLightning,
                              HeatAlertModel)
@@ -105,7 +106,7 @@ for r in np.unique(Region):
                             0 * samples["baseline_previous_alerts"][j] +
                             ((0 - dm.prev_alert_mean)/(2 * dm.prev_alert_std)) * samples["baseline_alert_lag1"][j] +
                             samples["baseline_bias"][j])
-            effectiveness = np.exp(np.sum(effectiveness_contribs, axis=0) +
+            effectiveness = sigmoid(np.sum(effectiveness_contribs, axis=0) +
                             0 * samples["effectiveness_previous_alerts"][j] +
                             ((0 - dm.prev_alert_mean)/(2 * dm.prev_alert_std)) * samples["effectiveness_alert_lag1"][j] +
                             samples["effectiveness_bias"][j])

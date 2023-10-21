@@ -11,6 +11,8 @@ get_hosps<- function(x){ # where x is a vector from avg_return function
 bench<- read.csv("Fall_results/Benchmarks_mixed_constraints_avg_return.csv")
 bench<- bench[match(W$Fips, bench$County),]
 
+RL<- read.csv("Fall_results/Main_analysis_trpo_F-Q-D10.csv")
+
 nohr<- apply(bench[,c("Zero", "NWS", "basic_NWS", "Random", "Top_K", "Random_QHI", "AA_QHI")],
       MARGIN=2, get_hosps)
 

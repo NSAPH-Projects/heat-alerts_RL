@@ -8,7 +8,8 @@ counties<- c(41067, 53015, 20161, 37085, 48157,
 r_model<- "mixed_constraints"
 
 HI_thresholds<- seq(0.5, 0.9, 0.05)
-Forecasts<- c("Q_D10") # "none"
+# Forecasts<- c("Q_D10")
+Forecasts<- c("none")
 NHU<- c(16, 32, 64)
 NHL<- c(1, 2, 3)
 n_steps<- c(1024, 2048, 4096)
@@ -46,23 +47,29 @@ for(k in counties){
             #            " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
             #            " model_name=Tune_F-", forecasts, "_fips-", county, " \n"))
             for(h in HI_thresholds){
-              f<- paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_",
-                         "Tune_F-", forecasts, "_Rstr-HI-", h,
+              cat(paste0("python train_online_rl_sb3.py", " county=", county,
+                         " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h,
+                         " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+                         " model_name=Tune_F-", forecasts, "_Rstr-HI-", h,
                          "_arch-", nhl, "-", nhu, "_ns-", s,
-                         "_fips-", county, "_fips_", county, ".csv")
-              if(!file.exists(f)){
-                if(!(nhl==2 & nhu==32 & s==2048)){
-                }else{
-                  missing<- append(missing, i)
-                  cat(paste0("python train_online_rl_sb3.py", " county=", county,
-                             " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h, 
-                             " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
-                             " model_name=Tune_F-", forecasts, "_Rstr-HI-", h, 
-                             "_arch-", nhl, "-", nhu, "_ns-", s,
-                             "_fips-", county, " \n"))
-                }
-                i<- i+1
-              }
+                         "_fips-", county, " \n"))
+              # f<- paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_",
+              #            "Tune_F-", forecasts, "_Rstr-HI-", h,
+              #            "_arch-", nhl, "-", nhu, "_ns-", s,
+              #            "_fips-", county, "_fips_", county, ".csv")
+              # if(!file.exists(f)){
+              #   if(!(nhl==2 & nhu==32 & s==2048)){
+              #   }else{
+              #     missing<- append(missing, i)
+              #     cat(paste0("python train_online_rl_sb3.py", " county=", county,
+              #                " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h, 
+              #                " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+              #                " model_name=Tune_F-", forecasts, "_Rstr-HI-", h, 
+              #                "_arch-", nhl, "-", nhu, "_ns-", s,
+              #                "_fips-", county, " \n"))
+              #   }
+              #   i<- i+1
+              # }
             }
           }
         }
@@ -157,7 +164,7 @@ for(k in counties){
             #            " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
             #            " model_name=Tune_F-", forecasts, "_fips-", county, " \n"))
             for(h in HI_thresholds){
-              f<- paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_",
+              f<- paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_",
                          "Tune_F-", forecasts, "_Rstr-HI-", h,
                          "_arch-", nhl, "-", nhu, "_ns-", s,
                          "_fips-", county, "_fips_", county, ".csv")
