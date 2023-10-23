@@ -33,6 +33,7 @@ fips<- names(crosswalk)
 
 sum_alerts<- aggregate(A ~ locs, data.frame(A,locs), sum)
 sd_eff<- aggregate(Eff ~ locs, data.frame(Eff=bayes$V1,locs), sd)
+mean_eff<- aggregate(Eff ~ locs, data.frame(Eff=bayes$V1,locs), mean)
 
 W<- as.data.frame(read_parquet("data/processed/spatial_feats.parquet"))
 region_vars<- c("Cold", "Hot-Dry", "Marine", "Mixed-Dry", "Mixed-Humid", "Very Cold")
@@ -45,6 +46,7 @@ DF<- data.frame(County = fips[locs+1],
                 Region = Region[locs+1],
                 Offset = offset,
                 Alerts = rep(sum_alerts$A, each=length(A)/761),
+                Mean_Eff = rep(mean_eff$Eff, each=length(A)/761),
                 SD_Eff = rep(sd_eff$Eff, each=length(A)/761) #, 
                 # Pop_density = exp(W$Log_Pop_density)[locs+1],
                 # Med_HH_Inc = exp(W$Log_Med_HH_Income)[locs+1],

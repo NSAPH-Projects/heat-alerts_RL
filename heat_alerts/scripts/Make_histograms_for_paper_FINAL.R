@@ -73,9 +73,9 @@ streaks<- function(D){
   }
 }
 
-Eval_DOS<- data.frame(matrix(ncol = 2, nrow = 0))
+Eval_DOS<- data.frame(matrix(ncol = 3, nrow = 0))
 names(Eval_DOS)<- c("Policy", "Value")
-Eval_Strk.Ln<- data.frame(matrix(ncol = 2, nrow = 0))
+Eval_Strk.Ln<- data.frame(matrix(ncol = 3, nrow = 0))
 names(Eval_Strk.Ln)<- c("Policy", "Value")
 
 r_model<- "mixed_constraints"
@@ -98,13 +98,13 @@ for(k in counties){
   pheD<- Days[which(ph_eval$Actions == 1)]
   aheD<- Days[which(ah_eval$Actions == 1)]
   
-  Eval_DOS<- rbind(Eval_DOS, data.frame(Policy="NWS", Value = aeD))
-  Eval_DOS<- rbind(Eval_DOS, data.frame(Policy="Random-QHI", Value = pheD))
-  Eval_DOS<- rbind(Eval_DOS, data.frame(Policy="Always-QHI", Value = aheD))
+  Eval_DOS<- rbind(Eval_DOS, data.frame(County = k, Policy="NWS", Value = aeD))
+  Eval_DOS<- rbind(Eval_DOS, data.frame(County = k, Policy="Random-QHI", Value = pheD))
+  Eval_DOS<- rbind(Eval_DOS, data.frame(County = k, Policy="Always-QHI", Value = aheD))
   
-  Eval_Strk.Ln<- rbind(Eval_Strk.Ln, data.frame(Policy="NWS", Value = streaks(aeD)))
-  Eval_Strk.Ln<- rbind(Eval_Strk.Ln, data.frame(Policy="Random-QHI", Value = streaks(pheD)))
-  Eval_Strk.Ln<- rbind(Eval_Strk.Ln, data.frame(Policy="Always-QHI", Value = streaks(aheD)))
+  Eval_Strk.Ln<- rbind(Eval_Strk.Ln, data.frame(County = k, Policy="NWS", Value = streaks(aeD)))
+  Eval_Strk.Ln<- rbind(Eval_Strk.Ln, data.frame(County = k, Policy="Random-QHI", Value = streaks(pheD)))
+  Eval_Strk.Ln<- rbind(Eval_Strk.Ln, data.frame(County = k, Policy="Always-QHI", Value = streaks(aheD)))
   
   print(k)
 }
@@ -133,9 +133,9 @@ for(k in counties){
   
   qeD<- Days[which(q_eval$Actions == 1)]
   
-  Eval_DOS<- rbind(Eval_DOS, data.frame(Policy="RL", Value = qeD))
+  Eval_DOS<- rbind(Eval_DOS, data.frame(County = k, Policy="RL", Value = qeD))
   
-  Eval_Strk.Ln<- rbind(Eval_Strk.Ln, data.frame(Policy="RL", Value = streaks(qeD)))
+  Eval_Strk.Ln<- rbind(Eval_Strk.Ln, data.frame(County = k, Policy="RL", Value = streaks(qeD)))
   
   print(k)
 }
