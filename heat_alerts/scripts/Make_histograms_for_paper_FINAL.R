@@ -1,6 +1,6 @@
 
 library(ggplot2)
-library(cowplot, lib.loc = "~/apps/R_4.2.2")
+library(cowplot)
 
 n_days<- 153
 
@@ -37,12 +37,12 @@ RL_F.none<- read.csv("Fall_results/Main_analysis_trpo_F-none.csv")
 DF<- rbind(DF, data.frame(Policy="TRPO.QHI", Diff=RL_F.q_d10$Eval - Bench$NWS, 
                           State=state, Region=region))
 
-write.csv(DF, "Fall_results/Final_30_summary.csv")
+# write.csv(DF, "Fall_results/Final_30_summary.csv")
 
 plot_DF<- DF[which(! DF$Policy %in% c("Zero", "basic_NWS", "Random")),]
 plot_DF$Policy<- factor(plot_DF$Policy,
                         levels=c("Top_K", "Random_QHI", 
-                                 "AA_QHI", "TRPO.QHI.F"))
+                                 "AA_QHI", "TRPO.QHI", "TRPO.QHI.F"))
 
 ggplot(plot_DF, aes(x=Policy, y=Diff, color = Region, label = State)) +
   geom_hline(yintercept=0) + 
@@ -146,10 +146,9 @@ write.csv(Eval_Strk.Ln, paste0("Fall_results/Eval_Strk-Ln_", r_model, "_RL.csv")
 
 ############### Comparing to the benchmarks:
 Eval_DOS<- read.csv(paste0("Fall_results/Eval_DOS_", r_model, "_benchmarks.csv"))
-Eval_DOS<- rbind(Eval_DOS, paste0("Fall_results/Eval_DOS_", r_model, "_RL.csv"))
+Eval_DOS<- rbind(Eval_DOS, read.csv(paste0("Fall_results/Eval_DOS_", r_model, "_RL.csv")))
 Eval_Strk.Ln<- read.csv(paste0("Fall_results/Eval_Strk-Ln_", r_model, "_benchmarks.csv"))
-Eval_Strk.Ln<- rbind(Eval_Strk.Ln, paste0("Fall_results/Eval_Strk-Ln_", r_model, "_RL.csv"))
-
+Eval_Strk.Ln<- rbind(Eval_Strk.Ln, read.csv(paste0("Fall_results/Eval_Strk-Ln_", r_model, "_RL.csv")))
 
 d1<- ggplot(Eval_DOS[which(Eval_DOS$Policy %in% c("NWS", "Random-QHI")),], aes(x=Value, fill=Policy)) + 
   geom_histogram(alpha=0.4, position="identity", aes(y = ..density..)) +
@@ -180,4 +179,23 @@ s2<- ggplot(Eval_Strk.Ln[which(Eval_Strk.Ln$Policy %in% c("Always-QHI", "RL")),]
 
 plot_grid(d1, d2, nrow=1)
 plot_grid(s1, s2, nrow=1)
+
+## All together:
+
+D<- ggplot(Eval_DOS[which(Eval_DOS$Policy %in% c("NWS", "Random-QHI", "Always-QHI", "RL")),], aes(x=Value, fill=Policy)) + 
+  geom_histogram(alpha=0.4, position="identity", aes(y = ..density..)) +
+  ggtitle("Alert Density Across Days of Summer (After May 1)") + 
+  ylab("Density") + xlab("Day of Summer") +
+  theme(legend.position="bottom")
+
+S<- ggplot(Eval_Strk.Ln[which(Eval_Strk.Ln$Policy %in% c("NWS", "Random-QHI", "Always-QHI", "RL")),], 
+       aes(x=Value, fill=Policy)) + 
+  geom_histogram(alpha=0.4, position="identity") + 
+  ggtitle("Density of Alert Streak Lengths") +
+  scale_y_continuous(trans = "sqrt") + 
+  ylab("Sqrt(Count)") + xlab("Streak Lengths") +
+  theme(legend.position="bottom")
+
+plot_grid(D, S, nrow=1, rel_widths = c(2,1.5))
+
 

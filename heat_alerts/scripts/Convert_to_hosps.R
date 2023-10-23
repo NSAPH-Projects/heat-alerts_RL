@@ -12,8 +12,11 @@ bench<- read.csv("Fall_results/Benchmarks_mixed_constraints_avg_return.csv")
 bench<- bench[match(W$Fips, bench$County),]
 
 RL<- read.csv("Fall_results/Main_analysis_trpo_F-Q-D10.csv")
+RL<- RL[match(W$Fips, RL$County),]
 
-nohr<- apply(bench[,c("Zero", "NWS", "basic_NWS", "Random", "Top_K", "Random_QHI", "AA_QHI")],
+bench$RL<- RL$Eval
+
+nohr<- apply(bench[,c("Zero", "NWS", "basic_NWS", "Random", "Top_K", "Random_QHI", "AA_QHI", "RL")],
       MARGIN=2, get_hosps)
 
 compared_to_zero<- apply(nohr[,-1], MARGIN=2, function(y){nohr[,1]-y})

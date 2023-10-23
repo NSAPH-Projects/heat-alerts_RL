@@ -3,13 +3,14 @@ source("heat_alerts/scripts/Evaluation_functions.R")
 
 library(stringr)
 
+r_model<- "mixed_constraints" 
+
 ## Change manually:
 eval_func_name<- "avg_return"
 eval_func<- avg_return
 
 #### Run evaluations:
 
-r_model<- "mixed_constraints" 
 algo<- "trpo"
 HI_thresholds<- seq(0.5, 0.9, 0.05)
 # forecasts<- c("Q_D10")
@@ -114,6 +115,7 @@ write.csv(results, paste0("Fall_results/Main_analysis_trpo_F-", forecasts, ".csv
 
 # DF<- read.csv("Fall_results/Main_analysis_batch1.csv")
 DF<- read.csv("Fall_results/Main_analysis_trpo_F-Q-D10.csv")
+DF<- read.csv("Fall_results/Main_analysis_trpo_F-none.csv")
 bench_df<- read.csv(paste0("Fall_results/Benchmarks_", r_model, "_", eval_func_name, ".csv"))
 
 wmw<- wilcox.test(DF$Eval, bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)
@@ -123,4 +125,31 @@ print(paste0("Median_diff = ", round(median(DF$Eval - bench_df$NWS),3),
 wmw<- wilcox.test(DF$Eval, bench_df$AA_QHI, paired = TRUE, alternative = "greater", exact=FALSE)
 print(paste0("Median_diff = ", round(median(DF$Eval - bench_df$AA_QHI),3),
              ", WMW = ", wmw$statistic, ", p_value = ", round(wmw$p.value,5)))
+
+################# Now look at per alert (compared to Zero) metric:
+
+eval_func_name<- "compare_to_zero"
+eval_func<- compare_to_zero
+
+RL_df<- read.csv("Fall_results/Main_analysis_trpo_F-Q-D10.csv")
+forecasts<- "Q_D10"
+RL_df<- read.csv("Fall_results/Main_analysis_trpo_F-none.csv")
+forecasts<- "none"
+
+results<- rep(0, length(counties))
+
+for(k in counties){
+  i<- which(counties == k)
+
+  results[i]<- eval_func(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", 
+                  "Tune_F-", forecasts, "_Rstr-HI-", RL_df[i, "OT"], 
+                  "_arch-", RL_df[i, "NHL"], "-", RL_df[i, "NHU"],
+                  "_ns-", RL_df[i, "n_steps"], "_fips-", k, "_fips_", k, ".csv"),
+            paste0("Summer_results/ORL_NA_eval_samp-R_obs-W_", r_model, "_fips_", k, ".csv"))
+  print(k)
+}
+
+write.csv(results, paste0("Fall_results/Main_analysis_trpo_F-", forecasts, "_", eval_func_name, ".csv"), row.names=FALSE)
+
+
 
