@@ -11,8 +11,6 @@ counties<- c(41067, 53015, 20161, 37085, 48157,
              32003, 4015, 6025)
 
 Bench<- read.csv("Fall_results/Benchmarks_mixed_constraints_avg_return.csv")
-# RL<- read.csv("Fall_results/RL_evals_mixed_constraints_avg_return.csv")
-RL<- read.csv("Fall_results/Main_analysis_trpo_F-Q-D10.csv")
 
 stationary_W<- read.csv("data/Final_30_W.csv")[,-1]
 state<- stationary_W$State[match(Bench$County, stationary_W$Fips)]
@@ -29,21 +27,30 @@ for(pol in c("Zero", "Random", "Top_K", "Random_QHI", "AA_QHI", "basic_NWS")){
   print(pol)
 }
 
-for(pol in c("trpo_F.none", "trpo_qhi_F.none", "trpo_qhi_F.all")){
-  DF<- rbind(DF, data.frame(Policy=pol, Diff=RL[,pol] - Bench$NWS, 
-                            State=state, Region=region))
-  print(pol)
-}
+# RL<- read.csv("Fall_results/RL_evals_mixed_constraints_avg_return.csv")
 
-write.csv(DF, "Fall_results/Final_30_summary_df.csv")
+RL_F.q_d10<- read.csv("Fall_results/Main_analysis_trpo_F-Q-D10.csv")
+DF<- rbind(DF, data.frame(Policy="TRPO.QHI.F", Diff=RL_F.q_d10$Eval - Bench$NWS, 
+                          State=state, Region=region))
 
-plot_DF<- DF[which(! DF$Policy %in% c("Zero", "basic_NWS", "trpo_F.none", "Random")),]
+RL_F.none<- read.csv("Fall_results/Main_analysis_trpo_F-none.csv")
+DF<- rbind(DF, data.frame(Policy="TRPO.QHI", Diff=RL_F.q_d10$Eval - Bench$NWS, 
+                          State=state, Region=region))
+
+write.csv(DF, "Fall_results/Final_30_summary.csv")
+
+plot_DF<- DF[which(! DF$Policy %in% c("Zero", "basic_NWS", "Random")),]
+plot_DF$Policy<- factor(plot_DF$Policy,
+                        levels=c("Top_K", "Random_QHI", 
+                                 "AA_QHI", "TRPO.QHI.F"))
 
 ggplot(plot_DF, aes(x=Policy, y=Diff, color = Region, label = State)) +
   geom_hline(yintercept=0) + 
   geom_boxplot() +
   geom_point(position = position_jitterdodge(), alpha=0.5) +
-  ylab("Policy Return - NWS Return") # + 
+  # geom_text(position = position_jitterdodge(), size=2) +
+  ylab("Policy Return - NWS Return") + 
+  ggtitle("Comparison to NWS: Average Return on Evaluation Years")
 # facet_grid(rows = vars(Year)) + 
 # geom_text(size = 2,
 #   position=position_jitter(width=0.5,height=0)
@@ -73,6 +80,7 @@ names(Eval_Strk.Ln)<- c("Policy", "Value")
 
 r_model<- "mixed_constraints"
 
+## Benchmark stats:
 for(k in counties){
   ## Read in results:
   i<- which(counties == k)
@@ -80,9 +88,6 @@ for(k in counties){
   
   ph_eval<- read.csv(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_", r_model,"_Rstr-HI-", Bench[i,"rqhi_ot"], "_fips_", k, ".csv"))
   ah_eval<- read.csv(paste0("Summer_results/ORL_AA_eval_samp-R_obs-W_", r_model,"_Rstr-HI-", Bench[i,"aqhi_ot"], "_fips_", k, ".csv"))
-  
-  q_ot<- RL[i, "ot_trpo_qhi_F.none"]
-  q_eval<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", r_model, "_trpo_F-none_Rstr-HI-", q_ot, "_fips-", k, "_fips_", k, ".csv"))
   
   ## Calculate stats:
   n_eps<- nrow(a_eval)/(n_days-1)
@@ -93,26 +98,58 @@ for(k in counties){
   pheD<- Days[which(ph_eval$Actions == 1)]
   aheD<- Days[which(ah_eval$Actions == 1)]
   
-  qeD<- Days[which(q_eval$Actions == 1)]
-  
   Eval_DOS<- rbind(Eval_DOS, data.frame(Policy="NWS", Value = aeD))
   Eval_DOS<- rbind(Eval_DOS, data.frame(Policy="Random-QHI", Value = pheD))
   Eval_DOS<- rbind(Eval_DOS, data.frame(Policy="Always-QHI", Value = aheD))
-  Eval_DOS<- rbind(Eval_DOS, data.frame(Policy="RL", Value = qeD))
   
   Eval_Strk.Ln<- rbind(Eval_Strk.Ln, data.frame(Policy="NWS", Value = streaks(aeD)))
   Eval_Strk.Ln<- rbind(Eval_Strk.Ln, data.frame(Policy="Random-QHI", Value = streaks(pheD)))
   Eval_Strk.Ln<- rbind(Eval_Strk.Ln, data.frame(Policy="Always-QHI", Value = streaks(aheD)))
+  
+  print(k)
+}
+
+write.csv(Eval_DOS, paste0("Fall_results/Eval_DOS_", r_model, "_benchmarks.csv"))
+write.csv(Eval_Strk.Ln, paste0("Fall_results/Eval_Strk-Ln_", r_model, "_benchmarks.csv"))
+
+
+## RL stats:
+for(k in counties){
+  ## Read in results:
+  i<- which(counties == k)
+  
+  q_eval<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", 
+                           "Tune_F-Q_D10_Rstr-HI-", RL_F.q_d10[i, "OT"], 
+                           "_arch-", RL_F.q_d10[i, "NHL"], "-", RL_F.q_d10[i, "NHU"],
+                           "_ns-", RL_F.q_d10[i, "n_steps"], "_fips-", k, "_fips_", k, ".csv"))
+  # q_eval<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", 
+  #                          "Tune_F-none_Rstr-HI-", RL_F.none[i, "OT"], 
+  #                          "_arch-", RL_F.none[i, "NHL"], "-", RL_F.none[i, "NHU"],
+  #                          "_ns-", RL_F.none[i, "n_steps"], "_fips-", k, "_fips_", k, ".csv"))
+  
+  ## Calculate stats:
+  n_eps<- nrow(q_eval)/(n_days-1)
+  Days<- rep(1:(n_days-1),n_eps)
+  
+  qeD<- Days[which(q_eval$Actions == 1)]
+  
+  Eval_DOS<- rbind(Eval_DOS, data.frame(Policy="RL", Value = qeD))
+  
   Eval_Strk.Ln<- rbind(Eval_Strk.Ln, data.frame(Policy="RL", Value = streaks(qeD)))
   
   print(k)
 }
 
-write.csv(Eval_DOS[which(Eval_DOS$Policy == "RL"),], paste0("Fall_results/Eval_DOS_", r_model, ".csv"))
-write.csv(Eval_Strk.Ln[which(Eval_Strk.Ln$Policy == "RL"),], paste0("Fall_results/Eval_Strk-Ln_", r_model, ".csv"))
+write.csv(Eval_DOS, paste0("Fall_results/Eval_DOS_", r_model, "_RL.csv"))
+write.csv(Eval_Strk.Ln, paste0("Fall_results/Eval_Strk-Ln_", r_model, "_RL.csv"))
 
 
 ############### Comparing to the benchmarks:
+Eval_DOS<- read.csv(paste0("Fall_results/Eval_DOS_", r_model, "_benchmarks.csv"))
+Eval_DOS<- rbind(Eval_DOS, paste0("Fall_results/Eval_DOS_", r_model, "_RL.csv"))
+Eval_Strk.Ln<- read.csv(paste0("Fall_results/Eval_Strk-Ln_", r_model, "_benchmarks.csv"))
+Eval_Strk.Ln<- rbind(Eval_Strk.Ln, paste0("Fall_results/Eval_Strk-Ln_", r_model, "_RL.csv"))
+
 
 d1<- ggplot(Eval_DOS[which(Eval_DOS$Policy %in% c("NWS", "Random-QHI")),], aes(x=Value, fill=Policy)) + 
   geom_histogram(alpha=0.4, position="identity", aes(y = ..density..)) +

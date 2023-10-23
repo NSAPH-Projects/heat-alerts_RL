@@ -12,7 +12,8 @@ eval_func<- avg_return
 r_model<- "mixed_constraints" 
 algo<- "trpo"
 HI_thresholds<- seq(0.5, 0.9, 0.05)
-forecasts<- c("Q_D10")
+# forecasts<- c("Q_D10")
+forecasts<- c("none")
 
 ## First round:
 
@@ -71,7 +72,7 @@ names(results)<- c("Eval", "Eval_samp", "OT", "NHL", "NHU", "n_steps")
 param_df<- expand.grid(NHL, NHU, n_steps, HI_thresholds, forecasts)
 names(param_df)<- c("NHL", "NHU", "n_steps", "HI", "forecast")
 
-for(k in 2:length(counties)){ # 1:length(counties)
+for(k in 1:length(counties)){ 
   county<- counties[k]
   i<- 1 # keeping track of row in param_df
   j<- 1 # keeping track of best model
@@ -106,7 +107,7 @@ for(k in 2:length(counties)){ # 1:length(counties)
 }
 
 results$County<- counties
-write.csv(results, "Fall_results/Main_analysis_trpo_F-Q-D10.csv", row.names=FALSE)
+write.csv(results, paste0("Fall_results/Main_analysis_trpo_F-", forecasts, ".csv"), row.names=FALSE)
 
 
 ### Inspect results:
