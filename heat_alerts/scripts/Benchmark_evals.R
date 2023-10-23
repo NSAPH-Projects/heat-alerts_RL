@@ -95,9 +95,11 @@ for(r_model in c("mixed_constraints"
 
 ## If eval_func == compare_to_zero:
 
-for(r_model in c( # "mixed_constraints", 
-                 "alert_constraints"
-                  , "all_constraints", "no_constraints", "hi_constraints"
+avg_r<- read.csv(paste0("Fall_results/Benchmarks_", "mixed_constraints", "_", "avg_return", ".csv"))
+
+for(r_model in c( "mixed_constraints" 
+                 # , "alert_constraints"
+                 #  , "all_constraints", "no_constraints", "hi_constraints"
 )){
   NWS<- rep(0,length(counties))
   basic_NWS<- rep(0,length(counties))
@@ -105,55 +107,30 @@ for(r_model in c( # "mixed_constraints",
   Top_K<- rep(0,length(counties))
   Random_QHI<- rep(0,length(counties))
   AA_QHI<- rep(0,length(counties))
-  rqhi_ot<- rep(0,length(counties))
-  aqhi_ot<- rep(0,length(counties))
-  
-  # old_DF<- read.csv(paste0("Fall_results/Benchmarks_", r_model, "_", eval_func_name, ".csv"))
-  
+
   for(k in 1:length(counties)){
     county<- counties[k]
-    
+    zero_file<- paste0("Summer_results/ORL_NA_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv")
     NWS[k]<- eval_func(paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"),
-                       paste0("Summer_results/ORL_NA_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
+                       zero_file)
     basic_NWS[k]<- eval_func(paste0("Summer_results/ORL_basic-NWS_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"),
-                       paste0("Summer_results/ORL_NA_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
+                       zero_file)
     Random[k]<- eval_func(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"),
-                          paste0("Summer_results/ORL_NA_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
+                          zero_file)
     Top_K[k]<- eval_func(paste0("Summer_results/ORL_TK_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"),
-                         paste0("Summer_results/ORL_NA_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
+                         zero_file)
     
-    Models<- paste0(r_model, "_Rstr-HI-", HI_thresholds)
-    for(pol in c("random", "AA")){
-      for(i in 1:length(Models)){
-        m<- Models[i]
-        train_samp<- eval_func(paste0("Summer_results/ORL_", pol, "_train_samp-R_samp-W_", m, "_fips_", county, ".csv"),
-                               paste0("Summer_results/ORL_NA_train_samp-R_samp-W_", r_model, "_fips_", county, ".csv"))
-        eval<- eval_func(paste0("Summer_results/ORL_", pol, "_eval_samp-R_obs-W_", m, "_fips_", county, ".csv"),
-                         paste0("Summer_results/ORL_NA_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
-        if(i == 1){
-          Eval_samp<- train_samp
-          Eval<- eval
-          j<- 1
-        }else{
-          if(train_samp > Eval_samp){
-            Eval_samp<- train_samp
-            Eval<- eval
-            j<- i
-          }
-        }
-      }
-      if(pol == "random"){
-        Random_QHI[k]<- Eval
-        rqhi_ot[k]<- HI_thresholds[j]
-      }else{
-        AA_QHI[k]<- Eval
-        aqhi_ot[k]<- HI_thresholds[j]
-      }
-    }
+    Random_QHI[k]<- eval_func(paste0("Summer_results/ORL_", "random", "_eval_samp-R_obs-W_",
+                                     r_model, "_Rstr-HI-", avg_r[k,"rqhi_ot"], "_fips_", county, ".csv"),
+                              zero_file)
+    AA_QHI[k]<- eval_func(paste0("Summer_results/ORL_", "AA", "_eval_samp-R_obs-W_",
+                                     r_model, "_Rstr-HI-", avg_r[k,"aqhi_ot"], "_fips_", county, ".csv"),
+                          zero_file)
+    
     print(county)
   }
   DF<- round(data.frame(County=counties, NWS, basic_NWS, Random, Top_K
-                        , Random_QHI, AA_QHI, rqhi_ot, aqhi_ot
+                        , Random_QHI, AA_QHI
   ),3)
   # DF$Random_QHI<- old_DF$Random_QHI
   # DF$AA_QHI<- old_DF$AA_QHI
