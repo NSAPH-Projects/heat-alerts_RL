@@ -44,7 +44,7 @@ plot_DF$Policy<- factor(plot_DF$Policy,
                         levels=c("Top_K", "Random_QHI", 
                                  "AA_QHI", "TRPO.QHI", "TRPO.QHI.F"))
 
-ggplot(plot_DF, aes(x=Policy, y=Diff, color = Region, label = State)) +
+ggplot(plot_DF[which(plot_DF$Policy!="TRPO.QHI.F"),], aes(x=Policy, y=Diff, color = Region, label = State)) +
   geom_hline(yintercept=0) + 
   geom_boxplot() +
   geom_point(position = position_jitterdodge(), alpha=0.5) +
@@ -118,24 +118,26 @@ for(k in counties){
   ## Read in results:
   i<- which(counties == k)
   
-  q_eval<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", 
+  q_f.q_d10_eval<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", 
                            "Tune_F-Q_D10_Rstr-HI-", RL_F.q_d10[i, "OT"], 
                            "_arch-", RL_F.q_d10[i, "NHL"], "-", RL_F.q_d10[i, "NHU"],
                            "_ns-", RL_F.q_d10[i, "n_steps"], "_fips-", k, "_fips_", k, ".csv"))
-  # q_eval<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", 
-  #                          "Tune_F-none_Rstr-HI-", RL_F.none[i, "OT"], 
-  #                          "_arch-", RL_F.none[i, "NHL"], "-", RL_F.none[i, "NHU"],
-  #                          "_ns-", RL_F.none[i, "n_steps"], "_fips-", k, "_fips_", k, ".csv"))
+  q_f.none_eval<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_",
+                           "Tune_F-none_Rstr-HI-", RL_F.none[i, "OT"],
+                           "_arch-", RL_F.none[i, "NHL"], "-", RL_F.none[i, "NHU"],
+                           "_ns-", RL_F.none[i, "n_steps"], "_fips-", k, "_fips_", k, ".csv"))
   
   ## Calculate stats:
-  n_eps<- nrow(q_eval)/(n_days-1)
+  n_eps<- nrow(q_f.q_d10_eval)/(n_days-1)
   Days<- rep(1:(n_days-1),n_eps)
   
-  qeD<- Days[which(q_eval$Actions == 1)]
+  q1eD<- Days[which(q_f.q_d10_eval$Actions == 1)]
+  Eval_DOS<- rbind(Eval_DOS, data.frame(County = k, Policy="TRPO.QHI.F", Value = q1eD))
+  Eval_Strk.Ln<- rbind(Eval_Strk.Ln, data.frame(County = k, Policy="TRPO.QHI.F", Value = streaks(q1eD)))
   
-  Eval_DOS<- rbind(Eval_DOS, data.frame(County = k, Policy="RL", Value = qeD))
-  
-  Eval_Strk.Ln<- rbind(Eval_Strk.Ln, data.frame(County = k, Policy="RL", Value = streaks(qeD)))
+  q2eD<- Days[which(q_f.none_eval$Actions == 1)]
+  Eval_DOS<- rbind(Eval_DOS, data.frame(County = k, Policy="TRPO.QHI", Value = q2eD))
+  Eval_Strk.Ln<- rbind(Eval_Strk.Ln, data.frame(County = k, Policy="TRPO.QHI", Value = streaks(q2eD)))
   
   print(k)
 }
@@ -156,7 +158,7 @@ d1<- ggplot(Eval_DOS[which(Eval_DOS$Policy %in% c("NWS", "Random-QHI")),], aes(x
   ylab("Density") + xlab("Day of Summer") +
   theme(legend.position="bottom")
 
-d2<- ggplot(Eval_DOS[which(Eval_DOS$Policy %in% c("Always-QHI", "RL")),], aes(x=Value, fill=Policy)) + 
+d2<- ggplot(Eval_DOS[which(Eval_DOS$Policy %in% c("Always-QHI", "TRPO.QHI")),], aes(x=Value, fill=Policy)) + 
   geom_histogram(alpha=0.4, position="identity", aes(y = ..density..)) +
   ggtitle("Day of Summer (b)") +
   ylab("Density") + xlab("Day of Summer") +
@@ -169,7 +171,7 @@ s1<- ggplot(Eval_Strk.Ln[which(Eval_Strk.Ln$Policy %in% c("NWS", "Random-QHI")),
   ylab("Sqrt(Count)") + xlab("Streak Lengths") +
   theme(legend.position="bottom")
 
-s2<- ggplot(Eval_Strk.Ln[which(Eval_Strk.Ln$Policy %in% c("Always-QHI", "RL")),], aes(x=Value, fill=Policy)) + 
+s2<- ggplot(Eval_Strk.Ln[which(Eval_Strk.Ln$Policy %in% c("Always-QHI", "TRPO.QHI")),], aes(x=Value, fill=Policy)) + 
   geom_histogram(alpha=0.4, position="identity") + 
   ggtitle("Streak Length (b)") +
   scale_y_continuous(trans = "sqrt") + 
@@ -182,13 +184,18 @@ plot_grid(s1, s2, nrow=1)
 
 ## All together:
 
-D<- ggplot(Eval_DOS[which(Eval_DOS$Policy %in% c("NWS", "Random-QHI", "Always-QHI", "RL")),], aes(x=Value, fill=Policy)) + 
+Eval_DOS$Policy<- as.factor(Eval_DOS$Policy)
+levels(Eval_DOS$Policy)<- c("A.QHI", "NWS", "R.QHI", "TRPO.QHI", "TRPO.QHI.F")
+Eval_Strk.Ln$Policy<- as.factor(Eval_Strk.Ln$Policy)
+levels(Eval_Strk.Ln$Policy)<- c("A.QHI", "NWS", "R.QHI", "TRPO.QHI", "TRPO.QHI.F")
+
+D<- ggplot(Eval_DOS[which(Eval_DOS$Policy %in% c("NWS", "R.QHI", "A.QHI", "TRPO.QHI")),], aes(x=Value, fill=Policy)) + 
   geom_histogram(alpha=0.4, position="identity", aes(y = ..density..)) +
   ggtitle("Alert Density Across Days of Summer (After May 1)") + 
   ylab("Density") + xlab("Day of Summer") +
   theme(legend.position="bottom")
 
-S<- ggplot(Eval_Strk.Ln[which(Eval_Strk.Ln$Policy %in% c("NWS", "Random-QHI", "Always-QHI", "RL")),], 
+S<- ggplot(Eval_Strk.Ln[which(Eval_Strk.Ln$Policy %in% c("NWS", "R.QHI", "A.QHI", "TRPO.QHI")),], 
        aes(x=Value, fill=Policy)) + 
   geom_histogram(alpha=0.4, position="identity") + 
   ggtitle("Density of Alert Streak Lengths") +
@@ -196,6 +203,24 @@ S<- ggplot(Eval_Strk.Ln[which(Eval_Strk.Ln$Policy %in% c("NWS", "Random-QHI", "A
   ylab("Sqrt(Count)") + xlab("Streak Lengths") +
   theme(legend.position="bottom")
 
-plot_grid(D, S, nrow=1, rel_widths = c(2,1.5))
+plot_grid(D, S, nrow=1, rel_widths = c(2,1.75))
+
+## Comparing RL models:
+
+d<- ggplot(Eval_DOS[which(Eval_DOS$Policy %in% c("TRPO.QHI", "TRPO.QHI.F")),], aes(x=Value, fill=Policy)) + 
+  geom_histogram(alpha=0.4, position="identity", aes(y = ..density..)) +
+  ggtitle("Alert Density Across Days of Summer") + 
+  ylab("Density") + xlab("Day of Summer") +
+  theme(legend.position="bottom")
+
+s<- ggplot(Eval_Strk.Ln[which(Eval_Strk.Ln$Policy %in% c("TRPO.QHI", "TRPO.QHI.F")),], 
+           aes(x=Value, fill=Policy)) + 
+  geom_histogram(alpha=0.4, position="identity") + 
+  ggtitle("Density of Alert Streak Lengths") +
+  scale_y_continuous(trans = "sqrt") + 
+  ylab("Sqrt(Count)") + xlab("Streak Lengths") +
+  theme(legend.position="bottom")
+
+plot_grid(d, s, nrow=1, rel_widths = c(2,1.5))
 
 

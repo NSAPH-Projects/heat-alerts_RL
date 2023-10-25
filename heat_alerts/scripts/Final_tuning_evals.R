@@ -151,5 +151,18 @@ for(k in counties){
 
 write.csv(results, paste0("Fall_results/Main_analysis_trpo_F-", forecasts, "_", eval_func_name, ".csv"), row.names=FALSE)
 
+#### Inspect:
+
+DF<- read.csv("Fall_results/Main_analysis_trpo_F-Q_D10_compare_to_zero.csv")
+DF<- read.csv("Fall_results/Main_analysis_trpo_F-none_compare_to_zero.csv")
+bench_df<- read.csv(paste0("Fall_results/Benchmarks_", "mixed_constraints", "_", "compare_to_zero", ".csv"))
+
+wmw<- wilcox.test(DF$x, bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)
+print(paste0("Median_diff = ", round(median(DF$x - bench_df$NWS),3),
+             ", WMW = ", wmw$statistic, ", p_value = ", round(wmw$p.value,5)))
+
+wmw<- wilcox.test(DF$x, bench_df$AA_QHI, paired = TRUE, alternative = "greater", exact=FALSE)
+print(paste0("Median_diff = ", round(median(DF$x - bench_df$AA_QHI),3),
+             ", WMW = ", wmw$statistic, ", p_value = ", round(wmw$p.value,5)))
 
 

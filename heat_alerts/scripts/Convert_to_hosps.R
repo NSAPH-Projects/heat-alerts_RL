@@ -2,8 +2,8 @@
 W<- read.csv("data/Final_30_W.csv")
 
 get_hosps<- function(x){ # where x is a vector from avg_return function
-  y<- (1 - x)*W$Offset
-  return(y*152) # per summer
+  y<- (1 - x/152)
+  return(y) # per summer
 }
 
 ## Apply:
@@ -11,7 +11,8 @@ get_hosps<- function(x){ # where x is a vector from avg_return function
 bench<- read.csv("Fall_results/Benchmarks_mixed_constraints_avg_return.csv")
 bench<- bench[match(W$Fips, bench$County),]
 
-RL<- read.csv("Fall_results/Main_analysis_trpo_F-Q-D10.csv")
+# RL<- read.csv("Fall_results/Main_analysis_trpo_F-Q-D10.csv")
+RL<- read.csv("Fall_results/Main_analysis_trpo_F-none.csv")
 RL<- RL[match(W$Fips, RL$County),]
 
 bench$RL<- RL$Eval
