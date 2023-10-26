@@ -25,7 +25,8 @@ i<- 1
 opted<- read.csv("Fall_results/Main_analysis_trpo_F-none.csv")
 forecasts<- "none"
 
-sink("Run_jobs/Online_tests_short")
+# sink("Run_jobs/Online_tests_short")
+sink("Run_jobs/Online_tuning")
 for(i in 1:length(counties)){
   county<- counties[i]
   nhl<- opted[i,"NHL"]
@@ -39,14 +40,26 @@ for(i in 1:length(counties)){
     arch<- paste0("[", nhu, ",", nhu, ",", nhu, "]")
   }
   
-  for(algo in c("ppo", "dqn")){
+  for(algo in c( #"ppo", 
+                "dqn"
+                )){
     for(h in HI_thresholds){
-      cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
-                 " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h,
-                 " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
-                 " model_name=", algo, "_F-", forecasts, "_Rstr-HI-", h,
-                 "_arch-", nhl, "-", nhu, "_ns-", s,
-                 "_fips-", county, " \n"))
+      if(algo == "ppo"){
+        # cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
+        #            " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h,
+        #            " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+        #            " model_name=", algo, "_F-", forecasts, "_Rstr-HI-", h,
+        #            "_arch-", nhl, "-", nhu, "_ns-", s,
+        #            "_fips-", county, " \n"))
+      }else{
+        cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
+                   " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h,
+                   " algo.policy_kwargs.net_arch=", arch, " algo.batch_size=", s,
+                   " model_name=", algo, "_F-", forecasts, "_Rstr-HI-", h,
+                   "_arch-", nhl, "-", nhu, "_ns-", s,
+                   "_fips-", county, " \n"))
+      }
+      
     }
   }
 }
