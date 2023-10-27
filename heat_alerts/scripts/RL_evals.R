@@ -26,7 +26,8 @@ for(r_model in c("mixed_constraints"
   results<- matrix(
     0, nrow=length(counties), 
     # ncol=6 # [trpo]*[none, all]*[none, qhi, qhi_ot]
-    ncol=18 # [trpo]*[6 forecast options]*[none, qhi, qhi_ot]
+    # ncol=18 # [trpo]*[6 forecast options]*[none, qhi, qhi_ot]
+    ncol=4 # [ppo, dqn]*[eval_qhi, qhi_ot]
   )
   my_names<- rep("", ncol(results))
   
@@ -34,9 +35,9 @@ for(r_model in c("mixed_constraints"
     county<- counties[k]
     
     i<- 1 # column tracker
-    for(algo in c( "trpo" #,
-                  #  "dqn",
-                    # "ppo"
+    for(algo in c( # "trpo",
+                   "dqn",
+                   "ppo"
     )){
       if(algo == "dqn"){
         forecast_list<- c("none", "all")

@@ -126,6 +126,17 @@ wmw<- wilcox.test(DF$Eval, bench_df$AA_QHI, paired = TRUE, alternative = "greate
 print(paste0("Median_diff = ", round(median(DF$Eval - bench_df$AA_QHI),3),
              ", WMW = ", wmw$statistic, ", p_value = ", round(wmw$p.value,5)))
 
+other_DF<- read.csv("Fall_results/Other_algos_F-none.csv")
+new<- other_DF$Eval_ppo
+wmw<- wilcox.test(new, bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)
+print(paste0("Median_diff = ", round(median(new - bench_df$NWS),3),
+             ", WMW = ", wmw$statistic, ", p_value = ", round(wmw$p.value,5)))
+new<- other_DF$Eval_dqn
+wmw<- wilcox.test(new, bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)
+print(paste0("Median_diff = ", round(median(new - bench_df$NWS),3),
+             ", WMW = ", wmw$statistic, ", p_value = ", round(wmw$p.value,5)))
+
+
 ################# Now look at per alert (compared to Zero) metric:
 
 eval_func_name<- "compare_to_zero"
@@ -164,5 +175,47 @@ print(paste0("Median_diff = ", round(median(DF$x - bench_df$NWS),3),
 wmw<- wilcox.test(DF$x, bench_df$AA_QHI, paired = TRUE, alternative = "greater", exact=FALSE)
 print(paste0("Median_diff = ", round(median(DF$x - bench_df$AA_QHI),3),
              ", WMW = ", wmw$statistic, ", p_value = ", round(wmw$p.value,5)))
+
+
+######## Comparison algos:
+
+results<- matrix(
+  0, nrow=length(counties), 
+  ncol=4 # [ppo, dqn]*[eval_qhi, qhi_ot]
+)
+
+results<- data.frame(results)
+names(results)<- paste0(c("Eval_", "OT_"), c(rep("ppo", 2), rep("dqn", 2)))
+
+for(algo in c("dqn", "ppo")){
+  all_files<- list.files("Summer_results", algo)
+  half<- length(all_files)/2
+  files_eval<- all_files[1:half]
+  files_ES<- all_files[(half+1):length(all_files)]
+
+  for(k in 1:length(counties)){
+    county<- counties[k]
+    county_files<- str_detect(files_eval, as.character(county))
+    Eval_samp<- eval_func(paste0("Summer_results/", files_ES[county_files][1]))
+    j<-1
+    for(h in 2:length(HI_thresholds)){
+      eval_samp<- eval_func(paste0("Summer_results/", files_ES[county_files][h]))
+      if(eval_samp > Eval_samp){
+        j<- h
+        Eval_samp<- eval_samp
+      }
+    }
+    results[k, paste0("Eval_", algo)]<- eval_func(paste0("Summer_results/", files_eval[county_files][j]))
+    results[k, paste0("OT_", algo)]<- HI_thresholds[j]
+    print(paste0(algo,": ", county))
+  }
+}
+
+write.csv(results, paste0("Fall_results/Other_algos_F-", "none", ".csv"), row.names=FALSE)
+
+
+
+
+
 
 

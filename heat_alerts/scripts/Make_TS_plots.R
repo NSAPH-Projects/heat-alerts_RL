@@ -40,11 +40,17 @@ plot_df<- data.frame(Type=rep(Data$Type, each=n_days),
                      Value=as.vector(t(as.matrix(Data[,1:n_days]))),
                      Day=rep(seq(1,153),nrow(Data)))
 
-p<- ggplot(plot_df, aes(x=Day, y=Value, color=Region, fill=Region,
+# p<- ggplot(plot_df, aes(x=Day, y=Value, color=Region, fill=Region,
+#                         group=County)) + 
+#   stat_smooth(method="loess", span=0.5)
+# 
+# p + facet_grid(rows = vars(Type), scales = "free_y", labeller = label_parsed)
+
+p<- ggplot(plot_df[sample(1:nrow(plot_df), 10000),], aes(x=Day, y=Value, color=Region, fill=Region,
                         group=County)) + 
   stat_smooth(method="loess", span=0.5)
 
-p + facet_grid(rows = vars(Type), scales = "free_y", labeller = label_parsed)
+p + facet_grid(cols = vars(Type), scales = "free_y", labeller = label_parsed)
 
 
 p2<- ggplot(plot_df, aes(x=Day, y=Value, color=Region, fill=Region)) + 

@@ -16,11 +16,11 @@ Eval_SL_RL<- read.csv("Fall_results/Eval_Strk-Ln_mixed_constraints_RL.csv")
 
 agg_dos_nws<- aggregate(Value ~ County, data=Eval_DOS_bench[which(Eval_DOS_bench$Policy=="NWS"),],
                         summary)
-agg_dos_rl<- aggregate(Value ~ County, data=Eval_DOS_RL, summary)
+agg_dos_rl<- aggregate(Value ~ County, data=Eval_DOS_RL[which(Eval_DOS_RL$Policy=="TRPO.QHI"),], summary)
 
 agg_sl_nws<- aggregate(Value ~ County, data=Eval_SL_bench[which(Eval_SL_bench$Policy=="NWS"),],
                         summary)
-agg_sl_rl<- aggregate(Value ~ County, data=Eval_SL_RL, summary)
+agg_sl_rl<- aggregate(Value ~ County, data=Eval_SL_RL[which(Eval_SL_RL$Policy=="TRPO.QHI"),], summary)
 
 m_pos<- match(Bench$County, agg_sl_rl$County)
 
@@ -51,7 +51,7 @@ CART_df<- data.frame(stationary_W[,c("Region", "Pop_density", "Med.HH.Income",
                      West=stationary_W$State %in% West,
                      South=stationary_W$State %in% South,
                      # NWS_DOS_med=agg_dos_nws[m_pos, 2][,3],
-                     # RL_DOS_med=agg_dos_rl[m_pos, 2][,3],
+                     RL_DOS_med=agg_dos_rl[m_pos, 2][,3],
                      Diff_DOS_med=agg_dos_nws[m_pos, 2][,3] - agg_dos_rl[m_pos, 2][,3],
                      NWS_SL_avg=agg_sl_nws[m_pos, 2][,4]
                      )
@@ -65,6 +65,7 @@ CART_df<- data.frame(stationary_W[,c("Region", "Pop_density", "Med.HH.Income",
 )
 paste(shQuote(names(CART_df)), collapse=", ")
 
+par(mfrow=c(1,2))
 
 ## Compared to NWS:
 class_fit<- rpart(Y ~ ., data = CART_df, method = "class", model = TRUE
@@ -73,7 +74,7 @@ class_fit<- rpart(Y ~ ., data = CART_df, method = "class", model = TRUE
 rpart.plot(class_fit, box.palette = 0)
 
 reg_fit<- rpart(Diff ~ ., data = CART_df, method = "anova", model = TRUE
-                  , control = rpart.control(max.depth=2)
+                  , control = rpart.control(max.depth=2) 
 )
 rpart.plot(reg_fit, box.palette = 0)
 

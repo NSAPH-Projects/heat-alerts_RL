@@ -39,16 +39,22 @@ DF<- rbind(DF, data.frame(Policy="TRPO.QHI", Diff=RL_F.q_d10$Eval - Bench$NWS,
 
 # write.csv(DF, "Fall_results/Final_30_summary.csv")
 
-plot_DF<- DF[which(! DF$Policy %in% c("Zero", "basic_NWS", "Random")),]
+plot_DF<- DF[which(! DF$Policy %in% c("Zero", "basic_NWS", "Random", 
+                                      "Random_QHI", "TRPO.QHI.F")),]
 plot_DF$Policy<- factor(plot_DF$Policy,
-                        levels=c("Top_K", "Random_QHI", 
-                                 "AA_QHI", "TRPO.QHI", "TRPO.QHI.F"))
+                        levels=c("Top_K", "AA_QHI", "TRPO.QHI"))
+levels(plot_DF$Policy)<- c("Top.K", "AA.QHI", "TRPO.QHI")
 
-ggplot(plot_DF[which(plot_DF$Policy!="TRPO.QHI.F"),], aes(x=Policy, y=Diff, color = Region, label = State)) +
+plot_DF$outlier<- (plot_DF$Diff > 0.1) | (plot_DF$Diff < -0.05)
+plot_DF$State[which(!plot_DF$outlier)]<- NA
+
+ggplot(plot_DF, aes(x=Policy, y=Diff, color = Region)) +
   geom_hline(yintercept=0) + 
   geom_boxplot() +
-  geom_point(position = position_jitterdodge(), alpha=0.5) +
-  # geom_text(position = position_jitterdodge(), size=2) +
+  geom_point(position = position_jitterdodge(seed=1), alpha=0.5) +
+  # geom_text(aes(label=State), na.rm=TRUE, size=2) +
+  ggrepel::geom_text_repel(aes(label=State), na.rm=TRUE, size=2,
+                           position = position_jitterdodge(seed=1)) +
   ylab("Policy Return - NWS Return") + 
   ggtitle("Comparison to NWS: Average Return on Evaluation Years")
 # facet_grid(rows = vars(Year)) + 
@@ -185,17 +191,17 @@ plot_grid(s1, s2, nrow=1)
 ## All together:
 
 Eval_DOS$Policy<- as.factor(Eval_DOS$Policy)
-levels(Eval_DOS$Policy)<- c("A.QHI", "NWS", "R.QHI", "TRPO.QHI", "TRPO.QHI.F")
+levels(Eval_DOS$Policy)<- c("AA.QHI", "NWS", "R.QHI", "TRPO.QHI", "TRPO.QHI.F")
 Eval_Strk.Ln$Policy<- as.factor(Eval_Strk.Ln$Policy)
-levels(Eval_Strk.Ln$Policy)<- c("A.QHI", "NWS", "R.QHI", "TRPO.QHI", "TRPO.QHI.F")
+levels(Eval_Strk.Ln$Policy)<- c("AA.QHI", "NWS", "R.QHI", "TRPO.QHI", "TRPO.QHI.F")
 
-D<- ggplot(Eval_DOS[which(Eval_DOS$Policy %in% c("NWS", "R.QHI", "A.QHI", "TRPO.QHI")),], aes(x=Value, fill=Policy)) + 
+D<- ggplot(Eval_DOS[which(Eval_DOS$Policy %in% c("NWS", "AA.QHI", "TRPO.QHI")),], aes(x=Value, fill=Policy)) + 
   geom_histogram(alpha=0.4, position="identity", aes(y = ..density..)) +
-  ggtitle("Alert Density Across Days of Summer (After May 1)") + 
+  ggtitle("Alert Density Across Days of Summer") + 
   ylab("Density") + xlab("Day of Summer") +
   theme(legend.position="bottom")
 
-S<- ggplot(Eval_Strk.Ln[which(Eval_Strk.Ln$Policy %in% c("NWS", "R.QHI", "A.QHI", "TRPO.QHI")),], 
+S<- ggplot(Eval_Strk.Ln[which(Eval_Strk.Ln$Policy %in% c("NWS", "AA.QHI", "TRPO.QHI")),], 
        aes(x=Value, fill=Policy)) + 
   geom_histogram(alpha=0.4, position="identity") + 
   ggtitle("Density of Alert Streak Lengths") +
@@ -203,7 +209,7 @@ S<- ggplot(Eval_Strk.Ln[which(Eval_Strk.Ln$Policy %in% c("NWS", "R.QHI", "A.QHI"
   ylab("Sqrt(Count)") + xlab("Streak Lengths") +
   theme(legend.position="bottom")
 
-plot_grid(D, S, nrow=1, rel_widths = c(2,1.75))
+plot_grid(D, S, nrow=1, rel_widths = c(2,1.5))
 
 ## Comparing RL models:
 

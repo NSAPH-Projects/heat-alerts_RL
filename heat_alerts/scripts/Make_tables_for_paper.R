@@ -154,111 +154,46 @@ print(xtable(Final[,c("Fips_ST", "Region", "Alerts", # "SD_Eff",
              # digits=3, 
              hline.after = 1:nrow(Final)), include.rownames=FALSE)
 
-############################# Make benchmark comparisons tables:
+############################# Make main results table:
 
-n_days<- 153
+main_DF<- read.csv("Fall_results/Main_analysis_trpo_F-none.csv")
+forc_DF<- read.csv("Fall_results/Main_analysis_trpo_F-Q-D10.csv")
+other_DF<- read.csv("Fall_results/Other_algos_F-none.csv")
+bench_df<- read.csv(paste0("Fall_results/Benchmarks_mixed_constraints_avg_return.csv"))
 
-my_proc<- function(filename){
-  f<- file.exists(filename) # filename<- "Summer_results/ORL_RL_eval_samp-R_obs-W_T7_fips-6025_Rstr-HI-0.9_fips_6025.csv"
-  if(f){
-    df<- read.csv(filename)[,-1]
-    df$Count = 1
-    # df$Budget<- df$Budget/(n_days-1)
-    # agg_df<- aggregate(. ~ Year, df, sum)
-    df$Alert<- df$Actions
-    agg_df<- aggregate(. ~ Year + Alert, df, sum)
-    # agg_df$Budget<- agg_df$Budget/(n_days-1)
-    # agg_df$budget_frac<- agg_df$Actions/agg_df$Budget
-    agg_df$Frac<- agg_df$Count/sum(agg_df$Count)
-    # estimated_reward<- sum(agg_df$Rewards*(1/nrow(agg_df))/agg_df$Frac)/1000
-    avg_reward_A.0<- mean(agg_df[agg_df$Alert == 0, "Rewards"]/agg_df[agg_df$Alert == 0, "Count"])
-    avg_reward_A.1<- mean(agg_df[agg_df$Alert == 1, "Rewards"]/agg_df[agg_df$Alert == 1, "Count"])
-    b<- mean(df$Budget)
-    if(is.na(avg_reward_A.1)){
-      estimated_reward<- (n_days-1)*avg_reward_A.0
-    }else{
-      estimated_reward<- b*avg_reward_A.1 + (n_days-1-b)*avg_reward_A.0
-    }
-    # return(list(agg_df, estimated_reward))
-    return(estimated_reward)
-  }else{
-    return(NA)
-  }
+WMW<- function(x, y=bench_df$NWS){
+  wmw<- wilcox.test(x, y, paired = TRUE, alternative = "greater", exact=FALSE)
+  metrics<- as.vector(c(round(median(x - y),3), 
+              wmw$statistic, round(wmw$p.value,5)))
+  return(metrics)
 }
 
-counties<- c(41067, 53015, 20161, 37085, 48157, 
-             28049, 19153, 17167, 31153, 6071, 4013,
-             34021, 19155, 17115, 29021, 29019, 5045, 40017, 21059,
-             47113, 42017, 22109, 45015, 13031, 48367, 22063, 41053, 
-             32003, 4015, 6025)
+source("heat_alerts/scripts/Convert_to_hosps.R")
+pos<- match(W$Fips, bench_df$County)
 
-# r_model<- "NC_model"
-r_model<- "test"
+alt_policies<- cbind(bench_df[,c("Random", "basic_NWS", 
+                                 "Top_K", "Random_QHI", "AA_QHI")],
+                     Eval_trpo=main_DF[,c("Eval")], Eval_trpo.F=forc_DF[,c("Eval")],
+                     other_DF[,c("Eval_dqn", "Eval_ppo")])
 
-Zero<- rep(0,length(counties))
-NWS<- rep(0,length(counties))
-Random<- rep(0,length(counties))
-Top_K<- rep(0,length(counties))
+D<- t(apply(alt_policies, MARGIN=2, WMW))
+D<- as.data.frame(D)
+names(D)<- c("Median Diff.", "WMW stat", "p-value")
 
-for(k in 1:length(counties)){
-  county<- counties[k]
-  
-  Zero[k]<- my_proc(paste0("Summer_results/ORL_NA_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
-  # NWS[k]<- my_proc(paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
-  # Random[k]<- my_proc(paste0("Summer_results/ORL_random_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
-  # Top_K[k]<- my_proc(paste0("Summer_results/ORL_TK_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
-  # 
-  print(county)
-}
+Pols<- cbind(Zero=bench_df$Zero, NWS=bench_df$NWS, alt_policies)[pos,]
+nohr<- apply(Pols, MARGIN=2, get_hosps)
 
-wilcox.test(Zero, NWS, paired = TRUE, alternative = "greater", exact=FALSE)
+denom<- 10000
+nohr<- denom*nohr
+compared_to_zero<- apply(nohr[,3:ncol(nohr)], MARGIN=2, function(y){nohr[,1]-y})
+compared_to_nws<- apply(nohr[,3:ncol(nohr)], MARGIN=2, function(y){nohr[,2]-y})
 
-results<- round(data.frame(County=counties, Zero, NWS, Random, Top_K),3)
+vs.nws<- apply(compared_to_nws, MARGIN=2, median)
+vs.zero<- apply(compared_to_zero, MARGIN=2, median)
+D[,"Median Annual Hosps Saved vs NWS (vs Zero) / 10,000"]<- paste0(round(vs.nws,3), " (", round(vs.zero,2), ")")
+D[,"Total Estimated Annual Hosps Saved, Whole US"]<- paste0(round(vs.nws*all_medicare/denom), " (", round(vs.zero*all_medicare/denom), ")")
+D[,c("Median Diff.", "WMW stat", "p-value")]<- apply(D[,c("Median Diff.", "WMW stat", "p-value")],
+                                                     MARGIN=2, as.character)
 
-Random_QHI<- read.csv(paste0("Fall_results/Alert-rate_Final_eval_30_", r_model, "_random-w-rstr-hi.csv"))
-AA_QHI<- read.csv(paste0("Fall_results/Alert-rate_Final_eval_30_", r_model, "_AA-w-rstr-hi.csv"))
-
-results$Random_QHI<- round(Random_QHI$Eval,3)
-results$RQ_thr<- Random_QHI$opt_HI_thr
-
-results$AA_QHI<- round(AA_QHI$Eval,3)
-results$AA_thr<- AA_QHI$opt_HI_thr
-
-if(r_model == "test"){
-  RL<- read.csv("Fall_results/Alert-rate_Final_eval_30_T7-T8.csv")
-  rl0<- read.csv("Fall_results/Alert-rate_Final_eval_30_T7-T8.csv")
-}else if(r_model == "NC_model"){
-  RL<- read.csv("Fall_results/Alert-rate_Final_eval_30_NC1.csv")
-}
-
-results$RL<- RL$Eval
-results$RL_thr<- RL$opt_HI_thr
-results
-
-write.csv(results, paste0("Fall_results/Alert-rate_All_evals_", r_model, ".csv"))
-
-# Benchmark<- c("Zero", "NWS", "Top_K", "Random_QHI", "AA_QHI", "RL")
-Benchmark<- c("Zero", "Random", "Top_K", "Random_QHI", "AA_QHI", "RL")
-Mean<- c()
-# SD<- c()
-
-for(y in Benchmark[-1]){
-  # Mean<- append(Mean, mean((results[,y] - results$Random)/abs(results$Random)))
-  # Mean<- append(Mean, mean((results[,y] - results$NWS)/abs(results$NWS)))
-  # hist(results[,y] - results$NWS, main=paste(y, "plain"))
-  # hist((results[,y] - results$NWS)/abs(results$NWS), main=paste(y, "standardized"))
-  # Mean<- append(Mean, mean((results[,y] - results$NWS)))
-  # SD<- append(SD, sd((results[,y] - results$NWS)))
-  print(y)
-  # print(wilcox.test(results[,y], results$NWS, paired = TRUE, alternative = "greater"))
-  print(wilcox.test(results[,y], results$NWS, paired = TRUE, alternative = "greater", exact=FALSE))
-}
-
-d<- data.frame(Benchmark, Mean=round(Mean,3) #, SD=round(SD,3)
-)
-d
-
-# t.test(results$RL - results$NWS, alternative="g")
-
-print(xtable(d, digits=3),include.rownames=FALSE)
+print(xtable(D),include.rownames=TRUE)
 
