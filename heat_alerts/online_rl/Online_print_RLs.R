@@ -40,7 +40,8 @@ for(i in 1:length(counties)){
     arch<- paste0("[", nhu, ",", nhu, ",", nhu, "]")
   }
   
-  for(algo in c( "ppo", 
+  for(algo in c("trpo",
+                "ppo", 
                 "dqn"
                 )){
     # for(h in HI_thresholds){
@@ -61,7 +62,7 @@ for(i in 1:length(counties)){
     #   }
     #   
     # }
-    if(algo == "ppo"){
+    if(algo != "dqn"){
       cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
                  " restrict_days=none", " forecasts=", forecasts,
                  " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
