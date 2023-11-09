@@ -1,41 +1,33 @@
 defaults:
   - _self_
   - algo: trpo
-
+  - r_model: mixed_constraints
+  - restrict_days: qhi
+  - forecasts: num_elig
+  - shaped_penalty: none
+ 
 datadir: data/processed
-county: 36005 # bronx
-# county: 4013 # maricopa
+county: 36005 # bronx # 4013 = maricopa
 seed: 12345
 num_posterior_samples: 100
-guide_ckpt: ckpts/FullFast_8-16_guide.pt # ckpts/Full_8-16_guide.pt
-model:  # must match exactly the model used when producing the guide
-        # in the future linking them will be automatic
-  num_hidden_layers: 1
-  hidden_dim: 32
 model_name: test
 
 train_years: [2006, 2008, 2009, 2010, 2012, 2013, 2014, 2016]
 val_years: [2007, 2011, 2015]
 
-num_envs: 32 # 1
+num_envs: 32 
 parallel: false
-training_timesteps: 10_000_000 # 3_000_000
+training_timesteps: 15_000_000 
 match_similar: true
 sample_budget: true
 explore_budget: false
-penalty: 0.0 # 0.1
-penalty_effect: true
-penalty_decay: false
-restrict_alerts: false
-HI_restriction: 0.8
-hi_rstr_decay: false
-hi_penalty: false
-eval_mode: false
+penalty: 0.0 
 
+eval_mode: false
 eval:
-  penalty: 0.0 # no penalty during evaluation
-  freq: 1000
-  episodes: 25
+  penalty: 0.0 # never penalize during evaluation
+  freq: 2500
+  episodes: 100
   eval_mode: false
   val_years: true
   match_similar: true

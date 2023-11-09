@@ -17,6 +17,7 @@ from heat_alerts.bayesian_model import (
 # hydra.initialize(config_path="conf/bayesian_model", version_base=None)
 # cfg = hydra.compose(config_name="config")
 # cfg.model.name = "FullFast_8-16"
+# cfg.model.name = "FF_sample"
 # cfg.training.num_particles = 1 # for full_fast
 # cfg.training.batch_size = None
 
@@ -28,6 +29,8 @@ def main(cfg: DictConfig):
         dir=cfg.datadir,
         batch_size=cfg.training.batch_size,
         num_workers=cfg.training.num_workers,
+        sampled_Y=cfg.sample_Y,
+        constrain=cfg.constrain,
     )
 
     # Load model

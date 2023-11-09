@@ -1,0 +1,3 @@
+incorp_forecasts: true
+forecast_type: [N, Av4, Q, D3] # D10
+forecast_error: 0

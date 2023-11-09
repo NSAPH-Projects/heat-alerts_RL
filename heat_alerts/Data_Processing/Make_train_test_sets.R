@@ -44,7 +44,10 @@ save(Train, Test, file="data/Train-Test.RData")
 
 vars<- c("fips", "Date", "year", "month", "dos", "dow", "holiday",
          "BA_zone", "Population", "Pop_density", "Med.HH.Income",
-         "HImaxF_PopW", "quant_HI_county", "warn", "adv", "alert")
+         "HImaxF_PopW", "quant_HI_county", "warn", "adv", "alert",
+         "HI_lag1", "HI_lag2", "HI_lag3", "HI_3days", 
+         "HI_fwd1", "HI_fwd2", "HI_fwd3", "HI_fwd_avg", 
+         "HI_mean")
 
 data<- summer[,vars]
 

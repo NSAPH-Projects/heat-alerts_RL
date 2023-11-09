@@ -1,0 +1,3 @@
+incorp_forecasts: false
+forecast_type: [N]
+forecast_error: 0
