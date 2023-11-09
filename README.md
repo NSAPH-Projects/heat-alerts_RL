@@ -20,7 +20,7 @@ Then run the script heat_alerts/scripts/prepare_bayesian_model_data.py to get ev
 ### Bayesian rewards modeling:
 1. Run train_bayesian_model.py using Hydra arguments. Configurations are in the conf directory. For example:
 ```
-python train_nn.py training=full model.name="Full_8-1"
+python train_nn.py training=full_fast constrain=mixed model.name="FF_mixed"
 ```
 See [here](https://hydra.cc/docs/intro/) for an introduction to Hydra. <br>
 2. Evaluate the accuracy of these predictions with the script heat_alerts/bayesian_model/Evaluate_pyro_R.R
