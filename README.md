@@ -38,7 +38,7 @@ To train an RL model, use the script train_online_rl_sb3.py -- note that there a
 To reproduce the analyses in the paper: 
 
 1. Tune hyperparameters for TRPO for each county (with and without forecasts / future information) by running heat_alerts/online_rl/Online_print_RLs.R followed by Run_jobs/Online_RL_short.sh and/or Run_jobs/Online_tuning.sh (if splitting up the job array is needed). Process these results using heat_alerts/scripts/Final_tuning_evals.R
-2. Train comparison algos (DQN and PPO) using the same scripts ^^^
+2. Train comparison algos (DQN and PPO) and process the evaluation results using the same scripts ^^^
 3. 
    
 2. The gym environment is detailed in several scripts within the directory heat_alerts/online_rl
