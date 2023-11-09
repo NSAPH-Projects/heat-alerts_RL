@@ -8,78 +8,13 @@ counties<- c(41067, 53015, 20161, 37085, 48157,
 r_model<- "mixed_constraints"
 
 HI_thresholds<- seq(0.5, 0.9, 0.05)
-# Forecasts<- c("Q_D10")
-Forecasts<- c("none")
-NHU<- c(16, 32, 64)
-NHL<- c(1, 2, 3)
-n_steps<- c(1024, 2048, 4096)
-# NHU<- c(32)
-# NHL<- c(2)
-# n_steps<- c(2048)
+Forecasts<- c("none", "Q_D10")
+NHU<- c(16, 32, 64) # 32
+NHL<- c(1, 2, 3) # 2
+n_steps<- c(1024, 2048, 4096) # 2048
 
 missing<- c()
 i<- 1
-
-## Running DQN and PPO with the optimized hyperparameters:
-
-opted<- read.csv("Fall_results/Main_analysis_trpo_F-none.csv")
-forecasts<- "none"
-
-# sink("Run_jobs/Online_tests_short")
-sink("Run_jobs/Online_tuning")
-for(i in 1:length(counties)){
-  county<- counties[i]
-  nhl<- opted[i,"NHL"]
-  nhu<- opted[i,"NHU"]
-  s<- opted[i, "n_steps"]
-  if(nhl == 1){
-    arch<- paste0("[", nhu, "]")
-  }else if(nhl == 2){
-    arch<- paste0("[", nhu, ",", nhu, "]")
-  }else if(nhl == 3){
-    arch<- paste0("[", nhu, ",", nhu, ",", nhu, "]")
-  }
-  
-  for(algo in c("trpo",
-                "ppo", 
-                "dqn"
-                )){
-    # for(h in HI_thresholds){
-    #   if(algo == "ppo"){
-    #     cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
-    #                " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h,
-    #                " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
-    #                " model_name=", algo, "_F-", forecasts, "_Rstr-HI-", h,
-    #                "_arch-", nhl, "-", nhu, "_ns-", s,
-    #                "_fips-", county, " \n"))
-    #   }else{
-    #     cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
-    #                " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h,
-    #                " algo.policy_kwargs.net_arch=", arch, " algo.batch_size=", s,
-    #                " model_name=", algo, "_F-", forecasts, "_Rstr-HI-", h,
-    #                "_arch-", nhl, "-", nhu, "_ns-", s,
-    #                "_fips-", county, " \n"))
-    #   }
-    #   
-    # }
-    if(algo != "dqn"){
-      cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
-                 " restrict_days=none", " forecasts=", forecasts,
-                 " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
-                 " model_name=", algo, "_F-", forecasts, "_Rstr-HI-", "none",
-                 "_arch-", nhl, "-", nhu, "_ns-", s,
-                 "_fips-", county, " \n"))
-    }else{
-      cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
-                 " restrict_days=none", " forecasts=", forecasts,
-                 " algo.policy_kwargs.net_arch=", arch, " algo.batch_size=", s,
-                 " model_name=", algo, "_F-", forecasts, "_Rstr-HI-", "none",
-                 "_arch-", nhl, "-", nhu, "_ns-", s,
-                 "_fips-", county, " \n"))
-    }
-  }
-}
-sink()
 
 
 ## First batch:
@@ -287,7 +222,68 @@ for(k in counties){
 }
 sink()
 
+################ After processing the TRPO evaluations...
 
+## Running DQN and PPO with the optimized hyperparameters:
+
+opted<- read.csv("Fall_results/Main_analysis_trpo_F-none.csv")
+forecasts<- "none"
+
+# sink("Run_jobs/Online_tests_short")
+sink("Run_jobs/Online_tuning")
+for(i in 1:length(counties)){
+  county<- counties[i]
+  nhl<- opted[i,"NHL"]
+  nhu<- opted[i,"NHU"]
+  s<- opted[i, "n_steps"]
+  if(nhl == 1){
+    arch<- paste0("[", nhu, "]")
+  }else if(nhl == 2){
+    arch<- paste0("[", nhu, ",", nhu, "]")
+  }else if(nhl == 3){
+    arch<- paste0("[", nhu, ",", nhu, ",", nhu, "]")
+  }
+  
+  for(algo in c("trpo",
+                "ppo", 
+                "dqn"
+                )){
+    # for(h in HI_thresholds){
+    #   if(algo == "ppo"){
+    #     cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
+    #                " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h,
+    #                " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+    #                " model_name=", algo, "_F-", forecasts, "_Rstr-HI-", h,
+    #                "_arch-", nhl, "-", nhu, "_ns-", s,
+    #                "_fips-", county, " \n"))
+    #   }else{
+    #     cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
+    #                " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h,
+    #                " algo.policy_kwargs.net_arch=", arch, " algo.batch_size=", s,
+    #                " model_name=", algo, "_F-", forecasts, "_Rstr-HI-", h,
+    #                "_arch-", nhl, "-", nhu, "_ns-", s,
+    #                "_fips-", county, " \n"))
+    #   }
+    #   
+    # }
+    if(algo != "dqn"){
+      cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
+                 " restrict_days=none", " forecasts=", forecasts,
+                 " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+                 " model_name=", algo, "_F-", forecasts, "_Rstr-HI-", "none",
+                 "_arch-", nhl, "-", nhu, "_ns-", s,
+                 "_fips-", county, " \n"))
+    }else{
+      cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
+                 " restrict_days=none", " forecasts=", forecasts,
+                 " algo.policy_kwargs.net_arch=", arch, " algo.batch_size=", s,
+                 " model_name=", algo, "_F-", forecasts, "_Rstr-HI-", "none",
+                 "_arch-", nhl, "-", nhu, "_ns-", s,
+                 "_fips-", county, " \n"))
+    }
+  }
+}
+sink()
 
 ############################ If we want to do a sensitivity analysis across r_models:
 
