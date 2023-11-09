@@ -14,46 +14,46 @@ for(k in counties){
     # , "alert_constraints","all_constraints", "no_constraints", "hi_constraints"
     )){
     if(!file.exists(paste0("Summer_results/ORL_basic-NWS_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))){
-    # cat(
-    #   paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=true ", "county=", county, " r_model=", r_model, " model_name=", r_model, " restrict_days=none", "\n")
-    #   # , paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=false ", "county=", county, " r_model=", r_model, " model_name=", r_model, " restrict_days=none", "\n")
-    #   )
+    cat(
+      paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=false eval.match_similar=true ", "county=", county, " r_model=", r_model, " model_name=", r_model, " restrict_days=none", "\n")
+      # , paste0("python old_evaluation_SB3.py policy_type=NA eval.val_years=true eval.match_similar=false ", "county=", county, " r_model=", r_model, " model_name=", r_model, " restrict_days=none", "\n")
+      )
       cat(
         # paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=false eval.match_similar=true ", "county=", county, " r_model=", r_model, " model_name=", r_model, " restrict_days=none", "\n"),
         paste0("python old_evaluation_SB3.py policy_type=basic-NWS eval.val_years=true eval.match_similar=false ", "county=", county, " r_model=", r_model, " model_name=", r_model, " restrict_days=none", "\n"))
 
-    # cat(
-    #   # paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=false eval.match_similar=true ", "county=", county, " r_model=", r_model, " model_name=", r_model, " restrict_days=none", "\n"),
-    #   paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=false ", "county=", county, " r_model=", r_model, " model_name=", r_model, " restrict_days=none", "\n"))
-    # 
-    # cat(
-    #   # paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=true ", "county=", county, " r_model=", r_model, " model_name=", r_model, " restrict_days=none", "\n"),
-    #   paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false ", "county=", county, " r_model=", r_model, " model_name=", r_model, " restrict_days=none", "\n"))
-    # 
-    # cat(
-    #   # paste0("python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true ", "county=", county, " r_model=", r_model, " model_name=", r_model, " restrict_days=none", "\n"),
-    #   paste0("python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false ", "county=", county, " r_model=", r_model, " model_name=", r_model, " restrict_days=none", "\n"))
-    # }
-    # 
-    # for(h in HI_restriction){
-    #   if(!file.exists(paste0("Summer_results/ORL_random_eval_samp-R_samp-W_", r_model, "_Rstr-HI-", h, "_fips_", county, ".csv"))){
-    #     cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=true restrict_days=qhi ",
-    #                "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, " model_name=", r_model, "_Rstr-HI-", h, "\n") #,
-    #         # paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false restrict_days=qhi ",
-    #         #        "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, " model_name=", r_model, "_Rstr-HI-", h, "\n")
-    #     )
-    #   }
+    cat(
+      # paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=false eval.match_similar=true ", "county=", county, " r_model=", r_model, " model_name=", r_model, " restrict_days=none", "\n"),
+      paste0("python old_evaluation_SB3.py policy_type=NWS eval.val_years=true eval.match_similar=false ", "county=", county, " r_model=", r_model, " model_name=", r_model, " restrict_days=none", "\n"))
+    
+    cat(
+      # paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=false eval.match_similar=true ", "county=", county, " r_model=", r_model, " model_name=", r_model, " restrict_days=none", "\n"),
+      paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false ", "county=", county, " r_model=", r_model, " model_name=", r_model, " restrict_days=none", "\n"))
+    
+    cat(
+      # paste0("python old_evaluation_SB3.py policy_type=TK eval.val_years=false eval.match_similar=true ", "county=", county, " r_model=", r_model, " model_name=", r_model, " restrict_days=none", "\n"),
+      paste0("python old_evaluation_SB3.py policy_type=TK eval.val_years=true eval.match_similar=false ", "county=", county, " r_model=", r_model, " model_name=", r_model, " restrict_days=none", "\n"))
     }
-    # 
-    # for(h in HI_restriction){
-    #   if(!file.exists(paste0("Summer_results/ORL_AA_eval_samp-R_samp-W_", r_model, "_Rstr-HI-", h, "_fips_", county, ".csv"))){
-    #     cat(paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=true eval.match_similar=true restrict_days=qhi ",
-    #                "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, " model_name=", r_model, "_Rstr-HI-", h, "\n") #,
-    #         # paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=true eval.match_similar=false restrict_days=qhi ",
-    #         #        "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, " model_name=", r_model, "_Rstr-HI-", h, "\n")
-    #     )
-    #   }
-    # }
+    
+    for(h in HI_restriction){
+      if(!file.exists(paste0("Summer_results/ORL_random_eval_samp-R_samp-W_", r_model, "_Rstr-HI-", h, "_fips_", county, ".csv"))){
+        cat(paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=true restrict_days=qhi ",
+                   "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, " model_name=", r_model, "_Rstr-HI-", h, "\n"),
+            paste0("python old_evaluation_SB3.py policy_type=random eval.val_years=true eval.match_similar=false restrict_days=qhi ",
+                   "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, " model_name=", r_model, "_Rstr-HI-", h, "\n")
+        )
+      }
+    }
+    
+    for(h in HI_restriction){
+      if(!file.exists(paste0("Summer_results/ORL_AA_eval_samp-R_samp-W_", r_model, "_Rstr-HI-", h, "_fips_", county, ".csv"))){
+        cat(paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=true eval.match_similar=true restrict_days=qhi ",
+                   "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, " model_name=", r_model, "_Rstr-HI-", h, "\n"),
+            paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=true eval.match_similar=false restrict_days=qhi ",
+                   "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, " model_name=", r_model, "_Rstr-HI-", h, "\n")
+        )
+      }
+    }
   }
 }
 
