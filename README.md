@@ -25,14 +25,14 @@ python train_nn.py training=full_fast constrain=mixed model.name="FF_mixed"
 See [here](https://hydra.cc/docs/intro/) for an introduction to Hydra. <br>
 2. Evaluate the accuracy of these predictions with the script heat_alerts/bayesian_model/Evaluate_pyro_R.R
 
-*Note: in the following sections, if you're using the provided shell (.sh) scripts, you will need to adjust the size of the job array depending on how many you run at once.*
-
 ### Gym environment (simulator):
 
 The gym environment is detailed in several scripts within the directory heat_alerts/online_rl
  * env.py contains the overall mechanics of stepping through and resetting the gym environment.
  * datautils.py contains several functions for data formatting, which is performed before calling the environment instantiation.
  * callbacks.py contains the calculation of custom metrics that we wish to save from each episode through the environment -- used primarily during RL training.
+
+**Note: in the following sections, if you're using the provided shell (.sh) scripts, you will need to adjust the size of the job array depending on how many you run at once.**
 
 ### Evaluate benchmark policies:
 
