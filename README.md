@@ -27,6 +27,13 @@ See [here](https://hydra.cc/docs/intro/) for an introduction to Hydra. <br>
 
 *Note: in the following sections, if you're using the provided shell (.sh) scripts, you will need to adjust the size of the job array depending on how many you run at once.*
 
+### Gym environment (simulator):
+
+The gym environment is detailed in several scripts within the directory heat_alerts/online_rl
+ * env.py contains the overall mechanics of stepping through and resetting the gym environment.
+ * datautils.py contains several functions for data formatting, which is performed before calling the environment instantiation.
+ * callbacks.py contains the calculation of custom metrics that we wish to save from each episode through the environment -- used primarily during RL training.
+
 ### Evaluate benchmark policies:
 
 1. Run heat_alerts/online_rl/Online_print_evals.R then Run_jobs/Online_evals.sh -- if you're using slurm, the command to run the latter is "sbatch"
@@ -39,12 +46,7 @@ To reproduce the analyses in the paper:
 
 1. Tune hyperparameters for TRPO for each county (with and without forecasts / future information) by running heat_alerts/online_rl/Online_print_RLs.R followed by Run_jobs/Online_RL_short.sh and/or Run_jobs/Online_tuning.sh (if splitting up the job array is needed). Process these results using heat_alerts/scripts/Final_tuning_evals.R
 2. Train comparison algos (DQN and PPO) and process the evaluation results using the same scripts ^^^
-3. 
-   
-2. The gym environment is detailed in several scripts within the directory heat_alerts/online_rl
- * env.py contains the overall mechanics of stepping through and resetting the gym environment.
- * datautils.py contains several functions for data formatting, which is performed before calling the environment instantiation.
- * callbacks.py contains the calculation of custom metrics that we wish to save from each episode through the environment.
-3. 
+
+### Generate figures and tables for the paper:
 
 
