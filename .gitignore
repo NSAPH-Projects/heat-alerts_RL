@@ -29,6 +29,7 @@ json
 *.parquet
 *.json
 *.png
+*.csv
 
 # vscode projects
 devcontainer.json
