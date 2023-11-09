@@ -21,6 +21,9 @@ random*
 *workspace*
 *cuda*
 
+itertools
+json
+
 # Pytorch models and other output from bayesian model:
 *.pt
 *.parquet
