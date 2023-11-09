@@ -16,11 +16,17 @@ Eval_SL_RL<- read.csv("Fall_results/Eval_Strk-Ln_mixed_constraints_RL.csv")
 
 agg_dos_nws<- aggregate(Value ~ County, data=Eval_DOS_bench[which(Eval_DOS_bench$Policy=="NWS"),],
                         summary)
-agg_dos_rl<- aggregate(Value ~ County, data=Eval_DOS_RL[which(Eval_DOS_RL$Policy=="TRPO.QHI"),], summary)
+agg_dos_rl<- aggregate(Value ~ County, data=Eval_DOS_RL[which(Eval_DOS_RL$Policy=="TRPO.QHI"),], 
+                       summary)
+agg_dos_aa<- aggregate(Value ~ County, data=Eval_DOS_bench[which(Eval_DOS_bench$Policy=="Always-QHI"),],
+                        summary)
 
 agg_sl_nws<- aggregate(Value ~ County, data=Eval_SL_bench[which(Eval_SL_bench$Policy=="NWS"),],
                         summary)
-agg_sl_rl<- aggregate(Value ~ County, data=Eval_SL_RL[which(Eval_SL_RL$Policy=="TRPO.QHI"),], summary)
+agg_sl_rl<- aggregate(Value ~ County, data=Eval_SL_RL[which(Eval_SL_RL$Policy=="TRPO.QHI"),], 
+                      summary)
+agg_sl_aa<- aggregate(Value ~ County, data=Eval_SL_bench[which(Eval_SL_bench$Policy=="Always-QHI"),],
+                       summary)
 
 m_pos<- match(Bench$County, agg_sl_rl$County)
 
@@ -52,16 +58,20 @@ CART_df<- data.frame(stationary_W[,c("Region", "Pop_density", "Med.HH.Income",
                      South=stationary_W$State %in% South,
                      # NWS_DOS_med=agg_dos_nws[m_pos, 2][,3],
                      RL_DOS_med=agg_dos_rl[m_pos, 2][,3],
-                     Diff_DOS_med=agg_dos_nws[m_pos, 2][,3] - agg_dos_rl[m_pos, 2][,3],
-                     NWS_SL_avg=agg_sl_nws[m_pos, 2][,4]
+                     NWS_DOS_med=agg_dos_nws[m_pos, 2][,3],
+                     # AA_DOS_med=agg_dos_aa[m_pos, 2][,3],
+                     NWS_SL_avg=agg_sl_nws[m_pos, 2][,4] #,
+                     # AA_SL_avg=agg_sl_aa[m_pos, 2][,4]
                      )
-CART_df<- data.frame(stationary_W[,c("Region", "Pop_density", "Med.HH.Income",
+CART_df<- data.frame(stationary_W[,c("Region", "Pop_density", # "Med.HH.Income",
                                      # "Democrat", "broadband.usage", "pm25",
                                      "Alerts")],
                      West=stationary_W$State %in% West,
                      South=stationary_W$State %in% South,
                      NWS_DOS_med=agg_dos_nws[m_pos, 2][,3],
-                     NWS_SL_avg=agg_sl_nws[m_pos, 2][,4]
+                     # AA_DOS_med=agg_dos_aa[m_pos, 2][,3],
+                     NWS_SL_avg=agg_sl_nws[m_pos, 2][,4] #,
+                     # AA_SL_avg=agg_sl_aa[m_pos, 2][,4]
 )
 paste(shQuote(names(CART_df)), collapse=", ")
 
@@ -90,6 +100,20 @@ reg_fit<- rpart(Diff.a ~ ., data = CART_df, method = "anova", model = TRUE
 rpart.plot(reg_fit, box.palette = 0)
 
 
+######## Confirming intuitions:
 
+plot(stationary_W$Med.HH.Income, stationary_W$Alerts)
+abline(lm(Alerts ~ Med.HH.Income, stationary_W))
 
+plot(stationary_W$Pop_density, stationary_W$Alerts)
+abline(lm(Alerts ~ Pop_density, stationary_W))
+
+plot(stationary_W$Alerts, stationary_W$SD_Eff)
+abline(lm(SD_Eff ~ Alerts, stationary_W))
+
+plot(stationary_W$Med.HH.Income, stationary_W$SD_Eff)
+abline(lm(SD_Eff ~ Med.HH.Income, stationary_W))
+
+plot(stationary_W$Med.HH.Income, stationary_W$Mean_Eff)
+abline(lm(Mean_Eff ~ Med.HH.Income, stationary_W))
 

@@ -214,6 +214,34 @@ for(algo in c("dqn", "ppo")){
 write.csv(results, paste0("Fall_results/Other_algos_F-", "none", ".csv"), row.names=FALSE)
 
 
+#### Plain (no QHI) results:
+
+results<- matrix(
+  0, nrow=length(counties), 
+  ncol=3 # [ppo, dqn, trpo]
+)
+
+algos<- c("trpo", "ppo", "dqn")
+
+results<- data.frame(results)
+names(results)<- paste0("Eval_", algos)
+
+for(algo in algos){
+  all_files<- list.files("Summer_results", paste0(algo, "_F-none_Rstr-HI-none"))
+  half<- length(all_files)/2
+  files_eval<- all_files[1:half]
+  files_ES<- all_files[(half+1):length(all_files)]
+  
+  for(k in 1:length(counties)){
+    county<- counties[k]
+    county_files<- str_detect(files_eval, as.character(county))
+    results[k, paste0("Eval_", algo)]<- eval_func(paste0("Summer_results/", files_eval[county_files]))
+    print(paste0(algo,": ", county))
+  }
+}
+
+write.csv(results, paste0("Fall_results/No-QHI_F-", "none", ".csv"), row.names=FALSE)
+
 
 
 
