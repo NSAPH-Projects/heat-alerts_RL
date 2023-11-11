@@ -71,7 +71,7 @@ The gym environment is detailed in several scripts within the directory heat_ale
 2. Process these results using heat_alerts/scripts/Benchmark_evals.R
 
 ### Online RL:
-To train an RL model, use the script train_online_rl_sb3.py -- note that there are many possible arguments, passed using Hydra / config files.
+To train an RL model, use the script train_online_rl_sb3.py -- note that there are many possible arguments, passed using Hydra / config files. 
 
 To reproduce the analyses in the paper: 
 
