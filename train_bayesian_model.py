@@ -14,13 +14,6 @@ from heat_alerts.bayesian_model import (
     HeatAlertModel,
 )
 
-# hydra.initialize(config_path="conf/bayesian_model", version_base=None)
-# cfg = hydra.compose(config_name="config")
-# cfg.model.name = "FullFast_8-16"
-# cfg.model.name = "FF_sample"
-# cfg.training.num_particles = 1 # for full_fast
-# cfg.training.batch_size = None
-
 @hydra.main(config_path="conf/bayesian_model", config_name="config", version_base=None)
 def main(cfg: DictConfig):
     # Load data
