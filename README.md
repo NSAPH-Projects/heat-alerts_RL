@@ -2,7 +2,7 @@
 
 This is code for investigating applicability of reinforcement learning (RL) to environmental health, specifically issuance of heat alerts in the United States.
 
-<span style="color:blue">*Start here if you have access to the health data:*</span>
+<ins>Start here if you have access to the health data:</ins>
 
 ### Data Processing:
 *In the directory heat_alerts/Data_Processing:*
