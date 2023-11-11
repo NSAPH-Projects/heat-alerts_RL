@@ -10,7 +10,7 @@ conda activate heatrl
 
 <ins>**\*\*\*Start here if you have access to the health data\*\*\***</ins>
 
-### Data Processing:
+### Data processing:
 *In the directory heat_alerts/Data_Processing:*
 1. Merging mortality data and heat alerts data: Explore_merged_data.R
 2. Processing county-level covariates: Extract_land_area.R, Get_county_Census_data.R, Prep_DoE_zones.R
