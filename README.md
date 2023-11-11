@@ -3,6 +3,7 @@
 This is code for investigating applicability of reinforcement learning (RL) to environmental health, specifically issuance of heat alerts in the United States.
 
 ### Data Processing:
+*In the directory heat_alerts/Data_Processing:*
 1. Merging mortality data and heat alerts data: Explore_merged_data.R
 2. Processing county-level covariates: Extract_land_area.R, Get_county_Census_data.R, Prep_DoE_zones.R
 3. Merge together: Merge-finalize_county_data.R
