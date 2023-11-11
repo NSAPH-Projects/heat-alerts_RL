@@ -37,7 +37,8 @@ The data is broken in several files. The advantage with this is that it is mostl
 python train_nn.py training=full_fast constrain=mixed model.name="FF_mixed"
 ```
 See [here](https://hydra.cc/docs/intro/) for an introduction to Hydra. <br>
-2. Evaluate the accuracy of these predictions with the script heat_alerts/bayesian_model/Evaluate_pyro_R.R
+*Note: whatever name the bayesian model is saved under should be pasted into the corresponding file in the conf/online_rl/sb3/r_model/ directory, for instance in the case above, in the mixed_constraints.yaml file we would write "guide_ckpt: ckpts/FF_mixed_guide.pt"*
+2. Evaluate the accuracy of these predictions (i.e. $R^2$),  with the script heat_alerts/bayesian_model/Evaluate_pyro_R.R
 
 ### Gym environment (simulator):
 
