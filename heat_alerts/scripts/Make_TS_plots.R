@@ -56,7 +56,7 @@ p + facet_grid(cols = vars(Type), scales = "free_y", labeller = label_parsed)
 p2<- ggplot(plot_df, aes(x=Day, y=Value, color=Region, fill=Region)) + 
   geom_smooth()
 
-p2 + facet_grid(rows = vars(Type), scales = "free_y", labeller = label_parsed)
+p2 + facet_grid(rows = vars(Type), scales = "free_y", labeller = label_parsed) # the plot included in the paper!
 
 
 p3<- ggplot(plot_df, aes(x=Day, y=Value, color=Region, fill=Region)) +
