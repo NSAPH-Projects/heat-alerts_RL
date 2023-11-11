@@ -15,7 +15,21 @@ This is code for investigating applicability of reinforcement learning (RL) to e
 conda env create -f envs/rl/env-linux.yaml
 conda activate heatrl
 ```
-Then run the script heat_alerts/scripts/prepare_bayesian_model_data.py to get everything in the right format for the Bayesian model and gym environment.
+Then run the script heat_alerts/scripts/prepare_bayesian_model_data.py to get everything in the right format for the Bayesian model and gym environment. This will create a bunch of files under the folder `data/processed`. 
+
+The files will look like:
+
+```
+data/processed/
+├── states.parquet  # time-varying features
+├── actions.parquet  # alert or not
+├── spatial_feats.parquet  # spatial features, num rows = num fips
+├── fips2idx.json  # mapping from fips to row index in spatial_feats.parquet
+├── location_indices.json  # location (fips index) f each row of states.parquet
+├── offset.parquet  # offset for the poisson regresison, it is the mean of 
+                    # corresponds to
+```
+The data is broken in several files. The advantage with this is that it is mostly ML/RL ready and that parquet files can be opened from both Python and R efficiently.
 
 ### Bayesian rewards modeling:
 1. Run train_bayesian_model.py using Hydra arguments. Configurations are in the conf directory. For example:
