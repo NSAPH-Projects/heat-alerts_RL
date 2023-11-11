@@ -61,7 +61,7 @@ We can *validate* the bayesian rewards model using the following scripts in the 
 The gym environment is detailed in several scripts within the directory heat_alerts/online_rl:
  * env.py contains the overall mechanics of stepping through and resetting the gym environment.
  * datautils.py contains several functions for data formatting, which is performed before calling the environment instantiation.
- * callbacks.py contains the calculation of custom metrics that we wish to save from each episode through the environment -- used primarily during RL training.
+ * callbacks.py contains the calculation of custom metrics that we wish to save from each episode through the environment and can view using tensorboard -- used primarily during RL training.
 
 **Note: in the following sections, if you're using the provided shell (.sh) scripts, you will need to adjust the size of the job array depending on how many you run at once.**
 
