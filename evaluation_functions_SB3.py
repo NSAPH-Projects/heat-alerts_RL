@@ -21,15 +21,12 @@ from heat_alerts.online_rl.callbacks import AlertLoggingCallback
 
 # hydra.initialize(config_path="conf/online_rl/sb3", version_base=None)
 # cfg = hydra.compose(config_name="config")
-# cfg.policy_type="NWS"
-# cfg.policy_type="NA"
 
 def prep_data(cfg: DictConfig):
     # Set seed
     set_random_seed(cfg.seed)
 
     # instantiate guide
-    # TODO: I wish the guide could be loaded more elegantly!
     logging.info("Instantiating guide")
     dm = HeatAlertDataModule(dir=cfg.datadir, load_outcome=False, constrain=cfg.r_model.constrain)
 
