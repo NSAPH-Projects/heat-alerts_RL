@@ -32,7 +32,7 @@ data/processed/
 The data is broken in several files. The advantage with this is that it is mostly ML/RL ready and that parquet files can be opened from both Python and R efficiently.
 
 ### Bayesian rewards modeling:
-1. Run train_bayesian_model.py using Hydra arguments. Configurations are in the conf directory. For example:
+1. Run train_bayesian_model.py using Hydra arguments. Configurations are in the conf directory. For example, to get the model used in our paper, which we determine to be the most robust without too many constraints:
 ```
 python train_nn.py training=full_fast constrain=mixed model.name="FF_mixed"
 ```
