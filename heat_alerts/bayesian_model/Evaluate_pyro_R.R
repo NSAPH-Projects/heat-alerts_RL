@@ -2,18 +2,10 @@
 library(arrow)
 library(rjson)
 
-# bayes<- read.csv("Bayesian_models/Bayesian_R_7-19.csv", header=FALSE)
-# bayes<- read.csv("Bayesian_models/Bayesian_Full_8-4.csv", header=FALSE)
-# bayes<- read.csv("Bayesian_models/Bayesian_Full_8-14.csv", header=FALSE)
-
-# bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FullFast_8-16.csv", header=FALSE)
-# bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_NC_9-6.csv", header=FALSE)
-# bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-HI_9-11.csv", header=FALSE)
-
-bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-all_wide-EB-prior.csv", header=FALSE)
-bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-none_wide-EB-prior.csv", header=FALSE)
-bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-HI_wide-EB-prior.csv", header=FALSE)
-bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-A_wide-EB-prior.csv", header=FALSE)
+# bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-all_wide-EB-prior.csv", header=FALSE)
+# bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-none_wide-EB-prior.csv", header=FALSE)
+# bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-HI_wide-EB-prior.csv", header=FALSE)
+# bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-A_wide-EB-prior.csv", header=FALSE)
 bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-M_wide-EB-prior.csv", header=FALSE)
 
 #### Compare to observations:
@@ -22,12 +14,7 @@ A<- read_parquet("data/processed/actions.parquet")$alert
 offset<- read_parquet("data/processed/offset.parquet")[,1]
 denom<- read_parquet("data/processed/Medicare_denominator.parquet")[,1]
 
-# pred_Y<- bayes$R0
-# pred_Y[A==1]<- bayes$R1[A==1]
-# pred_Y<- pred_Y*offset
-
-# pred_Y<- bayes$V3#/offset
-# Y<- Y/offset
+# Calculating R^2 on the daily rates of NOHR hospitalizations:
 pred_Y<- bayes$V3/denom
 Y<- Y/denom
 
@@ -68,9 +55,8 @@ var_DF$Mean_Eff<- agg_DF$Eff
 var_DF$Eff<- round(var_DF$Eff, 4)
 
 many_a<- var_DF[which(var_DF$Alerts >= 75),]
-# many_a<- var_DF[which(var_DF$Alerts >= 55),]
 O<- many_a[order(many_a$Eff, decreasing=TRUE),]
-O[which(O$Region == "Mixed-Humid"),]
+O[which(O$Region == "Mixed-Humid"),] # manually run through the five main regions 
 
 agg_DF[order(agg_DF$Eff, decreasing=TRUE),]
 agg_DF[order(agg_DF$Eff, decreasing=TRUE),][0:100,]
