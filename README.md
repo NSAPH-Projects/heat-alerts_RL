@@ -33,6 +33,9 @@ data/processed/
 The data is broken in several files. The advantage with this is that it is mostly ML/RL ready and that parquet files can be opened from both Python and R efficiently.
 
 ### Bayesian rewards modeling:
+
+The bulk of the code for this model is in heat_alerts/bayesian_model/pyro_heat_alert.py
+
 1. Run train_bayesian_model.py using Hydra arguments. Configurations are in the conf directory. For example, to get the model used in our paper, which we determine to be the most robust without too many constraints:
 ```
 python train_bayesian_model.py training=full_fast constrain=mixed model.name="FF_mixed"
@@ -50,7 +53,7 @@ Then *validate* the model using the following scripts in the heat_alerts/bayesia
 
 ### Gym environment (simulator):
 
-The gym environment is detailed in several scripts within the directory heat_alerts/online_rl
+The gym environment is detailed in several scripts within the directory heat_alerts/online_rl:
  * env.py contains the overall mechanics of stepping through and resetting the gym environment.
  * datautils.py contains several functions for data formatting, which is performed before calling the environment instantiation.
  * callbacks.py contains the calculation of custom metrics that we wish to save from each episode through the environment -- used primarily during RL training.
