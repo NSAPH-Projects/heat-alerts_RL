@@ -11,7 +11,7 @@ from pyro.infer.trace_elbo import JitTrace_ELBO, Trace_ELBO
 from torch.distributions.utils import broadcast_all
 
 
-class NegativeLogNormal(TorchDistribution):
+class NegativeLogNormal(TorchDistribution): # helps us define constraints on certain coefficients to be only positive or negative
     arg_constraints = {"loc": constraints.real, "scale": constraints.positive}
     support = constraints.less_than(0.0)
 
@@ -46,7 +46,7 @@ class NegativeLogNormal(TorchDistribution):
         return self._base_dist.log_prob(-value)
 
 
-class MLP(nn.Module):
+class MLP(nn.Module): # for learning a prior informed by the spatial variables
     """Simple MLP with the given dimensions and activation function"""
 
     def __init__(
@@ -65,7 +65,7 @@ class MLP(nn.Module):
         return self.net(x)
 
 
-class HeatAlertModel(nn.Module):
+class HeatAlertModel(nn.Module): # main model definition, uses Pytorch syntax / mechanics under the hood of Pyro
     def __init__(
         self,
         spatial_features: torch.Tensor | None = None,
@@ -126,12 +126,9 @@ class HeatAlertModel(nn.Module):
         baseline_samples = {}
         effectiveness_samples = {}
 
-        # if loc_ind.shape >= 2:
-        # ^ why do we check for this?
-        # it seems redudant to have many ifs for the scalar case since
-        # we can handle the other case using batch size 1
         spatial_features = self.spatial_features
 
+        # sample coefficients
         baseline_loc = self.loc_baseline_coefs(spatial_features)
         eff_loc = self.loc_effectiveness_coefs(spatial_features)
 
@@ -180,57 +177,6 @@ class HeatAlertModel(nn.Module):
         else:
             return torch.stack([effectiveness, baseline, outcome_mean], dim=1)
 
-        # else: # be careful with location indicator if only using one county
-        #     spatial_features = self.spatial_features[loc_ind]
-
-        #     baseline_loc = self.loc_baseline_coefs(spatial_features)[0][0]
-        #     eff_loc = self.loc_effectiveness_coefs(spatial_features)[0][0]
-
-        #     for i, name in enumerate(self.baseline_feature_names):
-        #         dist = self.get_dist(name, self.baseline_constraints, baseline_loc[i].reshape(-1,1))
-        #         baseline_samples[name] = pyro.sample("baseline_" + name, dist)
-
-        #     for i, name in enumerate(self.effectiveness_feature_names):
-        #         dist = self.get_dist(name, self.effectiveness_constraints, eff_loc[i].reshape(-1,1))
-        #         effectiveness_samples[name] = pyro.sample("effectiveness_" + name, dist)
-
-        #     # # we need to match the time varying features in x with the correct coefficient sample
-        #     # baseline_contribs = []
-        #     # for i, name in enumerate(self.baseline_feature_names):
-        #     #     coef = baseline_samples[name]
-        #     #     baseline_contribs.append(coef * baseline_features[i])
-
-        #     # compute baseline hospitalizations
-        #     baseline_bias = pyro.sample(
-        #         "baseline_bias", Uniform(-0.5, 0.5).expand([1]).to_event(1)
-        #     )
-        #     # baseline = torch.exp(sum(baseline_contribs) + baseline_bias)
-        #     # baseline = baseline.clamp(max=1e6)
-
-        #     # effectiveness_contribs = []
-        #     # for i, name in enumerate(self.effectiveness_feature_names):
-        #     #     coef = effectiveness_samples[name]
-        #     #     effectiveness_contribs.append(coef * eff_features[i])
-
-        #     eff_bias = pyro.sample("eff_bias", Uniform(-7, -5).expand([1]).to_event(1))
-        #     # effectiveness = torch.sigmoid(sum(effectiveness_contribs) + eff_bias)
-        #     # effectiveness = effectiveness.clamp(1e-6, 1 - 1e-6)
-
-        #     # # sample the outcome
-        #     # outcome_mean = county_summer_mean * baseline * (1 - alert * effectiveness)
-
-        #     # y = hosps if condition else None
-        #     # with pyro.plate("data", 1):
-        #     #     obs = pyro.sample("hospitalizations", Poisson(outcome_mean + 1e-3), obs=y)
-
-        #     if not return_outcomes:
-        #         return obs
-        #     else:
-        #         # return torch.stack([effectiveness, baseline, outcome_mean], dim=1)
-        #         E_coef = torch.cat([effectiveness_samples[name] for name in self.effectiveness_feature_names])
-        #         B_coef = torch.cat([baseline_samples[name] for name in self.baseline_feature_names])
-        #         return torch.cat([E_coef, B_coef, eff_bias.reshape(1,1), baseline_bias.reshape(1,1)])
-
     @staticmethod
     def get_dist(name, constraints, loc):
         if name not in constraints:
@@ -243,8 +189,8 @@ class HeatAlertModel(nn.Module):
             raise ValueError(f"unknown constraint {constraints[name]}")
 
 
-class HeatAlertDataModule(pl.LightningDataModule):
-    """Reads the preprocess data and prepared it for training using tensordicts"""
+class HeatAlertDataModule(pl.LightningDataModule): # used both by the bayesian model and later by the RL models
+    """Reads the preprocess data and prepares it for training using tensordicts"""
 
     def __init__(
         self,
@@ -269,7 +215,7 @@ class HeatAlertDataModule(pl.LightningDataModule):
             if not sampled_Y:
                 Y = pd.read_parquet(f"{dir}/outcomes.parquet")
             else:
-                Y = pd.read_parquet(f"{dir}/sampled_outcomes.parquet")
+                Y = pd.read_parquet(f"{dir}/sampled_outcomes.parquet") # when validating the model using sampled coefficients as "truth"
         else:
             Y = pd.DataFrame({"outcome": np.full(A.shape[0], np.nan)}, index=A.index)
             offset = pd.DataFrame({"offset": np.full(A.shape[0], 1)}, index=A.index)
@@ -342,7 +288,7 @@ class HeatAlertDataModule(pl.LightningDataModule):
         }
         self.baseline_feature_names = list(baseline_features.keys())
 
-        ## note: contraints are passed to the heat alert model
+        ## note: constraints are passed to the heat alert model
         if constrain == "all":
             self.effectiveness_constraints = dict(
                 heat_qi="positive",  # more heat more effective
@@ -379,7 +325,7 @@ class HeatAlertDataModule(pl.LightningDataModule):
                 alert_lag1="negative",  # alert yesterday less hospitalizations
                 previous_alerts="negative",  # more trailing alerts less hospitalizations
             )
-        elif constrain == "mixed":
+        elif constrain == "mixed": # model used in the main analysis of the paper!
             self.effectiveness_constraints = dict(
                 heat_qi="positive",  # more heat more effective
                 excess_heat="positive",  # more excess here more effective
@@ -438,7 +384,7 @@ class HeatAlertDataModule(pl.LightningDataModule):
         )
 
 
-class HeatAlertLightning(pl.LightningModule):
+class HeatAlertLightning(pl.LightningModule): # Pytorch Lightning helps to efficiently train Pytorch models 
     def __init__(
         self,
         model: nn.Module,
@@ -456,14 +402,14 @@ class HeatAlertLightning(pl.LightningModule):
         self.loss_fn = elbo(num_particles=num_particles).differentiable_loss
         self.lr = lr
 
-        # spline basis for day of summer, sued for plots
+        # spline basis for day of summer, used for plots
         if dos_spline_basis is not None:
             self.register_buffer("dos_spline_basis", dos_spline_basis)
 
     def training_step(self, batch, batch_idx):
         loss = self.loss_fn(self.model, self.guide, *batch)
 
-        if batch_idx == 0:  # do some plots at the beginning of each epoch
+        if batch_idx == 0:  # do some plots at the beginning of each epoch -- see these plots using tensorboard
             with torch.no_grad():
                 # one sample from the posterior
                 predictive = pyro.infer.Predictive(
