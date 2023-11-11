@@ -18,11 +18,6 @@ from pyro_heat_alert import (HeatAlertDataModule, HeatAlertLightning,
 from pyro.infer import Predictive, predictive
 
 def main(params):
-    # params = {"model_name": "FullFast_8-16", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "all"}
-    # params = {"model_name": "FF_NC_9-6", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "none"}
-    # params = {"model_name": "FF_C-HI_9-11", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "HI"}
-    # params = {"model_name": "FF_C-HI_wide-EB-prior", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "HI"}
-    # params = {"model_name": "FF_C-A_wide-EB-prior", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "alerts"}
     # params = {"model_name": "FF_C-M_wide-EB-prior", "n_samples": 100, "SC": "F", "county": 36005, "constrain": "mixed"}
     params = vars(params)
     ## Read in data:
