@@ -2,6 +2,12 @@
 
 This is code for investigating applicability of reinforcement learning (RL) to environmental health, specifically issuance of heat alerts in the United States.
 
+### Installing the conda environment:
+```
+conda env create -f envs/rl/env-linux.yaml
+conda activate heatrl
+```
+
 <ins>**\*\*\*Start here if you have access to the health data\*\*\***</ins>
 
 ### Data Processing:
@@ -13,11 +19,6 @@ This is code for investigating applicability of reinforcement learning (RL) to e
 5. Add more covariates to address confounding: More_confounders.R
 6. Finalize and select only counties with population > 65,000: Single_county_prep_data.R
 
-### Installing the conda environment and getting the data ready for modeling:
-```
-conda env create -f envs/rl/env-linux.yaml
-conda activate heatrl
-```
 Then run the script heat_alerts/scripts/prepare_bayesian_model_data.py to get everything in the right format for the Bayesian model and gym environment. This will create a bunch of files under the folder `data/processed`. 
 
 The files will look like:
