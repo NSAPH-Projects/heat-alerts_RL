@@ -19,10 +19,8 @@ from pyro_heat_alert import (HeatAlertDataModule, HeatAlertLightning,
 
 
 def main(params):
-    # params = {"model_name": "FullFast_8-16", "n_samples": 1, "SC": "F", "county": 36005, "constrain": "all"}
-    # params = {"model_name": "FF_sample", "n_samples": 1000, "SC": "F", "county": 36005, "constrain": "all"}
-    # params = {"model_name": "FF_C-M_wide-EB-prior", "n_samples": 1, "SC": "F", "county": 36005, "constrain": "mixed"}
-    # params = {"model_name": "FF_C-M_sample", "n_samples": 1000, "SC": "F", "county": 36005, "constrain": "mixed"}
+    # params = {"type": "initial", "model_name": "FF_C-M_wide-EB-prior", "n_samples": 1, "SC": "F", "county": 36005, "constrain": "mixed"}
+    # params = {"type": "validation", "model_name": "FF_C-M_sample", "n_samples": 1000, "SC": "F", "county": 36005, "constrain": "mixed"}
     params=vars(params)
     ## Read in data:
     n_days = 153
@@ -72,63 +70,54 @@ def main(params):
         index
     ]
 
-    # ## Saving one sample to test model identification:
-    # sample = guide(*inputs)
+    if params["type"] == "initial": # Saving one sample to test model identification:
+      sample = guide(*inputs)
+  
+      w = csv.writer(open("data/processed/Coef_sample.csv", "w"))
+      for key, val in sample.items():
+          w.writerow([key, val])
 
-    # w = csv.writer(open("data/processed/Coef_sample.csv", "w"))
-    # for key, val in sample.items():
-    #     w.writerow([key, val])
+      ## Calculate fake Y based on the sampled coefficients:
+      baseline_contribs = []
+      for i, name in enumerate(dm.baseline_feature_names):
+          coef = sample["baseline_" + name][loc_ind]
+          baseline_contribs.append(coef * baseline_features[:, i])
+  
+      baseline_bias = sample['baseline_bias']
+      baseline = torch.exp(sum(baseline_contribs) + baseline_bias[loc_ind])
+      baseline = baseline.clamp(max=1e6)
+  
+      effectiveness_contribs = []
+      for i, name in enumerate(dm.effectiveness_feature_names):
+          coef = sample["effectiveness_" + name][loc_ind]
+          effectiveness_contribs.append(coef * eff_features[:, i])
+  
+      eff_bias = sample['effectiveness_bias']
+      effectiveness = torch.sigmoid(sum(effectiveness_contribs) + eff_bias[loc_ind])
+      effectiveness = effectiveness.clamp(1e-6, 1 - 1e-6)
+  
+      outcome_mean = county_summer_mean * baseline * (1 - alert * effectiveness)
+      with pyro.plate("data", len(hosps), subsample=index):
+          obs = pyro.sample("hospitalizations", Poisson(outcome_mean + 1e-3), obs=hosps)
 
-    # baseline_contribs = []
-    # for i, name in enumerate(dm.baseline_feature_names):
-    #     coef = sample["baseline_" + name][loc_ind]
-    #     baseline_contribs.append(coef * baseline_features[:, i])
-
-    # # compute baseline hospitalizations
-    # baseline_bias = sample['baseline_bias']
-    # baseline = torch.exp(sum(baseline_contribs) + baseline_bias[loc_ind])
-    # baseline = baseline.clamp(max=1e6)
-
-    # effectiveness_contribs = []
-    # for i, name in enumerate(dm.effectiveness_feature_names):
-    #     coef = sample["effectiveness_" + name][loc_ind]
-    #     effectiveness_contribs.append(coef * eff_features[:, i])
-
-    # eff_bias = sample['effectiveness_bias']
-    # effectiveness = torch.sigmoid(sum(effectiveness_contribs) + eff_bias[loc_ind])
-    # effectiveness = effectiveness.clamp(1e-6, 1 - 1e-6)
-
-    # outcome_mean = county_summer_mean * baseline * (1 - alert * effectiveness)
-    # with pyro.plate("data", len(hosps), subsample=index):
-    #     obs = pyro.sample("hospitalizations", Poisson(outcome_mean + 1e-3), obs=hosps)
-
-    # df = pd.DataFrame(obs.numpy())
-    # df.to_parquet("data/processed/sampled_outcomes.parquet")
-
-
-    #### Saving posterior samples:
-    with torch.no_grad():
-        samples = [guide(*inputs) for _ in range(params["n_samples"])]
-    
-    # Samples = {}
-    # for k in samples[0].keys():
-    #     Samples[k] = []
-    #     for i in range(params["n_samples"]):
-    #         Samples[k].extend(samples[i][k].numpy().tolist())
-    
-    # w = csv.writer(open("data/processed/Validation_coefs.csv", "w"))
-    # for key, val in Samples.items():
-    #     w.writerow([key, val]) 
-
-    w = csv.writer(open("data/processed/Validation_coefs.csv", "w"))
-    for i in range(params["n_samples"]):
-        for key, val in samples[i].items():
-            w.writerow([key, val.numpy().tolist()]) 
-    
+      ## Save for training the bayesian model with the 
+      df = pd.DataFrame(obs.numpy())
+      df.to_parquet("data/processed/sampled_outcomes.parquet")
+      
+    else: # Saving posterior samples from the validation model
+      with torch.no_grad():
+          samples = [guide(*inputs) for _ in range(params["n_samples"])]
+  
+      w = csv.writer(open("data/processed/Validation_coefs.csv", "w"))
+      for i in range(params["n_samples"]):
+          for key, val in samples[i].items():
+              w.writerow([key, val.numpy().tolist()]) 
+      
 
 
 if __name__ == "__main__":
     parser = ArgumentParser()
+    parser.add_argument("--type", type=str, default="initial", help="initial samples or validation model samples?")
     parser.add_argument("--model_name", type=str, default="Full_8-7", help="model name")
     parser.add_argument("--n_samples", type=int, default=1000, help="number of samples to take")
     parser.add_argument("--SC", type=str, default="F", help="Make plot for single county?")
