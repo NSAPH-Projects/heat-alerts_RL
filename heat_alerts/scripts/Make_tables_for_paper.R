@@ -7,11 +7,10 @@ library(cdlTools)
 library(readr)
 library(xtable)
 
-## Get background info:
+############################# Make table of background info for each county:
 
 data<- read_csv("data/Summer23_Train_smaller-for-Python.csv")
 
-# bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FullFast_8-16.csv", header=FALSE)
 bayes<- read.csv("heat_alerts/bayesian_model/results/Bayesian_FF_C-M_wide-EB-prior.csv", header=FALSE)
 A<- read_parquet("data/processed/actions.parquet")$alert
 offset<- read_parquet("data/processed/offset.parquet")$mean_other_hosps
@@ -80,7 +79,7 @@ DF<- inner_join(DF, more_W)
 
 write.csv(DF, "data/Final_30_W.csv")
 
-## Select one county from each climate region for hyperparameter tuning:
+##### Select one county from each climate region for *preliminary* hyperparameter tuning, using the info above:
 
 regions<- unique(DF$Region)
 
@@ -93,41 +92,11 @@ for(r in 1:length(regions)){
   print(paste0(DF$Fips[pos[i]], " (", DF$State[pos[i]], ")"))
 }
 
-# ## Add evaluation results:
-# 
-# results<- read.csv("Fall_results/Final_eval_30_best-T7-T8.csv")
-# Results<- results[,c("Fips", "Random", "NWS", "Eval", "opt_HI_thr", "Best_Iter")]
-# names(Results)[ncol(Results)-1]<- "QHI_thr"
-# Results$Best_Iter<- Results$Best_Iter/1000000
-# 
-# Full<- inner_join(DF[,c("Fips", "Region", "State", "Alerts", "SD_Eff")], Results)
-# 
-# ## Add absolute HI for context:
-# 
-# data<- read_csv("data/Summer23_Train_smaller-for-Python.csv")
-# data$fips<- as.numeric(data$fips)
-# 
-# HI_thr<- rep(0, nrow(Full))
-# for(k in 1:nrow(Full)){
-#   d<- data[which(data$fips == Full$Fips[k]),]
-#   HI_thr[k]<- quantile(d$HImaxF_PopW, Full$QHI_thr[k])
-# }
-# 
-# Full$HI_thr<- HI_thr
-# 
-
-Full<- DF
-
 ## Print for Latex:
-
+Full<- DF
 Final<- Full[order(Full$Region, decreasing=TRUE),]
 Final$Fips<- as.character(Final$Fips)
 Final$Alerts<- as.integer(Final$Alerts)
-# Final$HI_thr<- as.integer(Final$HI_thr)
-# Final$QHI_thr<- as.integer(Final$QHI_thr*100)
-# names(Final)[which(names(Final)=="Eval")]<- "TRPO"
-# r<- Final$Random
-# Final$Std_diff<- (Final$TRPO - Final$NWS)/abs(r)
 
 # To save space:
 orig<- c("Mixed-Humid", "Marine", "Hot-Humid", "Hot-Dry", "Cold")
@@ -136,10 +105,6 @@ Final$Region<- as.vector(sapply(Final$Region, function(x){ab[match(x,orig)]}))
 Final$Fips_ST<- apply(Final[,c("Fips", "State")], MARGIN=1, function(x){
   paste0(paste(x[1], x[2], sep=" ("),")")
 })
-
-# print(xtable(Final[,c("Fips_ST","Region","SD_Eff", "Alerts","Random","NWS",
-#                       "TRPO", "Std_diff", "QHI_thr", "HI_thr", "Best_Iter")], 
-#              digits=3, hline.after = 1:nrow(Final)), include.rownames=FALSE)
 
 Final$SD_Eff<- round(Final$SD_Eff,3)
 Final$Pop_density<- round(Final$Pop_density)
