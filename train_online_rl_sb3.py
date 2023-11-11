@@ -40,7 +40,6 @@ def main(cfg: DictConfig):
     set_random_seed(cfg.seed)
 
     # instantiate guide
-    # TODO: I wish the guide could be loaded more elegantly!
     logging.info("Instantiating guide")
     dm = HeatAlertDataModule(
         dir=cfg.datadir, load_outcome=False, constrain=cfg.r_model.constrain, 
@@ -200,11 +199,6 @@ def main(cfg: DictConfig):
     new_cfg = cfg
     for v in [True]: # [True, False]
         for m in [True, False]:
-            # if v == True and m == True:
-            #     pass
-            # elif v == False and m == False:
-            #     pass
-            # else:
             new_cfg.eval.val_years = v
             new_cfg.eval.match_similar = m
             custom_eval(new_cfg, dm=dm, samples=samples)
