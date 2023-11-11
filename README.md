@@ -2,7 +2,7 @@
 
 This is code for investigating applicability of reinforcement learning (RL) to environmental health, specifically issuance of heat alerts in the United States.
 
-<ins>Start here if you have access to the health data:</ins>
+<ins>\*\*\*Start here if you have access to the health data\*\*\*</ins>
 
 ### Data Processing:
 *In the directory heat_alerts/Data_Processing:*
@@ -47,7 +47,7 @@ See [here](https://hydra.cc/docs/intro/) for an introduction to Hydra. <br>
 
 2. Evaluate the accuracy of these predictions (i.e. $R^2$) and identify counties with (a) high number of alerts and (b) high estimated (variance of) effectiveness of heat alerts with the script heat_alerts/bayesian_model/Evaluate_pyro_R.R
 
-<ins>Start here if you just have access to the simulator, not the health data:</ins>
+<ins>**\*\*\*Start here if you just have access to the simulator, not the health data\*\*\***</ins>
 
 We can *validate* the bayesian rewards model using the following scripts in the heat_alerts/bayesian_model/ directory:
 1. Run Validate_model.py with --type="initial" and --model_name="FF_mixed"
