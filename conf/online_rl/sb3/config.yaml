@@ -3,7 +3,7 @@ defaults:
   - algo: trpo
   - r_model: mixed_constraints
   - restrict_days: qhi
-  - forecasts: num_elig
+  - forecasts: none
   - shaped_penalty: none
  
 datadir: data/processed
