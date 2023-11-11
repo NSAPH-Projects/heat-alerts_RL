@@ -6,7 +6,7 @@ Bench<- read.csv("Fall_results/Benchmarks_mixed_constraints_avg_return.csv")
 stationary_W<- read.csv("data/Final_30_W.csv")[,-1]
 stationary_W<- stationary_W[match(Bench$County, stationary_W$Fips),]
 
-RL_F.q_d10<- read.csv("Fall_results/Main_analysis_trpo_F-Q-D10.csv")
+# RL_F.q_d10<- read.csv("Fall_results/Main_analysis_trpo_F-Q-D10.csv")
 RL_F.none<- read.csv("Fall_results/Main_analysis_trpo_F-none.csv")
 
 Eval_DOS_bench<- read.csv("Fall_results/Eval_DOS_mixed_constraints_benchmarks.csv")
@@ -38,16 +38,15 @@ Y<- factor(Diff > 0)
 Diff.a<- RL_F.none$Eval - Bench$AA_QHI
 Y.a<- factor(Diff.a > 0)
 
-# Eval_DOS_RL<- read.csv("Fall_results/Eval_DOS_mixed_constraints_RL.csv")
-# Eval_DOS_NWS<- read.csv("Fall_results/Eval_DOS_mixed_constraints_benchmarks.csv")
-# Eval_SL_RL<- read.csv("Fall_results/Eval_Strk-Ln_mixed_constraints_RL.csv")
-# Eval_SL_NWS<- read.csv("Fall_results/Eval_Strk-Ln_mixed_constraints_benchmarks.csv")
-
+## Copied from datautils.py: 
 West<- c("AZ", "CA", "CO", "ID", "MT", "NM", "NV", "OR", "WA", "ND", "SD", "NE", "KS")
 South<- c("TX", "OK", "AR", "LA", "MS", "AL", "GA", "FL", "TN", "KY", "SC", "NC", 
           "VA", "WV", "VA", "MD", "DE", 
           "NM", "AZ", "CA")
 
+#### Manually select variables for CART analysis (either all or non-modeled set)
+
+## All variables:
 CART_df<- data.frame(stationary_W[,c("Region", "Pop_density", "Med.HH.Income",
                                      # "Democrat", "broadband.usage", "pm25",
                                      "Alerts", 
@@ -63,6 +62,8 @@ CART_df<- data.frame(stationary_W[,c("Region", "Pop_density", "Med.HH.Income",
                      NWS_SL_avg=agg_sl_nws[m_pos, 2][,4] #,
                      # AA_SL_avg=agg_sl_aa[m_pos, 2][,4]
                      )
+
+## Non-modeled variables:
 CART_df<- data.frame(stationary_W[,c("Region", "Pop_density", # "Med.HH.Income",
                                      # "Democrat", "broadband.usage", "pm25",
                                      "Alerts")],
@@ -100,7 +101,7 @@ reg_fit<- rpart(Diff.a ~ ., data = CART_df, method = "anova", model = TRUE
 rpart.plot(reg_fit, box.palette = 0)
 
 
-######## Confirming intuitions:
+######## Investigating intuitions:
 
 plot(stationary_W$Med.HH.Income, stationary_W$Alerts)
 abline(lm(Alerts ~ Med.HH.Income, stationary_W))
