@@ -35,13 +35,18 @@ The data is broken in several files. The advantage with this is that it is mostl
 ### Bayesian rewards modeling:
 1. Run train_bayesian_model.py using Hydra arguments. Configurations are in the conf directory. For example, to get the model used in our paper, which we determine to be the most robust without too many constraints:
 ```
-python train_nn.py training=full_fast constrain=mixed model.name="FF_mixed"
+python train_bayesian_model.py training=full_fast constrain=mixed model.name="FF_mixed"
 ```
 *Note: whatever name the bayesian model is saved under should be pasted into the corresponding file in the conf/online_rl/sb3/r_model/ directory, for instance in the case above, in the mixed_constraints.yaml file we would write "guide_ckpt: ckpts/FF_mixed_guide.pt"*
 See [here](https://hydra.cc/docs/intro/) for an introduction to Hydra. <br>
 
 2. Evaluate the accuracy of these predictions (i.e. $R^2$) and identify counties with (a) high number of alerts and (b) high estimated (variance of) effectiveness of heat alerts with the script heat_alerts/bayesian_model/Evaluate_pyro_R.R
-3. 
+
+Then validate the model using the following scripts in the heat_alerts/bayesian_model/ directory:
+3. Run Validate_model.py with --type="initial" and --model_name="FF_mixed"
+4. Train a model on these sampled outcomes using the flag sample_Y=true (again using the script train_bayesian_model.py)
+5. Run Validate_model.py again with --type="validation" and the name of the new model trained on the fake data
+6. Calculate coverage using Validate_model_intervals.R
 
 ### Gym environment (simulator):
 
