@@ -1,7 +1,7 @@
 defaults:
   - _self_
   - model: nn
-  - training: fast
+  - training: full_fast
 
 model:
   num_hidden_layers: ???
