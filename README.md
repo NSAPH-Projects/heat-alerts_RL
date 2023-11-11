@@ -66,5 +66,6 @@ To reproduce the analyses in the paper:
 2. Train comparison algos (DQN and PPO) and process the evaluation results using the same scripts ^^^
 
 ### Generate figures and tables for the paper:
-
+1. Plot of coefficients sampled from the Bayesian rewards model posterior: heat_alerts/bayesian_model/Make_plots.py
+2. 
 
