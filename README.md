@@ -47,7 +47,9 @@ See [here](https://hydra.cc/docs/intro/) for an introduction to Hydra. <br>
 
 2. Evaluate the accuracy of these predictions (i.e. $R^2$) and identify counties with (a) high number of alerts and (b) high estimated (variance of) effectiveness of heat alerts with the script heat_alerts/bayesian_model/Evaluate_pyro_R.R
 
-Then *validate* the model using the following scripts in the heat_alerts/bayesian_model/ directory:
+<ins>Start here if you just have access to the simulator, not the health data:</ins>
+
+We can *validate* the bayesian rewards model using the following scripts in the heat_alerts/bayesian_model/ directory:
 1. Run Validate_model.py with --type="initial" and --model_name="FF_mixed"
 2. Train a model on these sampled outcomes using the flag sample_Y=true (again using the script train_bayesian_model.py)
 3. Run Validate_model.py again with --type="validation" and the name of the new model trained on the fake data
