@@ -1,7 +1,7 @@
 
 library(dplyr)
 
-data<- read.csv("data/countypres_2000-2020.csv")
+data<- read.csv("data/countypres_2000-2020.csv") # downloaded from https://doi.org/10.7910/DVN/VOQCHQ 
 all_pos<- which(data$year %in% c(2004, 2008, 2012, 2016))
 all_pos<- intersect(all_pos, which(!is.na(data$county_fips)))
 
