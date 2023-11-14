@@ -1,7 +1,5 @@
 ## First, downloaded this shapefile from https://www2.census.gov/geo/tiger/TIGER2010/COUNTY/2010/
 
-setwd("C:/Users/ellen/OneDrive/MyDocs/Graduate Research/Counties_shapefile")
-
 library(raster)
 
 shp<- shapefile("tl_2010_us_county10.shp")
