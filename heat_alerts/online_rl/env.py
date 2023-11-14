@@ -127,15 +127,7 @@ class HeatAlertEnv(gym.Env):
         self.n_feature_episodes = feats_shape[0]
         self.n_days = feats_shape[1]
 
-        # compute policy observation space; we will use:
-        #   - baseline fixed features
-        #   - covariate fixed features
-        #   - size of additional states
-        #   - number of alerts (2weeks)
-        #   - alert lag
-        #   - number of prev alerts in all episode
-        # TODO: we could try a generalizing better the alert lags
-        
+        # compute policy observation space
         z = 1 # hi_mean
         if incorp_forecasts:
             if "N" in forecast_type:
