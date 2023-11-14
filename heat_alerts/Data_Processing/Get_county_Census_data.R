@@ -1,8 +1,6 @@
 library(yaml)
 library(tidycensus)
 
-setwd("C:/Users/ellen/OneDrive/MyDocs/Graduate Research/Heat alerts RL")
-
 v13<- load_variables(2013, "acs5", cache = TRUE)
 
 
