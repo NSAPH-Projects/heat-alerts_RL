@@ -80,6 +80,8 @@ def load_rl_states_data(dir: str, HI_restriction: float, incorp_forecasts: bool)
 
     Args:
         dir (str): path to directory where the data processed for the bayesian model is stored
+        HI_restriction (float): quantile below which heat alerts cannot be issued -- for creating some forecast summaries
+        incorp_forecasts (bool): whether to include forecast summary statistics in the state space
 
     Returns:
         base_dict (dict): dictionary where each key is a features used for the base hospitalizations
@@ -87,10 +89,11 @@ def load_rl_states_data(dir: str, HI_restriction: float, incorp_forecasts: bool)
             to day of summer.
         eff_dict (dict): similar as base_dict but the features for the alert effectiveness.
         extra_dict (dict): similar structure as previous dicts but contains the features that
-            are neither part of the baseline or effectiveness models.
+            are neither part of the baseline or effectiveness models (RL only).
+        other_dict (dict): similar structure as previous dicts but contains information outside of the RL state space (alert budgets, etc.)
     """
     # we could use the HeatAlertDataModule here,
-    # but used the appraoch of only loading what's needed
+    # but used the approach of only loading what's needed
     states = pd.read_parquet(f"{dir}/states.parquet").drop(columns="intercept")
     states = states.rename({"quant_HI_county": "heat_qi"}, axis=1)
     states["hi_mean"] = (states.HI_mean - states.HI_mean.mean()) / states.HI_mean.std()
@@ -113,6 +116,7 @@ def load_rl_states_data(dir: str, HI_restriction: float, incorp_forecasts: bool)
     n_years = len(year.unique())
     n_days = int(sum(year == 2006)/n_counties)
     dos_index = list(itertools.chain(*[np.arange(0,n_days) for i in np.arange(0,n_years*n_counties)]))
+    # set up and fill dicts
     base_feat_names = [
         "heat_qi",
         "heat_qi_above_25",
@@ -206,7 +210,7 @@ def load_rl_states_data(dir: str, HI_restriction: float, incorp_forecasts: bool)
     return base_dict, eff_dict, extra_dict, other_dict
 
 
-def subset_rl_states(
+def subset_rl_states( # just get the county-year combinations we desire
     county: int,
     counties: list[int],
     years: list[int] | None,
