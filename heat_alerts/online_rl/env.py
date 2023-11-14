@@ -17,7 +17,7 @@ class HeatAlertEnv(gym.Env):
         incorp_forecasts: bool = True,
         forecast_type: list[str] | None = None,
         forecast_error: float = 0.2,
-        penalty: float = 1.0,
+        penalty: float = 0.0, 
         eval_mode: bool = False,
         sample_budget: bool = True,
         explore_budget: bool = False,
@@ -47,15 +47,34 @@ class HeatAlertEnv(gym.Env):
                 Samples will be taking from the first dimension for each episode.
                 The second dimension corresponds to the number of days of summer.
                 Note that these states cannot contain information about alerts.
-            effectiveness_states (np.ndarray): a dictionary where keys
+            effectiveness_states (dict[str, np.ndarray]): a dictionary where keys
                 are the names of effectiveness features. The formatting is the same as with the
                 baseline_states.
-            budget_range (tuple[int, int]): A range to the allowed budget from. Each episode will
-                sample uniformly from the interval [budget_range[0], budget_range[1])
-            over_budget_penalty (float): penalty to apply when the agent tries to issue an alert
-                but the budget is exceeded. Defaults to 0.1.
+            extra_states (dict[str, np.ndarray]): a dictionary with the same formatting as the previous 
+                dicts, with variables in the RL state space but not the rewards model.
+            other_data (dict[str, np.ndarray]): a dictionary with the same formatting as the previous 
+                dicts, with variables beyond the RL state space, specifically the observed alert budgets.
+            incorp_forecasts (bool): whether to include forecast summary statistics in the RL state space.
+            forecast_type (list[str]): a list with the type(s) of forecast summary statistics to include.
+            forecast_error (float): magnitude of the sampling error added to the forecasts, relative to the 
+                actual values (e.g. 0.2 means +/- 20%).
+            penalty (float): penalty to apply when the agent tries to issue an alert
+                but the budget is exceeded.
             eval_mode (bool): whether to run the environment in evaluation mode. In eval mode,
                 the reward is averaged over all posterior coefficient samples instead using one sample.
+            sample_budget (bool): whether to sample the alert budget rather than using the observed value. 
+            explore_budget (bool): if True, the budget is sampled from [0,n_days], to encourage exploration.
+                If False, the budget is sampled from [0.5*b, 1.5*b], where b is the observed budget.
+            penalty_effect (bool): penalize going over the alert budget proportional to the potential reward loss on
+                each attempted alert day.
+            penalty_decay (bool): allow the penalty for going over the alert budget to lessen later in the summer.
+            restrict_alerts (bool): whether to prohibit alerts below a threshold of quantile heat index.
+            HI_restriction (float): threshold of quantile heat index below which to prohibit alerts.
+            hi_rstr_decay (bool): whether to relax the QHI restriction across the course of training.
+            hi_penalty (bool): whether to implement a penalty for issuing an alert on a less-hot day. 
+            N_timesteps (int): the total number of timesteps, allowing us to relax certain penalizations or 
+                restrictions proportionally across the course of training.
+            years (list): unnecessary for current setup.
             prev_alert_mean (float) and prev_alert_std (float): the mean and standard deviation of 
                 the previous_alerts variable, to enable putting this variable on the same scale as the 
                 rewards model training data.
