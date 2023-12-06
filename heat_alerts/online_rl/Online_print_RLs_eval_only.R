@@ -38,11 +38,11 @@ for(k in counties){
             if(arch=="[16,16]" & s==2048){
               cat(paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=false eval.match_similar=true ", 
                          "county=", county, " r_model=", r_model, " algo=", algo,
-                         " restrict_days=none", " forecasts=none", " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+                         " restrict_days=none", " forecasts=none", " algo.policy_kwargs.net_arch=", arch, # " algo.n_steps=", s,
                          " model_name=", r_model, "_", algo, "_F-none", "_fips-", county, " \n"),
                   paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=true eval.match_similar=false ", 
                          "county=", county, " r_model=", r_model, " algo=", algo,
-                         " restrict_days=none", " forecasts=none", " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+                         " restrict_days=none", " forecasts=none", " algo.policy_kwargs.net_arch=", arch, # " algo.n_steps=", s,
                          " model_name=", r_model, "_", algo, "_F-none", "_fips-", county, "\n")
               )
             }
