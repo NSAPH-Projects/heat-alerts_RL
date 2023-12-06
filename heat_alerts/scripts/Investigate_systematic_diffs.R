@@ -131,9 +131,13 @@ m<- which.max(Diff)
 DF[m,] # county 22063, OT = 0.5, NHL = 3, NHU = 64, n_steps = 4096
 county<- 22063
 
+
+test<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", 
+                       "mixed_constraints_trpo_F-none_fips-41067", "_fips_", county, ".csv"))[,-1]
+
 df<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_Tune_F-none", 
              "_Rstr-HI-0.5",
-             "_arch-", 3, "-", 64,
+             "_arch-", 2, "-", 64,
              "_ns-", 4096, "_fips-", county, "_fips_", county, ".csv"))[,-1]
 df$Count<- 1
 agg_df<- aggregate(. ~ Year, df, sum)
