@@ -29,7 +29,8 @@ def main(params):
             batch_size=n_days*n_years,
             num_workers=4,
             for_gym=True,
-            constrain=params["constrain"]
+            constrain=params["constrain"], 
+            load_outcome=False,
         )
     data = dm.gym_dataset
     hosps = data[0]
@@ -97,24 +98,46 @@ def main(params):
     l1, u1 = medians_1 - q25_1, q75_1 - medians_1
     base_names = [k.split("baseline_")[1] for k in keys1]
     eff_names = [k.split("effectiveness_")[1] for k in keys0]
-    base_names = ["QHI", "QHI>25", "QHI>75", "Excess QHI", "Alert Lag1", "Alerts 2wks", "Weekend",
+    base_names = ["QHI", "QHI>25", "QHI>75", "Excess QHI", "(-)Alert Lag1", "(-)Alerts 2wks", "Weekend",
                   "DOS_0", "DOS_1", "DOS_2" #, "Bias"
                   ]
-    eff_names = ["QHI", "Excess QHI", "Alert Lag1", "Alerts 2wks", "Weekend", 
+    eff_names = ["(+)QHI", "(+)Excess QHI", "Alert Lag1", "Alerts 2wks", "Weekend", 
                  "DOS_0", "DOS_1", "DOS_2" #, "Bias"
                  ]
 
+    Sample = [guide(*inputs) for i in range(100)]
+    Medians_0 = [np.median(np.array([sample[k].detach().numpy() for sample in Sample])) for k in keys0]
+    Medians_1 = [np.median(np.array([sample[k].detach().numpy() for sample in Sample])) for k in keys1]
+    Q25_0 = [np.percentile(np.array([sample[k].detach().numpy() for sample in Sample]), 25) for k in keys0]
+    Q25_1 = [np.percentile(np.array([sample[k].detach().numpy() for sample in Sample]), 25) for k in keys1]
+    Q75_0 = [np.percentile(np.array([sample[k].detach().numpy() for sample in Sample]), 75) for k in keys0]
+    Q75_1 = [np.percentile(np.array([sample[k].detach().numpy() for sample in Sample]), 75) for k in keys1]
+    L0, U0 = np.subtract(Medians_0, Q25_0), np.subtract(Q75_0, Medians_0)
+    L1, U1 = np.subtract(Medians_1, Q25_1), np.subtract(Q75_1, Medians_1)
+
     # make coefficient distribution plots for coefficients, error bars are iqr
-    fig, ax = plt.subplots(1, 2, figsize=(8, 4))
+    # width = 0.35
+    fig, ax = plt.subplots(2, 1, figsize=(4, 5))
+    # ax[0].bar(np.arange(len(eff_names)) - width/2, medians_0, width, yerr=[l0, u0], label='1 sample', capsize=5)
+    # ax[0].bar(np.arange(len(eff_names)) + width/2, Medians_0, width, yerr=[L0, U0], label='100 samples', capsize=5)
     ax[0].errorbar(x=eff_names, y=medians_0, yerr=[l0, u0], fmt="o")
+    # ax[0].errorbar(x=eff_names, y=Medians_0, yerr=[L0, U0], fmt="s")
+    # ax[0].set_xticks(np.arange(len(eff_names)))
+    # ax[0].set_xticklabels(eff_names)
     plt.setp(ax[0].get_xticklabels(), rotation=90)
     ax[0].set_title("Effectiveness Coefs Distribution")
     # ax[0].set_ylabel("Coef Value")
+    # ax[1].bar(np.arange(len(base_names)) - width/2, medians_1, width, yerr=[l1, u1], label='1 sample', capsize=5)
+    # ax[1].bar(np.arange(len(base_names)) + width/2, Medians_1, width, yerr=[L1, U1], label='100 samples', capsize=5)
     ax[1].errorbar(x=base_names, y=medians_1, yerr=[l1, u1], fmt="o")
+    # ax[1].errorbar(x=base_names, y=Medians_1, yerr=[L1, U1], fmt="s")
+    # ax[1].set_xticks(np.arange(len(base_names)))
+    # ax[1].set_xticklabels(base_names)
+    # ax[1].set_xlabel('Categories')
     plt.setp(ax[1].get_xticklabels(), rotation=90)
     ax[1].set_title("Baseline Coefs Distribution")
     # ax[1].set_ylabel("Coef Value")
-    plt.subplots_adjust(bottom=0.6)
+    plt.subplots_adjust(hspace=1.2)
     fig.savefig("heat_alerts/bayesian_model/Plots_params/Coefficients_" + params["model_name"] + ".png", bbox_inches="tight")
 
     print("Saved coef plot")
