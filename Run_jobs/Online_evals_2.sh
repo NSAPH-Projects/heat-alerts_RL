@@ -5,7 +5,7 @@
 #SBATCH -p shared # fasse 
 #SBATCH -t 0-0:30 
 #SBATCH --mem 3G 
-#SBATCH --array 0-10000 
+#SBATCH --array 0-9999
 #SBATCH -o ./Run_jobs/slurm/evals_2.%a.out
 #SBATCH --mail-user=ellen_considine@g.harvard.edu
 #SBATCH --mail-type=BEGIN
