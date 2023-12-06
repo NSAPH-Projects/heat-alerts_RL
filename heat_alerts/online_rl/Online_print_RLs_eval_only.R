@@ -99,7 +99,7 @@ for(k in counties){
         for(nhu in NHU){
           for(s in n_steps){
             
-            if(i >= 9964 & i < (9964*2)){
+            if(i >= (9964-36) & i < (9964*2 - 36)){
               if(nhl == 1){
                 arch<- paste0("[", nhu, "]")
               }else if(nhl == 2){
@@ -169,7 +169,7 @@ for(k in counties){
         for(nhu in NHU){
           for(s in n_steps){
             
-            if(i >= (9964*2)){
+            if(i >= ((9964*2) - (36*2))){
               if(nhl == 1){
                 arch<- paste0("[", nhu, "]")
               }else if(nhl == 2){
