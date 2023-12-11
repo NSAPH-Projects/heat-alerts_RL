@@ -123,8 +123,9 @@ print(xtable(Final[,c("Fips_ST", "Region", "Alerts", # "SD_Eff",
 
 main_DF<- read.csv("Fall_results/Main_analysis_trpo_F-none.csv")
 forc_DF<- read.csv("Fall_results/Main_analysis_trpo_F-Q-D10.csv")
-other_DF<- read.csv("Fall_results/Other_algos_F-none.csv")
-non_qhi<- read.csv("Fall_results/No-QHI_F-none.csv")
+other_DF<- read.csv("Fall_results/NEW_Other_algos_F-none.csv") # deterministic DQN
+non_qhi_stoch<- read.csv("Fall_results/No-QHI_F-none.csv")
+non_qhi_deter<- read.csv("Fall_results/NEW_No-QHI_F-none.csv") # deterministic DQN
 bench_df<- read.csv(paste0("Fall_results/Benchmarks_mixed_constraints_avg_return.csv"))
 
 WMW<- function(x, y=bench_df$NWS){
@@ -138,11 +139,13 @@ source("heat_alerts/scripts/Convert_to_hosps.R")
 
 alt_policies<- cbind(bench_df[,c("Random", "basic_NWS", 
                                  "Top_K", "Random_QHI", "AA_QHI")],
-                     Eval_trpo=main_DF[,c("Eval")], Eval_trpo.F=forc_DF[,c("Eval")],
-                     other_DF[,c("Eval_dqn", "Eval_ppo")],
-                     Non_QHI.trpo=non_qhi$Eval_trpo,
-                     Non_QHI.ppo=non_qhi$Eval_ppo,
-                     Non_QHI.dqn=non_qhi$Eval_dqn
+                     Non_QHI.trpo=non_qhi_stoch$Eval_trpo,
+                     # Non_QHI.ppo=non_qhi$Eval_ppo,
+                     Non_QHI.dqn=non_qhi_deter$Eval_dqn,
+                     # other_DF[,c("Eval_dqn", "Eval_ppo")],
+                     DQN.QHI=other_DF[,"Eval_dqn"],
+                     Eval_trpo=main_DF[,c("Eval")], 
+                     Eval_trpo.F=forc_DF[,c("Eval")]
                      )
 
 D<- t(apply(alt_policies, MARGIN=2, WMW))

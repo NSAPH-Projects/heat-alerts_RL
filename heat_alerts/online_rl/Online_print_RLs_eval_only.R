@@ -39,7 +39,7 @@ for(k in counties){
               }
               
               # if(arch=="[16,16]" & s==2048){
-              #   cat(paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=false eval.match_similar=true ", 
+              #   cat(paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=true eval.match_similar=true ", 
               #              "county=", county, " r_model=", r_model, " algo=", algo,
               #              " restrict_days=none", " forecasts=none", " algo.policy_kwargs.net_arch=", arch, # " algo.n_steps=", s,
               #              " model_name=", r_model, "_", algo, "_F-none", "_fips-", county, " \n"),
@@ -53,7 +53,7 @@ for(k in counties){
               if(algo == "trpo"){
                 for(forecasts in Forecasts){
                   for(h in HI_thresholds){
-                    cat(paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=false eval.match_similar=true restrict_days=qhi ",
+                    cat(paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=true eval.match_similar=true restrict_days=qhi ",
                                "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, 
                                " forecasts=", forecasts, " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
                                " model_name=Tune_F-", forecasts, "_Rstr-HI-", h,
@@ -109,7 +109,7 @@ for(k in counties){
               }
               
               if(arch=="[16,16]" & s==2048){
-                cat(paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=false eval.match_similar=true ", 
+                cat(paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=true eval.match_similar=true ", 
                            "county=", county, " r_model=", r_model, " algo=", algo,
                            " restrict_days=none", " forecasts=none", " algo.policy_kwargs.net_arch=", arch, # " algo.n_steps=", s,
                            " model_name=", r_model, "_", algo, "_F-none", "_fips-", county, " \n"),
@@ -123,7 +123,7 @@ for(k in counties){
               if(algo == "trpo"){
                 for(forecasts in Forecasts){
                   for(h in HI_thresholds){
-                    cat(paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=false eval.match_similar=true restrict_days=qhi ",
+                    cat(paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=true eval.match_similar=true restrict_days=qhi ",
                                "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, 
                                " forecasts=", forecasts, " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
                                " model_name=Tune_F-", forecasts, "_Rstr-HI-", h,
@@ -179,7 +179,7 @@ for(k in counties){
               }
               
               if(arch=="[16,16]" & s==2048){
-                cat(paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=false eval.match_similar=true ", 
+                cat(paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=true eval.match_similar=true ", 
                            "county=", county, " r_model=", r_model, " algo=", algo,
                            " restrict_days=none", " forecasts=none", " algo.policy_kwargs.net_arch=", arch, # " algo.n_steps=", s,
                            " model_name=", r_model, "_", algo, "_F-none", "_fips-", county, " \n"),
@@ -193,7 +193,7 @@ for(k in counties){
               if(algo == "trpo"){
                 for(forecasts in Forecasts){
                   for(h in HI_thresholds){
-                    cat(paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=false eval.match_similar=true restrict_days=qhi ",
+                    cat(paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=true eval.match_similar=true restrict_days=qhi ",
                                "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, 
                                " forecasts=", forecasts, " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
                                " model_name=Tune_F-", forecasts, "_Rstr-HI-", h,
@@ -252,19 +252,65 @@ for(i in 1:length(counties)){
                 # "ppo", 
                 "dqn"
   )){
-    for(h in HI_thresholds){
-      cat(paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=false eval.match_similar=true restrict_days=qhi ",
-                 "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, 
-                 " forecasts=", forecasts, " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
-                 " model_name=", algo, "_F-", forecasts, "_Rstr-HI-", h,
+    
+    if(algo != "dqn"){
+      cat(paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=true eval.match_similar=true restrict_days=none ",
+                 "county=", county, " algo=", algo, " r_model=", r_model, 
+                 " forecasts=", forecasts, " algo.policy_kwargs.net_arch=", arch, " algo.batch_size=", s,
+                 " model_name=", algo, "_F-", forecasts, "_Rstr-HI-none",
                  "_arch-", nhl, "-", nhu, "_ns-", s,
                  "_fips-", county, " \n"),
-          paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=true eval.match_similar=false restrict_days=qhi ",
-                 "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, 
-                 " forecasts=", forecasts, " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
-                 " model_name=", algo, "_F-", forecasts, "_Rstr-HI-", h,
+          paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=true eval.match_similar=false restrict_days=none ",
+                 "county=", county, " algo=", algo, " r_model=", r_model,
+                 " forecasts=", forecasts, " algo.policy_kwargs.net_arch=", arch, " algo.batch_size=", s,
+                 " model_name=", algo, "_F-", forecasts, "_Rstr-HI-none",
                  "_arch-", nhl, "-", nhu, "_ns-", s,
-                 "_fips-", county, " \n"))
+                 "_fips-", county, " \n")
+      )
+      for(h in HI_thresholds){
+        cat(paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=true eval.match_similar=true restrict_days=qhi ",
+                   "county=", county, " algo=", algo, " restrict_days.HI_restriction=", h, " r_model=", r_model, 
+                   " forecasts=", forecasts, " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+                   " model_name=", algo, "_F-", forecasts, "_Rstr-HI-", h,
+                   "_arch-", nhl, "-", nhu, "_ns-", s,
+                   "_fips-", county, " \n") #,
+            # paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=true eval.match_similar=false restrict_days=qhi ",
+            #        "county=", county, " algo=", algo, " restrict_days.HI_restriction=", h, " r_model=", r_model, 
+            #        " forecasts=", forecasts, " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+            #        " model_name=", algo, "_F-", forecasts, "_Rstr-HI-", h,
+            #        "_arch-", nhl, "-", nhu, "_ns-", s,
+            #        "_fips-", county, " \n")
+            )
+      }
+    }else{
+      cat(paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=true eval.match_similar=true restrict_days=none ",
+                 "county=", county, " algo=", algo, " r_model=", r_model, 
+                 " forecasts=", forecasts, " algo.policy_kwargs.net_arch=", arch, " algo.batch_size=", s,
+                 " model_name=", algo, "_F-", forecasts, "_Rstr-HI-none",
+                 "_arch-", nhl, "-", nhu, "_ns-", s,
+                 "_fips-", county, " \n"),
+          paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=true eval.match_similar=false restrict_days=none ",
+                 "county=", county, " algo=", algo, " r_model=", r_model,
+                 " forecasts=", forecasts, " algo.policy_kwargs.net_arch=", arch, " algo.batch_size=", s,
+                 " model_name=", algo, "_F-", forecasts, "_Rstr-HI-none",
+                 "_arch-", nhl, "-", nhu, "_ns-", s,
+                 "_fips-", county, " \n")
+      )
+      for(h in HI_thresholds){
+        cat(paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=true eval.match_similar=true restrict_days=qhi ",
+                   "county=", county, " algo=", algo, " restrict_days.HI_restriction=", h, " r_model=", r_model, 
+                   " forecasts=", forecasts, " algo.policy_kwargs.net_arch=", arch, " algo.batch_size=", s,
+                   " model_name=", algo, "_F-", forecasts, "_Rstr-HI-", h,
+                   "_arch-", nhl, "-", nhu, "_ns-", s,
+                   "_fips-", county, " \n") #,
+            # paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=true eval.match_similar=false restrict_days=qhi ",
+            #        "county=", county, " algo=", algo, " restrict_days.HI_restriction=", h, " r_model=", r_model, 
+            #        " forecasts=", forecasts, " algo.policy_kwargs.net_arch=", arch, " algo.batch_size=", s,
+            #        " model_name=", algo, "_F-", forecasts, "_Rstr-HI-", h,
+            #        "_arch-", nhl, "-", nhu, "_ns-", s,
+            #        "_fips-", county, " \n")
+            )
+      }
     }
   }
 }

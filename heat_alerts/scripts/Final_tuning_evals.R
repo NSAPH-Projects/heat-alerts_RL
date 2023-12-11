@@ -127,10 +127,10 @@ print(paste0("Median_diff = ", round(median(DF$Eval - bench_df$AA_QHI),3),
              ", WMW = ", wmw$statistic, ", p_value = ", round(wmw$p.value,5)))
 
 other_DF<- read.csv("Fall_results/NEW_Other_algos_F-none.csv")
-new<- other_DF$Eval_ppo
-wmw<- wilcox.test(new, bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)
-print(paste0("Median_diff = ", round(median(new - bench_df$NWS),3),
-             ", WMW = ", wmw$statistic, ", p_value = ", round(wmw$p.value,5)))
+# new<- other_DF$Eval_ppo
+# wmw<- wilcox.test(new, bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)
+# print(paste0("Median_diff = ", round(median(new - bench_df$NWS),3),
+#              ", WMW = ", wmw$statistic, ", p_value = ", round(wmw$p.value,5)))
 new<- other_DF$Eval_dqn
 wmw<- wilcox.test(new, bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)
 print(paste0("Median_diff = ", round(median(new - bench_df$NWS),3),
@@ -182,17 +182,20 @@ print(paste0("Median_diff = ", round(median(DF$x - bench_df$AA_QHI),3),
 
 results<- matrix(
   0, nrow=length(counties), 
-  ncol=4 # [ppo, dqn]*[eval_qhi, qhi_ot]
+  # ncol=4 # [ppo, dqn]*[eval_qhi, qhi_ot]
+  ncol=2 # [dqn]*[eval_qhi, qhi_ot]
 )
 
 results<- data.frame(results)
-names(results)<- paste0(c("Eval_", "OT_"), c(rep("ppo", 2), rep("dqn", 2)))
+# names(results)<- paste0(c("Eval_", "OT_"), c(rep("ppo", 2), rep("dqn", 2)))
+names(results)<- paste0(c("Eval_", "OT_"),  rep("dqn", 2))
 
-for(algo in c("dqn", "ppo")){
-  all_files<- list.files("Summer_results", algo)
-  half<- length(all_files)/2
-  files_eval<- all_files[1:half]
-  files_ES<- all_files[(half+1):length(all_files)]
+for(algo in c("dqn"
+              # , "ppo"
+    )){
+  
+  files_eval<- list.files("Summer_results", paste0("eval_samp-R_obs-W_", algo, "_F-none_Rstr-HI-0"))
+  files_ES<- list.files("Summer_results", paste0("eval_samp-R_samp-W_", algo, "_F-none_Rstr-HI-0"))
 
   for(k in 1:length(counties)){
     county<- counties[k]
