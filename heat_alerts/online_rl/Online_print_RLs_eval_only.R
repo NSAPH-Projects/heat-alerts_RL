@@ -227,3 +227,48 @@ sink()
 
 
 
+################ After processing the TRPO evaluations...
+
+## Running DQN and PPO with the optimized hyperparameters:
+
+opted<- read.csv("Fall_results/Main_analysis_trpo_F-none.csv")
+forecasts<- "none"
+
+sink("Run_jobs/Eval_jobs")
+for(i in 1:length(counties)){
+  county<- counties[i]
+  nhl<- opted[i,"NHL"]
+  nhu<- opted[i,"NHU"]
+  s<- opted[i, "n_steps"]
+  if(nhl == 1){
+    arch<- paste0("[", nhu, "]")
+  }else if(nhl == 2){
+    arch<- paste0("[", nhu, ",", nhu, "]")
+  }else if(nhl == 3){
+    arch<- paste0("[", nhu, ",", nhu, ",", nhu, "]")
+  }
+  
+  for(algo in c(# "trpo",
+                # "ppo", 
+                "dqn"
+  )){
+    for(h in HI_thresholds){
+      cat(paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=false eval.match_similar=true restrict_days=qhi ",
+                 "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, 
+                 " forecasts=", forecasts, " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+                 " model_name=", algo, "_F-", forecasts, "_Rstr-HI-", h,
+                 "_arch-", nhl, "-", nhu, "_ns-", s,
+                 "_fips-", county, " \n"),
+          paste0("python old_evaluation_SB3.py policy_type=RL eval.val_years=true eval.match_similar=false restrict_days=qhi ",
+                 "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, 
+                 " forecasts=", forecasts, " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+                 " model_name=", algo, "_F-", forecasts, "_Rstr-HI-", h,
+                 "_arch-", nhl, "-", nhu, "_ns-", s,
+                 "_fips-", county, " \n"))
+    }
+  }
+}
+sink()
+
+
+

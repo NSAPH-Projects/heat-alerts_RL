@@ -22,6 +22,8 @@ from heat_alerts.online_rl.callbacks import AlertLoggingCallback
 
 # hydra.initialize(config_path="conf/online_rl/sb3", version_base=None)
 # cfg = hydra.compose(config_name="config")
+# cfg['restrict_days'] = {'restrict_alerts': False, 'HI_restriction': 0.8}
+# cfg['model_name'] = "mixed_constraints_trpo_F-none_fips-41067"
 
 @hydra.main(config_path="conf/online_rl/sb3", config_name="config", version_base=None)
 def main(cfg: DictConfig):

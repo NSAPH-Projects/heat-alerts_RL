@@ -13,48 +13,48 @@ eval_func<- avg_return
 
 algo<- "trpo"
 HI_thresholds<- seq(0.5, 0.9, 0.05)
-# forecasts<- c("Q_D10")
-forecasts<- c("none")
+forecasts<- c("Q_D10")
+# forecasts<- c("none")
 
-## First round:
-
-results<- matrix(
-  0, nrow=length(counties), 
-  ncol=3 # [Eval][OT][Eval_samp]
-)
-
-for(k in 1:length(counties)){
-  county<- counties[k]
-  # Models<- paste0("Tune_F-", "Q_D10", "_Rstr-HI-", HI_thresholds, "_arch-2-32", "_ns-2048", "_fips-", county)
-  Models<- list.files("Summer_results/", paste0("_arch-2-32", "_ns-2048", "_fips-", county, "_fips_", county, ".csv"))
-  m_val<- Models[str_detect(Models, "samp-W")]
-  m_test<- Models[str_detect(Models, "obs-W")]
-  for(h in 1:length(m_val)){
-    eval_samp<- eval_func(paste0("Summer_results/", m_val[h]))
-    eval<- eval_func(paste0("Summer_results/", m_test[h]))
-    if(h == 1){
-      Eval_samp<- eval_samp
-      Eval<- eval
-      j<- 1
-    }else{
-      if(eval_samp > Eval_samp){
-        Eval_samp<- eval_samp
-        Eval<- eval
-        j<- h
-      }
-    }
-  }
-  results[k,1]<- Eval
-  results[k,2]<- HI_thresholds[j]
-  results[k,3]<- Eval_samp
-  print(county)
-}
-
-DF<- data.frame(results)
-colnames(DF)<- c("Eval", "OT", "Eval_samp")
-DF$County<- counties
-
-write.csv(DF, "Fall_results/Main_analysis_batch1.csv", row.names=FALSE)
+# ## First round:
+# 
+# results<- matrix(
+#   0, nrow=length(counties), 
+#   ncol=3 # [Eval][OT][Eval_samp]
+# )
+# 
+# for(k in 1:length(counties)){
+#   county<- counties[k]
+#   # Models<- paste0("Tune_F-", "Q_D10", "_Rstr-HI-", HI_thresholds, "_arch-2-32", "_ns-2048", "_fips-", county)
+#   Models<- list.files("Summer_results/", paste0("_arch-2-32", "_ns-2048", "_fips-", county, "_fips_", county, ".csv"))
+#   m_val<- Models[str_detect(Models, "samp-W")]
+#   m_test<- Models[str_detect(Models, "obs-W")]
+#   for(h in 1:length(m_val)){
+#     eval_samp<- eval_func(paste0("Summer_results/", m_val[h]))
+#     eval<- eval_func(paste0("Summer_results/", m_test[h]))
+#     if(h == 1){
+#       Eval_samp<- eval_samp
+#       Eval<- eval
+#       j<- 1
+#     }else{
+#       if(eval_samp > Eval_samp){
+#         Eval_samp<- eval_samp
+#         Eval<- eval
+#         j<- h
+#       }
+#     }
+#   }
+#   results[k,1]<- Eval
+#   results[k,2]<- HI_thresholds[j]
+#   results[k,3]<- Eval_samp
+#   print(county)
+# }
+# 
+# DF<- data.frame(results)
+# colnames(DF)<- c("Eval", "OT", "Eval_samp")
+# DF$County<- counties
+# 
+# write.csv(DF, "Fall_results/Main_analysis_batch1.csv", row.names=FALSE)
 
 
 ## All:
@@ -108,15 +108,15 @@ for(k in 1:length(counties)){
 }
 
 results$County<- counties
-write.csv(results, paste0("Fall_results/Main_analysis_trpo_F-", forecasts, ".csv"), row.names=FALSE)
+write.csv(results, paste0("Fall_results/NEW_Main_analysis_trpo_F-", forecasts, ".csv"), row.names=FALSE)
 
 
 ### Inspect results:
 
 # DF<- read.csv("Fall_results/Main_analysis_batch1.csv")
-DF<- read.csv("Fall_results/Main_analysis_trpo_F-Q-D10.csv")
-DF<- read.csv("Fall_results/Main_analysis_trpo_F-none.csv")
-bench_df<- read.csv(paste0("Fall_results/Benchmarks_", r_model, "_", eval_func_name, ".csv"))
+DF<- read.csv("Fall_results/NEW_Main_analysis_trpo_F-Q_D10.csv")
+DF<- read.csv("Fall_results/NEW_Main_analysis_trpo_F-none.csv")
+bench_df<- read.csv(paste0("Fall_results/Benchmarks_", r_model, "_avg_return", ".csv"))
 
 wmw<- wilcox.test(DF$Eval, bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)
 print(paste0("Median_diff = ", round(median(DF$Eval - bench_df$NWS),3),
@@ -126,7 +126,7 @@ wmw<- wilcox.test(DF$Eval, bench_df$AA_QHI, paired = TRUE, alternative = "greate
 print(paste0("Median_diff = ", round(median(DF$Eval - bench_df$AA_QHI),3),
              ", WMW = ", wmw$statistic, ", p_value = ", round(wmw$p.value,5)))
 
-other_DF<- read.csv("Fall_results/Other_algos_F-none.csv")
+other_DF<- read.csv("Fall_results/NEW_Other_algos_F-none.csv")
 new<- other_DF$Eval_ppo
 wmw<- wilcox.test(new, bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)
 print(paste0("Median_diff = ", round(median(new - bench_df$NWS),3),
@@ -142,9 +142,9 @@ print(paste0("Median_diff = ", round(median(new - bench_df$NWS),3),
 eval_func_name<- "compare_to_zero"
 eval_func<- compare_to_zero
 
-RL_df<- read.csv("Fall_results/Main_analysis_trpo_F-Q-D10.csv")
+RL_df<- read.csv("Fall_results/NEW_Main_analysis_trpo_F-Q_D10.csv")
 forecasts<- "Q_D10"
-RL_df<- read.csv("Fall_results/Main_analysis_trpo_F-none.csv")
+RL_df<- read.csv("Fall_results/NEW_Main_analysis_trpo_F-none.csv")
 forecasts<- "none"
 
 results<- rep(0, length(counties))
@@ -160,12 +160,13 @@ for(k in counties){
   print(k)
 }
 
-write.csv(results, paste0("Fall_results/Main_analysis_trpo_F-", forecasts, "_", eval_func_name, ".csv"), row.names=FALSE)
+write.csv(results, paste0("Fall_results/NEW_Main_analysis_trpo_F-", forecasts, "_", eval_func_name, ".csv"), row.names=FALSE)
 
 #### Inspect:
 
-DF<- read.csv("Fall_results/Main_analysis_trpo_F-Q_D10_compare_to_zero.csv")
-DF<- read.csv("Fall_results/Main_analysis_trpo_F-none_compare_to_zero.csv")
+DF<- read.csv("Fall_results/NEW_Main_analysis_trpo_F-Q_D10_compare_to_zero.csv")
+DF<- read.csv("Fall_results/NEW_Main_analysis_trpo_F-none_compare_to_zero.csv")
+DF$x[which(is.na(DF$x))]<- 0
 bench_df<- read.csv(paste0("Fall_results/Benchmarks_", "mixed_constraints", "_", "compare_to_zero", ".csv"))
 
 wmw<- wilcox.test(DF$x, bench_df$NWS, paired = TRUE, alternative = "greater", exact=FALSE)
@@ -211,23 +212,25 @@ for(algo in c("dqn", "ppo")){
   }
 }
 
-write.csv(results, paste0("Fall_results/Other_algos_F-", "none", ".csv"), row.names=FALSE)
+write.csv(results, paste0("Fall_results/NEW_Other_algos_F-", "none", ".csv"), row.names=FALSE)
 
 
 #### Plain (no QHI) results:
 
 results<- matrix(
   0, nrow=length(counties), 
-  ncol=3 # [ppo, dqn, trpo]
+  ncol=2 # [dqn, trpo] # ppo
 )
 
-algos<- c("trpo", "ppo", "dqn")
+algos<- c("trpo", "dqn") # "ppo"
 
 results<- data.frame(results)
 names(results)<- paste0("Eval_", algos)
 
+eval_func<- compare_to_zero
+
 for(algo in algos){
-  all_files<- list.files("Summer_results", paste0(algo, "_F-none_Rstr-HI-none"))
+  all_files<- list.files("Summer_results", paste0(algo, "_F-none", "_fips")) # _Rstr-HI-none
   half<- length(all_files)/2
   files_eval<- all_files[1:half]
   files_ES<- all_files[(half+1):length(all_files)]
@@ -235,15 +238,18 @@ for(algo in algos){
   for(k in 1:length(counties)){
     county<- counties[k]
     county_files<- str_detect(files_eval, as.character(county))
-    results[k, paste0("Eval_", algo)]<- eval_func(paste0("Summer_results/", files_eval[county_files]))
+    # results[k, paste0("Eval_", algo)]<- eval_func(paste0("Summer_results/", files_eval[county_files]))
+    results[k, paste0("Eval_", algo)]<- eval_func(paste0("Summer_results/", files_eval[county_files]),
+                                  paste0("Summer_results/ORL_NA_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
+    
     print(paste0(algo,": ", county))
   }
 }
 
-write.csv(results, paste0("Fall_results/No-QHI_F-", "none", ".csv"), row.names=FALSE)
+write.csv(results, paste0("Fall_results/NEW_No-QHI_F-", "none", ".csv"), row.names=FALSE)
 
-
-
-
+DF<- results
+DF$Eval_trpo[which(is.na(DF$Eval_trpo))]<- 0
+DF$Eval_dqn[which(is.na(DF$Eval_dqn))]<- 0
 
 
