@@ -230,10 +230,10 @@ algos<- c("trpo", "dqn") # "ppo"
 results<- data.frame(results)
 names(results)<- paste0("Eval_", algos)
 
-eval_func<- compare_to_zero
+# eval_func<- compare_to_zero
 
 for(algo in algos){
-  all_files<- list.files("Summer_results", paste0(algo, "_F-none", "_fips")) # _Rstr-HI-none
+  all_files<- list.files("Summer_results", paste0(algo, "_F-none", "_Rstr-HI-none"))
   half<- length(all_files)/2
   files_eval<- all_files[1:half]
   files_ES<- all_files[(half+1):length(all_files)]
@@ -241,9 +241,9 @@ for(algo in algos){
   for(k in 1:length(counties)){
     county<- counties[k]
     county_files<- str_detect(files_eval, as.character(county))
-    # results[k, paste0("Eval_", algo)]<- eval_func(paste0("Summer_results/", files_eval[county_files]))
-    results[k, paste0("Eval_", algo)]<- eval_func(paste0("Summer_results/", files_eval[county_files]),
-                                  paste0("Summer_results/ORL_NA_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
+    results[k, paste0("Eval_", algo)]<- eval_func(paste0("Summer_results/", files_eval[county_files]))
+    # results[k, paste0("Eval_", algo)]<- eval_func(paste0("Summer_results/", files_eval[county_files]),
+    #                               paste0("Summer_results/ORL_NA_eval_samp-R_obs-W_", r_model, "_fips_", county, ".csv"))
     
     print(paste0(algo,": ", county))
   }
