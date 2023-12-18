@@ -122,7 +122,7 @@ def main(cfg: DictConfig):
 
     def get_action(policy_type, obs, env, rl_model=None):
         if policy_type == "RL":
-            return(rl_model.predict(obs, deterministic=True)[0].item())
+            return(rl_model.predict(obs, deterministic=cfg.deterministic))[0].item())
         elif policy_type == "NA": # no alerts
             return(0)
         elif policy_type == "AA": # always alert, combine with restrict_alerts=true
