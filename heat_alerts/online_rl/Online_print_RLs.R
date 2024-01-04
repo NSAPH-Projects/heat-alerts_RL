@@ -9,13 +9,83 @@ r_model<- "mixed_constraints"
 
 HI_thresholds<- seq(0.5, 0.9, 0.05)
 Forecasts<- c("none", "Q_D10")
-NHU<- c(16, 32, 64) # 32
-NHL<- c(1, 2, 3) # 2
-n_steps<- c(1024, 2048, 4096) # 2048
+NHU<- c(16, 32) # c(16, 32, 64) # 32
+NHL<- c(2, 3) # c(1, 2, 3) # 2
+n_steps<- c(1500, 3000) # c(1024, 2048, 4096) # 2048
+
+
+sink("Run_jobs/Online_tests_short")
+for(k in counties){
+  county<- k
+  
+  for(algo in c( "trpo", "dqn"
+  )){
+    for(forecasts in Forecasts){
+      for(nhl in NHL){
+        for(nhu in NHU){
+          for(s in n_steps){
+            
+            if(nhl == 1){
+              arch<- paste0("[", nhu, "]")
+            }else if(nhl == 2){
+              arch<- paste0("[", nhu, ",", nhu, "]")
+            }else if(nhl == 3){
+              arch<- paste0("[", nhu, ",", nhu, ",", nhu, "]")
+            }
+            
+            if(algo == "dqn"){
+              cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
+                         " deterministic=true",
+                         " restrict_days=none", " forecasts=", forecasts,
+                         " algo.policy_kwargs.net_arch=", arch, " algo.batch_size=", s,
+                         " model_name=December_", algo, "_F-", forecasts, "_Rstr-HI-", "none",
+                         "_arch-", nhl, "-", nhu, "_ns-", s,
+                         "_fips-", county, " \n"))
+              
+              for(h in HI_thresholds){
+                cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
+                           " deterministic=true",
+                           " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h,
+                           " algo.policy_kwargs.net_arch=", arch, " algo.batch_size=", s,
+                           " model_name=December_", algo, "_F-", forecasts, "_Rstr-HI-", h,
+                           "_arch-", nhl, "-", nhu, "_ns-", s,
+                           "_fips-", county, " \n"))
+              }
+              
+            }else{
+              cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
+                         " deterministic=false",
+                         " restrict_days=none", " forecasts=", forecasts,
+                         " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+                         " model_name=December_", algo, "_F-", forecasts, "_Rstr-HI-", "none",
+                         "_arch-", nhl, "-", nhu, "_ns-", s,
+                         "_fips-", county, " \n"))
+              
+              for(h in HI_thresholds){
+                cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
+                           " deterministic=false",
+                           " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h,
+                           " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+                           " model_name=December_", algo, "_F-", forecasts, "_Rstr-HI-", h,
+                           "_arch-", nhl, "-", nhu, "_ns-", s,
+                           "_fips-", county, " \n"))
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+sink()
+
+
+
+
+################################################## First draft of manuscript:
 
 missing<- c()
 i<- 1
-
 
 ## First batch:
 
@@ -99,10 +169,10 @@ for(k in counties){
               arch<- paste0("[", nhu, ",", nhu, ",", nhu, "]")
             }
             
-            # cat(paste0("python train_online_rl_sb3.py", " county=", county,
-            #            " restrict_days=none", " forecasts=", forecasts,
-            #            " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
-            #            " model_name=Tune_F-", forecasts, "_fips-", county, " \n"))
+            cat(paste0("python train_online_rl_sb3.py", " county=", county,
+                       " restrict_days=none", " forecasts=", forecasts,
+                       " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
+                       " model_name=Tune_F-", forecasts, "_fips-", county, " \n"))
             for(h in HI_thresholds){
               # f<- paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_",
               #            "Tune_F-", forecasts, "_Rstr-HI-", h,

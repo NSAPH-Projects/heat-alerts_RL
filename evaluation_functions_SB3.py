@@ -124,7 +124,7 @@ def custom_eval(cfg: DictConfig, dm, samples):
 
     def get_action(policy_type, obs, env, rl_model=None):
         if policy_type == "RL":
-            return(rl_model.predict(obs)[0].item())
+            return(rl_model.predict(obs, deterministic=cfg.deterministic)[0].item())
         elif policy_type == "NA":
             return(0)
         elif policy_type == "NWS":

@@ -184,6 +184,7 @@ def main(cfg: DictConfig):
         log_path=f"./logs/SB/{cfg.model_name}/results",
         eval_freq=cfg.eval.freq,  # Evaluation frequency
         n_eval_episodes=cfg.eval.episodes,
+        deterministic=cfg.deterministic,
     )
     alert_logging_callback = AlertLoggingCallback()
 

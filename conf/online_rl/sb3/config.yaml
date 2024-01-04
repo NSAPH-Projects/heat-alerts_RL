@@ -33,4 +33,5 @@ eval:
   match_similar: true
 
 policy_type: RL
+deterministic: false
 final_eval_episodes: 1000

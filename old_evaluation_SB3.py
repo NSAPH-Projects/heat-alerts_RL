@@ -22,6 +22,8 @@ from heat_alerts.online_rl.callbacks import AlertLoggingCallback
 
 # hydra.initialize(config_path="conf/online_rl/sb3", version_base=None)
 # cfg = hydra.compose(config_name="config")
+# cfg['restrict_days'] = {'restrict_alerts': False, 'HI_restriction': 0.8}
+# cfg['model_name'] = "mixed_constraints_trpo_F-none_fips-41067"
 
 @hydra.main(config_path="conf/online_rl/sb3", config_name="config", version_base=None)
 def main(cfg: DictConfig):
@@ -120,7 +122,7 @@ def main(cfg: DictConfig):
 
     def get_action(policy_type, obs, env, rl_model=None):
         if policy_type == "RL":
-            return(rl_model.predict(obs)[0].item())
+            return(rl_model.predict(obs, deterministic=cfg.deterministic))[0].item())
         elif policy_type == "NA": # no alerts
             return(0)
         elif policy_type == "AA": # always alert, combine with restrict_alerts=true

@@ -121,29 +121,49 @@ print(xtable(Final[,c("Fips_ST", "Region", "Alerts", # "SD_Eff",
 
 ############################# Make main results table:
 
-main_DF<- read.csv("Fall_results/Main_analysis_trpo_F-none.csv")
-forc_DF<- read.csv("Fall_results/Main_analysis_trpo_F-Q-D10.csv")
-other_DF<- read.csv("Fall_results/Other_algos_F-none.csv")
-non_qhi<- read.csv("Fall_results/No-QHI_F-none.csv")
-bench_df<- read.csv(paste0("Fall_results/Benchmarks_mixed_constraints_avg_return.csv"))
-
 WMW<- function(x, y=bench_df$NWS){
   wmw<- wilcox.test(x, y, paired = TRUE, alternative = "greater", exact=FALSE)
   metrics<- as.vector(c(round(median(x - y, na.rm=TRUE),3), 
-              wmw$statistic, round(wmw$p.value,5)))
+                        wmw$statistic, round(wmw$p.value,5)))
   return(metrics)
 }
 
 source("heat_alerts/scripts/Convert_to_hosps.R")
 
+bench_df<- read.csv(paste0("Fall_results/Benchmarks_mixed_constraints_avg_return.csv"))
+plain_RL<- read.csv("Fall_results/December_plain_RL_avg_return.csv")
+QHI_RL<- read.csv("Fall_results/December_Rstr-QHI_RL_avg_return.csv")
+
 alt_policies<- cbind(bench_df[,c("Random", "basic_NWS", 
                                  "Top_K", "Random_QHI", "AA_QHI")],
-                     Eval_trpo=main_DF[,c("Eval")], Eval_trpo.F=forc_DF[,c("Eval")],
-                     other_DF[,c("Eval_dqn", "Eval_ppo")],
-                     Non_QHI.trpo=non_qhi$Eval_trpo,
-                     Non_QHI.ppo=non_qhi$Eval_ppo,
-                     Non_QHI.dqn=non_qhi$Eval_dqn
-                     )
+                     dqn=plain_RL[which(plain_RL$Algo == "dqn" & plain_RL$Forecast == "none"), "Eval"],
+                     trpo=plain_RL[which(plain_RL$Algo == "trpo" & plain_RL$Forecast == "none"), "Eval"],
+                     dqn.f=plain_RL[which(plain_RL$Algo == "dqn" & plain_RL$Forecast == "Q_D10"), "Eval"],
+                     trpo.f=plain_RL[which(plain_RL$Algo == "trpo" & plain_RL$Forecast == "Q_D10"), "Eval"],
+                     dqn.qhi=QHI_RL[which(QHI_RL$Algo == "dqn" & QHI_RL$Forecast == "none"), "Eval"],
+                     trpo.qhi=QHI_RL[which(QHI_RL$Algo == "trpo" & QHI_RL$Forecast == "none"), "Eval"],
+                     dqn.qhi.f=QHI_RL[which(QHI_RL$Algo == "dqn" & QHI_RL$Forecast == "Q_D10"), "Eval"],
+                     trpo.qhi.f=QHI_RL[which(QHI_RL$Algo == "trpo" & QHI_RL$Forecast == "Q_D10"), "Eval"]
+)
+
+# #### OLD:
+# main_DF<- read.csv("Fall_results/Main_analysis_trpo_F-none.csv")
+# forc_DF<- read.csv("Fall_results/Main_analysis_trpo_F-Q-D10.csv")
+# other_DF<- read.csv("Fall_results/NEW_Other_algos_F-none.csv") # deterministic DQN
+# non_qhi_stoch<- read.csv("Fall_results/No-QHI_F-none.csv")
+# non_qhi_deter<- read.csv("Fall_results/NEW_No-QHI_F-none.csv") # deterministic DQN
+# bench_df<- read.csv(paste0("Fall_results/Benchmarks_mixed_constraints_avg_return.csv"))
+# 
+# alt_policies<- cbind(bench_df[,c("Random", "basic_NWS", 
+#                                  "Top_K", "Random_QHI", "AA_QHI")],
+#                      Non_QHI.trpo=non_qhi_stoch$Eval_trpo,
+#                      # Non_QHI.ppo=non_qhi$Eval_ppo,
+#                      Non_QHI.dqn=non_qhi_deter$Eval_dqn,
+#                      # other_DF[,c("Eval_dqn", "Eval_ppo")],
+#                      DQN.QHI=other_DF[,"Eval_dqn"],
+#                      Eval_trpo=main_DF[,c("Eval")], 
+#                      Eval_trpo.F=forc_DF[,c("Eval")]
+#                      )
 
 D<- t(apply(alt_policies, MARGIN=2, WMW))
 D<- as.data.frame(D)
@@ -170,14 +190,31 @@ print(xtable(D),include.rownames=TRUE)
 
 #### Make compare_to_zero table:
 
-main_DF<- read.csv("Fall_results/Main_analysis_trpo_F-none_compare_to_zero.csv")
-forc_DF<- read.csv("Fall_results/Main_analysis_trpo_F-Q_D10_compare_to_zero.csv")
 bench_df<- read.csv(paste0("Fall_results/Benchmarks_mixed_constraints_compare_to_zero.csv"))
+plain_RL<- read.csv("Fall_results/December_plain_RL_compare_to_zero.csv")
+QHI_RL<- read.csv("Fall_results/December_Rstr-QHI_RL_compare_to_zero.csv")
 
 alt_policies<- cbind(bench_df[,c("Random", "basic_NWS", 
                                  "Top_K", "Random_QHI", "AA_QHI")],
-                     Eval_trpo=main_DF[,c("x")], Eval_trpo.F=forc_DF[,c("x")]
+                     dqn=plain_RL[which(plain_RL$Algo == "dqn" & plain_RL$Forecast == "none"), "Eval"],
+                     trpo=plain_RL[which(plain_RL$Algo == "trpo" & plain_RL$Forecast == "none"), "Eval"],
+                     dqn.f=plain_RL[which(plain_RL$Algo == "dqn" & plain_RL$Forecast == "Q_D10"), "Eval"],
+                     trpo.f=plain_RL[which(plain_RL$Algo == "trpo" & plain_RL$Forecast == "Q_D10"), "Eval"],
+                     dqn.qhi=QHI_RL[which(QHI_RL$Algo == "dqn" & QHI_RL$Forecast == "none"), "Eval"],
+                     trpo.qhi=QHI_RL[which(QHI_RL$Algo == "trpo" & QHI_RL$Forecast == "none"), "Eval"],
+                     dqn.qhi.f=QHI_RL[which(QHI_RL$Algo == "dqn" & QHI_RL$Forecast == "Q_D10"), "Eval"],
+                     trpo.qhi.f=QHI_RL[which(QHI_RL$Algo == "trpo" & QHI_RL$Forecast == "Q_D10"), "Eval"]
 )
+
+# #### OLD:
+# main_DF<- read.csv("Fall_results/Main_analysis_trpo_F-none_compare_to_zero.csv")
+# forc_DF<- read.csv("Fall_results/Main_analysis_trpo_F-Q_D10_compare_to_zero.csv")
+# bench_df<- read.csv(paste0("Fall_results/Benchmarks_mixed_constraints_compare_to_zero.csv"))
+# 
+# alt_policies<- cbind(bench_df[,c("Random", "basic_NWS", 
+#                                  "Top_K", "Random_QHI", "AA_QHI")],
+#                      Eval_trpo=main_DF[,c("x")], Eval_trpo.F=forc_DF[,c("x")]
+# )
 
 D<- t(apply(alt_policies, MARGIN=2, function(x){WMW(x, y=bench_df$NWS)}))
 D<- as.data.frame(D)
