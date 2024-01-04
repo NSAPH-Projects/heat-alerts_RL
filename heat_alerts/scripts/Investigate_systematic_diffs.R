@@ -6,13 +6,13 @@ Bench<- read.csv("Fall_results/Benchmarks_mixed_constraints_avg_return.csv")
 stationary_W<- read.csv("data/Final_30_W.csv")[,-1]
 stationary_W<- stationary_W[match(Bench$County, stationary_W$Fips),]
 
-# RL_F.q_d10<- read.csv("Fall_results/Main_analysis_trpo_F-Q-D10.csv")
-RL_F.none<- read.csv("Fall_results/Main_analysis_trpo_F-none.csv")
+RL<- read.csv("Fall_results/December_Rstr-QHI_RL_avg_return.csv")
+trpo.qhi<- RL[which(RL$Algo == "trpo" & RL$Forecast == "none"),]
 
 Eval_DOS_bench<- read.csv("Fall_results/Eval_DOS_mixed_constraints_benchmarks.csv")
 Eval_SL_bench<- read.csv("Fall_results/Eval_Strk-Ln_mixed_constraints_benchmarks.csv")
-Eval_DOS_RL<- read.csv("Fall_results/Eval_DOS_mixed_constraints_RL.csv")
-Eval_SL_RL<- read.csv("Fall_results/Eval_Strk-Ln_mixed_constraints_RL.csv")
+Eval_DOS_RL<- read.csv("Fall_results/December_Eval_DOS_mixed_constraints_RL.csv")
+Eval_SL_RL<- read.csv("Fall_results/December_Eval_Strk-Ln_mixed_constraints_RL.csv")
 
 agg_dos_nws<- aggregate(Value ~ County, data=Eval_DOS_bench[which(Eval_DOS_bench$Policy=="NWS"),],
                         summary)
@@ -30,12 +30,10 @@ agg_sl_aa<- aggregate(Value ~ County, data=Eval_SL_bench[which(Eval_SL_bench$Pol
 
 m_pos<- match(Bench$County, agg_sl_rl$County)
 
-# Diff<- RL_F.q_d10$Eval - Bench$NWS
-Diff<- RL_F.none$Eval - Bench$NWS
+Diff<- trpo.qhi$Eval - Bench$NWS
 Y<- factor(Diff > 0)
 
-# Diff.a<- RL_F.q_d10$Eval - Bench$AA_QHI
-Diff.a<- RL_F.none$Eval - Bench$AA_QHI
+Diff.a<- trpo.qhi$Eval - Bench$AA_QHI
 Y.a<- factor(Diff.a > 0)
 
 ## Copied from datautils.py: 
@@ -57,14 +55,14 @@ CART_df<- data.frame(stationary_W[,c("Region", "Pop_density", "Med.HH.Income",
                      South=stationary_W$State %in% South,
                      # NWS_DOS_med=agg_dos_nws[m_pos, 2][,3],
                      RL_DOS_med=agg_dos_rl[m_pos, 2][,3],
-                     NWS_DOS_med=agg_dos_nws[m_pos, 2][,3],
+                     # NWS_DOS_med=agg_dos_nws[m_pos, 2][,3],
                      # AA_DOS_med=agg_dos_aa[m_pos, 2][,3],
                      NWS_SL_avg=agg_sl_nws[m_pos, 2][,4],
                      AA_SL_avg=agg_sl_aa[m_pos, 2][,4]
                      )
 names(CART_df)<- c("Region", "Pop. Density", "Med. HH Income", 
                    "No. Alerts", "stdev(Alert Effectiveness)",
-                   "Western", "Southern", "Med. DOS of RL Alerts", "Med. DOS of NWS Alerts",
+                   "Western", "Southern", "Med. DOS of RL Alerts", # "Med. DOS of NWS Alerts",
                    "Avg. SL of NWS Alerts", "Avg. SL of AA.QHI Alerts")
 
 ## Non-modeled variables:
