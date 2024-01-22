@@ -83,6 +83,7 @@ To reproduce the analyses in the paper:
 2. Plot of coefficients sampled from the Bayesian rewards model posterior: heat_alerts/bayesian_model/Make_plots.py
 3. Supplementary "time series" plot of observed quantile of heat index, modeled baseline NOHR hospitalizations, and modeled alert effectiveness (assuming no past alerts) across days of summer: (i) get data from heat_alerts/scripts/Time_series_plots.py, then (ii) make plots with heat_alerts/scripts/Make_TS_plots.R
 4. Main RL results table, supplementary table of county characteristics, and supplementary table of RL results using the per-alert (compare_to_zero) metric: heat_alerts/scripts/Make_tables_for_paper.R
-5. Boxplot and histograms of day-of-summer and alert streak lengths: heat_alerts/scripts/Make_plots_for_paper_FINAL.R
-6. CART analysis / plots: heat_alerts/scripts/Investigate_systematic_diffs.R
+   - To obtain an approximate confidence interval for the absolute number of NOHR hospitalizations saved, use heat_alerts/scripts/Approx_CI.R
+6. Boxplot and histograms of day-of-summer and alert streak lengths: heat_alerts/scripts/Make_plots_for_paper_FINAL.R
+7. CART analysis / plots: heat_alerts/scripts/Investigate_systematic_diffs.R
 
