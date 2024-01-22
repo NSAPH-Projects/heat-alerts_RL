@@ -11,7 +11,7 @@ for(i in 1:30){
   county<- Agg_results$County[i]
   dat<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_December_",
                         "trpo", "_F-", "none", "_Rstr-HI-", Agg_results$OT[i],
-                        "_arch-", agg_results$NHL[i], "-", agg_results$NHU[i], "_ns-", agg_results$n_steps[i],
+                        "_arch-", Agg_results$NHL[i], "-", Agg_results$NHU[i], "_ns-", Agg_results$n_steps[i],
                         "_fips-", county, "_fips_", county, ".csv"))
   nws<- read.csv(paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_", "mixed_constraints", "_fips_", county, ".csv"))
   
