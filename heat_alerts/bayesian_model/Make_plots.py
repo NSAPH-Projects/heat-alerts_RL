@@ -65,7 +65,7 @@ def main(params):
             hidden_dim= 32, #cfg.model.hidden_dim,
             num_hidden_layers= 1, #cfg.model.num_hidden_layers,
         )
-    model.load_state_dict(torch.load("ckpts/" + params["model_name"] + "_model.pt"))
+
     guide = pyro.infer.autoguide.AutoLowRankMultivariateNormal(model)
     guide(*dm.dataset.tensors)
     guide.load_state_dict(torch.load("ckpts/" + params["model_name"] + "_guide.pt"))
@@ -117,7 +117,7 @@ def main(params):
 
     # make coefficient distribution plots for coefficients, error bars are iqr
     # width = 0.35
-    fig, ax = plt.subplots(2, 1, figsize=(4, 5))
+    fig, ax = plt.subplots(1, 2, figsize=(9, 3))
     # ax[0].bar(np.arange(len(eff_names)) - width/2, medians_0, width, yerr=[l0, u0], label='1 sample', capsize=5)
     # ax[0].bar(np.arange(len(eff_names)) + width/2, Medians_0, width, yerr=[L0, U0], label='100 samples', capsize=5)
     ax[0].errorbar(x=eff_names, y=medians_0, yerr=[l0, u0], fmt="o")
@@ -137,79 +137,80 @@ def main(params):
     plt.setp(ax[1].get_xticklabels(), rotation=90)
     ax[1].set_title("Baseline Coefs Distribution")
     # ax[1].set_ylabel("Coef Value")
-    plt.subplots_adjust(hspace=1.2)
-    fig.savefig("heat_alerts/bayesian_model/Plots_params/Coefficients_" + params["model_name"] + ".png", bbox_inches="tight")
+    # plt.subplots_adjust(hspace=1.2)
+    fig.savefig("heat_alerts/bayesian_model/Plots_params/Coefficients_" + params["model_name"] + "_horizontal.png", bbox_inches="tight")
 
     print("Saved coef plot")
     
-    ### Custom data:
-    new_alert = torch.ones(alert.shape)
-    new_base = baseline_features.detach().clone()
-    new_base[:, dm.baseline_feature_names.index("alert_lag1")] = torch.zeros(alert.shape)
-    # new_base[:, dm.baseline_feature_names.index("alert_lag1")] = torch.ones(alert.shape)
-    p = torch.tensor((0 - dm.prev_alert_mean)/(2 * dm.prev_alert_std), dtype=torch.float32)
-    # p = torch.tensor((1 - dm.prev_alert_mean)/(2 * dm.prev_alert_std), dtype=torch.float32)
-    # p = torch.tensor((2 - dm.prev_alert_mean)/(2 * dm.prev_alert_std), dtype=torch.float32)
-    new_base[:, dm.baseline_feature_names.index("previous_alerts")] = p.repeat(alert.shape)
-    new_eff = eff_features.detach().clone()
-    new_eff[:, dm.effectiveness_feature_names.index("alert_lag1")] = torch.zeros(alert.shape)
-    # new_eff[:, dm.effectiveness_feature_names.index("alert_lag1")] = torch.ones(alert.shape)
-    new_eff[:, dm.effectiveness_feature_names.index("previous_alerts")] = p.repeat(alert.shape)
+    # ### Custom data:
+    # new_alert = torch.ones(alert.shape)
+    # new_base = baseline_features.detach().clone()
+    # new_base[:, dm.baseline_feature_names.index("alert_lag1")] = torch.zeros(alert.shape)
+    # # new_base[:, dm.baseline_feature_names.index("alert_lag1")] = torch.ones(alert.shape)
+    # p = torch.tensor((0 - dm.prev_alert_mean)/(2 * dm.prev_alert_std), dtype=torch.float32)
+    # # p = torch.tensor((1 - dm.prev_alert_mean)/(2 * dm.prev_alert_std), dtype=torch.float32)
+    # # p = torch.tensor((2 - dm.prev_alert_mean)/(2 * dm.prev_alert_std), dtype=torch.float32)
+    # new_base[:, dm.baseline_feature_names.index("previous_alerts")] = p.repeat(alert.shape)
+    # new_eff = eff_features.detach().clone()
+    # new_eff[:, dm.effectiveness_feature_names.index("alert_lag1")] = torch.zeros(alert.shape)
+    # # new_eff[:, dm.effectiveness_feature_names.index("alert_lag1")] = torch.ones(alert.shape)
+    # new_eff[:, dm.effectiveness_feature_names.index("previous_alerts")] = p.repeat(alert.shape)
 
-    inputs = [
-        hosps, 
-        loc_ind, 
-        county_summer_mean, 
-        new_alert,
-        new_base, 
-        new_eff, 
-        index
-    ]
+    # inputs = [
+    #     hosps, 
+    #     loc_ind, 
+    #     county_summer_mean, 
+    #     new_alert,
+    #     new_base, 
+    #     new_eff, 
+    #     index
+    # ]
 
-    ## Sample coefficients from the rewards model:
-    predictive_outputs = Predictive(
-            model,
-            guide=guide, # including the guide includes all sites by default
-            num_samples= params["n_samples"],  
-            return_sites=["_RETURN"],
-        )
+    # model.load_state_dict(torch.load("ckpts/" + params["model_name"] + "_model.pt"))
+    # ## Sample coefficients from the rewards model:
+    # predictive_outputs = Predictive(
+    #         model,
+    #         guide=guide, # including the guide includes all sites by default
+    #         num_samples= params["n_samples"],  
+    #         return_sites=["_RETURN"],
+    #     )
     
-    outputs = predictive_outputs(*inputs, condition=False, return_outcomes=True)["_RETURN"]
-    # outputs = torch.mean(outputs, dim=0)
-    r0 = outputs[:, :, 1]
-    r1 = r0*(1-outputs[:, :, 0])
-    N = int(r0.shape[1]/n_days)
-    # dos = torch.tensor(np.repeat(np.arange(0,n_days), N))
-    effect = r1-r0
-    Effect = torch.mean(effect, dim=0)
+    # outputs = predictive_outputs(*inputs, condition=False, return_outcomes=True)["_RETURN"]
+    # # outputs = torch.mean(outputs, dim=0)
+    # r0 = outputs[:, :, 1]
+    # r1 = r0*(1-outputs[:, :, 0])
+    # N = int(r0.shape[1]/n_days)
+    # # dos = torch.tensor(np.repeat(np.arange(0,n_days), N))
+    # effect = r1-r0
+    # Effect = torch.mean(effect, dim=0)
 
-    fig, ax = plt.subplots(1, 1, figsize=(8, 5))
-    if params["SC"] == "F":
-        for s in np.unique(loc_ind):
-            county_dos = torch.reshape(Effect[loc_ind == s], (n_years, n_days))
-            ax.plot(county_dos.mean(0), color="k", alpha=0.1, lw=0.5)
-        Effect = torch.reshape(Effect, (N, n_days))
-        ax.set_ylim(-0.1,0)
-        # Upper = torch.quantile(Effect, 0.975, dim = 0)
-        # Lower = torch.quantile(Effect, 0.025, dim = 0)
-        ax.plot(Effect.mean(0), color="b", lw=2)
-        # ax.plot(Upper, color="k", alpha = 0.1, lw=2)
-        # ax.plot(Lower, color="k", alpha = 0.1, lw=2)
-        ax.set_xlabel("Day of Summer")
-        ax.set_title("Effect of Issuing an Alert")
-        fig.savefig("heat_alerts/bayesian_model/Plots_params/Overall_effect_w-CI_" + params["model_name"] + ".png", bbox_inches="tight")
-        # fig.savefig("heat_alerts/bayesian_model/Plots_params/Lagged_effect_" + params["model_name"] + ".png", bbox_inches="tight")
-        # fig.savefig("heat_alerts/bayesian_model/Plots_params/Prev_alerts-2_effect_" + params["model_name"] + ".png", bbox_inches="tight")
-    else:
-        with open("data/processed/fips2idx.json", "r") as f:
-            fips2ix = json.load(f)
-            fips2ix = {int(k): v for k, v in fips2ix.items()}
-        s = fips2ix[params["county"]]
-        county_dos = torch.reshape(Effect[loc_ind == s], (n_years, n_days))
-        ax.plot(county_dos.mean(0), color="k")
-        ax.set_xlabel("Day of Summer")
-        ax.set_title("Effect of Issuing an Alert: County " + str(params["county"]))
-        fig.savefig("heat_alerts/bayesian_model/Plots_params/Overall_effect_county-" + str(params["county"]) + "_" + params["model_name"] + ".png", bbox_inches="tight")
+    # fig, ax = plt.subplots(1, 1, figsize=(8, 5))
+    # if params["SC"] == "F":
+    #     for s in np.unique(loc_ind):
+    #         county_dos = torch.reshape(Effect[loc_ind == s], (n_years, n_days))
+    #         ax.plot(county_dos.mean(0), color="k", alpha=0.1, lw=0.5)
+    #     Effect = torch.reshape(Effect, (N, n_days))
+    #     ax.set_ylim(-0.1,0)
+    #     # Upper = torch.quantile(Effect, 0.975, dim = 0)
+    #     # Lower = torch.quantile(Effect, 0.025, dim = 0)
+    #     ax.plot(Effect.mean(0), color="b", lw=2)
+    #     # ax.plot(Upper, color="k", alpha = 0.1, lw=2)
+    #     # ax.plot(Lower, color="k", alpha = 0.1, lw=2)
+    #     ax.set_xlabel("Day of Summer")
+    #     ax.set_title("Effect of Issuing an Alert")
+    #     fig.savefig("heat_alerts/bayesian_model/Plots_params/Overall_effect_w-CI_" + params["model_name"] + ".png", bbox_inches="tight")
+    #     # fig.savefig("heat_alerts/bayesian_model/Plots_params/Lagged_effect_" + params["model_name"] + ".png", bbox_inches="tight")
+    #     # fig.savefig("heat_alerts/bayesian_model/Plots_params/Prev_alerts-2_effect_" + params["model_name"] + ".png", bbox_inches="tight")
+    # else:
+    #     with open("data/processed/fips2idx.json", "r") as f:
+    #         fips2ix = json.load(f)
+    #         fips2ix = {int(k): v for k, v in fips2ix.items()}
+    #     s = fips2ix[params["county"]]
+    #     county_dos = torch.reshape(Effect[loc_ind == s], (n_years, n_days))
+    #     ax.plot(county_dos.mean(0), color="k")
+    #     ax.set_xlabel("Day of Summer")
+    #     ax.set_title("Effect of Issuing an Alert: County " + str(params["county"]))
+    #     fig.savefig("heat_alerts/bayesian_model/Plots_params/Overall_effect_county-" + str(params["county"]) + "_" + params["model_name"] + ".png", bbox_inches="tight")
     
 
     # ############################ OLD code:
