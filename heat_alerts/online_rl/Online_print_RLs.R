@@ -13,12 +13,15 @@ NHU<- c(16, 32) # c(16, 32, 64) # 32
 NHL<- c(2, 3) # c(1, 2, 3) # 2
 n_steps<- c(1500, 3000) # c(1024, 2048, 4096) # 2048
 
+prefix<- "December"
+
 
 sink("Run_jobs/Online_tests_short")
 for(k in counties){
   county<- k
   
-  for(algo in c( "trpo", "dqn"
+  for(algo in c( # "trpo", "dqn"
+                 "a2c", "qrdqn"
   )){
     for(forecasts in Forecasts){
       for(nhl in NHL){
@@ -33,12 +36,12 @@ for(k in counties){
               arch<- paste0("[", nhu, ",", nhu, ",", nhu, "]")
             }
             
-            if(algo == "dqn"){
+            if(algo %in% c("dqn", "qrdqn")){
               cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
                          " deterministic=true",
                          " restrict_days=none", " forecasts=", forecasts,
                          " algo.policy_kwargs.net_arch=", arch, " algo.batch_size=", s,
-                         " model_name=December_", algo, "_F-", forecasts, "_Rstr-HI-", "none",
+                         " model_name=", prefix, "_", algo, "_F-", forecasts, "_Rstr-HI-", "none",
                          "_arch-", nhl, "-", nhu, "_ns-", s,
                          "_fips-", county, " \n"))
               
@@ -47,7 +50,7 @@ for(k in counties){
                            " deterministic=true",
                            " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h,
                            " algo.policy_kwargs.net_arch=", arch, " algo.batch_size=", s,
-                           " model_name=December_", algo, "_F-", forecasts, "_Rstr-HI-", h,
+                           " model_name=", prefix, "_", algo, "_F-", forecasts, "_Rstr-HI-", h,
                            "_arch-", nhl, "-", nhu, "_ns-", s,
                            "_fips-", county, " \n"))
               }
@@ -57,7 +60,7 @@ for(k in counties){
                          " deterministic=false",
                          " restrict_days=none", " forecasts=", forecasts,
                          " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
-                         " model_name=December_", algo, "_F-", forecasts, "_Rstr-HI-", "none",
+                         " model_name=", prefix, "_", algo, "_F-", forecasts, "_Rstr-HI-", "none",
                          "_arch-", nhl, "-", nhu, "_ns-", s,
                          "_fips-", county, " \n"))
               
@@ -66,7 +69,7 @@ for(k in counties){
                            " deterministic=false",
                            " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h,
                            " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
-                           " model_name=December_", algo, "_F-", forecasts, "_Rstr-HI-", h,
+                           " model_name=", prefix, "_", algo, "_F-", forecasts, "_Rstr-HI-", h,
                            "_arch-", nhl, "-", nhu, "_ns-", s,
                            "_fips-", county, " \n"))
               }
