@@ -13,7 +13,7 @@ NHU<- c(16, 32) # c(16, 32, 64) # 32
 NHL<- c(2, 3) # c(1, 2, 3) # 2
 n_steps<- c(1500, 3000) # c(1024, 2048, 4096) # 2048
 
-prefix<- "December"
+prefix<- "February"
 
 
 sink("Run_jobs/Online_tests_short")
@@ -57,7 +57,8 @@ for(k in counties){
               
             }else{
               cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
-                         " deterministic=false",
+                         # " deterministic=false",
+                         " deterministic=true", # sensitivity analysis
                          " restrict_days=none", " forecasts=", forecasts,
                          " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
                          " model_name=", prefix, "_", algo, "_F-", forecasts, "_Rstr-HI-", "none",
@@ -66,7 +67,8 @@ for(k in counties){
               
               for(h in HI_thresholds){
                 cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
-                           " deterministic=false",
+                           # " deterministic=false",
+                           " deterministic=true", # sensitivity analysis
                            " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h,
                            " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
                            " model_name=", prefix, "_", algo, "_F-", forecasts, "_Rstr-HI-", h,

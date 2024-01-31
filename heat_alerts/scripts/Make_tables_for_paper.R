@@ -133,17 +133,27 @@ source("heat_alerts/scripts/Convert_to_hosps.R")
 bench_df<- read.csv(paste0("Fall_results/Benchmarks_mixed_constraints_avg_return.csv"))
 plain_RL<- read.csv("Fall_results/December_plain_RL_avg_return.csv")
 QHI_RL<- read.csv("Fall_results/December_Rstr-QHI_RL_avg_return.csv")
+plain_RL_p2<- read.csv("Fall_results/December_part-2_plain_RL_avg_return.csv")
+QHI_RL_p2<- read.csv("Fall_results/December_part-2_Rstr-QHI_RL_avg_return.csv")
 
 alt_policies<- cbind(bench_df[,c("Random", "basic_NWS", 
                                  "Top_K", "Random_QHI", "AA_QHI")],
                      dqn=plain_RL[which(plain_RL$Algo == "dqn" & plain_RL$Forecast == "none"), "Eval"],
+                     qrdqn=plain_RL[which(plain_RL$Algo == "qrdqn" & plain_RL$Forecast == "none"), "Eval"],
                      trpo=plain_RL[which(plain_RL$Algo == "trpo" & plain_RL$Forecast == "none"), "Eval"],
+                     a2c=plain_RL[which(plain_RL$Algo == "a2c" & plain_RL$Forecast == "none"), "Eval"],
                      dqn.f=plain_RL[which(plain_RL$Algo == "dqn" & plain_RL$Forecast == "Q_D10"), "Eval"],
+                     qrdqn.f=plain_RL[which(plain_RL$Algo == "qrdqn" & plain_RL$Forecast == "Q_D10"), "Eval"],
                      trpo.f=plain_RL[which(plain_RL$Algo == "trpo" & plain_RL$Forecast == "Q_D10"), "Eval"],
+                     a2c.f=plain_RL[which(plain_RL$Algo == "a2c" & plain_RL$Forecast == "Q_D10"), "Eval"],
                      dqn.qhi=QHI_RL[which(QHI_RL$Algo == "dqn" & QHI_RL$Forecast == "none"), "Eval"],
+                     qrdqn.qhi=QHI_RL[which(QHI_RL$Algo == "qrdqn" & QHI_RL$Forecast == "none"), "Eval"],
                      trpo.qhi=QHI_RL[which(QHI_RL$Algo == "trpo" & QHI_RL$Forecast == "none"), "Eval"],
+                     a2c.qhi=QHI_RL[which(QHI_RL$Algo == "a2c" & QHI_RL$Forecast == "none"), "Eval"],
                      dqn.qhi.f=QHI_RL[which(QHI_RL$Algo == "dqn" & QHI_RL$Forecast == "Q_D10"), "Eval"],
-                     trpo.qhi.f=QHI_RL[which(QHI_RL$Algo == "trpo" & QHI_RL$Forecast == "Q_D10"), "Eval"]
+                     qrdqn.qhi.f=QHI_RL[which(QHI_RL$Algo == "qrdqn" & QHI_RL$Forecast == "Q_D10"), "Eval"],
+                     trpo.qhi.f=QHI_RL[which(QHI_RL$Algo == "trpo" & QHI_RL$Forecast == "Q_D10"), "Eval"],
+                     a2c.qhi.f=QHI_RL[which(QHI_RL$Algo == "a2c" & QHI_RL$Forecast == "Q_D10"), "Eval"]
 )
 
 # #### OLD:

@@ -8,7 +8,10 @@ r_model<- "mixed_constraints"
 
 #### Run evaluations:
 
-algos<- c("trpo", "dqn")
+# algos<- c("trpo", "dqn")
+algos<- c("a2c", "qrdqn")
+prefix<- "December_part-2"
+
 HI_thresholds<- seq(0.5, 0.9, 0.05)
 forecasts<- c("none", "Q_D10")
 
@@ -72,9 +75,9 @@ for(k in 1:N){
 }
 
 results$County<- rep(counties, each=A*F)
-write.csv(results, "Fall_results/December_plain_RL_avg_return.csv", row.names=FALSE)
+write.csv(results, paste0("Fall_results/", prefix, "_plain_RL_avg_return.csv"), row.names=FALSE)
 
-DF<- read.csv("Fall_results/December_plain_RL_avg_return.csv")
+DF<- read.csv(paste0("Fall_results/", prefix, "_plain_RL_avg_return.csv"))
 bench_df<- read.csv(paste0("Fall_results/Benchmarks_", r_model, "_avg_return", ".csv"))
 
 for(algo in algos){
@@ -137,9 +140,9 @@ for(k in 1:N){
 
 
 results$County<- rep(counties, each=A*F)
-write.csv(results, "Fall_results/December_Rstr-QHI_RL_avg_return.csv", row.names=FALSE)
+write.csv(results, paste0("Fall_results/", prefix, "_Rstr-QHI_RL_avg_return.csv"), row.names=FALSE)
 
-DF<- read.csv("Fall_results/December_Rstr-QHI_RL_avg_return.csv")
+DF<- read.csv(paste0("Fall_results/", prefix, "_Rstr-QHI_RL_avg_return.csv"))
 bench_df<- read.csv(paste0("Fall_results/Benchmarks_", r_model, "_avg_return", ".csv"))
 
 for(algo in algos){
