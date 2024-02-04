@@ -10,7 +10,8 @@ r_model<- "mixed_constraints"
 
 # algos<- c("trpo", "dqn")
 algos<- c("a2c", "qrdqn")
-prefix<- "December_part-2"
+read_prefix<- "February" # "December"
+write_prefix<- "February" # "December_part-2"
 
 HI_thresholds<- seq(0.5, 0.9, 0.05)
 forecasts<- c("none", "Q_D10")
@@ -44,12 +45,12 @@ for(k in 1:N){
   for(a in 1:A){
     for(f in 1:F){
       j<- 1 # keeping track of the best model
-      Eval_samp<- eval_func(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_December_",
+      Eval_samp<- eval_func(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", read_prefix, "_",
                                    algos[a], "_F-", forecasts[f], "_Rstr-HI-", "none",
                                    "_arch-", param_df$NHL[1], "-", param_df$NHU[1], "_ns-", param_df$n_steps[1],
                                    "_fips-", county, "_fips_", county, ".csv"))
       for(i in 2:nrow(param_df)){
-        eval_samp<- eval_func(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_December_",
+        eval_samp<- eval_func(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", read_prefix, "_",
                                      algos[a], "_F-", forecasts[f], "_Rstr-HI-", "none",
                                      "_arch-", param_df$NHL[i], "-", param_df$NHU[i], "_ns-", param_df$n_steps[i],
                                      "_fips-", county, "_fips_", county, ".csv"))
@@ -61,7 +62,7 @@ for(k in 1:N){
       pos<- (k-1)*A*F + (a-1)*A + f
       results[pos, "Algo"]<- algos[a]
       results[pos, "Forecast"]<- forecasts[f]
-      results[pos, "Eval"]<- eval_func(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_December_",
+      results[pos, "Eval"]<- eval_func(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", read_prefix, "_",
                                               algos[a], "_F-", forecasts[f], "_Rstr-HI-", "none",
                                               "_arch-", param_df$NHL[j], "-", param_df$NHU[j], "_ns-", param_df$n_steps[j],
                                               "_fips-", county, "_fips_", county, ".csv"))
@@ -75,9 +76,9 @@ for(k in 1:N){
 }
 
 results$County<- rep(counties, each=A*F)
-write.csv(results, paste0("Fall_results/", prefix, "_plain_RL_avg_return.csv"), row.names=FALSE)
+write.csv(results, paste0("Fall_results/", write_prefix, "_plain_RL_avg_return.csv"), row.names=FALSE)
 
-DF<- read.csv(paste0("Fall_results/", prefix, "_plain_RL_avg_return.csv"))
+DF<- read.csv(paste0("Fall_results/", write_prefix, "_plain_RL_avg_return.csv"))
 bench_df<- read.csv(paste0("Fall_results/Benchmarks_", r_model, "_avg_return", ".csv"))
 
 for(algo in algos){
@@ -107,12 +108,12 @@ for(k in 1:N){
   for(a in 1:A){
     for(f in 1:F){
       j<- 1 # keeping track of the best model
-      Eval_samp<- eval_func(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_December_",
+      Eval_samp<- eval_func(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", read_prefix, "_",
                                    algos[a], "_F-", forecasts[f], "_Rstr-HI-", param_df$HI[1],
                                    "_arch-", param_df$NHL[1], "-", param_df$NHU[1], "_ns-", param_df$n_steps[1],
                                    "_fips-", county, "_fips_", county, ".csv"))
       for(i in 2:nrow(param_df)){
-        eval_samp<- eval_func(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_December_",
+        eval_samp<- eval_func(paste0("Summer_results/ORL_RL_eval_samp-R_samp-W_", read_prefix, "_",
                                      algos[a], "_F-", forecasts[f], "_Rstr-HI-", param_df$HI[i],
                                      "_arch-", param_df$NHL[i], "-", param_df$NHU[i], "_ns-", param_df$n_steps[i],
                                      "_fips-", county, "_fips_", county, ".csv"))
@@ -124,7 +125,7 @@ for(k in 1:N){
       pos<- (k-1)*A*F + (a-1)*A + f
       results[pos, "Algo"]<- algos[a]
       results[pos, "Forecast"]<- forecasts[f]
-      results[pos, "Eval"]<- eval_func(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_December_",
+      results[pos, "Eval"]<- eval_func(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", read_prefix, "_",
                                               algos[a], "_F-", forecasts[f], "_Rstr-HI-", param_df$HI[j],
                                               "_arch-", param_df$NHL[j], "-", param_df$NHU[j], "_ns-", param_df$n_steps[j],
                                               "_fips-", county, "_fips_", county, ".csv"))
@@ -140,9 +141,9 @@ for(k in 1:N){
 
 
 results$County<- rep(counties, each=A*F)
-write.csv(results, paste0("Fall_results/", prefix, "_Rstr-QHI_RL_avg_return.csv"), row.names=FALSE)
+write.csv(results, paste0("Fall_results/", write_prefix, "_Rstr-QHI_RL_avg_return.csv"), row.names=FALSE)
 
-DF<- read.csv(paste0("Fall_results/", prefix, "_Rstr-QHI_RL_avg_return.csv"))
+DF<- read.csv(paste0("Fall_results/", write_prefix, "_Rstr-QHI_RL_avg_return.csv"))
 bench_df<- read.csv(paste0("Fall_results/Benchmarks_", r_model, "_avg_return", ".csv"))
 
 for(algo in algos){

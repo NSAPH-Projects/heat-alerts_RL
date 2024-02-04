@@ -77,6 +77,35 @@ more_W$fips<- NULL
 
 DF<- inner_join(DF, more_W)
 
+## Get autocorrelation summaries:
+data<- read_parquet("data/processed/states.parquet")
+QHI<- data$quant_HI_county
+Year<- year(data$Date)
+
+acf_auc_1d<- rep(0, 30)
+acf_auc_3d<- rep(0, 30)
+acf_auc_5d<- rep(0, 30)
+acf_auc_7d<- rep(0, 30)
+
+i<- 1
+for(k in DF$Fips){
+  stats<- rowMeans(sapply(c(2007, 2011, 2015), function(y){
+    qhi<- QHI[which(data$fips == k & Year == y)]
+    autocorr<- acf(qhi, plot=FALSE)
+    return(c(autocorr$acf[2], sum(autocorr$acf[2:4]), 
+             sum(autocorr$acf[2:6]), sum(autocorr$acf[2:8])))
+  }))
+
+  acf_auc_1d[i]<- stats[1]
+  acf_auc_3d[i]<- stats[2]
+  acf_auc_5d[i]<- stats[3]
+  acf_auc_7d[i]<- stats[4]
+  
+  i<- i+1
+}
+
+DF<- cbind(DF, acf_auc_1d, acf_auc_3d, acf_auc_5d, acf_auc_7d)
+
 write.csv(DF, "data/Final_30_W.csv")
 
 ##### Select one county from each climate region for *preliminary* hyperparameter tuning, using the info above:
@@ -135,25 +164,32 @@ plain_RL<- read.csv("Fall_results/December_plain_RL_avg_return.csv")
 QHI_RL<- read.csv("Fall_results/December_Rstr-QHI_RL_avg_return.csv")
 plain_RL_p2<- read.csv("Fall_results/December_part-2_plain_RL_avg_return.csv")
 QHI_RL_p2<- read.csv("Fall_results/December_part-2_Rstr-QHI_RL_avg_return.csv")
+det_trpo_none<- read.csv("Fall_results/NEW_Main_analysis_trpo_F-none.csv")
+det_trpo_F<- read.csv("Fall_results/NEW_Main_analysis_trpo_F-Q_D10.csv")
+det_newer<- read.csv("Fall_results/February_Rstr-QHI_RL_avg_return.csv")
 
 alt_policies<- cbind(bench_df[,c("Random", "basic_NWS", 
                                  "Top_K", "Random_QHI", "AA_QHI")],
                      dqn=plain_RL[which(plain_RL$Algo == "dqn" & plain_RL$Forecast == "none"), "Eval"],
-                     qrdqn=plain_RL[which(plain_RL$Algo == "qrdqn" & plain_RL$Forecast == "none"), "Eval"],
+                     qrdqn=plain_RL_p2[which(plain_RL_p2$Algo == "qrdqn" & plain_RL_p2$Forecast == "none"), "Eval"],
                      trpo=plain_RL[which(plain_RL$Algo == "trpo" & plain_RL$Forecast == "none"), "Eval"],
-                     a2c=plain_RL[which(plain_RL$Algo == "a2c" & plain_RL$Forecast == "none"), "Eval"],
+                     a2c=plain_RL_p2[which(plain_RL_p2$Algo == "a2c" & plain_RL_p2$Forecast == "none"), "Eval"],
                      dqn.f=plain_RL[which(plain_RL$Algo == "dqn" & plain_RL$Forecast == "Q_D10"), "Eval"],
-                     qrdqn.f=plain_RL[which(plain_RL$Algo == "qrdqn" & plain_RL$Forecast == "Q_D10"), "Eval"],
+                     qrdqn.f=plain_RL_p2[which(plain_RL_p2$Algo == "qrdqn" & plain_RL_p2$Forecast == "Q_D10"), "Eval"],
                      trpo.f=plain_RL[which(plain_RL$Algo == "trpo" & plain_RL$Forecast == "Q_D10"), "Eval"],
-                     a2c.f=plain_RL[which(plain_RL$Algo == "a2c" & plain_RL$Forecast == "Q_D10"), "Eval"],
+                     a2c.f=plain_RL_p2[which(plain_RL_p2$Algo == "a2c" & plain_RL_p2$Forecast == "Q_D10"), "Eval"],
                      dqn.qhi=QHI_RL[which(QHI_RL$Algo == "dqn" & QHI_RL$Forecast == "none"), "Eval"],
-                     qrdqn.qhi=QHI_RL[which(QHI_RL$Algo == "qrdqn" & QHI_RL$Forecast == "none"), "Eval"],
+                     qrdqn.qhi=QHI_RL_p2[which(QHI_RL_p2$Algo == "qrdqn" & QHI_RL_p2$Forecast == "none"), "Eval"],
                      trpo.qhi=QHI_RL[which(QHI_RL$Algo == "trpo" & QHI_RL$Forecast == "none"), "Eval"],
-                     a2c.qhi=QHI_RL[which(QHI_RL$Algo == "a2c" & QHI_RL$Forecast == "none"), "Eval"],
+                     a2c.qhi=QHI_RL_p2[which(QHI_RL_p2$Algo == "a2c" & QHI_RL_p2$Forecast == "none"), "Eval"],
                      dqn.qhi.f=QHI_RL[which(QHI_RL$Algo == "dqn" & QHI_RL$Forecast == "Q_D10"), "Eval"],
-                     qrdqn.qhi.f=QHI_RL[which(QHI_RL$Algo == "qrdqn" & QHI_RL$Forecast == "Q_D10"), "Eval"],
+                     qrdqn.qhi.f=QHI_RL_p2[which(QHI_RL_p2$Algo == "qrdqn" & QHI_RL_p2$Forecast == "Q_D10"), "Eval"],
                      trpo.qhi.f=QHI_RL[which(QHI_RL$Algo == "trpo" & QHI_RL$Forecast == "Q_D10"), "Eval"],
-                     a2c.qhi.f=QHI_RL[which(QHI_RL$Algo == "a2c" & QHI_RL$Forecast == "Q_D10"), "Eval"]
+                     a2c.qhi.f=QHI_RL_p2[which(QHI_RL_p2$Algo == "a2c" & QHI_RL_p2$Forecast == "Q_D10"), "Eval"],
+                     det.trpo.qhi=det_trpo_none$Eval,
+                     det.a2c.qhi=det_newer[which(det_newer$Algo == "a2c" & det_newer$Forecast == "none"), "Eval"],
+                     det.trpo.qhi.f=det_trpo_F$Eval,
+                     det.a2c.qhi.f=det_newer[which(det_newer$Algo == "a2c" & det_newer$Forecast == "Q_D10"), "Eval"]
 )
 
 # #### OLD:

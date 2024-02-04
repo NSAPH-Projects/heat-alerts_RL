@@ -57,8 +57,8 @@ for(k in counties){
               
             }else{
               cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
-                         # " deterministic=false",
-                         " deterministic=true", # sensitivity analysis
+                         " deterministic=false",
+                         # " deterministic=true", # sensitivity analysis
                          " restrict_days=none", " forecasts=", forecasts,
                          " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
                          " model_name=", prefix, "_", algo, "_F-", forecasts, "_Rstr-HI-", "none",
@@ -67,8 +67,8 @@ for(k in counties){
               
               for(h in HI_thresholds){
                 cat(paste0("python train_online_rl_sb3.py", " county=", county, " algo=", algo,
-                           # " deterministic=false",
-                           " deterministic=true", # sensitivity analysis
+                           " deterministic=false",
+                           # " deterministic=true", # sensitivity analysis
                            " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", h,
                            " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", s,
                            " model_name=", prefix, "_", algo, "_F-", forecasts, "_Rstr-HI-", h,

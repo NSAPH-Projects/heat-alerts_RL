@@ -67,4 +67,17 @@ for(k in counties){
 
 sink()
 
+############ Filling in on FASRC:
 
+bench_results<- read.csv("Fall_results/Benchmarks_mixed_constraints_avg_return.csv")
+
+sink("Run_jobs/Eval_jobs")
+for(k in counties){
+  county<- k
+  for(r_model in c( "mixed_constraints")){
+    h<- bench_results$aqhi_ot[which(bench_results$County == k)]
+    cat(paste0("python old_evaluation_SB3.py policy_type=AA eval.val_years=true eval.match_similar=false restrict_days=qhi ",
+               "county=", county, " restrict_days.HI_restriction=", h, " r_model=", r_model, " model_name=", r_model, "_Rstr-HI-", h, "\n"))
+  }
+}
+sink()

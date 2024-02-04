@@ -27,8 +27,10 @@ for(pol in c("Zero", "Random", "Top_K", "Random_QHI", "AA_QHI", "basic_NWS")){
   # print(pol)
 }
 
-plain_RL<- read.csv("Fall_results/December_plain_RL_avg_return.csv")
-QHI_RL<- read.csv("Fall_results/December_Rstr-QHI_RL_avg_return.csv")
+# plain_RL<- read.csv("Fall_results/December_plain_RL_avg_return.csv")
+# QHI_RL<- read.csv("Fall_results/December_Rstr-QHI_RL_avg_return.csv")
+plain_RL<- read.csv("Fall_results/December_part-2_plain_RL_avg_return.csv")
+QHI_RL<- read.csv("Fall_results/December_part-2_Rstr-QHI_RL_avg_return.csv")
 
 algos<- unique(plain_RL$Algo)
 forecasts<- unique(plain_RL$Forecast)
@@ -38,7 +40,12 @@ for(algo in algos){
     a<- "TRPO"
     if(algo == "dqn"){
       a<- "DQN"
+    }else if(algo == "a2c"){
+      a<- "A2C"
+    }else if(algo == "qrdqn"){
+      a<- "QRDQN"
     }
+    
     f<- ".F"
     if(forecast == "none"){
       f<- ""
@@ -65,14 +72,17 @@ for(algo in algos){
 #                           State=state, Region=region))
 
 plot_DF<- DF[which(DF$Policy %in% c("Top_K", "AA_QHI", # "DQN.QHI", 
-                                    "TRPO.QHI" #, "TRPO.QHI.F"
+                                    "TRPO.QHI", # "TRPO.QHI.F"
+                                    "A2C.QHI"
                                     )),]
 plot_DF$Policy<- factor(plot_DF$Policy,
                         levels=c("Top_K", "AA_QHI", # "DQN.QHI", 
-                                 "TRPO.QHI" #, "TRPO.QHI.F"
+                                 "TRPO.QHI", # "TRPO.QHI.F"
+                                 "A2C.QHI"
                                  ))
 levels(plot_DF$Policy)<- c("TopK", "AA.QHI", #"DQN.QHI", 
-                           "TRPO.QHI" #, "TRPO.QHI.F"
+                           "TRPO.QHI (RL)", # "TRPO.QHI.F"
+                           "A2C.QHI (RL)"
                            )
 
 plot_DF$outlier<- (plot_DF$Diff > 0.1) | (plot_DF$Diff < -0.05)
@@ -149,7 +159,7 @@ write.csv(Eval_DOS, paste0("Fall_results/Eval_DOS_", r_model, "_benchmarks.csv")
 write.csv(Eval_Strk.Ln, paste0("Fall_results/Eval_Strk-Ln_", r_model, "_benchmarks.csv"))
 
 
-## RL stats:
+## RL stats: TRPO and DQN
 for(k in counties){
   ## Read in results:
   i_t<- which(QHI_RL$County == k & QHI_RL$Algo == "trpo" & QHI_RL$Forecast == "none")
@@ -193,21 +203,77 @@ for(k in counties){
 write.csv(Eval_DOS, paste0("Fall_results/December_Eval_DOS_", r_model, "_RL.csv"))
 write.csv(Eval_Strk.Ln, paste0("Fall_results/December_Eval_Strk-Ln_", r_model, "_RL.csv"))
 
+## RL stats: A2C and QRDQN
+for(k in counties){
+  ## Read in results:
+  i_a<- which(QHI_RL$County == k & QHI_RL$Algo == "a2c" & QHI_RL$Forecast == "none")
+  i_q<- which(QHI_RL$County == k & QHI_RL$Algo == "qrdqn" & QHI_RL$Forecast == "none")
+  i_a_f<- which(QHI_RL$County == k & QHI_RL$Algo == "a2c" & QHI_RL$Forecast == "Q_D10")
+  
+  q_a<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_December_", 
+                        "a2c_F-none_Rstr-HI-", QHI_RL[i_a, "OT"], 
+                        "_arch-", QHI_RL[i_a, "NHL"], "-", QHI_RL[i_a, "NHU"],
+                        "_ns-", QHI_RL[i_a, "n_steps"], "_fips-", k, "_fips_", k, ".csv"))
+  
+  q_q<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_December_", 
+                        "qrdqn_F-none_Rstr-HI-", QHI_RL[i_q, "OT"], 
+                        "_arch-", QHI_RL[i_q, "NHL"], "-", QHI_RL[i_q, "NHU"],
+                        "_ns-", QHI_RL[i_q, "n_steps"], "_fips-", k, "_fips_", k, ".csv"))
+  
+  q_a_f<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_December_", 
+                          "a2c_F-Q_D10_Rstr-HI-", QHI_RL[i_a_f, "OT"], 
+                          "_arch-", QHI_RL[i_a_f, "NHL"], "-", QHI_RL[i_a_f, "NHU"],
+                          "_ns-", QHI_RL[i_a_f, "n_steps"], "_fips-", k, "_fips_", k, ".csv"))
+  
+  ## Calculate stats:
+  n_eps<- nrow(q_a)/(n_days-1)
+  Days<- rep(1:(n_days-1),n_eps)
+  
+  qaeD<- Days[which(q_a$Actions == 1)]
+  Eval_DOS<- rbind(Eval_DOS, data.frame(County = k, Policy="A2C.QHI", Value = qaeD))
+  Eval_Strk.Ln<- rbind(Eval_Strk.Ln, data.frame(County = k, Policy="A2C.QHI", Value = streaks(qaeD)))
+  
+  qqeD<- Days[which(q_q$Actions == 1)]
+  Eval_DOS<- rbind(Eval_DOS, data.frame(County = k, Policy="QRDQN.QHI", Value = qqeD))
+  Eval_Strk.Ln<- rbind(Eval_Strk.Ln, data.frame(County = k, Policy="QRDQN.QHI", Value = streaks(qqeD)))
+  
+  qafeD<- Days[which(q_a_f$Actions == 1)]
+  Eval_DOS<- rbind(Eval_DOS, data.frame(County = k, Policy="A2C.QHI.F", Value = qafeD))
+  Eval_Strk.Ln<- rbind(Eval_Strk.Ln, data.frame(County = k, Policy="A2C.QHI.F", Value = streaks(qafeD)))
+  
+  print(k)
+}
+
+write.csv(Eval_DOS, paste0("Fall_results/December_part-2_Eval_DOS_", r_model, "_RL.csv"))
+write.csv(Eval_Strk.Ln, paste0("Fall_results/December_part-2_Eval_Strk-Ln_", r_model, "_RL.csv"))
+
+
 
 ############### Comparing to the benchmarks:
 Eval_DOS<- read.csv(paste0("Fall_results/Eval_DOS_", r_model, "_benchmarks.csv"))
-Eval_DOS<- rbind(Eval_DOS, read.csv(paste0("Fall_results/December_Eval_DOS_", r_model, "_RL.csv")))
+# Eval_DOS<- rbind(Eval_DOS, read.csv(paste0("Fall_results/December_Eval_DOS_", r_model, "_RL.csv")))
+Eval_DOS<- rbind(Eval_DOS, read.csv(paste0("Fall_results/December_part-2_Eval_DOS_", r_model, "_RL.csv")))
 Eval_Strk.Ln<- read.csv(paste0("Fall_results/Eval_Strk-Ln_", r_model, "_benchmarks.csv"))
-Eval_Strk.Ln<- rbind(Eval_Strk.Ln, read.csv(paste0("Fall_results/December_Eval_Strk-Ln_", r_model, "_RL.csv")))
+# Eval_Strk.Ln<- rbind(Eval_Strk.Ln, read.csv(paste0("Fall_results/December_Eval_Strk-Ln_", r_model, "_RL.csv")))
+Eval_Strk.Ln<- rbind(Eval_Strk.Ln, read.csv(paste0("Fall_results/December_part-2_Eval_Strk-Ln_", r_model, "_RL.csv")))
 
 ## All together:
 
 Eval_DOS$Policy<- as.factor(Eval_DOS$Policy)
-levels(Eval_DOS$Policy)<- c("AA.QHI", "DQN.QHI", "NWS", "R.QHI", "TRPO.QHI", "TRPO.QHI.F")
+# levels(Eval_DOS$Policy)<- c("AA.QHI", "DQN.QHI", "NWS", "R.QHI", "TRPO.QHI (RL)", "TRPO.QHI.F")
+levels(Eval_DOS$Policy)<- c("A2C.QHI (RL)", "A2C.QHI.F", "AA.QHI", "NWS", "QRDQN.QHI", "R.QHI")
 Eval_Strk.Ln$Policy<- as.factor(Eval_Strk.Ln$Policy)
-levels(Eval_Strk.Ln$Policy)<- c("AA.QHI", "DQN.QHI", "NWS", "R.QHI", "TRPO.QHI", "TRPO.QHI.F")
+# levels(Eval_Strk.Ln$Policy)<- c("AA.QHI", "DQN.QHI", "NWS", "R.QHI", "TRPO.QHI (RL)", "TRPO.QHI.F")
+levels(Eval_Strk.Ln$Policy)<- c("A2C.QHI (RL)", "A2C.QHI.F", "AA.QHI", "NWS", "QRDQN.QHI", "R.QHI")
 
-D<- ggplot(Eval_DOS[which(Eval_DOS$Policy %in% c("NWS", "AA.QHI", "TRPO.QHI")),], aes(x=Value, fill=Policy)) + 
+Eval_DOS$Policy<- relevel(Eval_DOS$Policy, "NWS")
+Eval_DOS$Policy<- relevel(Eval_DOS$Policy, "AA.QHI")
+
+Eval_Strk.Ln$Policy<- relevel(Eval_Strk.Ln$Policy, "NWS")
+Eval_Strk.Ln$Policy<- relevel(Eval_Strk.Ln$Policy, "AA.QHI")
+
+D<- ggplot(Eval_DOS[which(Eval_DOS$Policy %in% c("NWS", "AA.QHI", "A2C.QHI (RL)" # "TRPO.QHI (RL)"
+                                                 )),], aes(x=Value, fill=Policy)) + 
   geom_histogram(alpha=0.4, position="identity", aes(y = ..density..)) +
   ggtitle("Alert Density Across Days of Summer") + 
   ylab("Density") + xlab("Day of Summer") +
@@ -219,8 +285,8 @@ D<- ggplot(Eval_DOS[which(Eval_DOS$Policy %in% c("NWS", "AA.QHI", "TRPO.QHI")),]
 #   ylab("Density") + xlab("Day of Summer") +
 #   theme(legend.position="bottom")
 
-S<- ggplot(Eval_Strk.Ln[which(Eval_Strk.Ln$Policy %in% c("NWS", "AA.QHI",  "TRPO.QHI")),], 
-       aes(x=Value, fill=Policy)) + 
+S<- ggplot(Eval_Strk.Ln[which(Eval_Strk.Ln$Policy %in% c("NWS", "AA.QHI", "A2C.QHI (RL)" # "TRPO.QHI (RL)"
+                                                         )),], aes(x=Value, fill=Policy)) +
   geom_histogram(alpha=0.4, position="identity") + 
   ggtitle("Density of Alert Streak Lengths") +
   scale_y_continuous(trans = "sqrt") + 

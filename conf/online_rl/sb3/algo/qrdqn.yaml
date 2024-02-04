@@ -2,7 +2,7 @@ _target_: sb3_contrib.QRDQN
 policy: MlpPolicy
 policy_kwargs:
   net_arch: [16, 16]
-  n_quantiles: 20 # 10 # 50
+  n_quantiles: 10 # 50
 exploration_fraction: 0.25
 exploration_final_eps: 0.1
 batch_size: 512
