@@ -131,13 +131,13 @@ for(i in which(trpo_results$County %in%
   
   # a2c_det_hosps<- ((1 - a2c_det_eval/152)*w$Offset/w$total_count)*152*w$total_count # or could do per 10,000
   # trpo_det_hosps<- ((1 - trpo_det_eval/152)*w$Offset/w$total_count)*152*w$total_count # or could do per 10,000
-  a2c_hosps<- ((1 - a2c_eval/152)*w$Offset/w$total_count)*152*w$total_count # or could do per 10,000
-  dqn_hosps<- ((1 - dqn_eval/152)*w$Offset/w$total_count)*152*w$total_count # or could do per 10,000
-  qrdqn_hosps<- ((1 - qrdqn_eval/152)*w$Offset/w$total_count)*152*w$total_count # or could do per 10,000
-  trpo_hosps<- ((1 - trpo_eval/152)*w$Offset/w$total_count)*152*w$total_count # or could do per 10,000
+  a2c_hosps<- ((1 - a2c_eval/152)*w$Offset/w$total_count)*152*10000
+  dqn_hosps<- ((1 - dqn_eval/152)*w$Offset/w$total_count)*152*10000
+  qrdqn_hosps<- ((1 - qrdqn_eval/152)*w$Offset/w$total_count)*152*10000
+  trpo_hosps<- ((1 - trpo_eval/152)*w$Offset/w$total_count)*152*10000
   
-  nws_hosps<- ((1 - nws_eval/152)*w$Offset/w$total_count)*152*w$total_count # or could do per 10,000
-  aa_hosps<- ((1 - aa_eval/152)*w$Offset/w$total_count)*152*w$total_count # or could do per 10,000
+  nws_hosps<- ((1 - nws_eval/152)*w$Offset/w$total_count)*152*10000
+  aa_hosps<- ((1 - aa_eval/152)*w$Offset/w$total_count)*152*10000
   
   qhi<- QHI[which(data$fips == county & Year == y)][1:152]
   # autocorr<- acf(qhi, plot=FALSE)
@@ -185,16 +185,16 @@ for(i in which(trpo_results$County %in%
     geom_text(aes(label=sum(qrdqn_0), x=5, y=1.25), color=cols[5], fontface="plain") +
     geom_text(aes(label=sum(dqn_0), x=5, y=1.15), color=cols[4], fontface="plain") +
     geom_text(aes(label=sum(aa.qhi_y), x=5, y=1.05), color=cols[1], fontface="plain") +
-    geom_text(aes(label="Saved, per 10k", x=162, y=1.7), color="black", fontface="plain") +
-    geom_text(aes(label=capture.output(cat(round(c(1, 10000/w$total_count)*(nws_hosps - trpo_hosps),3),sep=", ")), x=162, y=1.55), color=cols[6], fontface="plain") +
-    geom_text(aes(label=capture.output(cat(round(c(1, 10000/w$total_count)*(nws_hosps - a2c_hosps),3),sep=", ")), x=162, y=1.4), color=cols[3], fontface="plain") +
+    geom_text(aes(label="Saved per 10k", x=162, y=1.7), color="black", fontface="plain") +
+    geom_text(aes(label=round(nws_hosps - trpo_hosps, 3), x=162, y=1.55), color=cols[6], fontface="plain") + 
+    geom_text(aes(label=round(nws_hosps - a2c_hosps, 3), x=162, y=1.4), color=cols[3], fontface="plain") +
     # geom_text(aes(label=capture.output(cat(round(c(1, 10000/w$total_count)*(nws_hosps - a2c_det_hosps),3),sep=", ")), x=162, y=1.3), color=cols[4], fontface="plain") +
-    geom_text(aes(label=capture.output(cat(round(c(1, 10000/w$total_count)*(nws_hosps - qrdqn_hosps),3),sep=", ")), x=162, y=1.25), color=cols[5], fontface="plain") +
-    geom_text(aes(label=capture.output(cat(round(c(1, 10000/w$total_count)*(nws_hosps - dqn_hosps),3),sep=", ")), x=162, y=1.15), color=cols[4], fontface="plain") +
-    geom_text(aes(label=capture.output(cat(round(c(1, 10000/w$total_count)*(nws_hosps - aa_hosps),3),sep=", ")), x=162, y=1.05), color=cols[1], fontface="plain") +
+    geom_text(aes(label=round(nws_hosps - qrdqn_hosps, 3), x=162, y=1.25), color=cols[5], fontface="plain") +
+    geom_text(aes(label=round(nws_hosps - dqn_hosps, 3), x=162, y=1.15), color=cols[4], fontface="plain") +
+    geom_text(aes(label=round(nws_hosps - aa_hosps, 3), x=162, y=1.05), color=cols[1], fontface="plain") +
     # ggtitle(paste("County", county, "Diff =", round(diffs[i], 3)))
     # ggtitle(paste0(c_name, " (", county, "); Avg. Return Diff. (vs. NWS) = ", round(rl_eval - nws_eval,3)))
-    ggtitle(paste0(c_name, " ", county, " in ", y, ": ", sum(nws_y), " Alerts, ", round(nws_hosps), " NOHR Hosps Under the NWS Policy"))
+    ggtitle(paste0(c_name, " ", county, " in ", y, ": ", sum(nws_y), " Alerts, ", round(nws_hosps), " NOHR Hosps per 10,000 Under the NWS Policy"))
   
   print(p)
   j<- j+1

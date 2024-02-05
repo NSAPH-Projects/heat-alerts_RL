@@ -46,6 +46,7 @@ Diff<- a2c_results$Eval - Bench$NWS
 all_results<- data.frame(NWS=Bench$NWS, AA.QHI=Bench$AA_QHI, A2C.QHI=a2c_results$Eval, TRPO.QHI=trpo_results$Eval)
 names(all_results)<- c("NWS", "AA.QHI", "A2C.QHI (RL)", "TRPO.QHI (RL)")
 Y<- names(all_results)[apply(all_results, MARGIN=1, which.max)]
+
 Y_rl<- c("A2C.QHI (RL)", "TRPO.QHI (RL)")[apply(all_results[,c("A2C.QHI (RL)", "TRPO.QHI (RL)")], MARGIN=1, which.max)]
 
 Diff.a<- a2c_results$Eval - Bench$AA_QHI
