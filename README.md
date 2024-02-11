@@ -1,6 +1,6 @@
 # Heat Alerts Sequential Decision Making 
 
-This is code for investigating applicability of reinforcement learning (RL) to environmental health, specifically issuance of heat alerts in the United States. Additiona information on the observational dataset we use can be found at the end of this document.
+This is code for investigating applicability of reinforcement learning (RL) to environmental health, specifically issuance of heat alerts in the United States. Additional information on the observational dataset we use can be found at the end of this document.
 
 ### Installing the conda environment:
 ```
