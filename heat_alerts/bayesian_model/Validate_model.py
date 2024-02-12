@@ -19,8 +19,6 @@ from pyro_heat_alert import (HeatAlertDataModule, HeatAlertLightning,
 
 
 def main(params):
-    # params = {"type": "initial", "model_name": "FF_C-M_wide-EB-prior", "n_samples": 1, "SC": "F", "county": 36005, "constrain": "mixed"}
-    # params = {"type": "validation", "model_name": "FF_C-M_sample", "n_samples": 1000, "SC": "F", "county": 36005, "constrain": "mixed"}
     params=vars(params)
     ## Read in data:
     n_days = 153
