@@ -2,7 +2,7 @@ library(stringr)
 library(fBasics)
 library(lubridate)
 
-## Adapted code from Xiao's batch_death_all.R:
+## Adapted code from Xiao Wu's batch_death_all.R:
 fips_popsize <- read.csv("~/shared_space/ci3_analysis/ts_heat_warnings/data/matched_county_2010_popsize.csv")
 colnames(fips_popsize)[1] <- "fips"
 fips_popsize$fips <- str_pad(fips_popsize$fips, 5, pad = "0")
