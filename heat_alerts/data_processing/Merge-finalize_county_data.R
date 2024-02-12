@@ -92,11 +92,6 @@ my_quant<- function(df, region_var, split_var #, probs)
     pos<- which(df[, region_var] == r)
     percentile<- ecdf(df[pos, split_var])
     q[pos]<- percentile(df[pos, split_var])
-    # for(m in months){
-    #   pos<- which(df[, region_var] == r & df[,"month"] == m)
-    #   percentile<- ecdf(df[pos, split_var])
-    #   q[pos]<- percentile(df[pos, split_var])
-    # }
     
   }
   return(q)
