@@ -135,6 +135,7 @@ class_fit<- rpart(Y_rl ~ ., data = CART_df, method = "class", model = TRUE
 )
 rpart.plot(class_fit, box.palette = 0)
 
+######### OLD:
 ## Compared to AA.QHI:
 class_fit<- rpart(Y.a ~ ., data = CART_df, method = "class", model = TRUE
                   , control = rpart.control(max.depth=2)
@@ -147,51 +148,3 @@ reg_fit<- rpart(Diff.a ~ ., data = CART_df, method = "anova", model = TRUE
 rpart.plot(reg_fit, box.palette = 0)
 
 
-######## Investigating intuitions:
-
-plot(stationary_W$Med.HH.Income, stationary_W$Alerts)
-abline(lm(Alerts ~ Med.HH.Income, stationary_W))
-
-plot(stationary_W$Pop_density, stationary_W$Alerts)
-abline(lm(Alerts ~ Pop_density, stationary_W))
-
-plot(stationary_W$Alerts, stationary_W$SD_Eff)
-abline(lm(SD_Eff ~ Alerts, stationary_W))
-
-plot(stationary_W$Med.HH.Income, stationary_W$SD_Eff)
-abline(lm(SD_Eff ~ Med.HH.Income, stationary_W))
-
-plot(stationary_W$Med.HH.Income, stationary_W$Mean_Eff)
-abline(lm(Mean_Eff ~ Med.HH.Income, stationary_W))
-
-##### Making case study plot:
-
-DF<- data.frame(Diff, RL_F.none)
-
-m<- which.max(Diff)
-DF[m,] # county 22063, OT = 0.5, NHL = 3, NHU = 64, n_steps = 4096
-county<- 22063
-
-
-test<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", 
-                       "mixed_constraints_trpo_F-none_fips-41067", "_fips_", county, ".csv"))[,-1]
-
-df<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_Tune_F-none", 
-             "_Rstr-HI-0.5",
-             "_arch-", 2, "-", 64,
-             "_ns-", 4096, "_fips-", county, "_fips_", county, ".csv"))[,-1]
-df$Count<- 1
-agg_df<- aggregate(. ~ Year, df, sum)
-
-# nws<- read.csv(paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_", "mixed_constraints", "_fips_", county, ".csv"))
-nws<- read.csv(paste0("ORL_NWS_eval_samp-R_obs-W_", "mixed_constraints", "_fips_", county, ".csv"))
-nws$Count<- 1
-agg_nws<- aggregate(. ~ Year, nws, sum)
-
-df.y<- df[which(df$Year == 2011),]
-DOS<- as.numeric(row.names(df.y)) %% 152
-table(DOS[which(df.y$Actions == 1)])
-
-nws.y<- nws[which(nws$Year == 2011),]
-nws.DOS<- as.numeric(row.names(nws.y)) %% 152
-table(nws.DOS[which(nws.y$Actions == 1)])
