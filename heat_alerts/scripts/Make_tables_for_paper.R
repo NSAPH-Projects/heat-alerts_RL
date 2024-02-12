@@ -213,35 +213,3 @@ D[,c("Median Diff.", "WMW stat", "p-value")]<- apply(D[,c("Median Diff.", "WMW s
                                                      MARGIN=2, as.character)
 
 print(xtable(D),include.rownames=TRUE)
-
-               
-#################### OLD...
-               
-#### Make compare_to_zero table: 
-
-bench_df<- read.csv(paste0("Fall_results/Benchmarks_mixed_constraints_compare_to_zero.csv"))
-plain_RL<- read.csv("Fall_results/December_plain_RL_compare_to_zero.csv")
-QHI_RL<- read.csv("Fall_results/December_Rstr-QHI_RL_compare_to_zero.csv")
-
-alt_policies<- cbind(bench_df[,c("Random", "basic_NWS", 
-                                 "Top_K", "Random_QHI", "AA_QHI")],
-                     dqn=plain_RL[which(plain_RL$Algo == "dqn" & plain_RL$Forecast == "none"), "Eval"],
-                     trpo=plain_RL[which(plain_RL$Algo == "trpo" & plain_RL$Forecast == "none"), "Eval"],
-                     dqn.f=plain_RL[which(plain_RL$Algo == "dqn" & plain_RL$Forecast == "Q_D10"), "Eval"],
-                     trpo.f=plain_RL[which(plain_RL$Algo == "trpo" & plain_RL$Forecast == "Q_D10"), "Eval"],
-                     dqn.qhi=QHI_RL[which(QHI_RL$Algo == "dqn" & QHI_RL$Forecast == "none"), "Eval"],
-                     trpo.qhi=QHI_RL[which(QHI_RL$Algo == "trpo" & QHI_RL$Forecast == "none"), "Eval"],
-                     dqn.qhi.f=QHI_RL[which(QHI_RL$Algo == "dqn" & QHI_RL$Forecast == "Q_D10"), "Eval"],
-                     trpo.qhi.f=QHI_RL[which(QHI_RL$Algo == "trpo" & QHI_RL$Forecast == "Q_D10"), "Eval"]
-)
-
-D<- t(apply(alt_policies, MARGIN=2, function(x){WMW(x, y=bench_df$NWS)}))
-D<- as.data.frame(D)
-names(D)<- c("Median Diff.", "WMW stat", "p-value")
-
-D[,c("Median Diff.", "WMW stat", "p-value")]<- apply(D[,c("Median Diff.", "WMW stat", "p-value")],
-                                                     MARGIN=2, as.character)
-
-print(xtable(D),include.rownames=TRUE)
-
-
