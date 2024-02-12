@@ -49,8 +49,8 @@ per_alert<- function(filename){
 
 
 compare_to_zero<- function(filename, Zero){
-  f<- file.exists(filename) # filename<- "Summer_results/ORL_TK_eval_samp-R_obs-W_all_constraints_fips_41067.csv"
-  z<- file.exists(Zero) # Zero<- "Summer_results/ORL_NA_eval_samp-R_obs-W_all_constraints_fips_41067.csv"
+  f<- file.exists(filename)
+  z<- file.exists(Zero)
   if(f & z){
     df<- read.csv(filename)[,-1]
     zero<- read.csv(Zero)[,-1]
