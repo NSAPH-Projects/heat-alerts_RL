@@ -129,13 +129,14 @@ reg_fit<- rpart(Diff ~ ., data = CART_df, method = "anova", model = TRUE
 )
 rpart.plot(reg_fit, box.palette = 0)
 
+############### OLD:
+
 ## Comparing A2C.QHI and TRPO.QHI:
 class_fit<- rpart(Y_rl ~ ., data = CART_df, method = "class", model = TRUE
                   , control = rpart.control(max.depth=3)
 )
 rpart.plot(class_fit, box.palette = 0)
 
-######### OLD:
 ## Compared to AA.QHI:
 class_fit<- rpart(Y.a ~ ., data = CART_df, method = "class", model = TRUE
                   , control = rpart.control(max.depth=2)
