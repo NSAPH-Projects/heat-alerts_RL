@@ -74,7 +74,7 @@ The gym environment is detailed in several scripts within the directory heat_ale
 ### Online RL:
 To train an RL model, use the script train_online_rl_sb3.py -- note that there are many possible arguments, passed using Hydra / config files. 
 
-To reproduce the analyses in the paper:
+To reproduce the analyses in the paper, **adjust the algorithms and naming prefixes manually** in the following steps:
 1. Tune hyperparameters for RL for each county by running heat_alerts/online_rl/Online_print_RLs.R followed by Run_jobs/Online_RL_short.sh.
 2. Process these results using heat_alerts/scripts/Final_tuning_evals.R to obtain the final evaluations of the best models.
 
