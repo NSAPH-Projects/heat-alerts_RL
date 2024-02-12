@@ -263,12 +263,6 @@ D<- ggplot(Eval_DOS[which(Eval_DOS$Policy %in% c("NWS", "AA.QHI", "A2C.QHI (RL)"
   ylab("Density") + xlab("Day of Summer") +
   theme(legend.position="bottom")
 
-# ggplot(Eval_DOS[which(Eval_DOS$Policy %in% c("AA.QHI", "DQN.QHI")),], aes(x=Value, fill=Policy)) + 
-#   geom_histogram(alpha=0.4, position="identity", aes(y = ..density..)) +
-#   ggtitle("Alert Density Across Days of Summer") + 
-#   ylab("Density") + xlab("Day of Summer") +
-#   theme(legend.position="bottom")
-
 S<- ggplot(Eval_Strk.Ln[which(Eval_Strk.Ln$Policy %in% c("NWS", "AA.QHI", "A2C.QHI (RL)" # "TRPO.QHI (RL)"
                                                          )),], aes(x=Value, fill=Policy)) +
   geom_histogram(alpha=0.4, position="identity") + 
@@ -276,14 +270,6 @@ S<- ggplot(Eval_Strk.Ln[which(Eval_Strk.Ln$Policy %in% c("NWS", "AA.QHI", "A2C.Q
   scale_y_continuous(trans = "sqrt") + 
   ylab("Sqrt(Count)") + xlab("Streak Lengths") +
   theme(legend.position="bottom")
-
-# ggplot(Eval_Strk.Ln[which(Eval_Strk.Ln$Policy %in% c("AA.QHI", "DQN.QHI")),], 
-#        aes(x=Value, fill=Policy)) + 
-#   geom_histogram(alpha=0.4, position="identity") + 
-#   ggtitle("Density of Alert Streak Lengths") +
-#   scale_y_continuous(trans = "sqrt") + 
-#   ylab("Sqrt(Count)") + xlab("Streak Lengths") +
-#   theme(legend.position="bottom")
 
 plot_grid(D, S, nrow=1, rel_widths = c(2,1.5))
 
