@@ -34,7 +34,7 @@ data/processed/
 ├── location_indices.json  # location (fips index) f each row of states.parquet
 ├── offset.parquet  # offset for the poisson regresison, it is the mean number of hospitalizations for that summer
 ```
-The data is broken in several files. The advantage with this is that it is mostly ML/RL ready and that parquet files can be opened from both Python and R efficiently.
+These files are formatted to be ready for ML/RL; parquet files can be opened from both Python and R efficiently.
 
 ### Bayesian rewards modeling:
 
