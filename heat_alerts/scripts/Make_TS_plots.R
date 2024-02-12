@@ -23,15 +23,10 @@ for(r in Regions[-1]){
 hi_pos<- which(Data$Type == "Heat Index")
 Data$ID[hi_pos]<- sapply(Data$ID[hi_pos], function(s){strsplit(strsplit(s, ",")[[1]][1], "\\(")[[1]][2]})
 
-# Data$Type[hi_pos]<- "Quant. Heat Index"
-# Data$Type[which(Data$Type == "Lambda")]<- as.expression(bquote(~ "Baseline ("* lambda *")"))
-# Data$Type[which(Data$Type == "Tau")]<- as.expression(bquote(~ "Effectiveness ("* tau *")"))
 Data$Type<- as.factor(Data$Type)
 levels(Data$Type)<- c(expression(paste("Quant. ", "Heat ", "Index")), expression(paste("Baseline ", "(", lambda, ")")), expression(paste("Effectiveness ", "(", tau, ")")))
 Data$Region<- factor(Data$Region, levels=Regions)
 
-# subset<- sample(1:nrow(Data), 1000)
-# Data<- Data[subset,]
 Data<- Data[which(Data$ID %in% counties),] # removing QHI from other counties
 
 plot_df<- data.frame(Type=rep(Data$Type, each=n_days),
@@ -40,11 +35,6 @@ plot_df<- data.frame(Type=rep(Data$Type, each=n_days),
                      Value=as.vector(t(as.matrix(Data[,1:n_days]))),
                      Day=rep(seq(1,153),nrow(Data)))
 
-# p<- ggplot(plot_df, aes(x=Day, y=Value, color=Region, fill=Region,
-#                         group=County)) + 
-#   stat_smooth(method="loess", span=0.5)
-# 
-# p + facet_grid(rows = vars(Type), scales = "free_y", labeller = label_parsed)
 
 p<- ggplot(plot_df[sample(1:nrow(plot_df), 10000),], aes(x=Day, y=Value, color=Region, fill=Region,
                         group=County)) + 
@@ -71,62 +61,6 @@ p4<- ggplot(plot_df, aes(x=Day, y=Value, color=Region, fill=Region)) +
                fun.max = function(x)quantile(x, 0.75)
                ) +
   geom_smooth(stat="summary", fun = median)
-# # changing color of ribbon: https://gist.github.com/valentinitnelav/becf4704c0eef0180546f958e453fc1e
-# scale_fill_manual(name = "region",
-#                   breaks = c("Cold", "Hot Dry", "Hot Humid", "Mixed Humid", "Marine"),
-#                   values = c("Cold"="#F8766D",
-#                              "Hot Dry"="#A3A500",
-#                              "Hot Humid"="#00BF7D",
-#                              "Mixed Humid"="#00B0F6",
-#                              "Marine"="#E76BF3"
-#                              )) # found hex codes at https://www.statology.org/ggplot-default-colors/
 
 p4 + facet_grid(rows = vars(Type), scales = "free_y", labeller = label_parsed)
 
-
-################ OLD:
-
-for(r in Region){
-  data<- read.csv(paste0("heat_alerts/time_series_data/HI-lam-tau_", r, ".csv"))[,-1]
-  data[which(data$Type == "Tau"),1:n_days]<- data[which(data$Type == "Tau"),1:n_days]
-  data[which(data$Type == "Tau"), "Type"]<- "Tau"
-  
-  hi_data<- data[which(data$Type == "Heat Index"),]
-  hi_data$Type<- "HI Quantile"
-  # hi_data$Year<- sapply(hi_data$ID, function(s){strsplit(strsplit(s, " ")[[1]][2], ")")[[1]][1]})
-  hi_data$ID<- sapply(hi_data$ID, function(s){strsplit(strsplit(s, ",")[[1]][1], "\\(")[[1]][2]})
-  # HI_data<- aggregate(. ~ Type + ID, hi_data[,-ncol(hi_data)], mean)
-  # 
-  # Data<- aggregate(. ~ Type + ID, 
-  #                  data[which(data$Type != "Heat Index"),], mean)
-  # Data<- rbind(Data, HI_data)
-  
-  Data<- rbind(hi_data, data[which(data$Type != "Heat Index"),])
-  
-  plot_df<- data.frame(Type=rep(Data$Type, each=n_days),
-                       ID=rep(Data$ID, each=n_days),
-                       Value=as.vector(t(as.matrix(Data[,1:n_days]))),
-                       Day=rep(seq(1,153),nrow(Data)))
-  
-  # p<- ggplot(plot_df, aes(x=Day, y=Value, color=Type)) +
-  #   geom_point(alpha=0.05) +
-  #   # ylim(0, 1.75) + 
-  #   geom_smooth() +
-  #   # geom_line() +
-  #   ggtitle(paste("Climate Region:", r))
-  # 
-  # print(p)
-  
-  region_counties<- unique(data[which(data$Type != "Heat Index"),"ID"])
-
-  for(k in region_counties){
-    p<- ggplot(plot_df[which(plot_df$ID == k),], aes(x=Day, y=Value, color=Type)) +
-      geom_point(alpha=0.2) +
-      geom_smooth() +
-      # geom_line() +
-      ggtitle(paste0("Climate Region: ", r, ", County: ", k))
-    print(p)
-  }
-  
-  print(r)
-}
