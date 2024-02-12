@@ -24,7 +24,6 @@ names(DF)<- c("Policy", "Diff", "State", "Region")
 for(pol in c("Zero", "Random", "Top_K", "Random_QHI", "AA_QHI", "basic_NWS")){
   DF<- rbind(DF, data.frame(Policy=pol, Diff=Bench[,pol] - Bench$NWS, 
                             State=state, Region=region))
-  # print(pol)
 }
 
 # plain_RL<- read.csv("Fall_results/December_plain_RL_avg_return.csv")
@@ -62,14 +61,6 @@ for(algo in algos){
   }
 }
 
-
-# RL_F.q_d10<- read.csv("Fall_results/Main_analysis_trpo_F-Q-D10.csv")
-# DF<- rbind(DF, data.frame(Policy="TRPO.QHI.F", Diff=RL_F.q_d10$Eval - Bench$NWS, 
-#                           State=state, Region=region))
-# 
-# RL_F.none<- read.csv("Fall_results/Main_analysis_trpo_F-none.csv")
-# DF<- rbind(DF, data.frame(Policy="TRPO.QHI", Diff=RL_F.q_d10$Eval - Bench$NWS, 
-#                           State=state, Region=region))
 
 plot_DF<- DF[which(DF$Policy %in% c("Top_K", "AA_QHI", # "DQN.QHI", 
                                     "TRPO.QHI", # "TRPO.QHI.F"
