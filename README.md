@@ -80,13 +80,15 @@ To reproduce the analyses in the paper, **adjust the algorithms and naming prefi
 
 ### Generate figures and tables for the paper:
 1. Table of descriptive statistics: heat_alerts/scripts/Summary_stats_table.R
-2. Plot of coefficients sampled from the Bayesian rewards model posterior: heat_alerts/bayesian_model/Make_plots.py
-3. Supplementary "time series" plot of observed quantile of heat index, modeled baseline NOHR hospitalizations, and modeled alert effectiveness (assuming no past alerts) across days of summer: (i) get data from heat_alerts/scripts/Time_series_plots.py, then (ii) make plots with heat_alerts/scripts/Make_TS_plots.R
-4. Main RL results table, supplementary table of county characteristics, and supplementary table of RL results using the per-alert (compare_to_zero) metric: heat_alerts/scripts/Make_tables_for_paper.R
+2. Map of counties indicating which were used in the simulator and which were used in the RL analysis: heat_alerts/scripts/Map_counties.R
+3. Plot of coefficients sampled from the Bayesian rewards model posterior: heat_alerts/bayesian_model/Make_plots.py
+   - Obtain the plot illustrating convergence of the loss from tensorboard (from terminal run "tensorboard --logdir logs/\[cfg.model.name\]")
+4. Supplementary "time series" plot of observed quantile of heat index, modeled baseline NOHR hospitalizations, and modeled alert effectiveness (assuming no past alerts) across days of summer: (i) get data from heat_alerts/scripts/Time_series_plots.py, then (ii) make plots with heat_alerts/scripts/Make_TS_plots.R
+5. Main RL results table, supplementary table of county characteristics, and supplementary table of RL results using the per-alert (compare_to_zero) metric: heat_alerts/scripts/Make_tables_for_paper.R
    - To obtain an approximate confidence interval for the absolute number of NOHR hospitalizations saved, use heat_alerts/scripts/Approx_CI.R
-6. Supplemental plots of different heat alert policies for individual counties: heat_alerts/scripts/Mini-case-studies.R
+6. Visualizations of different heat alert policies for individual counties: heat_alerts/scripts/Mini-case-studies.R
 7. Boxplot and histograms of day-of-summer and alert streak lengths: heat_alerts/scripts/Make_plots_for_paper_FINAL.R
-8. CART analysis / plots: heat_alerts/scripts/Investigate_systematic_diffs.R
+8. CART analysis / plots: heat_alerts/scripts/Investigate_systematic_diffs.R -- *manually change the set of CART covariates on lines 113-114 depending on whether you're looking at only alert-related variables or the set of more conventionally interpretable covariates*
 
 ****
 
