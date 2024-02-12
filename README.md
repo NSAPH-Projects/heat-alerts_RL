@@ -1,6 +1,6 @@
 # Heat Alerts Sequential Decision Making 
 
-This is code for investigating applicability of reinforcement learning (RL) to environmental health, specifically issuance of heat alerts in the United States. Additional information on the observational dataset we use can be found at the end of this document.
+This is code for investigating applicability of reinforcement learning (RL) to environmental health, specifically issuance of heat alerts in the United States. The associated paper can be found [here](https://arxiv.org/abs/2312.14196). Additional information on the observational dataset we use can be found at the end of this document.
 
 ### Installing the conda environment:
 ```
@@ -94,7 +94,7 @@ To reproduce the analyses in the paper, **adjust the algorithms and naming prefi
 
 ### Additional information on the data:
 
-We start with a US county-level dataset spanning 2006-2016 (warm months) which has been used in past studies of heat alert effectiveness. Main variables in this dataset are daily values of ambient heat index, heat alerts issued by the National Weather Service, and the number of in-patient fee-for-service Medicare hospitalizations for causes associated with extreme heat in past studies. We additionally compile other datasets to help characterize variability in the health impacts of extreme heat and heat alerts, such as sociodemographics and regional climate zone classifications. References for these datasets and past studies are in the main text.
+We start with a US county-level dataset spanning 2006-2016 (warm months) which has been used in past studies of heat alert effectiveness (references in the paper). Main variables in this dataset are daily values of ambient heat index, heat alerts issued by the National Weather Service, and the number of in-patient fee-for-service Medicare hospitalizations for causes associated with extreme heat in past studies. We additionally compile other datasets to help characterize variability in the health impacts of extreme heat and heat alerts, such as sociodemographics and regional climate zone classifications. References for these datasets and past studies are in the main text.
 
 The main analysis in this paper uses a gym environment (simulator of environmental variables and health outcomes) that we created based on the observed data. This simulator is publicly available. However, the health data that were used to create the model of the health outcomes are highly sensitive, and are only available to researchers with qualifying private servers. Access can be requested via application to the Centers for Medicare and Medicaid Services (see https://www.resdac.org/research-identifiable-files-rif-requests). 
 
