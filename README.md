@@ -38,6 +38,8 @@ These files are formatted to be ready for ML/RL; parquet files can be opened fro
 
 ### Bayesian rewards modeling:
 
+Details of this model can be found in heat_alerts/bayesian_model/bayesian_model_updated.md
+
 The bulk of the code for this model is in heat_alerts/bayesian_model/pyro_heat_alert.py
 
 1. Run train_bayesian_model.py using Hydra arguments. Configurations are in the conf directory. For example, to get the model used in our paper, which we determine to be the most robust without too many constraints:
