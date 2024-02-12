@@ -18,8 +18,6 @@ this_rl_name<-  "A2C.QHI" # "TRPO.QHI"
 
 Eval_DOS_bench<- read.csv("Fall_results/Eval_DOS_mixed_constraints_benchmarks.csv")
 Eval_SL_bench<- read.csv("Fall_results/Eval_Strk-Ln_mixed_constraints_benchmarks.csv")
-# Eval_DOS_RL<- read.csv("Fall_results/December_Eval_DOS_mixed_constraints_RL.csv")
-# Eval_SL_RL<- read.csv("Fall_results/December_Eval_Strk-Ln_mixed_constraints_RL.csv")
 Eval_DOS_RL<- read.csv("Fall_results/December_part-2_Eval_DOS_mixed_constraints_RL.csv")
 Eval_SL_RL<- read.csv("Fall_results/December_part-2_Eval_Strk-Ln_mixed_constraints_RL.csv")
 
@@ -49,8 +47,6 @@ Y<- names(all_results)[apply(all_results, MARGIN=1, which.max)]
 
 Y_rl<- c("A2C.QHI (RL)", "TRPO.QHI (RL)")[apply(all_results[,c("A2C.QHI (RL)", "TRPO.QHI (RL)")], MARGIN=1, which.max)]
 
-Diff.a<- a2c_results$Eval - Bench$AA_QHI
-# Y.a<- factor(Diff.a > 0)
 
 ## Copied from datautils.py: 
 West<- c("AZ", "CA", "CO", "ID", "MT", "NM", "NV", "OR", "WA", "ND", "SD", "NE", "KS")
@@ -118,7 +114,7 @@ paste(shQuote(names(CART_df)), collapse=", ")
 
 par(mfrow=c(1,2), mai = c(1, 0.5, 0.1, 0.75))
 
-## Compared to NWS:
+#### Make plots:
 class_fit<- rpart(Y ~ ., data = CART_df, method = "class", model = TRUE
       , control = rpart.control(minbucket=3)
       )
@@ -128,24 +124,4 @@ reg_fit<- rpart(Diff ~ ., data = CART_df, method = "anova", model = TRUE
                   , control = rpart.control(minbucket=5) 
 )
 rpart.plot(reg_fit, box.palette = 0)
-
-############### OLD:
-
-## Comparing A2C.QHI and TRPO.QHI:
-class_fit<- rpart(Y_rl ~ ., data = CART_df, method = "class", model = TRUE
-                  , control = rpart.control(max.depth=3)
-)
-rpart.plot(class_fit, box.palette = 0)
-
-## Compared to AA.QHI:
-class_fit<- rpart(Y.a ~ ., data = CART_df, method = "class", model = TRUE
-                  , control = rpart.control(max.depth=2)
-)
-rpart.plot(class_fit, box.palette = 0)
-
-reg_fit<- rpart(Diff.a ~ ., data = CART_df, method = "anova", model = TRUE
-                , control = rpart.control(max.depth=2)
-)
-rpart.plot(reg_fit, box.palette = 0)
-
 
