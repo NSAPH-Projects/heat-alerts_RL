@@ -13,7 +13,7 @@ Versions of primary software used: Python version 3.10.9; cuda version 12.0.1; R
 <ins>**\*\*\*Start here if you have access to the health data\*\*\***</ins>
 
 ### Data processing:
-*In the directory heat_alerts/Data_Processing:*
+*In the directory heat_alerts/data_processing:*
 1. Merging mortality data and heat alerts data: Explore_merged_data.R
 2. Processing county-level covariates: Extract_land_area.R, Get_county_Census_data.R, Prep_DoE_zones.R, Process_election_data.R
 3. Merge together: Merge-finalize_county_data.R
@@ -68,14 +68,14 @@ The gym environment is detailed in several scripts within the directory heat_ale
 
 ### Evaluate benchmark policies:
 
-1. Run heat_alerts/online_rl/Online_print_evals.R then Run_jobs/Online_evals.sh -- if you're using slurm, the command to run the latter is "sbatch"
+1. Run heat_alerts/online_rl/Online_print_evals.R then run_jobs/Online_evals.sh -- if you're using slurm, the command to run the latter is "sbatch"
 2. Process these results using heat_alerts/scripts/Benchmark_evals.R
 
 ### Online RL:
 To train an RL model, use the script train_online_rl_sb3.py -- note that there are many possible arguments, passed using Hydra / config files. 
 
 To reproduce the analyses in the paper, **adjust the algorithms and naming prefixes manually** in the following steps:
-1. Tune hyperparameters for RL for each county by running heat_alerts/online_rl/Online_print_RLs.R followed by Run_jobs/Online_RL_short.sh.
+1. Tune hyperparameters for RL for each county by running heat_alerts/online_rl/Online_print_RLs.R followed by run_jobs/Online_RL_short.sh.
 2. Process these results using heat_alerts/scripts/Final_tuning_evals.R to obtain the final evaluations of the best models.
 
 ### Generate figures and tables for the paper:
