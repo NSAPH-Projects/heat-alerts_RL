@@ -26,7 +26,6 @@ all_counties$`RL Analysis Set`<- all_counties$Fips %in% rl_set_30
 ## Get map data:
 
 shp<- counties()
-# counties<- select(data.frame(shp[,c("GEOID", "STATEFP", "INTPTLON", "INTPTLAT")]), -geometry)
 counties<- data.frame(shp[,c("GEOID", "STATEFP", "INTPTLON", "INTPTLAT")])
 counties$GEOID<- as.numeric(counties$GEOID)
 
