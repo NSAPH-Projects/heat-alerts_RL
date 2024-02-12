@@ -1,12 +1,14 @@
 # Heat Alerts Sequential Decision Making 
 
-This is code for investigating applicability of reinforcement learning (RL) to environmental health, specifically issuance of heat alerts in the United States.
+This is code for investigating applicability of reinforcement learning (RL) to environmental health, specifically issuance of heat alerts in the United States. The associated paper can be found [here](https://arxiv.org/abs/2312.14196). Additional information on the observational dataset we use can be found at the end of this document.
 
 ### Installing the conda environment:
 ```
 conda env create -f envs/rl/env-linux.yaml
 conda activate heatrl
 ```
+
+Versions of primary software used: Python version 3.10.9; cuda version 12.0.1; R version 4.2.2
 
 <ins>**\*\*\*Start here if you have access to the health data\*\*\***</ins>
 
@@ -25,15 +27,14 @@ The files will look like:
 
 ```
 data/processed/
-├── states.parquet  # time-varying features
+├── states.parquet  # time-varying features, num rows = num fips x num days
 ├── actions.parquet  # alert or not
-├── spatial_feats.parquet  # spatial features, num rows = num fips
+├── spatial_feats.parquet  # spatial features, num rows = num fips 
 ├── fips2idx.json  # mapping from fips to row index in spatial_feats.parquet
 ├── location_indices.json  # location (fips index) f each row of states.parquet
-├── offset.parquet  # offset for the poisson regresison, it is the mean of 
-                    # corresponds to
+├── offset.parquet  # offset for the poisson regresison, it is the mean number of hospitalizations for that summer
 ```
-The data is broken in several files. The advantage with this is that it is mostly ML/RL ready and that parquet files can be opened from both Python and R efficiently.
+These files are formatted to be ready for ML/RL; parquet files can be opened from both Python and R efficiently.
 
 ### Bayesian rewards modeling:
 
@@ -73,18 +74,27 @@ The gym environment is detailed in several scripts within the directory heat_ale
 ### Online RL:
 To train an RL model, use the script train_online_rl_sb3.py -- note that there are many possible arguments, passed using Hydra / config files. 
 
-To reproduce the analyses in the paper: 
-
-1. Tune hyperparameters for TRPO for each county (with and without forecasts / future information) by running heat_alerts/online_rl/Online_print_RLs.R followed by Run_jobs/Online_RL_short.sh and/or Run_jobs/Online_tuning.sh (if splitting up the job array is needed). Process these results using heat_alerts/scripts/Final_tuning_evals.R
-2. Train comparison algos (DQN and PPO) and process the evaluation results using the same scripts ^^^
+To reproduce the analyses in the paper, **adjust the algorithms and naming prefixes manually** in the following steps:
+1. Tune hyperparameters for RL for each county by running heat_alerts/online_rl/Online_print_RLs.R followed by Run_jobs/Online_RL_short.sh.
+2. Process these results using heat_alerts/scripts/Final_tuning_evals.R to obtain the final evaluations of the best models.
 
 ### Generate figures and tables for the paper:
 1. Table of descriptive statistics: heat_alerts/scripts/Summary_stats_table.R
-2. Plot of coefficients sampled from the Bayesian rewards model posterior: heat_alerts/bayesian_model/Make_plots.py
-3. Supplementary "time series" plot of observed quantile of heat index, modeled baseline NOHR hospitalizations, and modeled alert effectiveness (assuming no past alerts) across days of summer: (i) get data from heat_alerts/scripts/Time_series_plots.py, then (ii) make plots with heat_alerts/scripts/Make_TS_plots.R
-4. Main RL results table, supplementary table of county characteristics, and supplementary table of RL results using the per-alert (compare_to_zero) metric: heat_alerts/scripts/Make_tables_for_paper.R
+2. Map of counties indicating which were used in the simulator and which were used in the RL analysis: heat_alerts/scripts/Map_counties.R
+3. Plot of coefficients sampled from the Bayesian rewards model posterior: heat_alerts/bayesian_model/Make_plots.py
+   - Obtain the plot illustrating convergence of the loss from tensorboard (from terminal run "tensorboard --logdir logs/\[cfg.model.name\]")
+4. Supplementary "time series" plot of observed quantile of heat index, modeled baseline NOHR hospitalizations, and modeled alert effectiveness (assuming no past alerts) across days of summer: (i) get data from heat_alerts/scripts/Time_series_plots.py, then (ii) make plots with heat_alerts/scripts/Make_TS_plots.R
+5. Main RL results table, supplementary table of county characteristics, and supplementary table of RL results using the per-alert (compare_to_zero) metric: heat_alerts/scripts/Make_tables_for_paper.R
    - To obtain an approximate confidence interval for the absolute number of NOHR hospitalizations saved, use heat_alerts/scripts/Approx_CI.R
-6. Supplemental plots of different heat alert policies for individual counties: heat_alerts/scripts/Mini-case-studies.R
+6. Visualizations of different heat alert policies for individual counties: heat_alerts/scripts/Mini-case-studies.R
 7. Boxplot and histograms of day-of-summer and alert streak lengths: heat_alerts/scripts/Make_plots_for_paper_FINAL.R
-8. CART analysis / plots: heat_alerts/scripts/Investigate_systematic_diffs.R
+8. CART analysis / plots: heat_alerts/scripts/Investigate_systematic_diffs.R -- *manually change the set of CART covariates on lines 113-114 depending on whether you're looking at only alert-related variables or the set of more conventionally interpretable covariates*
+
+****
+
+### Additional information on the data:
+
+We start with a US county-level dataset spanning 2006-2016 (warm months) which has been used in past studies of heat alert effectiveness. Main variables in this dataset are daily values of maximum ambient heat index, heat alerts issued by the National Weather Service, and the number of in-patient fee-for-service Medicare hospitalizations for causes associated with extreme heat in past studies. We additionally compile other datasets to help characterize variability in the health impacts of extreme heat and heat alerts, such as sociodemographics and regional climate zone classifications. References for these datasets and past studies are in our paper.
+
+The main analysis in this paper uses a gym environment (simulator of environmental variables and health outcomes) that we created based on the observed data. This simulator is publicly available. However, the health data that were used to create the model of the health outcomes are highly sensitive, and are only available to researchers with qualifying private servers. Access can be requested via application to the Centers for Medicare and Medicaid Services (see https://www.resdac.org/research-identifiable-files-rif-requests). 
 
