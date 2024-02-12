@@ -1,6 +1,6 @@
 # Data subfolder:
 data/*
-Run_jobs/slurm/*
+run_jobs/slurm/*
 F_accuracy/*
 heat_alerts/time_series_data/*
 
