@@ -1,8 +1,6 @@
 
-# agg_results<- read.csv("Fall_results/December_Rstr-QHI_RL_avg_return.csv")
 agg_results<- read.csv("Fall_results/December_part-2_Rstr-QHI_RL_avg_return.csv")
 
-# Agg_results<- agg_results[which(agg_results$Algo=="trpo" & agg_results$Forecast=="none"),]
 Agg_results<- agg_results[which(agg_results$Algo=="a2c" & agg_results$Forecast=="none"),]
 
 ## Get and scramble episode rewards:
@@ -11,10 +9,7 @@ nws_df<- matrix(0, nrow=1000, ncol=30)
 
 for(i in 1:30){
   county<- Agg_results$County[i]
-  # dat<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_December_",
-  #                       "trpo", "_F-", "none", "_Rstr-HI-", Agg_results$OT[i],
-  #                       "_arch-", Agg_results$NHL[i], "-", Agg_results$NHU[i], "_ns-", Agg_results$n_steps[i],
-  #                       "_fips-", county, "_fips_", county, ".csv"))
+  
   dat<- read.csv(paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_December_",
                         "a2c", "_F-", "none", "_Rstr-HI-", Agg_results$OT[i],
                         "_arch-", Agg_results$NHL[i], "-", Agg_results$NHU[i], "_ns-", Agg_results$n_steps[i],
