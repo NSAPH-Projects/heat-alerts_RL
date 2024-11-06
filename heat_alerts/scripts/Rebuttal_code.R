@@ -192,9 +192,19 @@ rpart.plot(reg_fit, box.palette = 0)
 
 ## Read in the rest of the data:
 
-spatial<- read_parquet("data/processed/spatial_feats.parquet")
+spatial<- read.csv("data/Spatial_info_orig_scale_all_counties.csv")
 
+spatial_2<- read_parquet("data/processed/spatial_feats.parquet")
 
+region_vars<- c("Cold", "Hot-Dry", "Marine", "Mixed-Dry", "Mixed-Humid", "Very Cold")
+Region<- apply(spatial_2[,region_vars],
+               MARGIN=1, function(x) region_vars[which(x == 1)])
+Region[lengths(Region)==0]<- "Hot-Humid"
+spatial_2$Region<- unlist(Region)
+
+Spatial<- inner_join(spatial, spatial_2[,c("fips", "Region")])
+
+## Apply CART results:
 
 
 

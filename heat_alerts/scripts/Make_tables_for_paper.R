@@ -108,6 +108,11 @@ DF<- cbind(DF, acf_auc_1d, acf_auc_3d, acf_auc_5d, acf_auc_7d)
 
 write.csv(DF, "data/Final_30_W.csv")
 
+## Also save a version of spatial data for all the counties:
+
+all_spat<- aggregate(. ~ fips, data[,c("fips", "Pop_density", "Med.HH.Income",  "Democrat", "broadband.usage", "pm25")], mean)
+write.csv(all_spat, "data/Spatial_info_orig_scale_all_counties.csv")
+
 ##### Select one county from each climate region for *preliminary* hyperparameter tuning, using the info above:
 
 regions<- unique(DF$Region)
