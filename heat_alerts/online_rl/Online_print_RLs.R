@@ -16,7 +16,7 @@ n_steps<- c(1500, 3000) # c(1024, 2048, 4096) # 2048
 prefix<- "February"
 
 
-sink("Run_jobs/Online_tests_short")
+sink("run_jobs/Online_tests_short")
 for(k in counties){
   county<- k
   

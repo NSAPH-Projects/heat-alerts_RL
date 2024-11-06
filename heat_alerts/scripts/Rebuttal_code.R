@@ -53,6 +53,33 @@ for(i in 1:nrow(Best)){
 }
 sink()
 
+sink("run_jobs/Eval_jobs")
+for(i in 1:nrow(Best)){
+  county<- Best$County[i]
+  cat(paste0("python full_evaluation_sb3.py policy_type=NWS eval.val_years=true eval.match_similar=false ", "county=", county, 
+             " r_model=", r_model, " model_name=", prefix, " restrict_days=none",
+             " val_years=[", paste(2014:2016, collapse=","), "]",
+             "\n"))
+}
+sink()
+
+## Summarize results:
+
+results<- matrix(0, nrow=nrow(Best), ncol=2)
+results<- data.frame(results)
+names(results)<- c("County", "Eval")  
+
+for(i in 1:nrow(Best)){
+  results[i,]<- c(Best$County[i],
+                  avg_return(by_year=FALSE, filename=paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", "Rebuttal", "_",
+                                                           "a2c", "_F-", "none", "_Rstr-HI-", Best$OT[i],
+                                                           "_arch-", Best$NHL[i], "-", Best$NHU[i], "_ns-", Best$n_steps[i],
+                                                           "_fips-", Best$County[i], "_fips_", Best$County[i], ".csv")))
+}
+
+
+
+
 ## First examine distribution of heat index across years
 
 data<- read_parquet("data/processed/states.parquet")

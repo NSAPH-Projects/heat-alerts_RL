@@ -7,7 +7,7 @@ counties<- c(41067, 53015, 20161, 37085, 48157,
 
 HI_restriction<- seq(0.5, 0.9, 0.05)
 
-sink("Run_jobs/Eval_jobs")
+sink("run_jobs/Eval_jobs")
 for(k in counties){
   county<- k
   for(r_model in c( "mixed_constraints"
@@ -71,7 +71,7 @@ sink()
 
 bench_results<- read.csv("Fall_results/Benchmarks_mixed_constraints_avg_return.csv")
 
-sink("Run_jobs/Eval_jobs")
+sink("run_jobs/Eval_jobs")
 for(k in counties){
   county<- k
   for(r_model in c( "mixed_constraints")){
