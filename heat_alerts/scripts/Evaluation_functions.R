@@ -14,7 +14,7 @@ counties<- c(41067, 53015, 20161, 37085, 48157,
 
 filename<- "Summer_results/ORL_NWS_eval_samp-R_obs-W_mixed_constraints_fips_13031.csv"
 
-avg_return<- function(filename){
+avg_return<- function(filename, by_year=FALSE){
   f<- file.exists(filename) 
   if(f){
     df<- read.csv(filename)[,-1]
@@ -24,7 +24,11 @@ avg_return<- function(filename){
     # agg_df$Budget<- agg_df$Budget/(n_days-1)
     # agg_df$budget_frac<- agg_df$Actions/agg_df$Budget
     agg_df$Frac<- agg_df$Count/sum(agg_df$Count)
-    estimated_reward<- sum(agg_df$Rewards*(1/nrow(agg_df))/agg_df$Frac)/1000
+    if(!by_year){
+      estimated_reward<- sum(agg_df$Rewards*(1/nrow(agg_df))/agg_df$Frac)/1000
+    }else{
+      estimated_reward<- agg_df$Rewards*(1/nrow(agg_df))/agg_df$Frac/1000
+    }
     # return(list(agg_df, estimated_reward))
     return(estimated_reward)
   }else{

@@ -96,7 +96,8 @@ ggplot(plot_DF, aes(x=Policy, y=Diff, color = Region)) +
   ggrepel::geom_text_repel(aes(label=State), na.rm=TRUE, size=2,
                            position = position_jitterdodge(seed=1)) +
   ylab("Policy Return - NWS Return") + 
-  ggtitle("Comparison to NWS: Average Return on Evaluation Years")
+  ggtitle("Comparison to NWS: Average Return on Evaluation Years") +
+  theme(legend.position = "bottom")
 
 
 ########## Histograms of DOS and Streak Lengths:

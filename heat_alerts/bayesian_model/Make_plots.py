@@ -74,8 +74,10 @@ def main(params):
     
     keys0 = [k for k in sample.keys() if k.startswith("effectiveness_")]
     keys1 = [k for k in sample.keys() if k.startswith("baseline_")]
-    keys0.remove("effectiveness_bias")
-    keys1.remove("baseline_bias")
+    keys0 = keys0[0:-4]
+    keys1 = keys1[0:-4]
+    # keys0.remove("effectiveness_bias", 'effectiveness_dos_0', 'effectiveness_dos_1', 'effectiveness_dos_2')
+    # keys1.remove("baseline_bias", 'baseline_dos_0', 'baseline_dos_1', 'baseline_dos_2')
     medians_0 = np.array(
         [torch.quantile(sample[k], 0.5).item() for k in keys0]
     )
@@ -98,11 +100,11 @@ def main(params):
     l1, u1 = medians_1 - q25_1, q75_1 - medians_1
     base_names = [k.split("baseline_")[1] for k in keys1]
     eff_names = [k.split("effectiveness_")[1] for k in keys0]
-    base_names = ["QHI", "QHI>25", "QHI>75", "Excess QHI", "(-)Alert Lag1", "(-)Alerts 2wks", "Weekend",
-                  "DOS_0", "DOS_1", "DOS_2" #, "Bias"
+    base_names = ["QHI", "QHI>25", "QHI>75", "Excess QHI", "(-)Alert Lag1", "(-)Alerts 2wks", "Weekend"
+                  #, "DOS_0", "DOS_1", "DOS_2" #, "Bias"
                   ]
-    eff_names = ["(+)QHI", "(+)Excess QHI", "Alert Lag1", "Alerts 2wks", "Weekend", 
-                 "DOS_0", "DOS_1", "DOS_2" #, "Bias"
+    eff_names = ["(+)QHI", "(+)Excess QHI", "Alert Lag1", "Alerts 2wks", "Weekend"
+                 #, "DOS_0", "DOS_1", "DOS_2" #, "Bias"
                  ]
 
     Sample = [guide(*inputs) for i in range(100)]
@@ -117,7 +119,7 @@ def main(params):
 
     # make coefficient distribution plots for coefficients, error bars are iqr
     # width = 0.35
-    fig, ax = plt.subplots(1, 2, figsize=(9, 3))
+    fig, ax = plt.subplots(1, 2, figsize=(6, 2))
     # ax[0].bar(np.arange(len(eff_names)) - width/2, medians_0, width, yerr=[l0, u0], label='1 sample', capsize=5)
     # ax[0].bar(np.arange(len(eff_names)) + width/2, Medians_0, width, yerr=[L0, U0], label='100 samples', capsize=5)
     ax[0].errorbar(x=eff_names, y=medians_0, yerr=[l0, u0], fmt="o")
