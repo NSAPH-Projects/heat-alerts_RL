@@ -19,10 +19,7 @@ avg_return<- function(filename, by_year=FALSE){
   if(f){
     df<- read.csv(filename)[,-1]
     df$Count<- 1
-    # df$Budget<- df$Budget/(n_days-1)
     agg_df<- aggregate(. ~ Year, df, sum)
-    # agg_df$Budget<- agg_df$Budget/(n_days-1)
-    # agg_df$budget_frac<- agg_df$Actions/agg_df$Budget
     agg_df$Frac<- agg_df$Count/sum(agg_df$Count)
     if(!by_year){
       estimated_reward<- sum(agg_df$Rewards*(1/nrow(agg_df))/agg_df$Frac)/1000
@@ -57,13 +54,12 @@ per_alert<- function(filename){
 
 
 compare_to_zero<- function(filename, Zero){
-  f<- file.exists(filename) # filename<- "Summer_results/ORL_TK_eval_samp-R_obs-W_all_constraints_fips_41067.csv"
-  z<- file.exists(Zero) # Zero<- "Summer_results/ORL_NA_eval_samp-R_obs-W_all_constraints_fips_41067.csv"
+  f<- file.exists(filename)
+  z<- file.exists(Zero)
   if(f & z){
     df<- read.csv(filename)[,-1]
     zero<- read.csv(Zero)[,-1]
     df$Count<- 1
-    # df$Budget<- df$Budget/(n_days-1)
     agg_df<- aggregate(. ~ Year, df, sum)
     agg_zero<- aggregate(. ~ Year, zero, sum)
     pos<- which(agg_df$Actions > 0)
@@ -95,13 +91,10 @@ assess<- function(filename){
       b_100<- mean(D[which(df$B_100 == 1)], na.rm=TRUE)
       above_thresh_skipped<- sum(df$Above_Thresh_Skipped)/n_eps
       fraction_skipped<- above_thresh_skipped / num_alerts
-      # return(list(agg_df, estimated_reward))
-      # x<- c(num_alerts, as.vector(summary_dos), num_streaks, avg_streak_length, avg_streak_length_overall)
       x<- c(num_alerts, summary_dos["Min."], b_50, b_80, b_100, 
             num_streaks, avg_streak_length, avg_streak_length_overall,
             above_thresh_skipped, fraction_skipped)
       result<- data.frame(t(x))
-      # names(result)<- c("AvNAl", "Min_dos", "Q1_dos", "Median_dos", "Mean_dos", "Q3_dos", "Max_dos", "AvNStrk", "AvStrkLn", "AvStrkLn_all")
       names(result)<- c("AvNAl", "Min_dos", "B_50pct", "B_80pct", "B_last", 
                         "AvNStrk", "AvStrkLn", "AvStrkLn_all",
                         "Abv_Skp", "Frac_Abv_Skp")

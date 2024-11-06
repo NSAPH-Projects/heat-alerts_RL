@@ -2,6 +2,8 @@
 
 This is code for investigating applicability of reinforcement learning (RL) to environmental health, specifically issuance of heat alerts in the United States. The associated paper can be found [here](https://arxiv.org/abs/2312.14196). Additional information on the observational dataset we use can be found at the end of this document.
 
+The RL simulator we develop here is available in the Python package [weather2alert](https://github.com/NSAPH-Projects/weather2alert).
+
 ### Installing the conda environment:
 ```
 conda env create -f envs/rl/env-linux.yaml
@@ -37,6 +39,8 @@ data/processed/
 These files are formatted to be ready for ML/RL; parquet files can be opened from both Python and R efficiently.
 
 ### Bayesian rewards modeling:
+
+Details of this model can be found in heat_alerts/bayesian_model/bayesian_model_updated.md
 
 The bulk of the code for this model is in heat_alerts/bayesian_model/pyro_heat_alert.py
 

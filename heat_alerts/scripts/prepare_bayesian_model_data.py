@@ -12,46 +12,6 @@ data_raw = pd.read_csv("data/Summer23_Train_smaller-for-Python.csv")
 data_raw.columns = [col.replace(".", "_") for col in data_raw.columns]
 data_raw.keys()
 
-# # %%
-# unique_fips = data_raw["fips"].unique()
-# fips_ix = np.random.choice(len(unique_fips), 16, replace=False)
-# subfips = unique_fips[fips_ix]
-
-# # %%
-
-# # make a plot panel of 16 counties with a scatter plot
-# # each panel create a scatter plot with a fitted loess curve
-# # of hospitalizations vs. heat index (HI)
-
-
-# import matplotlib.pyplot as plt
-# import seaborn as sns
-# minq = 0.0
-# maxq = 1.0
-# subdata = data_raw[data_raw["fips"].isin(subfips) & (data_raw["quant_HI"] > minq) & (data_raw["quant_HI"] < maxq)]
-
-# hosps_var = "other_hosps"
-# for hi_var in ("HImaxF_PopW", "quant_HI"):
-#     sns.lmplot(
-#         x=hi_var,
-#         y=hosps_var,
-#         col="fips",
-#         col_wrap=4,
-#         data=subdata,
-#         order=2,
-#         # lowess=True,
-#         # no ci
-#         # ci=None,
-#         # scatter_kws={"alpha": 0.1},
-#         line_kws={"color": "red"},
-#         height=1.5,
-#         aspect=1.5,
-#         sharey=False,
-#         scatter=False,
-#     )
-#     plt.savefig(f"preprocessing_{hi_var}_vs_{hosps_var}.png", dpi=300)
-
-
 # %%
 all_cols = [
     "fips",
@@ -225,13 +185,6 @@ Budget = Budget.set_index(["fips", "Date"])
 
 abs_HI = data[["fips", "Date", 'HImaxF_PopW']].set_index(["fips", "Date"])
 
-# plot histograms of alerts and hospos in (1, 2) pane
-# fig, ax = plt.subplots(1, 2, figsize=(10, 5))
-# ax[0].hist(A.values, bins=20)
-# ax[0].set_title("Alerts")
-# ax[1].hist(Y.values, bins=20)
-# ax[1].set_title("Other Hosps")
-
 
 # %% naive estimate
 # without adjutment the mean on alert days is higher
@@ -289,9 +242,6 @@ Budget.to_parquet("data/processed/budget.parquet")
 # %% save scaler info as json
 scaler_info = {
     "xscaler": {
-        # "mean": xscaler.mean_.tolist(),
-        # "scale": xscaler.scale_.tolist(),
-        # "columns": xscaler_cols,
         "mean": [],
         "scale": [],
         "columns": [],
@@ -314,16 +264,12 @@ with open("data/processed/fips2state.json", "w") as f:
 
 # %% save splines
 t_dos = np.arange(0, M)
-# t_dow = np.arange(0, 7)
 Btdos = dmatrix(
     f"bs(t_dos, df=3, degree=3, lower_bound=0, upper_bound={M + 1}) - 1",
     return_type="dataframe",
 )
-# Btdow = dmatrix("bs(t_dow, df=5, degree=3, lower_bound=0, upper_bound=6) - 1", return_type="dataframe")
 Btdos.columns = [f"dos_{i}" for i in range(Btdos.shape[1])]
-# Btdow.columns = [f"dow_{i}" for i in range(Btdow.shape[1])]
 
-#
 Btdos.to_parquet("data/processed/Btdos.parquet")
 
 # %%
@@ -380,7 +326,6 @@ def avg_4ths(x):
         y3.append(np.mean(x[j:np.min([j+q, n])]))
         j += q
         y4.append(np.mean(x[j:n]))
-        # print(i)
     for k in np.arange(0,5):
         y1.append(y1[n-6]) # just repeating because we're at the end of the episode
         y2.append(y2[n-6])

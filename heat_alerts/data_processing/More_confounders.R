@@ -96,16 +96,10 @@ Internet<- data.frame(fips = str_pad(internet$COUNTY.ID, 5, pad="0"),
                       broadband.usage=internet$BROADBAND.USAGE)
 Internet$fips[which(Internet$fips == "46102")]<- "46113"
 full_DF<- inner_join(DF, Internet, by = "fips")
-# Full_DF<- inner_join(full_DF, hvi, by = "fips") 
-# missing_fips<- unique(full_DF$fips[which(! full_DF$fips %in% Full_DF$fips)])
-# Missing<- inner_join(distinct(DF[,c("fips", "Population")]), data.frame(fips=missing_fips))
 
 politics<- read.csv("data/Cleaned_election_data.csv")
 
 politics<- politics %>% na.omit()
-
-# head(politics[order(politics$county_fips),])
-# pol_var<- aggregate(. ~ county_fips, politics, sd)
 
 politics$fips<- str_pad(politics$county_fips, 5, pad="0")
 
@@ -135,10 +129,7 @@ for(f in unique(politics$fips)[-1]){
 
 Full_DF<- inner_join(full_DF, Politics, by = c("fips", "year"))
 
-# saveRDS(Full_DF, "data/Final_data_for_HARL_w-hosps_confounders.rds")
-
 ## Add in time since last alert:
-# Full_DF<- readRDS("data/Final_data_for_HARL_w-hosps_confounders.rds")
 
 n_days<- 153
 episode_inds<- seq(1, nrow(Full_DF), n_days)
@@ -158,7 +149,6 @@ for(i in 2:length(episode_inds)){
   print(i)
 }
 
-# hist(T_since_alert)
 Full_DF$T_since_alert<- T_since_alert
 
 ## Add in annual average air quality:
@@ -179,7 +169,6 @@ Final_DF<- left_join(Full_DF, all_AQ, by = c("fips","year"))
 saveRDS(Final_DF, "data/Final_data_for_HARL_w-hosps_confounders.rds")
 
 
-
 #### *Inspect* alert time deltas:
 
 deltas<- read.csv("data/heat_wave_time_delta.csv")
@@ -198,24 +187,5 @@ Deltas$fips<- str_pad(Deltas$fips, 5, pad="0")
 Deltas$Date<- as.Date(Deltas$Date)
 
 FINAL<- left_join(Final_DF, Deltas) # a lot of missingness
-
-
-# saveRDS(FINAL, "data/Final_data_for_HARL_w-hosps_confounders.rds")
-
-# ## Out of curiosity:
-# 
-# test<- distinct(Full_DF[,c("Population", "Pop_density", "Med.HH.Income", "broadband.usage", "Democrat", "Republican")])
-# test$broadband.usage<- as.numeric(test$broadband.usage)
-# Test<- test[which(test$Population >= 65000),]
-# 
-# library(ggplot2)
-# 
-# ggplot(test, aes(x=log(Pop_density), y=Democrat)) + geom_point() + geom_smooth()
-# 
-# ggplot(test, aes(x=log(Med.HH.Income), y=Republican)) + geom_point() + geom_smooth()
-# 
-# ggplot(distinct(test[,3:4]), aes(x=log(Med.HH.Income), y=broadband.usage)) + geom_point() + geom_smooth()
-# 
-# ggplot(test, aes(x=broadband.usage, y=Democrat))+ geom_point() + geom_smooth()
 
 
