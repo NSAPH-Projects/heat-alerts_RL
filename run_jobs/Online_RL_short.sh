@@ -6,7 +6,7 @@
 #SBATCH -t 0-15:00
 #SBATCH --mem 6G
 #SBATCH --array 0-29 #9599
-#SBATCH -o ./Run_jobs/slurm/orl_rebut.%a.out # orl_short
+#SBATCH -o ./run_jobs/slurm/orl_rebut.%a.out # orl_short
 #SBATCH --mail-user=ellen_considine@g.harvard.edu
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
@@ -14,5 +14,5 @@
 source ~/.bashrc
 mymodules
 cd heat-alerts_mortality_RL
-source activate heatrl
-python Run_jobs/pylauncher.py --job_file="./Run_jobs/Online_tests_short" --i $SLURM_ARRAY_TASK_ID
+conda activate heatrl
+python run_jobs/pylauncher.py --job_file="./run_jobs/Online_tests_short" --i $SLURM_ARRAY_TASK_ID
