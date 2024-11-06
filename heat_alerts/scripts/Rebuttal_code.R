@@ -13,6 +13,8 @@ library(rpart.plot)
 ## Read in results:
 
 Bench<- read.csv("Fall_results/Benchmarks_mixed_constraints_avg_return.csv")
+stationary_W<- read.csv("data/Final_30_W.csv")[,-1]
+stationary_W<- stationary_W[match(Bench$County, stationary_W$Fips),]
 
 best<- read.csv("Fall_results/December_part-2_Rstr-QHI_RL_avg_return.csv")
 Best<- best[which(best$Algo=="a2c" & best$Forecast == "none"),]
@@ -41,8 +43,8 @@ for(i in 1:nrow(Best)){
   
   cat(paste0("python train_online_rl_sb3.py", " county=", Best$County[i], " algo=", algo,
              " deterministic=false",
-             " train_years=[", paste(2006:2013, collapse=", "), "]",
-             " val_years=[", paste(2014:2016, collapse=", "), "]",
+             " train_years=[", paste(2006:2013, collapse=","), "]",
+             " val_years=[", paste(2014:2016, collapse=","), "]",
              " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", Best$OT[i],
              " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", Best$n_steps[i],
              " model_name=", prefix, "_", algo, "_F-", forecasts, "_Rstr-HI-", Best$OT[i],
@@ -140,14 +142,7 @@ m_pos<- match(Bench$County, agg_sl_rl$County)
 ## Define outcomes for CART:
 
 Diff<- Best$Eval - Bench$NWS
-all_results<- data.frame(NWS=Bench$NWS, AA.QHI=Bench$AA_QHI, A2C.QHI=a2c_results$Eval, TRPO.QHI=trpo_results$Eval)
-names(all_results)<- c("NWS", "AA.QHI", "A2C.QHI (RL)", "TRPO.QHI (RL)")
-Y<- names(all_results)[apply(all_results, MARGIN=1, which.max)]
-
-Y_rl<- c("A2C.QHI (RL)", "TRPO.QHI (RL)")[apply(all_results[,c("A2C.QHI (RL)", "TRPO.QHI (RL)")], MARGIN=1, which.max)]
-
-Diff.a<- a2c_results$Eval - Bench$AA_QHI
-# Y.a<- factor(Diff.a > 0)
+Y<- Diff > 0
 
 ## Copied from datautils.py: 
 West<- c("AZ", "CA", "CO", "ID", "MT", "NM", "NV", "OR", "WA", "ND", "SD", "NE", "KS")
@@ -158,73 +153,49 @@ South<- c("TX", "OK", "AR", "LA", "MS", "AL", "GA", "FL", "TN", "KY", "SC", "NC"
 #### Manually select variables for CART analysis (either all or non-modeled set)
 
 ## All variables:
-df_most_interpretable<- data.frame(stationary_W[,c("Region", "Med.HH.Income",   
-                                                   "acf_auc_1d", "acf_auc_3d", 
-                                                   "acf_auc_5d", "acf_auc_7d")],
+df_interpretable<- data.frame(stationary_W[,c("Region", "Med.HH.Income"  
+                                          # , "Democrat", "Pop_density", "pm25", "broadband.usage"
+                                                   # , "acf_auc_1d" 
+                                                   , "acf_auc_3d"
+                                                   # , "acf_auc_5d", "acf_auc_7d"
+                                       )],
                                    Alerts=stationary_W$Alerts/3,
                                    West=stationary_W$State %in% West,
                                    South=stationary_W$State %in% South
+                                  , NWS_SL_avg=agg_sl_nws[m_pos, 2][,4]
 )
-names(df_most_interpretable)<- c("Region", "Med. HH Income", 
-                                 "Cum. ACF. 1d", "Cum. ACF. 3d",
-                                 "Cum. ACF. 5d", "Cum. ACF. 7d",
+names(df_interpretable)<- c("Region", "Med. HH Income",
+                        # "Democrat", "Pop. Density", "PM2.5", "Broadband Usage",
+                                 # "Cum. ACF. 1d", 
+                                  "Cum. ACF. 3d",
+                                 # "Cum. ACF. 5d", "Cum. ACF. 7d",
                                  "No. Alerts", 
-                                 "Western", "Southern")
+                                 "Western", "Southern"
+                                  , "Avg. SL of NWS Alerts"
+                        )
 
-df_alert_related<- data.frame(SD_Eff=stationary_W$SD_Eff,
-                              Alerts=stationary_W$Alerts/3,
-                              RL_DOS_med=agg_dos_rl[m_pos, 2][,3],
-                              # NWS_DOS_med=agg_dos_nws[m_pos, 2][,3],
-                              # AA_DOS_med=agg_dos_aa[m_pos, 2][,3],
-                              NWS_SL_avg=agg_sl_nws[m_pos, 2][,4],
-                              AA_SL_avg=agg_sl_aa[m_pos, 2][,4]
-)
-names(df_alert_related)<- c("stdev(Alert Effectiveness)", "No. Alerts",
-                            "Med. DOS of RL Alerts", 
-                            "Avg. SL of NWS Alerts", "Avg. SL of AA.QHI Alerts"
-)
+CART_df<- df_interpretable
 
-df_all<- data.frame(stationary_W[,c("Region", "Med.HH.Income",
-                                    "SD_Eff", 
-                                    "acf_auc_1d", "acf_auc_3d", "acf_auc_5d", 
-                                    "acf_auc_7d")],
-                    Alerts=stationary_W$Alerts/3,
-                    West=stationary_W$State %in% West,
-                    South=stationary_W$State %in% South,
-                    RL_DOS_med=agg_dos_rl[m_pos, 2][,3],
-                    # NWS_DOS_med=agg_dos_nws[m_pos, 2][,3],
-                    # AA_DOS_med=agg_dos_aa[m_pos, 2][,3],
-                    NWS_SL_avg=agg_sl_nws[m_pos, 2][,4],
-                    AA_SL_avg=agg_sl_aa[m_pos, 2][,4]
-)
-names(df_all)<- c("Region", "Med. HH Income", 
-                  "stdev(Alert Effectiveness)",
-                  "Cum. ACF. 1d", "Cum. ACF. 3d",
-                  "Cum. ACF. 5d", "Cum. ACF. 7d",
-                  "No. Alerts", 
-                  "Western", "Southern",
-                  "Med. DOS of RL Alerts", 
-                  "Avg. SL of NWS Alerts", "Avg. SL of AA.QHI Alerts"
-)
-
-CART_df<- df_most_interpretable
-# CART_df<- df_alert_related
-# CART_df<- df_all
-
-paste(shQuote(names(CART_df)), collapse=", ")
-
-par(mfrow=c(1,2), mai = c(1, 0.5, 0.1, 0.75))
+# par(mfrow=c(1,2), mai = c(1, 0.5, 0.1, 0.75))
 
 ## Compared to NWS:
-class_fit<- rpart(Y ~ ., data = CART_df, method = "class", model = TRUE
-                  , control = rpart.control(minbucket=3)
-)
-rpart.plot(class_fit, box.palette = 0)
+
+# class_fit<- rpart(Y ~ ., data = CART_df, method = "class", model = TRUE
+#                   , control = rpart.control(minbucket=3)
+# )
+# rpart.plot(class_fit, box.palette = 0)
 
 reg_fit<- rpart(Diff ~ ., data = CART_df, method = "anova", model = TRUE
                 , control = rpart.control(minbucket=5) 
 )
 rpart.plot(reg_fit, box.palette = 0)
+
+## Read in the rest of the data:
+
+spatial<- read_parquet("data/processed/spatial_feats.parquet")
+
+
+
 
 
 
