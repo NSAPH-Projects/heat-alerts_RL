@@ -19,6 +19,38 @@ Best<- best[which(best$Algo=="a2c" & best$Forecast == "none"),]
 
 #### Reviewer 3 question about evaluation years:
 
+## Print new model runs with 2014-2016 as the eval years:
+
+r_model<- "mixed_constraints"
+algo<- "a2c"
+forecasts<- "none"
+prefix<- "Rebuttal"
+
+sink("run_jobs/Online_tests_short")
+for(i in 1:nrow(Best)){
+  
+  nhl<- Best$NHL[i]
+  nhu<- Best$NHU[i]
+  if(nhl == 1){
+    arch<- paste0("[", nhu, "]")
+  }else if(nhl == 2){
+    arch<- paste0("[", nhu, ",", nhu, "]")
+  }else if(nhl == 3){
+    arch<- paste0("[", nhu, ",", nhu, ",", nhu, "]")
+  }
+  
+  cat(paste0("python train_online_rl_sb3.py", " county=", Best$County[i], " algo=", algo,
+             " deterministic=false",
+             " train_years=[", paste(2006:2013, collapse=", "), "]",
+             " val_years=[", paste(2014:2016, collapse=", "), "]",
+             " restrict_days=qhi", " forecasts=", forecasts, " restrict_days.HI_restriction=", Best$OT[i],
+             " algo.policy_kwargs.net_arch=", arch, " algo.n_steps=", Best$n_steps[i],
+             " model_name=", prefix, "_", algo, "_F-", forecasts, "_Rstr-HI-", Best$OT[i],
+             "_arch-", nhl, "-", nhu, "_ns-", Best$n_steps[i],
+             "_fips-", Best$County[i], " \n"))
+}
+sink()
+
 ## First examine distribution of heat index across years
 
 data<- read_parquet("data/processed/states.parquet")
