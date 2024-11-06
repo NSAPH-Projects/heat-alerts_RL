@@ -6,6 +6,8 @@ channels:
 dependencies:
   - python=3.10
   - pytorch-cuda=12.1
+  - pandas
+  - matplotlib
   - scipy
   - structlog=20.2.0
   - colorama=0.4.4
