@@ -206,6 +206,37 @@ Spatial<- inner_join(spatial, spatial_2[,c("fips", "Region")])
 
 ## Apply CART results:
 
+res_CART<- function(MHI, region, safe_pol=TRUE){
+  if(MHI < 44400){
+    if(safe_pol){
+      return(0)
+    }else{
+      return(-0.072)
+    }
+  }else{
+    if(MHI >= 48750){
+      if(region %in% c("Hot-Dry", "Mixed-Humid")){
+        return(0.024)
+      }else{
+        return(0.081)
+      }
+    }else{
+      return(0.11)
+    }
+  }
+}
 
+## Check:
+# mean(sapply(1:nrow(Bench), function(i){
+#   res_CART(stationary_W$Med.HH.Income[i], stationary_W$Region[i])
+#   }))
+
+mean(sapply(1:nrow(Spatial), function(i){
+  res_CART(Spatial$Med.HH.Income[i], Spatial$Region[i])
+  }))
+
+table(sapply(1:nrow(Spatial), function(i){
+  res_CART(Spatial$Med.HH.Income[i], Spatial$Region[i])
+}))/nrow(Spatial)
 
 
