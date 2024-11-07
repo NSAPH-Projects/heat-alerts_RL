@@ -65,6 +65,14 @@ sink()
 
 ## Summarize results:
 
+WMW<- function(x, y){ #rl, nws
+  wmw<- wilcox.test(x, y, paired = TRUE, alternative = "greater", exact=FALSE)
+  metrics<- as.vector(c(round(median(x - y, na.rm=TRUE),3), 
+                        wmw$statistic, round(wmw$p.value,5)))
+  return(metrics)
+}
+
+
 results<- matrix(0, nrow=nrow(Best), ncol=2)
 results<- data.frame(results)
 names(results)<- c("County", "Eval")  
@@ -77,8 +85,42 @@ for(i in 1:nrow(Best)){
                                                            "_fips-", Best$County[i], "_fips_", Best$County[i], ".csv")))
 }
 
+nws<- matrix(0, nrow=nrow(Best), ncol=2)
+nws<- data.frame(nws)
+names(nws)<- c("County", "Eval")  
+
+for(i in 1:nrow(Best)){
+  nws[i,]<- c(Best$County[i],
+                  avg_return(by_year=FALSE, filename=paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_", prefix, 
+                             "_fips_", Best$County[i], ".csv")))
+}
+
+overall_2014.2016<- WMW(results$Eval, nws$Eval)
 
 
+results<- matrix(0, nrow=nrow(Best), ncol=2)
+results<- data.frame(results)
+names(results)<- c("County", "Eval")  
+
+for(i in 1:nrow(Best)){
+  results[i,]<- c(Best$County[i],
+                  avg_return(by_year=FALSE, filename=paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", "December", "_",
+                                                            "a2c", "_F-", "none", "_Rstr-HI-", Best$OT[i],
+                                                            "_arch-", Best$NHL[i], "-", Best$NHU[i], "_ns-", Best$n_steps[i],
+                                                            "_fips-", Best$County[i], "_fips_", Best$County[i], ".csv")))
+}
+
+nws<- matrix(0, nrow=nrow(Best), ncol=2)
+nws<- data.frame(nws)
+names(nws)<- c("County", "Eval")  
+
+for(i in 1:nrow(Best)){
+  nws[i,]<- c(Best$County[i],
+              avg_return(by_year=FALSE, filename=paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_", r_model, 
+                                                        "_fips_", Best$County[i], ".csv")))
+}
+
+overall_original<- WMW(results$Eval, nws$Eval)
 
 ## First examine distribution of heat index across years
 
@@ -86,6 +128,8 @@ data<- read_parquet("data/processed/states.parquet")
 Year<- year(data$Date)
 
 Data<- data.frame(Year, QHI = data$quant_HI_county)
+QHI_medians<- aggregate(QHI ~ Year, Data, median)
+
 ggplot(Data, aes(x = as.factor(Year), y = QHI, group=Year)) +
   geom_boxplot() +
   labs(x = "Year", y = "Quantile of Heat Index") +
@@ -115,6 +159,54 @@ for(i in 1:nrow(Best)){
                                                            "_fips_", Best$County[i], ".csv")))
 }
 
+wmw_2007<- WMW(results[,2], nws[,2])
+wmw_2011<- WMW(results[,3], nws[,3])
+wmw_2015<- WMW(results[,4], nws[,4])
+
+## Across the later years:
+results<- matrix(0, nrow=nrow(Best), ncol=4)
+results<- data.frame(results)
+names(results)<- c("County", "2014", "2015", "2016")  
+
+for(i in 1:nrow(Best)){
+  results[i,]<- c(Best$County[i],
+                  avg_return(by_year=TRUE, filename=paste0("Summer_results/ORL_RL_eval_samp-R_obs-W_", prefix, "_",
+                                                           "a2c", "_F-", "none", "_Rstr-HI-", Best$OT[i],
+                                                           "_arch-", Best$NHL[i], "-", Best$NHU[i], "_ns-", Best$n_steps[i],
+                                                           "_fips-", Best$County[i], "_fips_", Best$County[i], ".csv")))
+}
+
+nws<- matrix(0, nrow=nrow(Best), ncol=4)
+nws<- data.frame(results)
+names(nws)<- c("County", "2014", "2015", "2016") 
+
+for(i in 1:nrow(Best)){
+  nws[i,]<- c(Best$County[i],
+              avg_return(by_year=TRUE, filename=paste0("Summer_results/ORL_NWS_eval_samp-R_obs-W_", prefix, 
+                                                       "_fips_", Best$County[i], ".csv")))
+}
+
+wmw_2014<- WMW(results[,2], nws[,2])
+wmw_2015_b<- WMW(results[,3], nws[,3])
+wmw_2016<- WMW(results[,4], nws[,4])
+
+## Summarize in a table:
+DF<- data.frame(cbind(Model=c("Original", rep("", 3), 
+                              "Sequential", rep("", 3)), 
+                Eval_year=c("2007,2011,2015", "2007", "2011", "2015",   
+                            "2014-2016", "2014", "2015", "2016"),
+                rbind(overall_original, 
+                      wmw_2007, wmw_2011, wmw_2015,
+                      overall_2014.2016,
+                      wmw_2014, wmw_2015_b, wmw_2016
+                      )))
+row.names(DF)<- NULL
+DF$QHI_median<- c("",round(QHI_medians[c(2,6,10),2],3), "", round(QHI_medians[9:11,2],3))
+
+names(DF)<- c("Model", "Eval. Period", "Median Diff.", "WMW stat", "p-value", "QHI Median")
+DF<- DF[,c("Model", "Eval. Period", "QHI Median", "Median Diff.", "p-value")]
+DF$`p-value`<- round(as.numeric(DF$`p-value`), 3)
+DF
 
 ## Reshape data to long format
 results_long<- results[,2:4] %>%
